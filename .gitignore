@@ -44,3 +44,4 @@ app.*.map.json
 # Local
 local.properties
 actions-runner/
+actions-runner/
