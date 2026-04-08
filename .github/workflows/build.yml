@@ -7,6 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
+  # ── JOB 1: BUILD DEBUG APK (every push) ──────────────────────────────────
   build-debug:
     name: Build Debug APK
     runs-on: ubuntu-latest
@@ -47,6 +48,7 @@ jobs:
           path: build/app/outputs/flutter-apk/app-debug.apk
           retention-days: 7
 
+  # ── JOB 2: BUILD RELEASE + DEPLOY TO PLAY STORE (only on push to main) ──
   build-release:
     name: Build Release & Deploy
     runs-on: ubuntu-latest
@@ -73,10 +75,12 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      # Decode keystore from GitHub Secret
       - name: Decode keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/billzap.keystore
 
+      # Create key.properties file
       - name: Create key.properties
         run: |
           cat > android/key.properties << KEYEOF
@@ -86,12 +90,15 @@ jobs:
           storeFile=billzap.keystore
           KEYEOF
 
+      # Build signed release APK (split per ABI = smaller files)
       - name: Build release APK
         run: flutter build apk --release --split-per-abi
 
+      # Build signed AAB (required for Play Store)
       - name: Build release AAB
         run: flutter build appbundle --release
 
+      # Upload APKs as artifact (download anytime)
       - name: Upload release APKs
         uses: actions/upload-artifact@v4
         with:
@@ -99,9 +106,21 @@ jobs:
           path: build/app/outputs/flutter-apk/app-*-release.apk
           retention-days: 30
 
+      # Upload AAB as artifact
       - name: Upload release AAB
         uses: actions/upload-artifact@v4
         with:
           name: billzap-release-aab
           path: build/app/outputs/bundle/release/app-release.aab
           retention-days: 30
+
+      # Deploy to Play Store Internal Testing
+      - name: Deploy to Play Store (Internal Track)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_JSON }}
+          packageName: com.billzap.app
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed
+          whatsNewDirectory: distribution/whatsnew
