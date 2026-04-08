@@ -85,7 +85,12 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (!didPop) context.go('/home');
+      },
+      child: Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         backgroundColor: AppColors.card,
@@ -93,7 +98,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
           icon: Container(width: 34, height: 34,
             decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(10)),
             child: const Icon(Icons.close_rounded, size: 19, color: AppColors.t1)),
-          onPressed: () => context.canPop() ? context.pop() : context.go('/home')),
+          onPressed: () => context.go('/home')),
         title: Text('New Invoice', style: GoogleFonts.nunito(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
@@ -455,10 +460,31 @@ class _LineRowState extends State<_LineRow> {
             contentPadding: const EdgeInsets.symmetric(horizontal: 11, vertical: 10)),
           style: GoogleFonts.dmSans(fontSize: 13.5))),
       ]),
-      const Gap(6),
-      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text('GST ${widget.item.gstRate.toInt()}%', style: GoogleFonts.dmSans(
-          fontSize: 11, color: AppColors.t3)),
+      const Gap(8),
+      Row(children: [
+        Text('GST: ', style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.t3)),
+        Expanded(child: DropdownButton<double>(
+          value: [0, 0.25, 5, 12, 18, 28, 40].map((e) => e.toDouble()).contains(widget.item.gstRate)
+            ? widget.item.gstRate : 18.0,
+          isExpanded: true,
+          underline: const SizedBox(),
+          style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.brand, fontWeight: FontWeight.w700),
+          items: [
+            (r: 0.0,   l: '0% — Exempt'),
+            (r: 0.25,  l: '0.25% — Stones'),
+            (r: 5.0,   l: '5% — Essentials'),
+            (r: 12.0,  l: '12% — Standard'),
+            (r: 18.0,  l: '18% — General'),
+            (r: 28.0,  l: '28% — Luxury'),
+            (r: 40.0,  l: '40% — Sin tax'),
+          ].map((g) => DropdownMenuItem(
+            value: g.r,
+            child: Text(g.l, style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.t1)))).toList(),
+          onChanged: (v) {
+            if (v != null) { setState(() => widget.item.gstRate = v); widget.onChange(); }
+          },
+        )),
+        const Gap(8),
         Text(formatCurrency(widget.item.qty * widget.item.rate), style: GoogleFonts.nunito(
           fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.brand)),
       ]),

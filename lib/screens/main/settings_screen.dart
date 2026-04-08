@@ -317,9 +317,14 @@ class _AboutPanel extends StatelessWidget {
     padding: const EdgeInsets.all(14),
     child: Column(children: [
       const Gap(20),
-      Container(width: 80, height: 80,
-        decoration: BoxDecoration(color: AppColors.brand, borderRadius: BorderRadius.circular(22)),
-        child: const Center(child: Text('\u26a1', style: TextStyle(fontSize: 40)))),
+      ClipRRect(
+        borderRadius: BorderRadius.circular(22),
+        child: Image.asset('assets/icon.png',
+          width: 90, height: 90, fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Container(
+            width: 90, height: 90,
+            decoration: BoxDecoration(color: AppColors.brand, borderRadius: BorderRadius.circular(22)),
+            child: const Center(child: Text('⚡', style: TextStyle(fontSize: 42)))))),
       const Gap(16),
       Text('BillZap', style: GoogleFonts.nunito(
         fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.t1)),

@@ -362,3 +362,13 @@ const kUnits = [
   'Nos', 'Pcs', 'Kg', 'Gram', 'Meter', 'Ltr',
   'Box', 'Set', 'Hour', 'Day', 'Month', 'Year',
 ];
+
+const kGstRates = [
+  (rate: 0.0,   label: '0% — Exempt (fresh food, milk, education)'),
+  (rate: 0.25,  label: '0.25% — Rough precious stones'),
+  (rate: 5.0,   label: '5% — Daily essentials, processed food'),
+  (rate: 12.0,  label: '12% — Computers, processed food'),
+  (rate: 18.0,  label: '18% — Standard (electronics, telecom, restaurants)'),
+  (rate: 28.0,  label: '28% — Luxury (cars, AC, high-end products)'),
+  (rate: 40.0,  label: '40% — Sin/Luxury (tobacco, aerated beverages)'),
+];

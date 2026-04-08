@@ -154,14 +154,16 @@ class ReportsScreen extends ConsumerWidget {
 
           // Top customers
           if (topCusts.isNotEmpty)
-            _Card('Top Customers', child: Column(children: [
-              ...topCusts.take(5).map((e) => Padding(
+            _Card('Top Customers', child: Builder(builder: (context) {
+              final maxVal = topCusts.first.value;
+              return Column(children: topCusts.take(5).map((e) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Row(children: [
                   Container(width: 32, height: 32,
                     decoration: BoxDecoration(color: AppColors.brandSoft,
                       borderRadius: BorderRadius.circular(8)),
-                    child: Center(child: Text(e.key[0].toUpperCase(),
+                    child: Center(child: Text(
+                      e.key.isNotEmpty ? e.key[0].toUpperCase() : '?',
                       style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w900, color: AppColors.brand)))),
                   const Gap(10),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -169,16 +171,15 @@ class ReportsScreen extends ConsumerWidget {
                     const Gap(3),
                     ClipRRect(borderRadius: BorderRadius.circular(99),
                       child: LinearProgressIndicator(
-                        value: e.value / topCusts.first.value,
+                        value: maxVal > 0 ? (e.value / maxVal).clamp(0.0, 1.0) : 0,
                         backgroundColor: AppColors.bg, minHeight: 5,
                         valueColor: const AlwaysStoppedAnimation(AppColors.brand))),
                   ])),
                   const Gap(10),
                   Text(formatCurrency(e.value), style: GoogleFonts.nunito(
                     fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.t1)),
-                ])),
-              ),
-            ])),
+                ]))).toList());
+            })),
         ],
       ),
     );
