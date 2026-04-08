@@ -54,22 +54,36 @@ class ReportsScreen extends ConsumerWidget {
         children: [
           // Revenue chart
           _Card('Monthly Revenue', child: Column(children: [
-            SizedBox(height: 140, child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: List.generate(6, (i) => Expanded(child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Container(
-                    height: (vals[i] / maxV * 110).clamp(4.0, 110.0),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    decoration: BoxDecoration(
-                      color: i == 5 ? AppColors.brand : AppColors.brandSoft,
-                      borderRadius: BorderRadius.circular(6))),
-                  const Gap(5),
-                  Text(last6months[i][2] as String, style: GoogleFonts.dmSans(
-                    fontSize: 10, fontWeight: i == 5 ? FontWeight.w700 : FontWeight.w500,
-                    color: i == 5 ? AppColors.brand : AppColors.t3)),
-                ])))),
+            SizedBox(
+              height: 140,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: List.generate(6, (i) {
+                  return Expanded(child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Container(
+                        height: (vals[i] / maxV * 110).clamp(4.0, 110.0),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: i == 5 ? AppColors.brand : AppColors.brandSoft,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      const Gap(5),
+                      Text(
+                        last6months[i][2] as String,
+                        style: GoogleFonts.dmSans(
+                          fontSize: 10,
+                          fontWeight: i == 5 ? FontWeight.w700 : FontWeight.w500,
+                          color: i == 5 ? AppColors.brand : AppColors.t3,
+                        ),
+                      ),
+                    ],
+                  ));
+                }),
+              ),
+            ),
           ])),
           const Gap(12),
 
