@@ -43,6 +43,3 @@ app.*.map.json
 
 # Local
 local.properties
-actions-runner/
-*.keystore.old
-*.keystore
