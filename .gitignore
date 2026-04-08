@@ -46,3 +46,8 @@ local.properties
 actions-runner/
 actions-runner/
 actions-runner/
+billzap.keystore
+billzap.keystore.old
+*.keystore
+*.keystore.old
+android/key.properties
