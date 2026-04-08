@@ -16,14 +16,14 @@ class ReportsScreen extends ConsumerWidget {
     final now  = DateTime.now();
     final months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-    final last6 = List.generate(6, (i) {
+    final last6months = List.generate(6, (i) {
       final d = DateTime(now.year, now.month - 5 + i);
-      return (m: d.month, y: d.year, lbl: months[d.month - 1]);
+      return [d.month, d.year, months[d.month - 1]];
     });
 
-    final vals = last6.map((l) => invs
+    final vals = last6months.map((l) => invs
       .where((i) => i.status == InvoiceStatus.paid &&
-        i.invoiceDate.month == l.m && i.invoiceDate.year == l.y)
+        i.invoiceDate.month == (l[0] as int) && i.invoiceDate.year == (l[1] as int))
       .fold<double>(0, (s, i) => s + i.grandTotal)).toList();
 
     final maxV = vals.isEmpty ? 1.0 : vals.reduce((a, b) => a > b ? a : b).clamp(1.0, double.infinity);
@@ -66,7 +66,7 @@ class ReportsScreen extends ConsumerWidget {
                       color: i == 5 ? AppColors.brand : AppColors.brandSoft,
                       borderRadius: BorderRadius.circular(6))),
                   const Gap(5),
-                  Text(last6[i].lbl, style: GoogleFonts.dmSans(
+                  Text(last6months[i][2] as String, style: GoogleFonts.dmSans(
                     fontSize: 10, fontWeight: i == 5 ? FontWeight.w700 : FontWeight.w500,
                     color: i == 5 ? AppColors.brand : AppColors.t3)),
                 ])))),
@@ -109,34 +109,9 @@ class ReportsScreen extends ConsumerWidget {
 
           // Invoice status
           _Card('Invoice Status', child: Column(children: [
-            ...[
-              (InvoiceStatus.paid, 'Paid', AppColors.green),
-              (InvoiceStatus.sent, 'Sent', AppColors.brand),
-              (InvoiceStatus.pending, 'Pending', AppColors.yellow),
-            ].map((t) {
-              final cnt = invs.where((i) => i.status == t.$1 && !i.isOverdue).length;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Row(children: [
-                  SizedBox(width: 72, child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-                    decoration: BoxDecoration(color: t.$3.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(99)),
-                    child: Text(t.$2, style: GoogleFonts.dmSans(
-                      fontSize: 11.5, fontWeight: FontWeight.w700, color: t.$3)))),
-                  const Gap(10),
-                  Expanded(child: ClipRRect(
-                    borderRadius: BorderRadius.circular(99),
-                    child: LinearProgressIndicator(
-                      value: invs.isEmpty ? 0 : cnt / invs.length,
-                      backgroundColor: AppColors.bg, minHeight: 8,
-                      valueColor: AlwaysStoppedAnimation(t.$3)))),
-                  const Gap(10),
-                  SizedBox(width: 24, child: Text('$cnt',
-                    style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1),
-                    textAlign: TextAlign.right)),
-                ]));
-            }),
+            _statusRow(invs, InvoiceStatus.paid, 'Paid', AppColors.green),
+            _statusRow(invs, InvoiceStatus.sent, 'Sent', AppColors.brand),
+            _statusRow(invs, InvoiceStatus.pending, 'Pending', AppColors.yellow),
             // Overdue
             Builder(builder: (_) {
               final ov = invs.where((i) => i.isOverdue).length;
@@ -194,6 +169,32 @@ class ReportsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+
+Widget _statusRow(List<Invoice> invs, InvoiceStatus status, String label, Color color) {
+  final cnt = invs.where((i) => i.status == status && !i.isOverdue).length;
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Row(children: [
+      SizedBox(width: 72, child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+        decoration: BoxDecoration(color: color.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(99)),
+        child: Text(label, style: GoogleFonts.dmSans(
+          fontSize: 11.5, fontWeight: FontWeight.w700, color: color)))),
+      const Gap(10),
+      Expanded(child: ClipRRect(
+        borderRadius: BorderRadius.circular(99),
+        child: LinearProgressIndicator(
+          value: invs.isEmpty ? 0 : cnt / invs.length,
+          backgroundColor: AppColors.bg, minHeight: 8,
+          valueColor: AlwaysStoppedAnimation(color)))),
+      const Gap(10),
+      SizedBox(width: 24, child: Text('$cnt',
+        style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1),
+        textAlign: TextAlign.right)),
+    ]));
 }
 
 class _Card extends StatelessWidget {

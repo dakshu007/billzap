@@ -41,7 +41,7 @@ class AppTheme {
         secondary: AppColors.green,
         error: AppColors.red,
         surface: AppColors.card,
-        surfaceContainerHighest: AppColors.bg,
+        background: AppColors.bg,
       ),
       scaffoldBackgroundColor: AppColors.bg,
       appBarTheme: AppBarTheme(
@@ -100,11 +100,11 @@ class AppTheme {
         ),
       ),
       switchTheme: SwitchThemeData(
-        thumbColor: WidgetStateProperty.resolveWith((s) =>
-            s.contains(WidgetState.selected) ? Colors.white : AppColors.t4),
-        trackColor: WidgetStateProperty.resolveWith((s) =>
-            s.contains(WidgetState.selected) ? AppColors.brand : AppColors.borderDark),
-        trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+        thumbColor: MaterialStateProperty.resolveWith((s) =>
+            s.contains(MaterialState.selected) ? Colors.white : AppColors.t4),
+        trackColor: MaterialStateProperty.resolveWith((s) =>
+            s.contains(MaterialState.selected) ? AppColors.brand : AppColors.borderDark),
+        trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
       ),
       dividerTheme: const DividerThemeData(color: AppColors.border, space: 1, thickness: 1),
       snackBarTheme: SnackBarThemeData(

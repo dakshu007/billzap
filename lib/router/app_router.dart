@@ -1,5 +1,4 @@
 // lib/router/app_router.dart
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../screens/main/shell_screen.dart';
@@ -22,7 +21,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ShellRoute(
         builder: (context, state, child) {
           final location = state.uri.path;
-          return ShellScreen(child: child, location: location);
+          return ShellScreen(location: location, child: child);
         },
         routes: [
           GoRoute(path: '/home', builder: (c, s) => const DashboardScreen()),

@@ -329,7 +329,7 @@ String formatCurrency(double amount) {
     for (var i = rest.length; i > 0; i -= 2) {
       groups.insert(0, rest.substring(i < 2 ? 0 : i - 2, i));
     }
-    integer = '${groups.join(',')},${last3}';
+    integer = '${groups.join(',')},$last3';
   }
   return '${isNeg ? '-' : ''}\u20b9$integer.$decimal';
 }

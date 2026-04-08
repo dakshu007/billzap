@@ -117,11 +117,16 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
               _TextField(_custName, 'Search or type customer name...'),
               if (_acShow) Positioned(top: 46, left: 0, right: 0, child: Material(
                 elevation: 6, borderRadius: BorderRadius.circular(10),
-                child: ListView(shrinkWrap: true, padding: EdgeInsets.zero, children: _acSugg.map((c) =>
-                  ListTile(dense: true,
-                    title: Text(c.name, style: GoogleFonts.dmSans(fontWeight: FontWeight.w600, fontSize: 13)),
-                    subtitle: c.phone.isNotEmpty ? Text(c.phone, style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.t3)) : null,
-                    onTap: () => _fillCust(c))).toList())),
+                child: ListView(
+                  shrinkWrap: true, padding: EdgeInsets.zero,
+                  children: _acSugg.map((cust) => ListTile(
+                    dense: true,
+                    title: Text(cust.name, style: GoogleFonts.dmSans(fontWeight: FontWeight.w600, fontSize: 13)),
+                    subtitle: cust.phone.isNotEmpty ? Text(cust.phone, style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.t3)) : null,
+                    onTap: () => _fillCust(cust),
+                  )).toList(),
+                ),
+              )),
             ]),
             const Gap(10),
             Row(children: [
