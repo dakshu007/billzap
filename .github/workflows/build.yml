@@ -10,7 +10,7 @@ jobs:
   # ── JOB 1: BUILD DEBUG APK ───────────────────────────────────────────────
   build-debug:
     name: Build Debug APK
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -39,7 +39,7 @@ jobs:
   # ── JOB 2: BUILD RELEASE + DEPLOY TO PLAY STORE ─────────────────────────
   build-release:
     name: Build Release & Deploy to Play Store
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: build-debug
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
