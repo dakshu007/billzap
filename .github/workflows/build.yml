@@ -46,7 +46,7 @@ jobs:
         with:
           name: billzap-debug-apk
           path: build/app/outputs/flutter-apk/app-debug.apk
-          retention-days: 1
+          retention-days: 7
 
   # ── JOB 2: BUILD RELEASE + DEPLOY TO PLAY STORE (only on push to main) ──
   build-release:
@@ -104,7 +104,7 @@ jobs:
         with:
           name: billzap-release-apks
           path: build/app/outputs/flutter-apk/app-*-release.apk
-          retention-days: 1
+          retention-days: 30
 
       # Upload AAB as artifact
       - name: Upload release AAB
@@ -112,7 +112,7 @@ jobs:
         with:
           name: billzap-release-aab
           path: build/app/outputs/bundle/release/app-release.aab
-          retention-days: 1
+          retention-days: 30
 
       # Deploy to Play Store Internal Testing
       - name: Deploy to Play Store (Internal Track)
