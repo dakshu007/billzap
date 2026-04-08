@@ -41,12 +41,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     final c = isPaid ? AppColors.green
         : invoice.isOverdue ? AppColors.red : AppColors.yellow;
 
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) {
-        if (!didPop) context.go('/home');
-      },
-      child: Scaffold(
+    return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         backgroundColor: AppColors.card,
