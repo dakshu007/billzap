@@ -531,13 +531,33 @@ Widget _DateBtn(DateTime date, ValueChanged<DateTime> onPick) =>
       ]))));
 
 Widget _TogRow(String label, String sub, bool value, ValueChanged<bool> onChange) =>
-  Row(children: [
-    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(label, style: GoogleFonts.dmSans(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.t1)),
-      Text(sub, style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.t3)),
-    ])),
-    Switch(value: value, onChanged: onChange, activeColor: AppColors.brand),
-  ]);
+  GestureDetector(
+    onTap: () => onChange(!value),
+    child: Row(children: [
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(label, style: GoogleFonts.dmSans(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.t1)),
+        Text(sub, style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.t3)),
+      ])),
+      AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: 48, height: 28,
+        decoration: BoxDecoration(
+          color: value ? AppColors.brand : AppColors.borderDark,
+          borderRadius: BorderRadius.circular(99)),
+        child: AnimatedAlign(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+          child: Container(
+            margin: const EdgeInsets.all(3),
+            width: 22, height: 22,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(99),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 4)]),
+          )),
+      ),
+    ]));
 
 Widget _TypeBtn(String label, bool selected, VoidCallback onTap) =>
   Expanded(child: GestureDetector(

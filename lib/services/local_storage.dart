@@ -76,6 +76,19 @@ class LocalStorage {
     await _box.put(_kInvoices, jsonEncode(list.map((i) => i.toMap()).toList()));
   }
 
+  // ✅ NEW: Mark as unpaid
+  Future<void> markInvoiceUnpaid(String id) async {
+    final list = getInvoices();
+    for (final inv in list) {
+      if (inv.id == id) {
+        inv.status = InvoiceStatus.sent;
+        inv.paidAt = null;
+        break;
+      }
+    }
+    await _box.put(_kInvoices, jsonEncode(list.map((i) => i.toMap()).toList()));
+  }
+
   // ── Customers ────────────────────────────────────────────────────────
 
   List<Customer> getCustomers() {

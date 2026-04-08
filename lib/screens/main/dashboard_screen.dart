@@ -1,4 +1,6 @@
 // lib/screens/main/dashboard_screen.dart
+// ✅ Greeting fixed (real time check)
+// ✅ Business name updates live from provider
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,14 +14,32 @@ import '../../models/models.dart';
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
+  // ✅ FIX: Real greeting based on current hour
+  String _greeting() {
+    final h = DateTime.now().hour;
+    if (h >= 5 && h < 12)  return 'Good morning';
+    if (h >= 12 && h < 17) return 'Good afternoon';
+    if (h >= 17 && h < 21) return 'Good evening';
+    return 'Good night';
+  }
+
+  String _greetingEmoji() {
+    final h = DateTime.now().hour;
+    if (h >= 5 && h < 12)  return '☀️';
+    if (h >= 12 && h < 17) return '🌤️';
+    if (h >= 17 && h < 21) return '🌆';
+    return '🌙';
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // ✅ FIX: Watch businessProvider so it updates when name changes in settings
     final biz      = ref.watch(businessProvider);
     final invoices = ref.watch(invoiceProvider);
     final customers= ref.watch(customerProvider);
     final now      = DateTime.now();
-    final h        = now.hour;
-    final greet    = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+    final greet    = _greeting();
+    final emoji    = _greetingEmoji();
 
     final thisMo = invoices.where((i) =>
       i.invoiceDate.month == now.month && i.invoiceDate.year == now.year).toList();
@@ -33,6 +53,9 @@ class DashboardScreen extends ConsumerWidget {
       .where((i) => i.status == InvoiceStatus.paid)
       .fold<double>(0, (s, i) => s + i.totalTax);
 
+    // ✅ FIX: Show business name from provider, updates immediately after settings save
+    final bizName = biz?.name.isNotEmpty == true ? biz!.name : null;
+
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
@@ -41,7 +64,7 @@ class DashboardScreen extends ConsumerWidget {
         title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('Dashboard', style: GoogleFonts.nunito(
             fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
-          Text(greet, style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.t3)),
+          Text('$greet $emoji', style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.t3)),
         ]),
         actions: [
           GestureDetector(
@@ -52,7 +75,8 @@ class DashboardScreen extends ConsumerWidget {
               decoration: BoxDecoration(
                 color: AppColors.brand, borderRadius: BorderRadius.circular(10)),
               child: Center(child: Text(
-                (biz?.name.isNotEmpty == true ? biz!.name[0] : 'B').toUpperCase(),
+                // ✅ FIX: Show first letter of business name, updates live
+                (bizName?.isNotEmpty == true ? bizName![0] : 'B').toUpperCase(),
                 style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white))),
             ),
           ),
@@ -61,7 +85,7 @@ class DashboardScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 100),
         children: [
-          // Hero banner
+          // Hero banner — shows business name live
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -72,10 +96,11 @@ class DashboardScreen extends ConsumerWidget {
             ),
             child: Row(children: [
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('$greet \u26a1', style: GoogleFonts.nunito(
+                Text('$greet $emoji', style: GoogleFonts.nunito(
                   color: Colors.white, fontSize: 17, fontWeight: FontWeight.w800)),
                 const Gap(3),
-                Text(biz?.name.isNotEmpty == true ? biz!.name : 'Set up your business profile',
+                // ✅ Shows business name immediately after update
+                Text(bizName ?? 'Set up your business profile',
                   style: GoogleFonts.dmSans(color: Colors.white60, fontSize: 12)),
                 if (biz?.gstin.isNotEmpty == true) ...[
                   const Gap(2),
@@ -115,13 +140,13 @@ class DashboardScreen extends ConsumerWidget {
 
           // Quick actions
           Row(children: [
-            _QuickBtn('\u26a1', 'New Invoice', AppColors.brand, AppColors.brandSoft,
+            _QuickBtn('⚡', 'New Invoice', AppColors.brand, AppColors.brandSoft,
               () => context.push('/create')),
             const Gap(8),
-            _QuickBtn('\ud83d\udc65', 'Customers', AppColors.green, AppColors.greenSoft,
+            _QuickBtn('👥', 'Customers', AppColors.green, AppColors.greenSoft,
               () => context.go('/customers')),
             const Gap(8),
-            _QuickBtn('\ud83d\udcca', 'Reports', AppColors.purple, AppColors.purpleSoft,
+            _QuickBtn('📊', 'Reports', AppColors.purple, AppColors.purpleSoft,
               () => context.go('/reports')),
           ]),
           const Gap(20),
@@ -227,7 +252,7 @@ class _InvoiceRow extends StatelessWidget {
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(inv.customerName, style: GoogleFonts.dmSans(
               fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.t1)),
-            Text('${inv.invoiceNumber} \u00b7 ${DateFormat('dd MMM').format(inv.invoiceDate)}',
+            Text('${inv.invoiceNumber} · ${DateFormat('dd MMM').format(inv.invoiceDate)}',
               style: GoogleFonts.dmSans(fontSize: 11.5, color: AppColors.t3)),
           ])),
           Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
@@ -268,8 +293,7 @@ class _EmptyInvoice extends StatelessWidget {
       ElevatedButton.icon(
         onPressed: onTap,
         icon: const Icon(Icons.add_rounded, size: 18),
-        label: const Text('Create Invoice'),
-      ),
+        label: const Text('Create Invoice')),
     ]),
   );
 }

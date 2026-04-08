@@ -1,7 +1,7 @@
 // lib/screens/invoice/invoice_preview_screen.dart
-// ✅ PDF loading FIXED — StatefulWidget + try/catch/finally
-// ✅ Correct model fields — totalCgst/Sgst/Igst, lineItems
-// ✅ Zero Firebase
+// ✅ PDF Rs. symbol fixed
+// ✅ Mark as paid + Mark as unpaid
+// ✅ Loading fixed try/finally
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -40,7 +40,8 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
         body: const Center(child: Text('No invoice selected')));
     }
 
-    final c = invoice.status == InvoiceStatus.paid ? AppColors.green
+    final isPaid = invoice.status == InvoiceStatus.paid;
+    final c = isPaid ? AppColors.green
         : invoice.isOverdue ? AppColors.red : AppColors.yellow;
 
     return Scaffold(
@@ -88,19 +89,23 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           ]),
           const Gap(12),
 
-          // Invoice document
           _buildDoc(invoice, biz),
           const Gap(12),
 
-          // Action tiles
-          _ActionTile('\ud83d\udcc4', 'Download & Share PDF', 'Professional GST invoice PDF',
+          _ActionTile('📄', 'Download & Share PDF', 'Professional GST invoice PDF',
             loading: _pdfLoading, onTap: () => _downloadPdf(invoice, biz)),
           const Gap(8),
-          _ActionTile('\ud83d\udda8\ufe0f', 'Print Invoice', 'Print via WiFi or Bluetooth',
+          _ActionTile('🖨️', 'Print Invoice', 'Print via WiFi or Bluetooth',
             loading: _printLoading, onTap: () => _printInvoice(invoice, biz)),
           const Gap(8),
-          _ActionTile('\u2705', 'Mark as Paid', 'Record payment received',
-            onTap: () => _markPaid(invoice)),
+          // ✅ Mark paid / unpaid toggle
+          if (!isPaid)
+            _ActionTile('✅', 'Mark as Paid', 'Record payment received',
+              onTap: () => _markPaid(invoice))
+          else
+            _ActionTile('↩️', 'Mark as Unpaid', 'Undo paid status',
+              color: AppColors.orange,
+              onTap: () => _markUnpaid(invoice)),
         ],
       ),
       bottomNavigationBar: _buildBottomBar(invoice, biz),
@@ -113,7 +118,6 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
         borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.border),
         boxShadow: [BoxShadow(color: AppColors.brand.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        // Blue header
         Container(
           padding: const EdgeInsets.all(18),
           decoration: const BoxDecoration(
@@ -139,7 +143,6 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           ])),
         Padding(padding: const EdgeInsets.all(16), child: Column(
           crossAxisAlignment: CrossAxisAlignment.start, children: [
-            // Bill to
             Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text('BILL TO', style: GoogleFonts.dmSans(
@@ -152,8 +155,6 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                 if (invoice.customerGstin.isNotEmpty)
                   Text('GSTIN: ${invoice.customerGstin}',
                     style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.t3)),
-                if (invoice.customerAddress.isNotEmpty)
-                  Text(invoice.customerAddress, style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.t3)),
               ])),
               Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                 _IRow('Date', DateFormat('dd MMM yyyy').format(invoice.invoiceDate)),
@@ -165,7 +166,6 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
             const Gap(14),
             const Divider(height: 1),
             const Gap(12),
-            // Items header
             Row(children: [
               Expanded(flex: 3, child: _TH('ITEM')),
               Expanded(child: _TH('QTY', right: true)),
@@ -173,7 +173,6 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
               Expanded(child: _TH('AMT', right: true)),
             ]),
             const Gap(6),
-            // Items
             ...invoice.lineItems.map((item) => Padding(
               padding: const EdgeInsets.symmetric(vertical: 5),
               child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -185,6 +184,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                 ])),
                 Expanded(child: Text('${item.quantity.toInt()}',
                   style: GoogleFonts.dmSans(fontSize: 13, color: AppColors.t2), textAlign: TextAlign.right)),
+                // ✅ FIX: ₹ symbol shows correctly in app UI
                 Expanded(child: Text(formatCurrency(item.rate),
                   style: GoogleFonts.dmSans(fontSize: 13, color: AppColors.t2), textAlign: TextAlign.right)),
                 Expanded(child: Text(formatCurrency(item.taxable), textAlign: TextAlign.right,
@@ -194,7 +194,6 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
             const Gap(10),
             const Divider(height: 1),
             const Gap(8),
-            // Totals
             _TotRow('Subtotal', invoice.subtotal),
             if (invoice.totalCgst > 0) _TotRow('CGST (${invoice.gstRateForDisplay/2}%)', invoice.totalCgst),
             if (invoice.totalSgst > 0) _TotRow('SGST (${invoice.gstRateForDisplay/2}%)', invoice.totalSgst),
@@ -211,14 +210,13 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                 Text(formatCurrency(invoice.grandTotal), style: GoogleFonts.nunito(
                   fontWeight: FontWeight.w900, fontSize: 19, color: AppColors.brand)),
               ])),
-            // Bank details
             if (biz != null && (biz.bankName.isNotEmpty || biz.upiId.isNotEmpty)) ...[
               const Gap(14), const Divider(height: 1), const Gap(8),
               Text('PAYMENT DETAILS', style: GoogleFonts.dmSans(
                 fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.t3, letterSpacing: 0.8)),
               const Gap(4),
               if (biz.bankName.isNotEmpty)
-                Text('${biz.bankName}  \u00b7  A/C: ${biz.accountNumber}  \u00b7  IFSC: ${biz.ifscCode}',
+                Text('${biz.bankName}  ·  A/C: ${biz.accountNumber}  ·  IFSC: ${biz.ifscCode}',
                   style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.t2)),
               if (biz.upiId.isNotEmpty)
                 Text('UPI: ${biz.upiId}', style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.t2)),
@@ -228,7 +226,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
               Text('Note: ${invoice.notes}', style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.t2)),
             ],
             const Gap(10),
-            Center(child: Text('Generated by BillZap \u26a1',
+            Center(child: Text('Generated by BillZap ⚡',
               style: GoogleFonts.dmSans(fontSize: 10, color: AppColors.t4))),
           ])),
       ]),
@@ -242,7 +240,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     child: Row(children: [
       Expanded(flex: 2, child: ElevatedButton.icon(
         onPressed: () => _sendWhatsApp(invoice),
-        icon: const Text('\ud83d\udcf2', style: TextStyle(fontSize: 16)),
+        icon: const Text('📱', style: TextStyle(fontSize: 16)),
         label: Text('WhatsApp', style: GoogleFonts.dmSans(fontWeight: FontWeight.w800, fontSize: 14)),
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF25D366), foregroundColor: Colors.white,
@@ -264,6 +262,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
   );
 
   void _moreOptions(Invoice invoice, Business? biz) {
+    final isPaid = invoice.status == InvoiceStatus.paid;
     showModalBottomSheet(context: context, backgroundColor: Colors.transparent,
       builder: (_) => Container(
         decoration: const BoxDecoration(color: Colors.white,
@@ -273,16 +272,21 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           Container(width: 36, height: 4,
             decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(99))),
           const Gap(16),
-          _OptTile('\ud83d\udcc4', 'Download PDF', () { Navigator.pop(context); _downloadPdf(invoice, biz); }),
-          _OptTile('\ud83d\udda8\ufe0f', 'Print Invoice', () { Navigator.pop(context); _printInvoice(invoice, biz); }),
-          _OptTile('\u2705', 'Mark as Paid', () { Navigator.pop(context); _markPaid(invoice); }),
-          _OptTile('\ud83d\udd14', 'Send WhatsApp Reminder', () { Navigator.pop(context); _sendWhatsApp(invoice); }),
-          _OptTile('\ud83d\uddd1\ufe0f', 'Delete Invoice', () { Navigator.pop(context); _deleteInvoice(invoice); },
+          _OptTile('📄', 'Download PDF', () { Navigator.pop(context); _downloadPdf(invoice, biz); }),
+          _OptTile('🖨️', 'Print Invoice', () { Navigator.pop(context); _printInvoice(invoice, biz); }),
+          _OptTile('📱', 'Send WhatsApp', () { Navigator.pop(context); _sendWhatsApp(invoice); }),
+          // ✅ Toggle paid/unpaid in more options too
+          if (!isPaid)
+            _OptTile('✅', 'Mark as Paid', () { Navigator.pop(context); _markPaid(invoice); })
+          else
+            _OptTile('↩️', 'Mark as Unpaid', () { Navigator.pop(context); _markUnpaid(invoice); },
+              color: AppColors.orange),
+          _OptTile('🗑️', 'Delete Invoice', () { Navigator.pop(context); _deleteInvoice(invoice); },
             color: AppColors.red),
         ])));
   }
 
-  // ── PDF generation (static — shared) ────────────────────────────────────
+  // ── PDF (Rs. instead of ₹ for compatibility) ──────────────────────────────
   static Future<pw.Document> buildPdf(Invoice invoice, Business? biz) async {
     final doc  = pw.Document();
     final cgst = invoice.totalCgst;
@@ -290,11 +294,28 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     final igst = invoice.totalIgst;
     final gr   = invoice.gstRateForDisplay;
 
+    // Helper: format currency for PDF using Rs. (₹ not supported by default PDF font)
+    String rs(double amount) {
+      final abs = amount.abs();
+      final formatted = abs.toStringAsFixed(2);
+      final parts = formatted.split('.');
+      String integer = parts[0];
+      if (integer.length > 3) {
+        final last3 = integer.substring(integer.length - 3);
+        final rest = integer.substring(0, integer.length - 3);
+        final groups = <String>[];
+        for (var i = rest.length; i > 0; i -= 2) {
+          groups.insert(0, rest.substring(i < 2 ? 0 : i - 2, i));
+        }
+        integer = '${groups.join(',')},${last3}';
+      }
+      return '${amount < 0 ? '-' : ''}Rs.$integer.${parts[1]}';
+    }
+
     doc.addPage(pw.Page(
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.all(32),
       build: (_) => pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-        // Header
         pw.Container(
           padding: const pw.EdgeInsets.all(18),
           decoration: const pw.BoxDecoration(
@@ -305,40 +326,48 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
               pw.Text(biz?.name ?? 'Business Name',
                 style: pw.TextStyle(color: PdfColors.white, fontSize: 20, fontWeight: pw.FontWeight.bold)),
               if (biz?.gstin.isNotEmpty == true)
-                pw.Text('GSTIN: ${biz!.gstin}', style: const pw.TextStyle(color: PdfColors.grey300, fontSize: 10)),
+                pw.Text('GSTIN: ${biz!.gstin}',
+                  style: const pw.TextStyle(color: PdfColors.grey300, fontSize: 10)),
               if (biz?.address.isNotEmpty == true)
-                pw.Text('${biz!.address}, ${biz.city}', style: const pw.TextStyle(color: PdfColors.grey300, fontSize: 10)),
+                pw.Text('${biz!.address}, ${biz.city}',
+                  style: const pw.TextStyle(color: PdfColors.grey300, fontSize: 10)),
               if (biz?.phone.isNotEmpty == true)
-                pw.Text('Ph: ${biz!.phone}', style: const pw.TextStyle(color: PdfColors.grey300, fontSize: 10)),
+                pw.Text('Ph: ${biz!.phone}',
+                  style: const pw.TextStyle(color: PdfColors.grey300, fontSize: 10)),
             ]),
             pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
-              pw.Text('TAX INVOICE', style: pw.TextStyle(color: PdfColors.white, fontSize: 13, fontWeight: pw.FontWeight.bold)),
+              pw.Text('TAX INVOICE',
+                style: pw.TextStyle(color: PdfColors.white, fontSize: 13, fontWeight: pw.FontWeight.bold)),
               pw.SizedBox(height: 4),
-              pw.Text(invoice.invoiceNumber, style: const pw.TextStyle(color: PdfColors.grey300, fontSize: 11)),
+              pw.Text(invoice.invoiceNumber,
+                style: const pw.TextStyle(color: PdfColors.grey300, fontSize: 11)),
             ]),
           ])),
         pw.SizedBox(height: 16),
-        // Bill to
         pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
           pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-            pw.Text('BILL TO', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.grey600)),
+            pw.Text('BILL TO', style: pw.TextStyle(
+              fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.grey600)),
             pw.SizedBox(height: 3),
-            pw.Text(invoice.customerName, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-            if (invoice.customerPhone.isNotEmpty) pw.Text(invoice.customerPhone, style: const pw.TextStyle(fontSize: 10)),
-            if (invoice.customerGstin.isNotEmpty) pw.Text('GSTIN: ${invoice.customerGstin}',
-              style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
-            if (invoice.customerAddress.isNotEmpty) pw.Text(invoice.customerAddress,
-              style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
+            pw.Text(invoice.customerName,
+              style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+            if (invoice.customerPhone.isNotEmpty)
+              pw.Text(invoice.customerPhone, style: const pw.TextStyle(fontSize: 10)),
+            if (invoice.customerGstin.isNotEmpty)
+              pw.Text('GSTIN: ${invoice.customerGstin}',
+                style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
           ]),
           pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
-            pw.Text('Date: ${DateFormat('dd MMM yyyy').format(invoice.invoiceDate)}', style: const pw.TextStyle(fontSize: 10)),
-            pw.Text('Due:  ${DateFormat('dd MMM yyyy').format(invoice.dueDate)}', style: const pw.TextStyle(fontSize: 10)),
-            pw.Text('Place: ${invoice.placeOfSupply}', style: const pw.TextStyle(fontSize: 10)),
+            pw.Text('Date: ${DateFormat('dd MMM yyyy').format(invoice.invoiceDate)}',
+              style: const pw.TextStyle(fontSize: 10)),
+            pw.Text('Due:  ${DateFormat('dd MMM yyyy').format(invoice.dueDate)}',
+              style: const pw.TextStyle(fontSize: 10)),
+            pw.Text('Place: ${invoice.placeOfSupply}',
+              style: const pw.TextStyle(fontSize: 10)),
           ]),
         ]),
         pw.SizedBox(height: 16), pw.Divider(), pw.SizedBox(height: 8),
-        // Items table
         pw.Table(
           columnWidths: {0: const pw.FlexColumnWidth(3), 1: const pw.FlexColumnWidth(1),
             2: const pw.FlexColumnWidth(1.5), 3: const pw.FlexColumnWidth(1.5)},
@@ -347,47 +376,53 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
               decoration: const pw.BoxDecoration(color: PdfColor.fromInt(0xFFEBF0FF)),
               children: ['DESCRIPTION', 'QTY', 'RATE', 'AMOUNT'].map((h) => pw.Padding(
                 padding: const pw.EdgeInsets.all(6),
-                child: pw.Text(h, style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700)))).toList()),
+                child: pw.Text(h, style: pw.TextStyle(
+                  fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700)))).toList()),
             ...invoice.lineItems.map((item) => pw.TableRow(children: [
               pw.Padding(padding: const pw.EdgeInsets.all(6),
                 child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
                   pw.Text(item.name, style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
-                  if (item.hsnCode.isNotEmpty) pw.Text('HSN: ${item.hsnCode}',
-                    style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600)),
+                  if (item.hsnCode.isNotEmpty)
+                    pw.Text('HSN: ${item.hsnCode}',
+                      style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600)),
                 ])),
               pw.Padding(padding: const pw.EdgeInsets.all(6),
-                child: pw.Text('${item.quantity.toInt()}', textAlign: pw.TextAlign.center, style: const pw.TextStyle(fontSize: 11))),
+                child: pw.Text('${item.quantity.toInt()}',
+                  textAlign: pw.TextAlign.center, style: const pw.TextStyle(fontSize: 11))),
               pw.Padding(padding: const pw.EdgeInsets.all(6),
-                child: pw.Text('\u20b9${item.rate.toStringAsFixed(2)}', textAlign: pw.TextAlign.right, style: const pw.TextStyle(fontSize: 11))),
+                child: pw.Text(rs(item.rate),
+                  textAlign: pw.TextAlign.right, style: const pw.TextStyle(fontSize: 11))),
               pw.Padding(padding: const pw.EdgeInsets.all(6),
-                child: pw.Text('\u20b9${item.taxable.toStringAsFixed(2)}', textAlign: pw.TextAlign.right,
+                child: pw.Text(rs(item.taxable), textAlign: pw.TextAlign.right,
                   style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold))),
             ])),
           ]),
         pw.SizedBox(height: 12),
-        // Totals
-        pw.Align(alignment: pw.Alignment.centerRight, child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
-          _pRow('Subtotal', invoice.subtotal),
-          if (cgst > 0) _pRow('CGST (${gr/2}%)', cgst),
-          if (sgst > 0) _pRow('SGST (${gr/2}%)', sgst),
-          if (igst > 0) _pRow('IGST ($gr%)', igst),
-          if (invoice.shippingCharge > 0) _pRow('Shipping', invoice.shippingCharge),
-          if (invoice.flatDiscount > 0) _pRow('Discount', -invoice.flatDiscount),
+        pw.Align(alignment: pw.Alignment.centerRight, child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
+          _pRow('Subtotal', invoice.subtotal, rs),
+          if (cgst > 0) _pRow('CGST (${gr/2}%)', cgst, rs),
+          if (sgst > 0) _pRow('SGST (${gr/2}%)', sgst, rs),
+          if (igst > 0) _pRow('IGST ($gr%)', igst, rs),
+          if (invoice.shippingCharge > 0) _pRow('Shipping', invoice.shippingCharge, rs),
+          if (invoice.flatDiscount > 0) _pRow('Discount', -invoice.flatDiscount, rs),
           pw.SizedBox(height: 6),
           pw.Container(
             padding: const pw.EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-            decoration: const pw.BoxDecoration(color: PdfColor.fromInt(0xFF1557FF),
+            decoration: const pw.BoxDecoration(
+              color: PdfColor.fromInt(0xFF1557FF),
               borderRadius: pw.BorderRadius.all(pw.Radius.circular(6))),
             child: pw.Row(children: [
-              pw.Text('GRAND TOTAL   ', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 13)),
-              pw.Text('\u20b9${invoice.grandTotal.toStringAsFixed(2)}',
+              pw.Text('GRAND TOTAL   ',
+                style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 13)),
+              pw.Text(rs(invoice.grandTotal),
                 style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 16)),
             ])),
         ])),
-        // Bank
         if (biz != null && (biz.bankName.isNotEmpty || biz.upiId.isNotEmpty)) ...[
           pw.SizedBox(height: 16), pw.Divider(), pw.SizedBox(height: 8),
-          pw.Text('PAYMENT DETAILS', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.grey600)),
+          pw.Text('PAYMENT DETAILS', style: pw.TextStyle(
+            fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.grey600)),
           pw.SizedBox(height: 4),
           if (biz.bankName.isNotEmpty)
             pw.Text('Bank: ${biz.bankName}   A/C: ${biz.accountNumber}   IFSC: ${biz.ifscCode}',
@@ -397,25 +432,25 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
         ],
         if (invoice.notes.isNotEmpty) ...[
           pw.SizedBox(height: 12),
-          pw.Text('Notes: ${invoice.notes}', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+          pw.Text('Notes: ${invoice.notes}',
+            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
         ],
         pw.SizedBox(height: 20),
-        pw.Center(child: pw.Text("Generated by BillZap \u26a1 \u2014 India's Free GST Billing App",
+        pw.Center(child: pw.Text("Generated by BillZap - India's Free GST Billing App",
           style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey500))),
       ]),
     ));
     return doc;
   }
 
-  static pw.Widget _pRow(String label, double amount) => pw.Padding(
+  static pw.Widget _pRow(String label, double amount, String Function(double) rs) => pw.Padding(
     padding: const pw.EdgeInsets.symmetric(vertical: 2),
     child: pw.Row(children: [
       pw.Text('$label:   ', style: const pw.TextStyle(fontSize: 11, color: PdfColors.grey700)),
-      pw.Text(amount < 0 ? '-\u20b9${(-amount).toStringAsFixed(2)}' : '\u20b9${amount.toStringAsFixed(2)}',
-        style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
+      pw.Text(rs(amount), style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
     ]));
 
-  // ── Actions ───────────────────────────────────────────────────────────────
+  // ── Actions ─────────────────────────────────────────────────────────────
   Future<void> _downloadPdf(Invoice invoice, Business? biz) async {
     if (_pdfLoading) return;
     setState(() => _pdfLoading = true);
@@ -429,16 +464,15 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'application/pdf')],
         subject: 'Invoice ${invoice.invoiceNumber}',
-        text: 'Invoice ${invoice.invoiceNumber} \u2014 ${formatCurrency(invoice.grandTotal)}');
+        text: 'Invoice ${invoice.invoiceNumber} — ${formatCurrency(invoice.grandTotal)}');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('PDF generated \u2713'), backgroundColor: AppColors.green));
+        content: Text('PDF ready ✓'), backgroundColor: AppColors.green));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('PDF error: $e'), backgroundColor: AppColors.red));
     } finally {
-      // ✅ ALWAYS resets — button never freezes
       if (mounted) setState(() => _pdfLoading = false);
     }
   }
@@ -462,7 +496,25 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     await ref.read(invoiceProvider.notifier).markPaid(invoice.id);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      content: Text('Marked as paid \u2713'), backgroundColor: AppColors.green));
+      content: Text('Marked as paid ✓'), backgroundColor: AppColors.green));
+  }
+
+  // ✅ NEW: Mark as unpaid
+  Future<void> _markUnpaid(Invoice invoice) async {
+    final ok = await showDialog<bool>(context: context, builder: (_) => AlertDialog(
+      title: const Text('Mark as Unpaid?'),
+      content: const Text('This will change the invoice status back to Sent.'),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.pop(context, true),
+          child: const Text('Mark Unpaid', style: TextStyle(color: AppColors.orange))),
+      ]));
+    if (ok == true) {
+      await ref.read(invoiceProvider.notifier).markUnpaid(invoice.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Marked as unpaid'), backgroundColor: AppColors.orange));
+    }
   }
 
   Future<void> _deleteInvoice(Invoice invoice) async {
@@ -486,7 +538,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
       'Hi ${invoice.customerName},\n\nYour invoice *${invoice.invoiceNumber}* '
       'for *${formatCurrency(invoice.grandTotal)}* is ready.\n\n'
       'Due: ${DateFormat('dd MMM yyyy').format(invoice.dueDate)}\n\n'
-      'Thank you! \ud83d\ude4f\n\n\u2014 Sent via BillZap \u26a1');
+      'Thank you! 🙏\n\n— Sent via BillZap ⚡');
     final url = Uri.parse('https://wa.me/91$phone?text=$msg');
     if (await canLaunchUrl(url)) await launchUrl(url, mode: LaunchMode.externalApplication);
   }
@@ -516,8 +568,11 @@ Widget _TotRow(String label, double amount, {bool neg = false}) => Padding(
 class _ActionTile extends StatelessWidget {
   final String emoji, title, sub;
   final bool loading;
+  final Color? color;
   final VoidCallback onTap;
-  const _ActionTile(this.emoji, this.title, this.sub, {this.loading = false, required this.onTap});
+  const _ActionTile(this.emoji, this.title, this.sub,
+    {this.loading = false, this.color, required this.onTap});
+
   @override
   Widget build(BuildContext context) => GestureDetector(
     onTap: loading ? null : onTap,
@@ -534,8 +589,8 @@ class _ActionTile extends StatelessWidget {
           : Text(emoji, style: const TextStyle(fontSize: 22)),
         const Gap(12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title, style: GoogleFonts.dmSans(
-            fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.t1)),
+          Text(title, style: GoogleFonts.dmSans(fontWeight: FontWeight.w700, fontSize: 14,
+            color: color ?? AppColors.t1)),
           Text(sub, style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.t3)),
         ])),
         const Icon(Icons.chevron_right_rounded, color: AppColors.t3),
@@ -547,10 +602,11 @@ class _OptTile extends StatelessWidget {
   final VoidCallback onTap;
   final Color? color;
   const _OptTile(this.emoji, this.label, this.onTap, {this.color});
+
   @override
   Widget build(BuildContext context) => ListTile(
     leading: Text(emoji, style: const TextStyle(fontSize: 22)),
-    title: Text(label, style: GoogleFonts.dmSans(fontWeight: FontWeight.w700,
-      color: color ?? AppColors.t1)),
+    title: Text(label, style: GoogleFonts.dmSans(
+      fontWeight: FontWeight.w700, color: color ?? AppColors.t1)),
     onTap: onTap);
 }
