@@ -1,7 +1,7 @@
 // lib/screens/main/shell_screen.dart
-// ✅ Smooth tab transitions
-// ✅ Swipe back → home (not exit)
-// ✅ Double swipe → exit app
+// ✅ PopScope with double-back-to-exit
+// ✅ On any tab except home → back goes to home
+// ✅ On home → first back shows toast, second back exits
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -18,33 +18,47 @@ class ShellScreen extends StatefulWidget {
 }
 
 class _ShellScreenState extends State<ShellScreen> {
+  // ✅ Timestamp of last back press (for double-back-to-exit)
   DateTime? _lastBackPress;
 
-  // Double tap back to exit
-  Future<bool> _onWillPop() async {
-    // If on home page — double back to exit
-    if (widget.location.startsWith('/home')) {
-      final now = DateTime.now();
-      if (_lastBackPress == null ||
-          now.difference(_lastBackPress!) > const Duration(seconds: 2)) {
-        _lastBackPress = now;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Swipe back again to exit',
-              style: GoogleFonts.dmSans(fontWeight: FontWeight.w600)),
-            duration: const Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            backgroundColor: AppColors.t1,
-          ),
-        );
-        return false;
-      }
-      return true; // exit app
+  /// Returns true if app should exit, false otherwise
+  Future<bool> _handleBackPress() async {
+    final isHome = widget.location.startsWith('/home');
+
+    if (!isHome) {
+      // ✅ Not on home → navigate to home instead of exiting
+      context.go('/home');
+      return false;
     }
-    // On any other tab — go to home instead of exiting
-    context.go('/home');
-    return false;
+
+    // ✅ On home page → double back to exit
+    final now = DateTime.now();
+    final lastPress = _lastBackPress;
+
+    if (lastPress == null || now.difference(lastPress) > const Duration(seconds: 2)) {
+      // First press → show toast and record timestamp
+      _lastBackPress = now;
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(children: [
+            const Icon(Icons.exit_to_app_rounded, color: Colors.white, size: 18),
+            const SizedBox(width: 10),
+            Text('Press back again to exit',
+              style: GoogleFonts.dmSans(fontWeight: FontWeight.w600, fontSize: 13)),
+          ]),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.t1,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.fromLTRB(14, 0, 14, 20),
+        ),
+      );
+      return false; // don't exit yet
+    }
+
+    // Second press within 2 seconds → exit app
+    return true;
   }
 
   int get _idx {
@@ -63,13 +77,13 @@ class _ShellScreenState extends State<ShellScreen> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
+      // ✅ Never allow default pop — we handle it ourselves
       canPop: false,
       onPopInvoked: (didPop) async {
-        if (!didPop) {
-          final shouldPop = await _onWillPop();
-          if (shouldPop && context.mounted) {
-            SystemNavigator.pop();
-          }
+        if (didPop) return;
+        final shouldExit = await _handleBackPress();
+        if (shouldExit && context.mounted) {
+          SystemNavigator.pop(); // exit the app
         }
       },
       child: Scaffold(
@@ -141,27 +155,23 @@ class _NavItem extends StatelessWidget {
     child: InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOutCubic,
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          AnimatedScale(
-            scale: on ? 1.15 : 1.0,
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOutCubic,
-            child: Icon(icon, size: 22, color: on ? AppColors.brand : AppColors.t3),
-          ),
-          const SizedBox(height: 2),
-          AnimatedDefaultTextStyle(
-            duration: const Duration(milliseconds: 200),
-            style: GoogleFonts.dmSans(
-              fontSize: 10,
-              fontWeight: on ? FontWeight.w700 : FontWeight.w500,
-              color: on ? AppColors.brand : AppColors.t3),
-            child: Text(label),
-          ),
-        ]),
-      ),
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        AnimatedScale(
+          scale: on ? 1.15 : 1.0,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          child: Icon(icon, size: 22, color: on ? AppColors.brand : AppColors.t3),
+        ),
+        const SizedBox(height: 2),
+        AnimatedDefaultTextStyle(
+          duration: const Duration(milliseconds: 200),
+          style: GoogleFonts.dmSans(
+            fontSize: 10,
+            fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+            color: on ? AppColors.brand : AppColors.t3),
+          child: Text(label),
+        ),
+      ]),
     ),
   );
 }
