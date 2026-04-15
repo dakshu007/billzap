@@ -24,16 +24,12 @@ class _ShellScreenState extends State<ShellScreen>
     with SingleTickerProviderStateMixin {
   DateTime? _lastBackPress;
 
-  // Previous location to detect direction of tab switch
-  String _prevLocation = '/home';
-
   late AnimationController _tabAnim;
   late Animation<double> _fadeAnim;
 
   @override
   void initState() {
     super.initState();
-    _prevLocation = widget.location;
     _tabAnim = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 220),
@@ -46,7 +42,6 @@ class _ShellScreenState extends State<ShellScreen>
   void didUpdateWidget(ShellScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.location != widget.location) {
-      _prevLocation = oldWidget.location;
       _tabAnim.forward(from: 0.0);
     }
   }
@@ -116,15 +111,9 @@ class _ShellScreenState extends State<ShellScreen>
       child: Scaffold(
         body: FadeTransition(
           opacity: _fadeAnim,
-          child: SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0, 0.015),
-              end: Offset.zero,
-            ).animate(_fadeAnim),
-            child: KeyedSubtree(
-              key: ValueKey(widget.location),
-              child: widget.child,
-            ),
+          child: KeyedSubtree(
+            key: ValueKey(widget.location),
+            child: widget.child,
           ),
         ),
         bottomNavigationBar: _BottomNav(
