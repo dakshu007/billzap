@@ -43,3 +43,8 @@ app.*.map.json
 
 # Local
 local.properties
+android/app/src/main/res/mipmap-hdpi/ic_launcher.xml
+android/app/src/main/res/mipmap-mdpi/ic_launcher.xml
+android/app/src/main/res/mipmap-xhdpi/ic_launcher.xml
+android/app/src/main/res/mipmap-xxhdpi/ic_launcher.xml
+android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.xml
