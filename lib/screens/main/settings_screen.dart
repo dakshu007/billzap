@@ -24,7 +24,7 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
     backgroundColor: AppColors.bg,
     appBar: AppBar(
       automaticallyImplyLeading: false, backgroundColor: AppColors.card,
-      title: Text('Settings', style: GoogleFonts.nunito(
+      title: Text('Settings', style: GoogleFonts.plusJakartaSans(
         fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
       bottom: PreferredSize(preferredSize: const Size.fromHeight(44),
         child: Row(children: [
@@ -53,7 +53,7 @@ class _TabBtn extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 11),
       decoration: BoxDecoration(border: Border(bottom: BorderSide(
         color: idx == cur ? AppColors.brand : Colors.transparent, width: 2))),
-      child: Text(label, textAlign: TextAlign.center, style: GoogleFonts.dmSans(
+      child: Text(label, textAlign: TextAlign.center, style: GoogleFonts.plusJakartaSans(
         fontSize: 12, fontWeight: FontWeight.w700,
         color: idx == cur ? AppColors.brand : AppColors.t3)),
     )));
@@ -122,7 +122,7 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
           contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13)),
         items: kStates.map((s) {
           final name = s.split(' (')[0];
-          return DropdownMenuItem(value: name, child: Text(s, style: GoogleFonts.dmSans(fontSize: 13)));
+          return DropdownMenuItem(value: name, child: Text(s, style: GoogleFonts.plusJakartaSans(fontSize: 13)));
         }).toList(),
         onChanged: (v) => setState(() => _state = v ?? _state)),
       const Gap(20),
@@ -132,7 +132,7 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
         child: _saving
           ? const SizedBox(width: 20, height: 20,
               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-          : Text('Save Business Profile', style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w700)))),
+          : Text('Save Business Profile', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700)))),
     ]),
   );
 
@@ -214,7 +214,7 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
         child: _saving
           ? const SizedBox(width: 20, height: 20,
               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-          : Text('Save Bank Details', style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w700)))),
+          : Text('Save Bank Details', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700)))),
     ]),
   );
 
@@ -278,7 +278,7 @@ class _InvoicePanelState extends ConsumerState<_InvoicePanel> {
           enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(color: AppColors.border)),
           contentPadding: const EdgeInsets.all(13)),
-        style: GoogleFonts.dmSans(fontSize: 13.5)),
+        style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
       const Gap(20),
       SizedBox(width: double.infinity, child: ElevatedButton(
         onPressed: _saving ? null : _save,
@@ -286,7 +286,7 @@ class _InvoicePanelState extends ConsumerState<_InvoicePanel> {
         child: _saving
           ? const SizedBox(width: 20, height: 20,
               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-          : Text('Save Defaults', style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w700)))),
+          : Text('Save Defaults', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700)))),
     ]),
   );
 
@@ -327,9 +327,9 @@ class _AboutPanel extends StatelessWidget {
             decoration: BoxDecoration(color: AppColors.brand, borderRadius: BorderRadius.circular(22)),
             child: const Center(child: Text('⚡', style: TextStyle(fontSize: 42)))))),
       const Gap(16),
-      Text('BillZap', style: GoogleFonts.nunito(
+      Text('BillZap', style: GoogleFonts.plusJakartaSans(
         fontSize: 28, fontWeight: FontWeight.w900, color: AppColors.t1)),
-      Text('v1.3.0 \u00b7 GST Billing for India', style: GoogleFonts.dmSans(
+      Text('v1.3.0 \u00b7 GST Billing for India', style: GoogleFonts.plusJakartaSans(
         fontSize: 13, color: AppColors.t3)),
       const Gap(20),
       Container(
@@ -339,12 +339,12 @@ class _AboutPanel extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: AppColors.green.withOpacity(0.25))),
         child: Column(children: [
-          Text('\u2705 100% Offline \u2014 No Internet Needed', style: GoogleFonts.dmSans(
+          Text('\u2705 100% Offline \u2014 No Internet Needed', style: GoogleFonts.plusJakartaSans(
             fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.green)),
           const Gap(5),
           Text('All your data lives on your device.\nNo cloud, no servers, no privacy concerns.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.dmSans(fontSize: 12.5, color: AppColors.t2)),
+            style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.t2)),
         ])),
       const Gap(14),
       Container(
@@ -353,7 +353,7 @@ class _AboutPanel extends StatelessWidget {
         decoration: BoxDecoration(color: AppColors.card,
           borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.border)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Features', style: GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w800)),
+          Text('Features', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w800)),
           const Gap(10),
           ...['GST Invoice (CGST / SGST / IGST)',
               'PDF generation & WhatsApp share',
@@ -366,14 +366,14 @@ class _AboutPanel extends StatelessWidget {
             child: Row(children: [
               const Icon(MaterialSymbols.check_circle, size: 16, color: AppColors.green),
               const Gap(8),
-              Text(f, style: GoogleFonts.dmSans(fontSize: 13, color: AppColors.t2)),
+              Text(f, style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t2)),
             ]))),
         ])),
       const Gap(20),
       Text('Made with \u2764\ufe0f in Coimbatore, Tamil Nadu \ud83c\uddee\ud83c\uddf3',
-        style: GoogleFonts.dmSans(fontSize: 13, color: AppColors.t3)),
+        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t3)),
       const Gap(4),
-      Text('\u00a9 2026 BillZap Technologies', style: GoogleFonts.dmSans(
+      Text('\u00a9 2026 BillZap Technologies', style: GoogleFonts.plusJakartaSans(
         fontSize: 12, color: AppColors.t4)),
       const Gap(20),
     ]));
@@ -382,11 +382,11 @@ class _AboutPanel extends StatelessWidget {
 // ─── Shared helpers ───────────────────────────────────────────────────────
 Widget _Sec(String t) => Padding(
   padding: const EdgeInsets.only(bottom: 12),
-  child: Text(t, style: GoogleFonts.nunito(fontSize: 14.5, fontWeight: FontWeight.w800, color: AppColors.t1)));
+  child: Text(t, style: GoogleFonts.plusJakartaSans(fontSize: 14.5, fontWeight: FontWeight.w800, color: AppColors.t1)));
 
 Widget _Label(String t) => Padding(
   padding: const EdgeInsets.only(bottom: 5),
-  child: Text(t, style: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.t3)));
+  child: Text(t, style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.t3)));
 
 Widget _F(String label, TextEditingController ctrl,
     {String? hint, TextInputType? type, bool caps = false, int? max}) =>
@@ -404,5 +404,5 @@ Widget _F(String label, TextEditingController ctrl,
           focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(color: AppColors.brand, width: 1.5)),
           contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13)),
-        style: GoogleFonts.dmSans(fontSize: 13.5, color: AppColors.t1)),
+        style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.t1)),
     ]));

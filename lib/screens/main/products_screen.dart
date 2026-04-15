@@ -18,7 +18,7 @@ class ProductsScreen extends ConsumerWidget {
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         automaticallyImplyLeading: false, backgroundColor: AppColors.card,
-        title: Text('Products & Services', style: GoogleFonts.nunito(
+        title: Text('Products & Services', style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
           IconButton(
@@ -29,10 +29,10 @@ class ProductsScreen extends ConsumerWidget {
       body: prods.isEmpty
         ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
             const Icon(MaterialSymbols.inventory_2, size: 48, color: AppColors.t4), const Gap(10),
-            Text('No products yet', style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800)),
+            Text('No products yet', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w800)),
             const Gap(6),
             Text('Build your catalog for faster invoicing',
-              style: GoogleFonts.dmSans(fontSize: 13, color: AppColors.t3)),
+              style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t3)),
             const Gap(16),
             ElevatedButton.icon(
               onPressed: () => _addSheet(context, ref),
@@ -57,22 +57,22 @@ class ProductsScreen extends ConsumerWidget {
                       color: isService ? AppColors.purpleSoft : AppColors.brandSoft,
                       borderRadius: BorderRadius.circular(7)),
                     child: Text(isService ? 'SVC' : 'GST',
-                      style: GoogleFonts.dmSans(fontSize: 10, fontWeight: FontWeight.w800,
+                      style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w800,
                         color: isService ? AppColors.purple : AppColors.brand))),
                   const Gap(12),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(p.name, style: GoogleFonts.dmSans(
+                    Text(p.name, style: GoogleFonts.plusJakartaSans(
                       fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.t1)),
                     if (p.hsnCode.isNotEmpty)
                       Text('${isService ? 'SAC' : 'HSN'}: ${p.hsnCode} \u00b7 ${p.unit}',
-                        style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.t3))
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.t3))
                     else
-                      Text(p.unit, style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.t3)),
+                      Text(p.unit, style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.t3)),
                   ])),
                   Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                    Text(formatCurrency(p.price), style: GoogleFonts.nunito(
+                    Text(formatCurrency(p.price), style: GoogleFonts.plusJakartaSans(
                       fontSize: 15, fontWeight: FontWeight.w900, color: AppColors.brand)),
-                    Text('GST ${p.gstRate.toInt()}%', style: GoogleFonts.dmSans(
+                    Text('GST ${p.gstRate.toInt()}%', style: GoogleFonts.plusJakartaSans(
                       fontSize: 11, color: AppColors.green, fontWeight: FontWeight.w600)),
                     const Gap(2),
                     GestureDetector(
@@ -105,28 +105,28 @@ class ProductsScreen extends ConsumerWidget {
             Center(child: Container(width: 36, height: 4,
               decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(99)))),
             const Gap(16),
-            Text('Add Product / Service', style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.w800)),
+            Text('Add Product / Service', style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w800)),
             const Gap(16),
             TextField(controller: name,
               decoration: const InputDecoration(labelText: 'Name *',
                 border: OutlineInputBorder()),
-              style: GoogleFonts.dmSans(fontSize: 13.5)),
+              style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
             const Gap(10),
             Row(children: [
               Expanded(child: TextField(controller: hsn,
                 decoration: const InputDecoration(labelText: 'HSN / SAC',
                   border: OutlineInputBorder()),
-                style: GoogleFonts.dmSans(fontSize: 13.5))),
+                style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
               const Gap(10),
               Expanded(child: TextField(controller: price,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(labelText: 'Price (\u20b9)',
                   border: OutlineInputBorder()),
-                style: GoogleFonts.dmSans(fontSize: 13.5))),
+                style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
             ]),
             const Gap(12),
             // GST rate selector
-            Text('GST Rate', style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.t3, fontWeight: FontWeight.w600)),
+            Text('GST Rate', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t3, fontWeight: FontWeight.w600)),
             const Gap(6),
             Row(children: [0, 5, 12, 18, 28].map((r) => Padding(
               padding: const EdgeInsets.only(right: 8),
@@ -137,14 +137,14 @@ class ProductsScreen extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: gstRate == r ? AppColors.brand : AppColors.bg,
                     borderRadius: BorderRadius.circular(8)),
-                  child: Text('$r%', style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w700,
+                  child: Text('$r%', style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700,
                     color: gstRate == r ? Colors.white : AppColors.t2)),
                 ),
               ))).toList()),
             const Gap(12),
             // Type selector
             Row(children: [
-              Text('Type: ', style: GoogleFonts.dmSans(fontSize: 13, color: AppColors.t2)),
+              Text('Type: ', style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t2)),
               const Gap(8),
               GestureDetector(
                 onTap: () => ss(() => isService = false),
@@ -152,7 +152,7 @@ class ProductsScreen extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: !isService ? AppColors.brand : AppColors.bg,
                     borderRadius: BorderRadius.circular(8)),
-                  child: Text('Goods', style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w700,
+                  child: Text('Goods', style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700,
                     color: !isService ? Colors.white : AppColors.t2)))),
               const Gap(8),
               GestureDetector(
@@ -161,7 +161,7 @@ class ProductsScreen extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: isService ? AppColors.purple : AppColors.bg,
                     borderRadius: BorderRadius.circular(8)),
-                  child: Text('Service', style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w700,
+                  child: Text('Service', style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700,
                     color: isService ? Colors.white : AppColors.t2)))),
             ]),
             const Gap(20),

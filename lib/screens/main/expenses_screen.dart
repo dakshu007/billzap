@@ -27,7 +27,7 @@ class ExpensesScreen extends ConsumerWidget {
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         automaticallyImplyLeading: false, backgroundColor: AppColors.card,
-        title: Text('Expenses', style: GoogleFonts.nunito(
+        title: Text('Expenses', style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
           IconButton(
@@ -53,10 +53,10 @@ class ExpensesScreen extends ConsumerWidget {
         Expanded(child: exps.isEmpty
           ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
               const Icon(MaterialSymbols.payments, size: 48, color: AppColors.t4), const Gap(10),
-              Text('No expenses recorded', style: GoogleFonts.nunito(
+              Text('No expenses recorded', style: GoogleFonts.plusJakartaSans(
                 fontSize: 16, fontWeight: FontWeight.w800)),
               const Gap(6),
-              Text('Track expenses to see P&L', style: GoogleFonts.dmSans(
+              Text('Track expenses to see P&L', style: GoogleFonts.plusJakartaSans(
                 fontSize: 13, color: AppColors.t3)),
               const Gap(16),
               ElevatedButton.icon(
@@ -77,17 +77,17 @@ class ExpensesScreen extends ConsumerWidget {
                   child: Row(children: [
                     Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(color: AppColors.brandSoft, borderRadius: BorderRadius.circular(8)),
-                      child: Text(e.category, style: GoogleFonts.dmSans(
+                      child: Text(e.category, style: GoogleFonts.plusJakartaSans(
                         fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.brand))),
                     const Gap(11),
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(e.title, style: GoogleFonts.dmSans(
+                      Text(e.title, style: GoogleFonts.plusJakartaSans(
                         fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.t1)),
                       Text('${DateFormat('dd MMM yyyy').format(e.date)} \u00b7 ${e.paymentMode}',
-                        style: GoogleFonts.dmSans(fontSize: 11.5, color: AppColors.t3)),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.t3)),
                     ])),
                     Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                      Text(formatCurrency(e.amount), style: GoogleFonts.nunito(
+                      Text(formatCurrency(e.amount), style: GoogleFonts.plusJakartaSans(
                         fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.red)),
                       const Gap(2),
                       GestureDetector(
@@ -122,32 +122,32 @@ class ExpensesScreen extends ConsumerWidget {
             Center(child: Container(width: 36, height: 4,
               decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(99)))),
             const Gap(16),
-            Text('Add Expense', style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.w800)),
+            Text('Add Expense', style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w800)),
             const Gap(16),
             Row(children: [
               Expanded(child: DropdownButtonFormField<String>(
                 value: cat,
                 decoration: const InputDecoration(labelText: 'Category', border: OutlineInputBorder()),
                 items: kExpenseCategories.map((c) => DropdownMenuItem(value: c,
-                  child: Text(c, style: GoogleFonts.dmSans(fontSize: 13)))).toList(),
+                  child: Text(c, style: GoogleFonts.plusJakartaSans(fontSize: 13)))).toList(),
                 onChanged: (v) => ss(() => cat = v ?? cat))),
               const Gap(10),
               Expanded(child: TextField(
                 controller: amount, keyboardType: TextInputType.number,
                 decoration: const InputDecoration(labelText: 'Amount (\u20b9) *', border: OutlineInputBorder()),
-                style: GoogleFonts.dmSans(fontSize: 13.5))),
+                style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
             ]),
             const Gap(10),
             TextField(controller: title,
               decoration: const InputDecoration(labelText: 'Description', border: OutlineInputBorder()),
-              style: GoogleFonts.dmSans(fontSize: 13.5)),
+              style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
             const Gap(10),
             Row(children: [
               Expanded(child: DropdownButtonFormField<String>(
                 value: mode,
                 decoration: const InputDecoration(labelText: 'Payment Mode', border: OutlineInputBorder()),
                 items: ['UPI', 'Cash', 'Bank Transfer', 'Cheque', 'Card'].map((m) =>
-                  DropdownMenuItem(value: m, child: Text(m, style: GoogleFonts.dmSans(fontSize: 13)))).toList(),
+                  DropdownMenuItem(value: m, child: Text(m, style: GoogleFonts.plusJakartaSans(fontSize: 13)))).toList(),
                 onChanged: (v) => ss(() => mode = v ?? mode))),
             ]),
             const Gap(20),
@@ -187,9 +187,9 @@ class _SumCard extends StatelessWidget {
     decoration: BoxDecoration(color: soft, borderRadius: BorderRadius.circular(12),
       border: Border.all(color: color.withOpacity(0.2))),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(label, style: GoogleFonts.dmSans(fontSize: 10, color: color, fontWeight: FontWeight.w600)),
+      Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 10, color: color, fontWeight: FontWeight.w600)),
       const Gap(3),
-      Text(value, style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w900, color: color),
+      Text(value, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w900, color: color),
         maxLines: 1, overflow: TextOverflow.ellipsis),
     ])));
 }

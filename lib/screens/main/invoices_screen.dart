@@ -52,7 +52,7 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: AppColors.card,
-        title: Text('Invoices', style: GoogleFonts.nunito(
+        title: Text('Invoices', style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
           IconButton(
@@ -80,7 +80,7 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
                       onPressed: () { _searchCtrl.clear(); setState(() => _search = ''); })
                   : null,
               ),
-              style: GoogleFonts.dmSans(fontSize: 13),
+              style: GoogleFonts.plusJakartaSans(fontSize: 13),
             ),
           ),
         ),
@@ -104,7 +104,7 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
                       border: Border.all(
                         color: _filter == f ? AppColors.brand : AppColors.border)),
                     child: Text(f[0].toUpperCase() + f.substring(1),
-                      style: GoogleFonts.dmSans(fontSize: 12.5, fontWeight: FontWeight.w600,
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12.5, fontWeight: FontWeight.w600,
                         color: _filter == f ? Colors.white : AppColors.t2)),
                   ),
                 ),
@@ -118,10 +118,10 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
               const Icon(MaterialSymbols.receipt_long, size: 48, color: AppColors.t4),
               const Gap(10),
               Text(_search.isNotEmpty ? 'No results found' : 'No invoices',
-                style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1)),
+                style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1)),
               const Gap(6),
               Text(_search.isNotEmpty ? 'Try a different search' : 'Tap + to create one',
-                style: GoogleFonts.dmSans(fontSize: 13, color: AppColors.t3)),
+                style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t3)),
             ]))
           : ListView.builder(
               padding: const EdgeInsets.fromLTRB(12, 4, 12, 100),
@@ -146,16 +146,16 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
                           borderRadius: BorderRadius.circular(10)),
                         child: Center(child: Text(
                           inv.customerName.isNotEmpty ? inv.customerName[0].toUpperCase() : '?',
-                          style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.brand)))),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.brand)))),
                       const Gap(12),
                       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(inv.customerName, style: GoogleFonts.dmSans(
+                        Text(inv.customerName, style: GoogleFonts.plusJakartaSans(
                           fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.t1)),
                         Text('${inv.invoiceNumber} \u00b7 Due ${DateFormat('dd MMM yyyy').format(inv.dueDate)}',
-                          style: GoogleFonts.dmSans(fontSize: 11.5, color: AppColors.t3)),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.t3)),
                       ])),
                       Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                        Text(formatCurrency(inv.grandTotal), style: GoogleFonts.nunito(
+                        Text(formatCurrency(inv.grandTotal), style: GoogleFonts.plusJakartaSans(
                           fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.t1)),
                         const Gap(3),
                         Container(
@@ -163,7 +163,7 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
                           decoration: BoxDecoration(color: c.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(99)),
                           child: Text(inv.isOverdue ? 'OVERDUE' : inv.status.name.toUpperCase(),
-                            style: GoogleFonts.dmSans(fontSize: 9.5, fontWeight: FontWeight.w800, color: c))),
+                            style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.w800, color: c))),
                       ]),
                     ]),
                   ),

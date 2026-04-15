@@ -47,7 +47,7 @@ class ReportsScreen extends ConsumerWidget {
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         automaticallyImplyLeading: false, backgroundColor: AppColors.card,
-        title: Text('Reports', style: GoogleFonts.nunito(
+        title: Text('Reports', style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 100),
@@ -73,7 +73,7 @@ class ReportsScreen extends ConsumerWidget {
                       const Gap(5),
                       Text(
                         last6months[i][2] as String,
-                        style: GoogleFonts.dmSans(
+                        style: GoogleFonts.plusJakartaSans(
                           fontSize: 10,
                           fontWeight: i == 5 ? FontWeight.w700 : FontWeight.w500,
                           color: i == 5 ? AppColors.brand : AppColors.t3,
@@ -103,9 +103,9 @@ class ReportsScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: AppColors.yellow.withOpacity(0.3))),
               child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Text('Total GST Payable', style: GoogleFonts.dmSans(
+                Text('Total GST Payable', style: GoogleFonts.plusJakartaSans(
                   fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.t1)),
-                Text(formatCurrency(cgst + sgst + igst), style: GoogleFonts.nunito(
+                Text(formatCurrency(cgst + sgst + igst), style: GoogleFonts.plusJakartaSans(
                   fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.t1)),
               ])),
           ])),
@@ -134,7 +134,7 @@ class ReportsScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                   decoration: BoxDecoration(color: AppColors.redSoft,
                     borderRadius: BorderRadius.circular(99)),
-                  child: Text('Overdue', style: GoogleFonts.dmSans(
+                  child: Text('Overdue', style: GoogleFonts.plusJakartaSans(
                     fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.red)))),
                 const Gap(10),
                 Expanded(child: ClipRRect(
@@ -145,7 +145,7 @@ class ReportsScreen extends ConsumerWidget {
                     valueColor: const AlwaysStoppedAnimation(AppColors.red)))),
                 const Gap(10),
                 SizedBox(width: 24, child: Text('$ov',
-                  style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1),
                   textAlign: TextAlign.right)),
               ]);
             }),
@@ -164,10 +164,10 @@ class ReportsScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(8)),
                     child: Center(child: Text(
                       e.key.isNotEmpty ? e.key[0].toUpperCase() : '?',
-                      style: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w900, color: AppColors.brand)))),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w900, color: AppColors.brand)))),
                   const Gap(10),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(e.key, style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w600)),
+                    Text(e.key, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600)),
                     const Gap(3),
                     ClipRRect(borderRadius: BorderRadius.circular(99),
                       child: LinearProgressIndicator(
@@ -176,7 +176,7 @@ class ReportsScreen extends ConsumerWidget {
                         valueColor: const AlwaysStoppedAnimation(AppColors.brand))),
                   ])),
                   const Gap(10),
-                  Text(formatCurrency(e.value), style: GoogleFonts.nunito(
+                  Text(formatCurrency(e.value), style: GoogleFonts.plusJakartaSans(
                     fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.t1)),
                 ]))).toList());
             })),
@@ -196,7 +196,7 @@ Widget _statusRow(List<Invoice> invs, InvoiceStatus status, String label, Color 
         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
         decoration: BoxDecoration(color: color.withOpacity(0.12),
           borderRadius: BorderRadius.circular(99)),
-        child: Text(label, style: GoogleFonts.dmSans(
+        child: Text(label, style: GoogleFonts.plusJakartaSans(
           fontSize: 11.5, fontWeight: FontWeight.w700, color: color)))),
       const Gap(10),
       Expanded(child: ClipRRect(
@@ -207,7 +207,7 @@ Widget _statusRow(List<Invoice> invs, InvoiceStatus status, String label, Color 
           valueColor: AlwaysStoppedAnimation(color)))),
       const Gap(10),
       SizedBox(width: 24, child: Text('$cnt',
-        style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1),
+        style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1),
         textAlign: TextAlign.right)),
     ]));
 }
@@ -222,7 +222,7 @@ class _Card extends StatelessWidget {
     decoration: BoxDecoration(color: AppColors.card,
       borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.border)),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(title, style: GoogleFonts.nunito(fontSize: 14.5, fontWeight: FontWeight.w800, color: AppColors.t1)),
+      Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 14.5, fontWeight: FontWeight.w800, color: AppColors.t1)),
       const Gap(14),
       child,
     ]),
@@ -237,9 +237,9 @@ class _GBox extends StatelessWidget {
     padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(color: soft, borderRadius: BorderRadius.circular(10)),
     child: Column(children: [
-      Text(label, style: GoogleFonts.dmSans(fontSize: 10, fontWeight: FontWeight.w700, color: color)),
+      Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w700, color: color)),
       const Gap(4),
-      Text(formatCurrency(value), style: GoogleFonts.nunito(
+      Text(formatCurrency(value), style: GoogleFonts.plusJakartaSans(
         fontSize: 13, fontWeight: FontWeight.w900, color: color), maxLines: 1, overflow: TextOverflow.ellipsis),
     ])));
 }
@@ -251,9 +251,9 @@ class _PLRow extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 4),
     child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      Text(label, style: GoogleFonts.dmSans(fontSize: 13.5,
+      Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 13.5,
         fontWeight: bold ? FontWeight.w700 : FontWeight.w500, color: AppColors.t1)),
-      Text(formatCurrency(value), style: GoogleFonts.nunito(
+      Text(formatCurrency(value), style: GoogleFonts.plusJakartaSans(
         fontSize: bold ? 17 : 14, fontWeight: FontWeight.w800, color: color)),
     ]));
 }

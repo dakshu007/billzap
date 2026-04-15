@@ -63,9 +63,9 @@ class DashboardScreen extends ConsumerWidget {
         automaticallyImplyLeading: false,
         backgroundColor: AppColors.card,
         title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Dashboard', style: GoogleFonts.nunito(
+          Text('Dashboard', style: GoogleFonts.plusJakartaSans(
             fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
-          Text('$greet $emoji', style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.t3)),
+          Text('$greet $emoji', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t3)),
         ]),
         actions: [
           GestureDetector(
@@ -78,7 +78,7 @@ class DashboardScreen extends ConsumerWidget {
               child: Center(child: Text(
                 // ✅ FIX: Show first letter of business name, updates live
                 (bizName?.isNotEmpty == true ? bizName![0] : 'B').toUpperCase(),
-                style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white))),
+                style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white))),
             ),
           ),
         ],
@@ -97,22 +97,22 @@ class DashboardScreen extends ConsumerWidget {
             ),
             child: Row(children: [
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('$greet $emoji', style: GoogleFonts.nunito(
+                Text('$greet $emoji', style: GoogleFonts.plusJakartaSans(
                   color: Colors.white, fontSize: 17, fontWeight: FontWeight.w800)),
                 const Gap(3),
                 // ✅ Shows business name immediately after update
                 Text(bizName ?? 'Set up your business profile',
-                  style: GoogleFonts.dmSans(color: Colors.white60, fontSize: 12)),
+                  style: GoogleFonts.plusJakartaSans(color: Colors.white60, fontSize: 12)),
                 if (biz?.gstin.isNotEmpty == true) ...[
                   const Gap(2),
                   Text('GSTIN: ${biz!.gstin}',
-                    style: GoogleFonts.dmSans(color: Colors.white38, fontSize: 10.5)),
+                    style: GoogleFonts.plusJakartaSans(color: Colors.white38, fontSize: 10.5)),
                 ],
               ])),
               Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                Text(formatCurrency(revenue), style: GoogleFonts.nunito(
+                Text(formatCurrency(revenue), style: GoogleFonts.plusJakartaSans(
                   color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
-                Text('Total revenue', style: GoogleFonts.dmSans(
+                Text('Total revenue', style: GoogleFonts.plusJakartaSans(
                   color: Colors.white54, fontSize: 10)),
               ]),
             ]),
@@ -154,12 +154,12 @@ class DashboardScreen extends ConsumerWidget {
 
           // Recent invoices
           Row(children: [
-            Text('Recent Invoices', style: GoogleFonts.nunito(
+            Text('Recent Invoices', style: GoogleFonts.plusJakartaSans(
               fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1)),
             const Spacer(),
             TextButton(
               onPressed: () => context.go('/invoices'),
-              child: Text('View all', style: GoogleFonts.dmSans(
+              child: Text('View all', style: GoogleFonts.plusJakartaSans(
                 fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.brand))),
           ]),
           const Gap(6),
@@ -193,11 +193,11 @@ class _StatCard extends StatelessWidget {
         decoration: BoxDecoration(color: soft, borderRadius: BorderRadius.circular(8)),
         child: Icon(icon, size: 17, color: color)),
       const Gap(6),
-      Text(label, style: GoogleFonts.dmSans(fontSize: 10.5, color: AppColors.t3, fontWeight: FontWeight.w600)),
+      Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.t3, fontWeight: FontWeight.w600)),
       const Gap(1),
-      Text(value, style: GoogleFonts.nunito(fontSize: 17, fontWeight: FontWeight.w900, color: AppColors.t1),
+      Text(value, style: GoogleFonts.plusJakartaSans(fontSize: 17, fontWeight: FontWeight.w900, color: AppColors.t1),
         maxLines: 1, overflow: TextOverflow.ellipsis),
-      Text(sub, style: GoogleFonts.dmSans(fontSize: 10, color: AppColors.t3)),
+      Text(sub, style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.t3)),
     ]),
   );
 }
@@ -219,7 +219,7 @@ class _QuickBtn extends StatelessWidget {
         child: Column(children: [
           Text(emoji, style: const TextStyle(fontSize: 20)),
           const Gap(4),
-          Text(label, style: GoogleFonts.dmSans(
+          Text(label, style: GoogleFonts.plusJakartaSans(
             fontSize: 11, fontWeight: FontWeight.w700, color: color)),
         ]),
       ),
@@ -248,16 +248,16 @@ class _InvoiceRow extends StatelessWidget {
             decoration: BoxDecoration(color: AppColors.brandSoft, borderRadius: BorderRadius.circular(10)),
             child: Center(child: Text(
               inv.customerName.isNotEmpty ? inv.customerName[0].toUpperCase() : '?',
-              style: GoogleFonts.nunito(fontSize: 15, fontWeight: FontWeight.w900, color: AppColors.brand)))),
+              style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w900, color: AppColors.brand)))),
           const Gap(11),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(inv.customerName, style: GoogleFonts.dmSans(
+            Text(inv.customerName, style: GoogleFonts.plusJakartaSans(
               fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.t1)),
             Text('${inv.invoiceNumber} · ${DateFormat('dd MMM').format(inv.invoiceDate)}',
-              style: GoogleFonts.dmSans(fontSize: 11.5, color: AppColors.t3)),
+              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.t3)),
           ])),
           Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Text(formatCurrency(inv.grandTotal), style: GoogleFonts.nunito(
+            Text(formatCurrency(inv.grandTotal), style: GoogleFonts.plusJakartaSans(
               fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.t1)),
             const Gap(3),
             Container(
@@ -265,7 +265,7 @@ class _InvoiceRow extends StatelessWidget {
               decoration: BoxDecoration(color: c.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(99)),
               child: Text(inv.isOverdue ? 'OVERDUE' : inv.status.name.toUpperCase(),
-                style: GoogleFonts.dmSans(fontSize: 9.5, fontWeight: FontWeight.w800, color: c))),
+                style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.w800, color: c))),
           ]),
         ]),
       ),
@@ -285,10 +285,10 @@ class _EmptyInvoice extends StatelessWidget {
     child: Column(children: [
       const Icon(MaterialSymbols.receipt_long, size: 44, color: AppColors.t4),
       const Gap(10),
-      Text('No invoices yet', style: GoogleFonts.nunito(
+      Text('No invoices yet', style: GoogleFonts.plusJakartaSans(
         fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1)),
       const Gap(4),
-      Text('Create your first GST invoice', style: GoogleFonts.dmSans(
+      Text('Create your first GST invoice', style: GoogleFonts.plusJakartaSans(
         fontSize: 13, color: AppColors.t3)),
       const Gap(16),
       ElevatedButton.icon(

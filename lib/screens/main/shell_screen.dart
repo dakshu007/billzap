@@ -1,12 +1,15 @@
 // lib/screens/main/shell_screen.dart
-// ✅ PopScope with double-back-to-exit
-// ✅ On any tab except home → back goes to home
-// ✅ On home → first back shows toast, second back exits
+// ✅ Google Sans (Plus Jakarta Sans) font throughout
+// ✅ Any page → back → goes to Home
+// ✅ Home → first back → toast "press again to exit"
+// ✅ Home → second back (within 2s) → exits app
+// ✅ Swipe gesture + hardware back both handled
+
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import '../../theme/app_theme.dart';
 
 class ShellScreen extends StatefulWidget {
@@ -19,58 +22,59 @@ class ShellScreen extends StatefulWidget {
 }
 
 class _ShellScreenState extends State<ShellScreen> {
-  // ✅ Timestamp of last back press (for double-back-to-exit)
   DateTime? _lastBackPress;
 
-  /// Returns true if app should exit, false otherwise
-  Future<bool> _handleBackPress() async {
-    final isHome = widget.location.startsWith('/home');
+  bool get _isHome => widget.location.startsWith('/home');
 
-    if (!isHome) {
-      // ✅ Not on home → navigate to home instead of exiting
+  Future<void> _handleBack() async {
+    if (!_isHome) {
+      // ─── Any tab except Home → go to Home ───
+      HapticFeedback.lightImpact();
       context.go('/home');
-      return false;
+      return;
     }
 
-    // ✅ On home page → double back to exit
+    // ─── On Home → double-back-to-exit ───────
     final now = DateTime.now();
-    final lastPress = _lastBackPress;
-
-    if (lastPress == null || now.difference(lastPress) > const Duration(seconds: 2)) {
-      // First press → show toast and record timestamp
+    if (_lastBackPress == null ||
+        now.difference(_lastBackPress!) > const Duration(seconds: 2)) {
       _lastBackPress = now;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(children: [
             const Icon(MaterialSymbols.exit_to_app, color: Colors.white, size: 18),
             const SizedBox(width: 10),
-            Text('Press back again to exit',
-              style: GoogleFonts.dmSans(fontWeight: FontWeight.w600, fontSize: 13)),
+            Text(
+              'Press back again to exit',
+              style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w600, fontSize: 13),
+            ),
           ]),
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
           backgroundColor: AppColors.t1,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: const EdgeInsets.fromLTRB(14, 0, 14, 20),
         ),
       );
-      return false; // don't exit yet
+    } else {
+      // Second press within 2s → exit
+      SystemNavigator.pop();
     }
-
-    // Second press within 2 seconds → exit app
-    return true;
   }
 
   int get _idx {
-    if (widget.location.startsWith('/home'))      return 0;
-    if (widget.location.startsWith('/invoices'))  return 1;
-    if (widget.location.startsWith('/reports'))   return 3;
-    if (widget.location.startsWith('/settings'))  return 4;
+    if (widget.location.startsWith('/home')) return 0;
+    if (widget.location.startsWith('/invoices')) return 1;
+    if (widget.location.startsWith('/reports')) return 3;
+    if (widget.location.startsWith('/settings')) return 4;
     return 0;
   }
 
-  void _go(BuildContext context, String path) {
+  void _go(String path) {
     HapticFeedback.lightImpact();
     context.go(path);
   }
@@ -78,101 +82,164 @@ class _ShellScreenState extends State<ShellScreen> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      // ✅ Never allow default pop — we handle it ourselves
-      canPop: false,
-      onPopInvoked: (didPop) async {
-        if (didPop) return;
-        final shouldExit = await _handleBackPress();
-        if (shouldExit && context.mounted) {
-          SystemNavigator.pop(); // exit the app
-        }
+      canPop: false, // We handle all back presses ourselves
+      onPopInvoked: (didPop) {
+        if (!didPop) _handleBack();
       },
       child: Scaffold(
         body: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 220),
-          switchInCurve: Curves.easeOutCubic,
-          switchOutCurve: Curves.easeInCubic,
-          transitionBuilder: (child, animation) => FadeTransition(
-            opacity: animation,
-            child: child,
-          ),
+          duration: const Duration(milliseconds: 200),
+          switchInCurve: Curves.easeOut,
+          switchOutCurve: Curves.easeIn,
+          transitionBuilder: (child, anim) =>
+              FadeTransition(opacity: anim, child: child),
           child: KeyedSubtree(
             key: ValueKey(widget.location),
             child: widget.child,
           ),
         ),
-        bottomNavigationBar: Container(
-          decoration: const BoxDecoration(
-            color: AppColors.card,
-            border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
-            boxShadow: [BoxShadow(
-              color: Color(0x0D1557FF), blurRadius: 20, offset: Offset(0, -4))],
-          ),
-          child: SafeArea(
-            child: SizedBox(height: 62, child: Row(children: [
-              _NavItem(icon: MaterialSymbols.home, label: 'Home',
-                on: _idx == 0, onTap: () => _go(context, '/home')),
-              _NavItem(icon: MaterialSymbols.receipt_long, label: 'Invoices',
-                on: _idx == 1, onTap: () => _go(context, '/invoices')),
-              // Centre FAB
-              Expanded(child: Center(child: GestureDetector(
-                onTap: () {
-                  HapticFeedback.mediumImpact();
-                  context.push('/create');
-                },
-                child: Container(
-                  width: 54, height: 54,
-                  decoration: BoxDecoration(
-                    color: AppColors.brand,
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [BoxShadow(
-                      color: AppColors.brand.withOpacity(0.35),
-                      blurRadius: 14, offset: const Offset(0, 5))],
-                  ),
-                  child: const Icon(MaterialSymbols.add, color: Colors.white, size: 28),
-                ),
-              ))),
-              _NavItem(icon: MaterialSymbols.bar_chart, label: 'Reports',
-                on: _idx == 3, onTap: () => _go(context, '/reports')),
-              _NavItem(icon: MaterialSymbols.person, label: 'Me',
-                on: _idx == 4, onTap: () => _go(context, '/settings')),
-            ])),
-          ),
+        bottomNavigationBar: _BottomNav(
+          idx: _idx,
+          onHome: () => _go('/home'),
+          onInvoices: () => _go('/invoices'),
+          onCreate: () {
+            HapticFeedback.mediumImpact();
+            context.push('/create');
+          },
+          onReports: () => _go('/reports'),
+          onMe: () => _go('/settings'),
         ),
       ),
     );
   }
 }
 
+// ─── Bottom Navigation Bar ─────────────────────────────────────
+class _BottomNav extends StatelessWidget {
+  final int idx;
+  final VoidCallback onHome, onInvoices, onCreate, onReports, onMe;
+  const _BottomNav({
+    required this.idx,
+    required this.onHome,
+    required this.onInvoices,
+    required this.onCreate,
+    required this.onReports,
+    required this.onMe,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.card,
+        border:
+            Border(top: BorderSide(color: AppColors.border, width: 0.5)),
+        boxShadow: [
+          BoxShadow(
+              color: Color(0x0D1557FF),
+              blurRadius: 20,
+              offset: Offset(0, -4))
+        ],
+      ),
+      child: SafeArea(
+        child: SizedBox(
+          height: 64,
+          child: Row(children: [
+            _NavItem(
+                icon: MaterialSymbols.home,
+                label: 'Home',
+                on: idx == 0,
+                onTap: onHome),
+            _NavItem(
+                icon: MaterialSymbols.receipt_long,
+                label: 'Invoices',
+                on: idx == 1,
+                onTap: onInvoices),
+            // ── Centre FAB ──
+            Expanded(
+              child: Center(
+                child: GestureDetector(
+                  onTap: onCreate,
+                  child: Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: AppColors.brand,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.brand.withOpacity(0.35),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        )
+                      ],
+                    ),
+                    child: const Icon(MaterialSymbols.add,
+                        color: Colors.white, size: 26),
+                  ),
+                ),
+              ),
+            ),
+            _NavItem(
+                icon: MaterialSymbols.bar_chart,
+                label: 'Reports',
+                on: idx == 3,
+                onTap: onReports),
+            _NavItem(
+                icon: MaterialSymbols.person,
+                label: 'Me',
+                on: idx == 4,
+                onTap: onMe),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Single Nav Item ───────────────────────────────────────────
 class _NavItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool on;
   final VoidCallback onTap;
-  const _NavItem({required this.icon, required this.label, required this.on, required this.onTap});
+  const _NavItem(
+      {required this.icon,
+      required this.label,
+      required this.on,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) => Expanded(
-    child: InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        AnimatedScale(
-          scale: on ? 1.15 : 1.0,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOutCubic,
-          child: Icon(icon, size: 22, color: on ? AppColors.brand : AppColors.t3),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          splashColor: AppColors.brand.withOpacity(0.08),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedScale(
+                scale: on ? 1.18 : 1.0,
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeOutBack,
+                child: Icon(
+                  icon,
+                  size: 22,
+                  color: on ? AppColors.brand : AppColors.t3,
+                ),
+              ),
+              const SizedBox(height: 3),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 180),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10,
+                  fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+                  color: on ? AppColors.brand : AppColors.t3,
+                ),
+                child: Text(label),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 2),
-        AnimatedDefaultTextStyle(
-          duration: const Duration(milliseconds: 200),
-          style: GoogleFonts.dmSans(
-            fontSize: 10,
-            fontWeight: on ? FontWeight.w700 : FontWeight.w500,
-            color: on ? AppColors.brand : AppColors.t3),
-          child: Text(label),
-        ),
-      ]),
-    ),
-  );
+      );
 }

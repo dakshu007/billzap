@@ -52,9 +52,9 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
             child: const Icon(MaterialSymbols.arrow_back, size: 19, color: AppColors.t1)),
           onPressed: () => context.go('/home')),
         title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Invoice Preview', style: GoogleFonts.nunito(
+          Text('Invoice Preview', style: GoogleFonts.plusJakartaSans(
             fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
-          Text(invoice.invoiceNumber, style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.t3)),
+          Text(invoice.invoiceNumber, style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.t3)),
         ]),
         actions: [
           // ✅ EDIT button
@@ -77,14 +77,14 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                 color: c.withOpacity(0.12), borderRadius: BorderRadius.circular(99),
                 border: Border.all(color: c.withOpacity(0.3))),
               child: Text(invoice.isOverdue ? 'OVERDUE' : invoice.status.name.toUpperCase(),
-                style: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w800, color: c))),
+                style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w800, color: c))),
             if (invoice.isOverdue) ...[
               const Gap(8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                 decoration: BoxDecoration(color: AppColors.redSoft, borderRadius: BorderRadius.circular(99),
                   border: Border.all(color: AppColors.red.withOpacity(0.3))),
-                child: Text('OVERDUE', style: GoogleFonts.dmSans(
+                child: Text('OVERDUE', style: GoogleFonts.plusJakartaSans(
                   fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.red))),
             ],
           ]),
@@ -128,19 +128,19 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
             borderRadius: BorderRadius.vertical(top: Radius.circular(15))),
           child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(biz?.name ?? 'Your Business', style: GoogleFonts.nunito(
+              Text(biz?.name ?? 'Your Business', style: GoogleFonts.plusJakartaSans(
                 color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
               if (biz?.gstin.isNotEmpty == true)
-                Text('GSTIN: ${biz!.gstin}', style: GoogleFonts.dmSans(color: Colors.white70, fontSize: 11)),
+                Text('GSTIN: ${biz!.gstin}', style: GoogleFonts.plusJakartaSans(color: Colors.white70, fontSize: 11)),
               if (biz?.address.isNotEmpty == true)
                 Text('${biz!.address}${biz.city.isNotEmpty ? ", ${biz.city}" : ""}',
-                  style: GoogleFonts.dmSans(color: Colors.white60, fontSize: 10)),
+                  style: GoogleFonts.plusJakartaSans(color: Colors.white60, fontSize: 10)),
             ])),
             Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              Text('TAX INVOICE', style: GoogleFonts.dmSans(
+              Text('TAX INVOICE', style: GoogleFonts.plusJakartaSans(
                 color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 1)),
               const Gap(2),
-              Text(invoice.invoiceNumber, style: GoogleFonts.nunito(
+              Text(invoice.invoiceNumber, style: GoogleFonts.plusJakartaSans(
                 color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w700)),
             ]),
           ])),
@@ -148,16 +148,16 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('BILL TO', style: GoogleFonts.dmSans(
+              Text('BILL TO', style: GoogleFonts.plusJakartaSans(
                 fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.t3, letterSpacing: 0.8)),
               const Gap(4),
-              Text(invoice.customerName, style: GoogleFonts.nunito(
+              Text(invoice.customerName, style: GoogleFonts.plusJakartaSans(
                 fontSize: 15, fontWeight: FontWeight.w900, color: AppColors.t1)),
               if (invoice.customerPhone.isNotEmpty)
-                Text(invoice.customerPhone, style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.t2)),
+                Text(invoice.customerPhone, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t2)),
               if (invoice.customerGstin.isNotEmpty)
                 Text('GSTIN: ${invoice.customerGstin}',
-                  style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.t3)),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.t3)),
             ])),
             Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
               _IRow('Date', DateFormat('dd MMM yyyy').format(invoice.invoiceDate)),
@@ -178,17 +178,17 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
             padding: const EdgeInsets.symmetric(vertical: 5),
             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Expanded(flex: 3, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(item.name, style: GoogleFonts.dmSans(
+                Text(item.name, style: GoogleFonts.plusJakartaSans(
                   fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.t1)),
                 if (item.hsnCode.isNotEmpty)
-                  Text('HSN: ${item.hsnCode}', style: GoogleFonts.dmSans(fontSize: 10, color: AppColors.t3)),
+                  Text('HSN: ${item.hsnCode}', style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.t3)),
               ])),
               Expanded(child: Text('${item.quantity.toInt()}',
-                style: GoogleFonts.dmSans(fontSize: 13, color: AppColors.t2), textAlign: TextAlign.right)),
+                style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t2), textAlign: TextAlign.right)),
               Expanded(child: Text(formatCurrency(item.rate),
-                style: GoogleFonts.dmSans(fontSize: 13, color: AppColors.t2), textAlign: TextAlign.right)),
+                style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t2), textAlign: TextAlign.right)),
               Expanded(child: Text(formatCurrency(item.taxable), textAlign: TextAlign.right,
-                style: GoogleFonts.dmSans(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.t1))),
+                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.t1))),
             ])),
           ),
           const Gap(10),
@@ -205,29 +205,29 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
             decoration: BoxDecoration(color: AppColors.brandSoft, borderRadius: BorderRadius.circular(10)),
             child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text('GRAND TOTAL', style: GoogleFonts.dmSans(
+              Text('GRAND TOTAL', style: GoogleFonts.plusJakartaSans(
                 fontWeight: FontWeight.w900, fontSize: 14, color: AppColors.brand)),
-              Text(formatCurrency(invoice.grandTotal), style: GoogleFonts.nunito(
+              Text(formatCurrency(invoice.grandTotal), style: GoogleFonts.plusJakartaSans(
                 fontWeight: FontWeight.w900, fontSize: 19, color: AppColors.brand)),
             ])),
           if (biz != null && (biz.bankName.isNotEmpty || biz.upiId.isNotEmpty)) ...[
             const Gap(14), const Divider(height: 1), const Gap(8),
-            Text('PAYMENT DETAILS', style: GoogleFonts.dmSans(
+            Text('PAYMENT DETAILS', style: GoogleFonts.plusJakartaSans(
               fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.t3, letterSpacing: 0.8)),
             const Gap(4),
             if (biz.bankName.isNotEmpty)
               Text('${biz.bankName}  ·  A/C: ${biz.accountNumber}  ·  IFSC: ${biz.ifscCode}',
-                style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.t2)),
+                style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.t2)),
             if (biz.upiId.isNotEmpty)
-              Text('UPI: ${biz.upiId}', style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.t2)),
+              Text('UPI: ${biz.upiId}', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.t2)),
           ],
           if (invoice.notes.isNotEmpty) ...[
             const Gap(10),
-            Text('Note: ${invoice.notes}', style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.t2)),
+            Text('Note: ${invoice.notes}', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t2)),
           ],
           const Gap(10),
           Center(child: Text('Generated by BillZap ⚡',
-            style: GoogleFonts.dmSans(fontSize: 10, color: AppColors.t4))),
+            style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.t4))),
         ])),
       ]),
     );
@@ -241,7 +241,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
       Expanded(flex: 2, child: ElevatedButton.icon(
         onPressed: () => _sendWhatsApp(invoice),
         icon: const Text('📱', style: TextStyle(fontSize: 16)),
-        label: Text('WhatsApp', style: GoogleFonts.dmSans(fontWeight: FontWeight.w800, fontSize: 14)),
+        label: Text('WhatsApp', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 14)),
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF25D366), foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -253,7 +253,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           ? const SizedBox(width: 16, height: 16,
               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
           : const Icon(MaterialSymbols.picture_as_pdf, size: 18),
-        label: Text('PDF', style: GoogleFonts.dmSans(fontWeight: FontWeight.w800, fontSize: 14)),
+        label: Text('PDF', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 14)),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.brand, foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -556,23 +556,23 @@ class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
         Container(width: 36, height: 4,
           decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(99))),
         const Gap(14),
-        Text('Edit Invoice', style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.w800)),
+        Text('Edit Invoice', style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w800)),
         const Gap(16),
         TextField(controller: _custName,
           decoration: InputDecoration(labelText: 'Customer Name',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
-          style: GoogleFonts.dmSans(fontSize: 13.5)),
+          style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
         const Gap(10),
         Row(children: [
           Expanded(child: TextField(controller: _custPhone, keyboardType: TextInputType.phone,
             decoration: InputDecoration(labelText: 'Phone',
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
-            style: GoogleFonts.dmSans(fontSize: 13.5))),
+            style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
           const Gap(10),
           Expanded(child: TextField(controller: _custGstin,
             decoration: InputDecoration(labelText: 'GSTIN',
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
-            style: GoogleFonts.dmSans(fontSize: 13.5))),
+            style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
         ]),
         const Gap(10),
         Row(children: [
@@ -584,7 +584,7 @@ class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
         TextField(controller: _notes, maxLines: 2,
           decoration: InputDecoration(labelText: 'Notes',
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
-          style: GoogleFonts.dmSans(fontSize: 13.5)),
+          style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
         const Gap(16),
         SizedBox(width: double.infinity, child: ElevatedButton(
           onPressed: _saving ? null : _save,
@@ -592,7 +592,7 @@ class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
           child: _saving
             ? const SizedBox(width: 20, height: 20,
                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-            : Text('Save Changes', style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w700)))),
+            : Text('Save Changes', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700)))),
       ])));
 
   Widget _DateField(String label, DateTime date, ValueChanged<DateTime> onPick) =>
@@ -610,9 +610,9 @@ class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
           const Icon(MaterialSymbols.calendar_today, size: 14, color: AppColors.t3),
           const Gap(6),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(label, style: GoogleFonts.dmSans(fontSize: 10, color: AppColors.t3)),
+            Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.t3)),
             Text(DateFormat('dd MMM yyyy').format(date),
-              style: GoogleFonts.dmSans(fontSize: 13, color: AppColors.t1)),
+              style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t1)),
           ])),
         ])));
 
@@ -645,20 +645,20 @@ class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
 Widget _IRow(String l, String v) => Padding(
   padding: const EdgeInsets.only(bottom: 3),
   child: Row(children: [
-    Text('$l: ', style: GoogleFonts.dmSans(fontSize: 11, color: AppColors.t3)),
-    Text(v, style: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.t1)),
+    Text('$l: ', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.t3)),
+    Text(v, style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.t1)),
   ]));
 
 Widget _TH(String t, {bool right = false}) => Text(t,
   textAlign: right ? TextAlign.right : TextAlign.left,
-  style: GoogleFonts.dmSans(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.t3, letterSpacing: 0.5));
+  style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.t3, letterSpacing: 0.5));
 
 Widget _TotRow(String label, double amount, {bool neg = false}) => Padding(
   padding: const EdgeInsets.symmetric(vertical: 2),
   child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-    Text(label, style: GoogleFonts.dmSans(fontSize: 13, color: AppColors.t2)),
+    Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t2)),
     Text(neg ? '- ${formatCurrency(amount)}' : formatCurrency(amount),
-      style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w600,
+      style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600,
         color: neg ? AppColors.green : AppColors.t1)),
   ]));
 
@@ -683,9 +683,9 @@ class _ActionTile extends StatelessWidget {
           : Text(emoji, style: const TextStyle(fontSize: 22)),
         const Gap(12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title, style: GoogleFonts.dmSans(fontWeight: FontWeight.w700, fontSize: 14,
+          Text(title, style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 14,
             color: color ?? AppColors.t1)),
-          Text(sub, style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.t3)),
+          Text(sub, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t3)),
         ])),
         const Icon(MaterialSymbols.chevron_right, color: AppColors.t3),
       ])));
@@ -699,7 +699,7 @@ class _OptTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ListTile(
     leading: Text(emoji, style: const TextStyle(fontSize: 22)),
-    title: Text(label, style: GoogleFonts.dmSans(
+    title: Text(label, style: GoogleFonts.plusJakartaSans(
       fontWeight: FontWeight.w700, color: color ?? AppColors.t1)),
     onTap: onTap);
 }

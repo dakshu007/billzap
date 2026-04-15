@@ -21,7 +21,7 @@ class CustomersScreen extends ConsumerWidget {
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         automaticallyImplyLeading: false, backgroundColor: AppColors.card,
-        title: Text('Customers', style: GoogleFonts.nunito(
+        title: Text('Customers', style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
           IconButton(
@@ -33,10 +33,10 @@ class CustomersScreen extends ConsumerWidget {
         ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
             const Icon(MaterialSymbols.group, size: 48, color: AppColors.t4),
             const Gap(10),
-            Text('No customers yet', style: GoogleFonts.nunito(
+            Text('No customers yet', style: GoogleFonts.plusJakartaSans(
               fontSize: 16, fontWeight: FontWeight.w800)),
             const Gap(6),
-            Text('Add your first customer', style: GoogleFonts.dmSans(
+            Text('Add your first customer', style: GoogleFonts.plusJakartaSans(
               fontSize: 13, color: AppColors.t3)),
             const Gap(16),
             ElevatedButton.icon(
@@ -61,20 +61,20 @@ class CustomersScreen extends ConsumerWidget {
                     decoration: BoxDecoration(color: AppColors.brandSoft,
                       borderRadius: BorderRadius.circular(11)),
                     child: Center(child: Text(c.name[0].toUpperCase(),
-                      style: GoogleFonts.nunito(fontSize: 17, fontWeight: FontWeight.w900, color: AppColors.brand)))),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 17, fontWeight: FontWeight.w900, color: AppColors.brand)))),
                   const Gap(12),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(c.name, style: GoogleFonts.dmSans(
+                    Text(c.name, style: GoogleFonts.plusJakartaSans(
                       fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.t1)),
                     if (c.phone.isNotEmpty)
-                      Text(c.phone, style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.t3)),
+                      Text(c.phone, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t3)),
                     if (c.gstin.isNotEmpty)
-                      Text('GSTIN: ${c.gstin}', style: GoogleFonts.dmSans(fontSize: 10.5, color: AppColors.t4)),
+                      Text('GSTIN: ${c.gstin}', style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.t4)),
                   ])),
                   Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                    Text(formatCurrency(tot), style: GoogleFonts.nunito(
+                    Text(formatCurrency(tot), style: GoogleFonts.plusJakartaSans(
                       fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.t1)),
-                    Text('${ci.length} inv', style: GoogleFonts.dmSans(
+                    Text('${ci.length} inv', style: GoogleFonts.plusJakartaSans(
                       fontSize: 10.5, color: AppColors.t3)),
                     const Gap(4),
                     // ✅ FIX: Use separate function to avoid dark overlay bug
@@ -130,29 +130,29 @@ class CustomersScreen extends ConsumerWidget {
             Center(child: Container(width: 36, height: 4,
               decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(99)))),
             const Gap(16),
-            Text('Add Customer', style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.w800)),
+            Text('Add Customer', style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w800)),
             const Gap(16),
             TextField(controller: name,
               decoration: InputDecoration(labelText: 'Name *',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
-              style: GoogleFonts.dmSans(fontSize: 13.5)),
+              style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
             const Gap(10),
             TextField(controller: phone, keyboardType: TextInputType.phone,
               decoration: InputDecoration(labelText: 'Phone',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
-              style: GoogleFonts.dmSans(fontSize: 13.5)),
+              style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
             const Gap(10),
             Row(children: [
               Expanded(child: TextField(controller: gstin,
                 textCapitalization: TextCapitalization.characters,
                 decoration: InputDecoration(labelText: 'GSTIN',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
-                style: GoogleFonts.dmSans(fontSize: 13.5))),
+                style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
               const Gap(10),
               Expanded(child: TextField(controller: addr,
                 decoration: InputDecoration(labelText: 'City',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
-                style: GoogleFonts.dmSans(fontSize: 13.5))),
+                style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
             ]),
             const Gap(20),
             SizedBox(width: double.infinity, child: ElevatedButton(

@@ -45,11 +45,11 @@ class _SplashState extends State<SplashScreen> with SingleTickerProviderStateMix
               style: const TextStyle(fontSize: 42))),
           ),
           const SizedBox(height: 20),
-          Text('BillZap', style: GoogleFonts.nunito(
+          Text('BillZap', style: GoogleFonts.plusJakartaSans(
             fontSize: 36, fontWeight: FontWeight.w900, color: Colors.white,
             letterSpacing: -1)),
           const SizedBox(height: 6),
-          Text('GST Billing Made Simple', style: GoogleFonts.dmSans(
+          Text('GST Billing Made Simple', style: GoogleFonts.plusJakartaSans(
             fontSize: 14, color: Colors.white70, fontWeight: FontWeight.w500)),
           const SizedBox(height: 60),
           const CircularProgressIndicator(

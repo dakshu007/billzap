@@ -36,6 +36,8 @@ class AppTheme {
   static ThemeData get light {
     return ThemeData(
       useMaterial3: true,
+      fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
+      textTheme: GoogleFonts.plusJakartaSansTextTheme(),
       colorScheme: const ColorScheme.light(
         primary: AppColors.brand,
         secondary: AppColors.green,
@@ -50,7 +52,7 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
-        titleTextStyle: GoogleFonts.nunito(
+        titleTextStyle: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1),
         iconTheme: const IconThemeData(color: AppColors.t1),
       ),
@@ -64,8 +66,8 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true, fillColor: AppColors.card,
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-        hintStyle: GoogleFonts.dmSans(fontSize: 13, color: AppColors.t4),
-        labelStyle: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.t3),
+        hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t4),
+        labelStyle: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.t3),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: AppColors.border)),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
@@ -82,7 +84,7 @@ class AppTheme {
           backgroundColor: AppColors.brand, foregroundColor: Colors.white,
           elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          textStyle: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w700),
+          textStyle: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -90,13 +92,13 @@ class AppTheme {
           foregroundColor: AppColors.t1, side: const BorderSide(color: AppColors.border),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          textStyle: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w600),
+          textStyle: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w600),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.brand,
-          textStyle: GoogleFonts.dmSans(fontSize: 13.5, fontWeight: FontWeight.w600),
+          textStyle: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w600),
         ),
       ),
       switchTheme: SwitchThemeData(
@@ -110,7 +112,7 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.t1,
-        contentTextStyle: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.white),
+        contentTextStyle: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.white),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       pageTransitionsTheme: const PageTransitionsTheme(
