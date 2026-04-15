@@ -141,13 +141,13 @@ class DashboardScreen extends ConsumerWidget {
 
           // Quick actions
           Row(children: [
-            _QuickBtn('⚡', 'New Invoice', AppColors.brand, AppColors.brandSoft,
+            _QuickBtn(Symbols.receipt_long, 'New Invoice', AppColors.brand, AppColors.brandSoft,
               () => context.push('/create')),
             const Gap(8),
-            _QuickBtn('👥', 'Customers', AppColors.green, AppColors.greenSoft,
+            _QuickBtn(Symbols.group, 'Customers', AppColors.green, AppColors.greenSoft,
               () => context.go('/customers')),
             const Gap(8),
-            _QuickBtn('📊', 'Reports', AppColors.purple, AppColors.purpleSoft,
+            _QuickBtn(Symbols.bar_chart, 'Reports', AppColors.purple, AppColors.purpleSoft,
               () => context.go('/reports')),
           ]),
           const Gap(20),
@@ -203,10 +203,11 @@ class _StatCard extends StatelessWidget {
 }
 
 class _QuickBtn extends StatelessWidget {
-  final String emoji, label;
+  final IconData icon;
+  final String label;
   final Color color, soft;
   final VoidCallback onTap;
-  const _QuickBtn(this.emoji, this.label, this.color, this.soft, this.onTap);
+  const _QuickBtn(this.icon, this.label, this.color, this.soft, this.onTap);
 
   @override
   Widget build(BuildContext context) => Expanded(
@@ -214,11 +215,14 @@ class _QuickBtn extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 13),
-        decoration: BoxDecoration(color: soft, borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.2))),
+        decoration: BoxDecoration(
+          color: soft,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.2)),
+        ),
         child: Column(children: [
-          Text(emoji, style: const TextStyle(fontSize: 20)),
-          const Gap(4),
+          Icon(icon, size: 24, color: color),
+          const Gap(5),
           Text(label, style: GoogleFonts.plusJakartaSans(
             fontSize: 11, fontWeight: FontWeight.w700, color: color)),
         ]),
