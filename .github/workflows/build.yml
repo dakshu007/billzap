@@ -22,7 +22,13 @@ jobs:
           channel: 'stable'
           cache: true
       - run: flutter pub get
-      - run: dart run flutter_launcher_icons || true
+      - name: Remove duplicate XML icons
+        run: |
+          rm -f android/app/src/main/res/mipmap-hdpi/ic_launcher.xml
+          rm -f android/app/src/main/res/mipmap-mdpi/ic_launcher.xml
+          rm -f android/app/src/main/res/mipmap-xhdpi/ic_launcher.xml
+          rm -f android/app/src/main/res/mipmap-xxhdpi/ic_launcher.xml
+          rm -f android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.xml
       - run: flutter analyze --no-fatal-infos --no-fatal-warnings || true
       - run: flutter test || true
       - run: flutter build apk --debug
@@ -49,7 +55,13 @@ jobs:
           channel: 'stable'
           cache: true
       - run: flutter pub get
-      - run: dart run flutter_launcher_icons || true
+      - name: Remove duplicate XML icons
+        run: |
+          rm -f android/app/src/main/res/mipmap-hdpi/ic_launcher.xml
+          rm -f android/app/src/main/res/mipmap-mdpi/ic_launcher.xml
+          rm -f android/app/src/main/res/mipmap-xhdpi/ic_launcher.xml
+          rm -f android/app/src/main/res/mipmap-xxhdpi/ic_launcher.xml
+          rm -f android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.xml
       - name: Decode keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/billzap.keystore
       - name: Create key.properties
