@@ -1,8 +1,8 @@
 // lib/screens/main/shell_screen.dart
-// ✅ Back on ANY tab (Invoices/Reports/Me) → goes to Home
-// ✅ Back on Home → first press shows toast
-// ✅ Back on Home → second press within 2s → exits app
-// ✅ Works for BOTH swipe gesture AND hardware back button
+// ✅ PopScope: any tab → back → Home
+// ✅ Home → double back → exit
+// ✅ Smooth fade+scale transitions between tabs
+// ✅ Predictive back (Android API 33+) supported via canPop: false
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,20 +20,51 @@ class ShellScreen extends StatefulWidget {
   State<ShellScreen> createState() => _ShellScreenState();
 }
 
-class _ShellScreenState extends State<ShellScreen> {
+class _ShellScreenState extends State<ShellScreen>
+    with SingleTickerProviderStateMixin {
   DateTime? _lastBackPress;
+
+  // Previous location to detect direction of tab switch
+  String _prevLocation = '/home';
+
+  late AnimationController _tabAnim;
+  late Animation<double> _fadeAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _prevLocation = widget.location;
+    _tabAnim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 220),
+    );
+    _fadeAnim = CurvedAnimation(parent: _tabAnim, curve: Curves.easeOut);
+    _tabAnim.value = 1.0;
+  }
+
+  @override
+  void didUpdateWidget(ShellScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.location != widget.location) {
+      _prevLocation = oldWidget.location;
+      _tabAnim.forward(from: 0.0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabAnim.dispose();
+    super.dispose();
+  }
 
   bool get _isHome => widget.location.startsWith('/home');
 
   void _handleBack() {
     if (!_isHome) {
-      // ── Not Home → always go to Home ──────────
       HapticFeedback.lightImpact();
       context.go('/home');
       return;
     }
-
-    // ── On Home → double press to exit ─────────
     final now = DateTime.now();
     if (_lastBackPress == null ||
         now.difference(_lastBackPress!) > const Duration(seconds: 2)) {
@@ -57,20 +88,20 @@ class _ShellScreenState extends State<ShellScreen> {
         ),
       );
     } else {
-      // Second press → exit
       SystemNavigator.pop();
     }
   }
 
   int get _idx {
-    if (widget.location.startsWith('/home')) return 0;
+    if (widget.location.startsWith('/home'))     return 0;
     if (widget.location.startsWith('/invoices')) return 1;
-    if (widget.location.startsWith('/reports')) return 3;
+    if (widget.location.startsWith('/reports'))  return 3;
     if (widget.location.startsWith('/settings')) return 4;
     return 0;
   }
 
   void _go(String path) {
+    if (widget.location == path) return; // already here
     HapticFeedback.lightImpact();
     context.go(path);
   }
@@ -78,39 +109,41 @@ class _ShellScreenState extends State<ShellScreen> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      // canPop: false blocks BOTH hardware back AND predictive back gesture
       canPop: false,
       onPopInvoked: (didPop) {
         if (!didPop) _handleBack();
       },
       child: Scaffold(
-        body: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
-          switchInCurve: Curves.easeOut,
-          switchOutCurve: Curves.easeIn,
-          transitionBuilder: (child, anim) =>
-              FadeTransition(opacity: anim, child: child),
-          child: KeyedSubtree(
-            key: ValueKey(widget.location),
-            child: widget.child,
+        body: FadeTransition(
+          opacity: _fadeAnim,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 0.015),
+              end: Offset.zero,
+            ).animate(_fadeAnim),
+            child: KeyedSubtree(
+              key: ValueKey(widget.location),
+              child: widget.child,
+            ),
           ),
         ),
         bottomNavigationBar: _BottomNav(
           idx: _idx,
-          onHome: () => _go('/home'),
+          onHome:     () => _go('/home'),
           onInvoices: () => _go('/invoices'),
           onCreate: () {
             HapticFeedback.mediumImpact();
             context.push('/create');
           },
           onReports: () => _go('/reports'),
-          onMe: () => _go('/settings'),
+          onMe:      () => _go('/settings'),
         ),
       ),
     );
   }
 }
 
+// ── Bottom Nav ──────────────────────────────────────────────────
 class _BottomNav extends StatelessWidget {
   final int idx;
   final VoidCallback onHome, onInvoices, onCreate, onReports, onMe;
@@ -136,9 +169,9 @@ class _BottomNav extends StatelessWidget {
         child: SizedBox(
           height: 64,
           child: Row(children: [
-            _NavItem(icon: Symbols.home, label: 'Home', on: idx == 0, onTap: onHome),
+            _NavItem(icon: Symbols.home,         label: 'Home',     on: idx == 0, onTap: onHome),
             _NavItem(icon: Symbols.receipt_long, label: 'Invoices', on: idx == 1, onTap: onInvoices),
-            // FAB
+            // Centre FAB
             Expanded(
               child: Center(
                 child: GestureDetector(
@@ -150,8 +183,7 @@ class _BottomNav extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [BoxShadow(
                           color: AppColors.brand.withOpacity(0.35),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4))],
+                          blurRadius: 14, offset: const Offset(0, 5))],
                     ),
                     child: const Icon(Symbols.add, color: Colors.white, size: 26),
                   ),
@@ -159,7 +191,7 @@ class _BottomNav extends StatelessWidget {
               ),
             ),
             _NavItem(icon: Symbols.bar_chart, label: 'Reports', on: idx == 3, onTap: onReports),
-            _NavItem(icon: Symbols.person, label: 'Me', on: idx == 4, onTap: onMe),
+            _NavItem(icon: Symbols.person,    label: 'Me',      on: idx == 4, onTap: onMe),
           ]),
         ),
       ),
@@ -167,37 +199,46 @@ class _BottomNav extends StatelessWidget {
   }
 }
 
+// ── Nav Item ────────────────────────────────────────────────────
 class _NavItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool on;
   final VoidCallback onTap;
-  const _NavItem({required this.icon, required this.label, required this.on, required this.onTap});
+  const _NavItem({
+    required this.icon, required this.label,
+    required this.on, required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) => Expanded(
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          splashColor: AppColors.brand.withOpacity(0.08),
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            AnimatedScale(
-              scale: on ? 1.18 : 1.0,
-              duration: const Duration(milliseconds: 180),
-              curve: Curves.easeOutBack,
-              child: Icon(icon, size: 22, color: on ? AppColors.brand : AppColors.t3),
-            ),
-            const SizedBox(height: 3),
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 180),
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 10,
-                fontWeight: on ? FontWeight.w700 : FontWeight.w500,
-                color: on ? AppColors.brand : AppColors.t3,
-              ),
-              child: Text(label),
-            ),
-          ]),
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      splashColor: AppColors.brand.withOpacity(0.08),
+      highlightColor: AppColors.brand.withOpacity(0.04),
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutBack,
+          padding: EdgeInsets.symmetric(horizontal: on ? 12 : 0, vertical: on ? 3 : 0),
+          decoration: BoxDecoration(
+            color: on ? AppColors.brandSoft : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Icon(icon, size: 22, color: on ? AppColors.brand : AppColors.t3),
         ),
-      );
+        const SizedBox(height: 3),
+        AnimatedDefaultTextStyle(
+          duration: const Duration(milliseconds: 200),
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 10,
+            fontWeight: on ? FontWeight.w700 : FontWeight.w500,
+            color: on ? AppColors.brand : AppColors.t3,
+          ),
+          child: Text(label),
+        ),
+      ]),
+    ),
+  );
 }
