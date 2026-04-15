@@ -56,7 +56,7 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
           IconButton(
-            icon: const Icon(MaterialSymbols.add, color: AppColors.brand, size: 26),
+            icon: const Icon(Symbols.add, color: AppColors.brand, size: 26),
             onPressed: () => context.push('/create')),
         ],
         bottom: PreferredSize(
@@ -68,7 +68,7 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
               onChanged: (v) => setState(() => _search = v),
               decoration: InputDecoration(
                 hintText: 'Search invoices or customers...',
-                prefixIcon: const Icon(MaterialSymbols.search, size: 18, color: AppColors.t3),
+                prefixIcon: const Icon(Symbols.search, size: 18, color: AppColors.t3),
                 filled: true, fillColor: AppColors.bg,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
@@ -76,7 +76,7 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
                 enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
                   borderSide: const BorderSide(color: AppColors.border)),
                 suffixIcon: _search.isNotEmpty
-                  ? IconButton(icon: const Icon(MaterialSymbols.close, size: 16),
+                  ? IconButton(icon: const Icon(Symbols.close, size: 16),
                       onPressed: () { _searchCtrl.clear(); setState(() => _search = ''); })
                   : null,
               ),
@@ -115,7 +115,7 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
         // List
         Expanded(child: list.isEmpty
           ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-              const Icon(MaterialSymbols.receipt_long, size: 48, color: AppColors.t4),
+              const Icon(Symbols.receipt_long, size: 48, color: AppColors.t4),
               const Gap(10),
               Text(_search.isNotEmpty ? 'No results found' : 'No invoices',
                 style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1)),

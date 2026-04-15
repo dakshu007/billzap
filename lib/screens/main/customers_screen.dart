@@ -25,13 +25,13 @@ class CustomersScreen extends ConsumerWidget {
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
           IconButton(
-            icon: const Icon(MaterialSymbols.person_add, color: AppColors.brand),
+            icon: const Icon(Symbols.person_add, color: AppColors.brand),
             onPressed: () => _addSheet(context, ref)),
         ],
       ),
       body: custs.isEmpty
         ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Icon(MaterialSymbols.group, size: 48, color: AppColors.t4),
+            const Icon(Symbols.group, size: 48, color: AppColors.t4),
             const Gap(10),
             Text('No customers yet', style: GoogleFonts.plusJakartaSans(
               fontSize: 16, fontWeight: FontWeight.w800)),
@@ -41,7 +41,7 @@ class CustomersScreen extends ConsumerWidget {
             const Gap(16),
             ElevatedButton.icon(
               onPressed: () => _addSheet(context, ref),
-              icon: const Icon(MaterialSymbols.person_add, size: 18),
+              icon: const Icon(Symbols.person_add, size: 18),
               label: const Text('Add Customer')),
           ]))
         : ListView.builder(
@@ -80,7 +80,7 @@ class CustomersScreen extends ConsumerWidget {
                     // ✅ FIX: Use separate function to avoid dark overlay bug
                     GestureDetector(
                       onTap: () => _deleteCustomer(ctx, ref, c),
-                      child: const Icon(MaterialSymbols.delete, size: 18, color: AppColors.red)),
+                      child: const Icon(Symbols.delete, size: 18, color: AppColors.red)),
                   ]),
                 ]),
               );

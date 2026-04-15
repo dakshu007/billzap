@@ -31,7 +31,7 @@ class ExpensesScreen extends ConsumerWidget {
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
           IconButton(
-            icon: const Icon(MaterialSymbols.add, color: AppColors.brand, size: 26),
+            icon: const Icon(Symbols.add, color: AppColors.brand, size: 26),
             onPressed: () => _addSheet(context, ref)),
         ],
       ),
@@ -52,7 +52,7 @@ class ExpensesScreen extends ConsumerWidget {
 
         Expanded(child: exps.isEmpty
           ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-              const Icon(MaterialSymbols.payments, size: 48, color: AppColors.t4), const Gap(10),
+              const Icon(Symbols.payments, size: 48, color: AppColors.t4), const Gap(10),
               Text('No expenses recorded', style: GoogleFonts.plusJakartaSans(
                 fontSize: 16, fontWeight: FontWeight.w800)),
               const Gap(6),
@@ -61,7 +61,7 @@ class ExpensesScreen extends ConsumerWidget {
               const Gap(16),
               ElevatedButton.icon(
                 onPressed: () => _addSheet(context, ref),
-                icon: const Icon(MaterialSymbols.add, size: 18),
+                icon: const Icon(Symbols.add, size: 18),
                 label: const Text('Add Expense')),
             ]))
           : ListView.builder(
@@ -92,7 +92,7 @@ class ExpensesScreen extends ConsumerWidget {
                       const Gap(2),
                       GestureDetector(
                         onTap: () => ref.read(expenseProvider.notifier).delete(e.id),
-                        child: const Icon(MaterialSymbols.delete, size: 15, color: AppColors.red)),
+                        child: const Icon(Symbols.delete, size: 15, color: AppColors.red)),
                     ]),
                   ]),
                 );

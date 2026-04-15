@@ -364,7 +364,7 @@ class _AboutPanel extends StatelessWidget {
               'Free forever — no subscriptions'].map((f) => Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Row(children: [
-              const Icon(MaterialSymbols.check_circle, size: 16, color: AppColors.green),
+              const Icon(Symbols.check_circle, size: 16, color: AppColors.green),
               const Gap(8),
               Text(f, style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t2)),
             ]))),

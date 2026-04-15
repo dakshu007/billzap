@@ -44,7 +44,7 @@ class _ShellScreenState extends State<ShellScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(children: [
-            const Icon(MaterialSymbols.exit_to_app, color: Colors.white, size: 18),
+            const Icon(Symbols.exit_to_app, color: Colors.white, size: 18),
             const SizedBox(width: 10),
             Text(
               'Press back again to exit',
@@ -146,12 +146,12 @@ class _BottomNav extends StatelessWidget {
           height: 64,
           child: Row(children: [
             _NavItem(
-                icon: MaterialSymbols.home,
+                icon: Symbols.home,
                 label: 'Home',
                 on: idx == 0,
                 onTap: onHome),
             _NavItem(
-                icon: MaterialSymbols.receipt_long,
+                icon: Symbols.receipt_long,
                 label: 'Invoices',
                 on: idx == 1,
                 onTap: onInvoices),
@@ -174,19 +174,19 @@ class _BottomNav extends StatelessWidget {
                         )
                       ],
                     ),
-                    child: const Icon(MaterialSymbols.add,
+                    child: const Icon(Symbols.add,
                         color: Colors.white, size: 26),
                   ),
                 ),
               ),
             ),
             _NavItem(
-                icon: MaterialSymbols.bar_chart,
+                icon: Symbols.bar_chart,
                 label: 'Reports',
                 on: idx == 3,
                 onTap: onReports),
             _NavItem(
-                icon: MaterialSymbols.person,
+                icon: Symbols.person,
                 label: 'Me',
                 on: idx == 4,
                 onTap: onMe),

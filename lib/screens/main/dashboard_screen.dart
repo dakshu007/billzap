@@ -125,14 +125,14 @@ class DashboardScreen extends ConsumerWidget {
             physics: const NeverScrollableScrollPhysics(),
             crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 1.55,
             children: [
-              _StatCard('Revenue', formatCurrency(revenue), MaterialSymbols.trending_up,
+              _StatCard('Revenue', formatCurrency(revenue), Symbols.trending_up,
                 AppColors.brand, AppColors.brandSoft, '${thisMo.length} this month'),
-              _StatCard('Pending', formatCurrency(pendAmt), MaterialSymbols.schedule,
+              _StatCard('Pending', formatCurrency(pendAmt), Symbols.schedule,
                 AppColors.yellow, AppColors.yellowSoft,
                 '${invoices.where((i) => i.status == InvoiceStatus.sent || i.status == InvoiceStatus.pending).length} invoices'),
-              _StatCard('GST Collected', formatCurrency(gstCollected), MaterialSymbols.calculate,
+              _StatCard('GST Collected', formatCurrency(gstCollected), Symbols.calculate,
                 AppColors.green, AppColors.greenSoft, 'Auto-calculated'),
-              _StatCard('Customers', '${customers.length}', MaterialSymbols.group,
+              _StatCard('Customers', '${customers.length}', Symbols.group,
                 AppColors.purple, AppColors.purpleSoft,
                 '${invoices.where((i) => i.isOverdue).length} overdue'),
             ],
@@ -283,7 +283,7 @@ class _EmptyInvoice extends StatelessWidget {
     decoration: BoxDecoration(color: AppColors.card,
       borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.border)),
     child: Column(children: [
-      const Icon(MaterialSymbols.receipt_long, size: 44, color: AppColors.t4),
+      const Icon(Symbols.receipt_long, size: 44, color: AppColors.t4),
       const Gap(10),
       Text('No invoices yet', style: GoogleFonts.plusJakartaSans(
         fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1)),
@@ -293,7 +293,7 @@ class _EmptyInvoice extends StatelessWidget {
       const Gap(16),
       ElevatedButton.icon(
         onPressed: onTap,
-        icon: const Icon(MaterialSymbols.add, size: 18),
+        icon: const Icon(Symbols.add, size: 18),
         label: const Text('Create Invoice')),
     ]),
   );

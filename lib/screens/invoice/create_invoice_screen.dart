@@ -93,7 +93,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
         leading: IconButton(
           icon: Container(width: 34, height: 34,
             decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(10)),
-            child: const Icon(MaterialSymbols.close, size: 19, color: AppColors.t1)),
+            child: const Icon(Symbols.close, size: 19, color: AppColors.t1)),
           onPressed: () => context.go('/home')),
         title: Text('New Invoice', style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
@@ -168,7 +168,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
           _Section('Line Items',
             trailing: TextButton.icon(
               onPressed: _showPicker,
-              icon: const Icon(MaterialSymbols.add, size: 16),
+              icon: const Icon(Symbols.add, size: 16),
               label: Text('From Catalog', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600))),
             children: [
               ..._lines.asMap().entries.map((e) => _LineRow(
@@ -178,7 +178,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
               const Gap(4),
               OutlinedButton.icon(
                 onPressed: () => setState(() => _lines.add(_LineItem())),
-                icon: const Icon(MaterialSymbols.add, size: 16),
+                icon: const Icon(Symbols.add, size: 16),
                 label: Text('Add Line Item', style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600))),
             ]),
 
@@ -425,7 +425,7 @@ class _LineRowState extends State<_LineRow> {
           GestureDetector(onTap: widget.onRemove,
             child: Container(width: 32, height: 32,
               decoration: BoxDecoration(color: AppColors.redSoft, borderRadius: BorderRadius.circular(8)),
-              child: const Icon(MaterialSymbols.delete, size: 16, color: AppColors.red))),
+              child: const Icon(Symbols.delete, size: 16, color: AppColors.red))),
         ],
       ]),
       const Gap(8),
@@ -546,7 +546,7 @@ Widget _DateBtn(DateTime date, ValueChanged<DateTime> onPick) =>
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppColors.border)),
       child: Row(children: [
-        const Icon(MaterialSymbols.calendar_today, size: 15, color: AppColors.t3),
+        const Icon(Symbols.calendar_today, size: 15, color: AppColors.t3),
         const Gap(7),
         Text(DateFormat('dd MMM yyyy').format(date),
           style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.t1)),
