@@ -1,5 +1,6 @@
 // lib/screens/invoice/invoice_preview_screen.dart — all bugs fixed
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -48,7 +49,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
         leading: IconButton(
           icon: Container(width: 34, height: 34,
             decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(10)),
-            child: const Icon(Icons.arrow_back_rounded, size: 19, color: AppColors.t1)),
+            child: const Icon(MaterialSymbols.arrow_back, size: 19, color: AppColors.t1)),
           onPressed: () => context.go('/home')),
         title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('Invoice Preview', style: GoogleFonts.nunito(
@@ -59,10 +60,10 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           // ✅ EDIT button
           if (!isPaid)
             IconButton(
-              icon: const Icon(Icons.edit_rounded, color: AppColors.brand),
+              icon: const Icon(MaterialSymbols.edit, color: AppColors.brand),
               onPressed: () => _editInvoice(context, invoice)),
           IconButton(
-            icon: const Icon(Icons.more_vert_rounded, color: AppColors.t1),
+            icon: const Icon(MaterialSymbols.more_vert, color: AppColors.t1),
             onPressed: () => _moreOptions(invoice, biz)),
         ],
       ),
@@ -251,7 +252,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
         icon: _pdfLoading
           ? const SizedBox(width: 16, height: 16,
               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-          : const Icon(Icons.picture_as_pdf_rounded, size: 18),
+          : const Icon(MaterialSymbols.picture_as_pdf, size: 18),
         label: Text('PDF', style: GoogleFonts.dmSans(fontWeight: FontWeight.w800, fontSize: 14)),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.brand, foregroundColor: Colors.white,
@@ -606,7 +607,7 @@ class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
         decoration: BoxDecoration(border: Border.all(color: AppColors.border),
           borderRadius: BorderRadius.circular(10)),
         child: Row(children: [
-          const Icon(Icons.calendar_today_rounded, size: 14, color: AppColors.t3),
+          const Icon(MaterialSymbols.calendar_today, size: 14, color: AppColors.t3),
           const Gap(6),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(label, style: GoogleFonts.dmSans(fontSize: 10, color: AppColors.t3)),
@@ -686,7 +687,7 @@ class _ActionTile extends StatelessWidget {
             color: color ?? AppColors.t1)),
           Text(sub, style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.t3)),
         ])),
-        const Icon(Icons.chevron_right_rounded, color: AppColors.t3),
+        const Icon(MaterialSymbols.chevron_right, color: AppColors.t3),
       ])));
 }
 

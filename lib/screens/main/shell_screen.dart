@@ -3,6 +3,7 @@
 // ✅ On any tab except home → back goes to home
 // ✅ On home → first back shows toast, second back exits
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -42,7 +43,7 @@ class _ShellScreenState extends State<ShellScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(children: [
-            const Icon(Icons.exit_to_app_rounded, color: Colors.white, size: 18),
+            const Icon(MaterialSymbols.exit_to_app, color: Colors.white, size: 18),
             const SizedBox(width: 10),
             Text('Press back again to exit',
               style: GoogleFonts.dmSans(fontWeight: FontWeight.w600, fontSize: 13)),
@@ -109,9 +110,9 @@ class _ShellScreenState extends State<ShellScreen> {
           ),
           child: SafeArea(
             child: SizedBox(height: 62, child: Row(children: [
-              _NavItem(icon: Icons.home_rounded, label: 'Home',
+              _NavItem(icon: MaterialSymbols.home, label: 'Home',
                 on: _idx == 0, onTap: () => _go(context, '/home')),
-              _NavItem(icon: Icons.receipt_long_rounded, label: 'Invoices',
+              _NavItem(icon: MaterialSymbols.receipt_long, label: 'Invoices',
                 on: _idx == 1, onTap: () => _go(context, '/invoices')),
               // Centre FAB
               Expanded(child: Center(child: GestureDetector(
@@ -128,12 +129,12 @@ class _ShellScreenState extends State<ShellScreen> {
                       color: AppColors.brand.withOpacity(0.35),
                       blurRadius: 14, offset: const Offset(0, 5))],
                   ),
-                  child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
+                  child: const Icon(MaterialSymbols.add, color: Colors.white, size: 28),
                 ),
               ))),
-              _NavItem(icon: Icons.bar_chart_rounded, label: 'Reports',
+              _NavItem(icon: MaterialSymbols.bar_chart, label: 'Reports',
                 on: _idx == 3, onTap: () => _go(context, '/reports')),
-              _NavItem(icon: Icons.person_rounded, label: 'Me',
+              _NavItem(icon: MaterialSymbols.person, label: 'Me',
                 on: _idx == 4, onTap: () => _go(context, '/settings')),
             ])),
           ),

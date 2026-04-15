@@ -1,5 +1,6 @@
 // lib/screens/main/products_screen.dart
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
@@ -21,13 +22,13 @@ class ProductsScreen extends ConsumerWidget {
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_box_rounded, color: AppColors.brand),
+            icon: const Icon(MaterialSymbols.add_box, color: AppColors.brand),
             onPressed: () => _addSheet(context, ref)),
         ],
       ),
       body: prods.isEmpty
         ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Icon(Icons.inventory_2_rounded, size: 48, color: AppColors.t4), const Gap(10),
+            const Icon(MaterialSymbols.inventory_2, size: 48, color: AppColors.t4), const Gap(10),
             Text('No products yet', style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800)),
             const Gap(6),
             Text('Build your catalog for faster invoicing',
@@ -35,7 +36,7 @@ class ProductsScreen extends ConsumerWidget {
             const Gap(16),
             ElevatedButton.icon(
               onPressed: () => _addSheet(context, ref),
-              icon: const Icon(Icons.add_box_rounded, size: 18),
+              icon: const Icon(MaterialSymbols.add_box, size: 18),
               label: const Text('Add Product')),
           ]))
         : ListView.builder(
@@ -76,7 +77,7 @@ class ProductsScreen extends ConsumerWidget {
                     const Gap(2),
                     GestureDetector(
                       onTap: () => ref.read(productProvider.notifier).delete(p.id),
-                      child: const Icon(Icons.delete_rounded, size: 16, color: AppColors.red)),
+                      child: const Icon(MaterialSymbols.delete, size: 16, color: AppColors.red)),
                   ]),
                 ]),
               );

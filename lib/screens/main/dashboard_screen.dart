@@ -2,6 +2,7 @@
 // ✅ Greeting fixed (real time check)
 // ✅ Business name updates live from provider
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -124,14 +125,14 @@ class DashboardScreen extends ConsumerWidget {
             physics: const NeverScrollableScrollPhysics(),
             crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 1.55,
             children: [
-              _StatCard('Revenue', formatCurrency(revenue), Icons.trending_up_rounded,
+              _StatCard('Revenue', formatCurrency(revenue), MaterialSymbols.trending_up,
                 AppColors.brand, AppColors.brandSoft, '${thisMo.length} this month'),
-              _StatCard('Pending', formatCurrency(pendAmt), Icons.schedule_rounded,
+              _StatCard('Pending', formatCurrency(pendAmt), MaterialSymbols.schedule,
                 AppColors.yellow, AppColors.yellowSoft,
                 '${invoices.where((i) => i.status == InvoiceStatus.sent || i.status == InvoiceStatus.pending).length} invoices'),
-              _StatCard('GST Collected', formatCurrency(gstCollected), Icons.calculate_rounded,
+              _StatCard('GST Collected', formatCurrency(gstCollected), MaterialSymbols.calculate,
                 AppColors.green, AppColors.greenSoft, 'Auto-calculated'),
-              _StatCard('Customers', '${customers.length}', Icons.group_rounded,
+              _StatCard('Customers', '${customers.length}', MaterialSymbols.group,
                 AppColors.purple, AppColors.purpleSoft,
                 '${invoices.where((i) => i.isOverdue).length} overdue'),
             ],
@@ -282,7 +283,7 @@ class _EmptyInvoice extends StatelessWidget {
     decoration: BoxDecoration(color: AppColors.card,
       borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.border)),
     child: Column(children: [
-      const Icon(Icons.receipt_long_rounded, size: 44, color: AppColors.t4),
+      const Icon(MaterialSymbols.receipt_long, size: 44, color: AppColors.t4),
       const Gap(10),
       Text('No invoices yet', style: GoogleFonts.nunito(
         fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1)),
@@ -292,7 +293,7 @@ class _EmptyInvoice extends StatelessWidget {
       const Gap(16),
       ElevatedButton.icon(
         onPressed: onTap,
-        icon: const Icon(Icons.add_rounded, size: 18),
+        icon: const Icon(MaterialSymbols.add, size: 18),
         label: const Text('Create Invoice')),
     ]),
   );
