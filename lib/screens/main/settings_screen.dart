@@ -108,57 +108,70 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final stateNames = kStates.map((s) => s.split(' (')[0]).toList();
+    final currentState = stateNames.contains(_state) ? _state : 'Tamil Nadu';
+    final dropdownItems = kStates.map((s) {
+      final n = s.split(' (')[0];
+      return DropdownMenuItem<String>(
+        value: n,
+        child: Text(s, style: GoogleFonts.plusJakartaSans(fontSize: 13)));
+    }).toList();
+
+    final saveBtn = SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _saving ? null : _save,
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 15)),
+        child: _saving
+          ? const SizedBox(
+              width: 20, height: 20,
+              child: CircularProgressIndicator(
+                color: Colors.white, strokeWidth: 2))
+          : Text('Save Business Profile',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14, fontWeight: FontWeight.w700))));
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(14),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _Sec('Business Profile'),
-        _F('Business Name *', _name, hint: 'e.g. Ravi Electronics'),
-        _F('GSTIN', _gstin, hint: '33RAAAA1234B1Z5', caps: true),
-        Row(children: [
-          Expanded(child: _F('Phone', _phone,
-            hint: '+91 98765 43210', type: TextInputType.phone)),
-          const Gap(10),
-          Expanded(child: _F('Email', _email,
-            hint: 'you@email.com', type: TextInputType.emailAddress)),
-        ]),
-        _F('Address', _addr, hint: 'Street, Area'),
-        Row(children: [
-          Expanded(child: _F('City', _city, hint: 'Coimbatore')),
-          const Gap(10),
-          Expanded(child: _F('Pincode', _pin,
-            hint: '641001', type: TextInputType.number, max: 6)),
-        ]),
-        _Label('State'),
-        DropdownButtonFormField<String>(
-          value: kStates.map((s) => s.split(' (')[0]).contains(_state)
-            ? _state : 'Tamil Nadu',
-          decoration: InputDecoration(
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.border)),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13)),
-          items: kStates.map((s) {
-            final n = s.split(' (')[0];
-            return DropdownMenuItem(
-              value: n,
-              child: Text(s, style: GoogleFonts.plusJakartaSans(fontSize: 13)));
-          }).toList(),
-          onChanged: (v) => setState(() => _state = v ?? _state))),
-        const Gap(20),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: _saving ? null : _save,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 15)),
-            child: _saving
-              ? const SizedBox(width: 20, height: 20,
-                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-              : Text('Save Business Profile',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14, fontWeight: FontWeight.w700)))),
-      ])));
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _Sec('Business Profile'),
+          _F('Business Name *', _name, hint: 'e.g. Ravi Electronics'),
+          _F('GSTIN', _gstin, hint: '33RAAAA1234B1Z5', caps: true),
+          Row(children: [
+            Expanded(child: _F('Phone', _phone,
+              hint: '+91 98765 43210', type: TextInputType.phone)),
+            const Gap(10),
+            Expanded(child: _F('Email', _email,
+              hint: 'you@email.com', type: TextInputType.emailAddress)),
+          ]),
+          _F('Address', _addr, hint: 'Street, Area'),
+          Row(children: [
+            Expanded(child: _F('City', _city, hint: 'Coimbatore')),
+            const Gap(10),
+            Expanded(child: _F('Pincode', _pin,
+              hint: '641001', type: TextInputType.number, max: 6)),
+          ]),
+          _Label('State'),
+          DropdownButtonFormField<String>(
+            value: currentState,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10)),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: AppColors.border)),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14, vertical: 13)),
+            items: dropdownItems,
+            onChanged: (v) => setState(() => _state = v ?? _state)),
+          const Gap(20),
+          saveBtn,
+        ],
+      ),
+    );
   }
 
   Future<void> _save() async {
