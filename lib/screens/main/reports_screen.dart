@@ -181,7 +181,8 @@ class ReportsScreen extends ConsumerWidget {
                 ]))).toList());
             })),
         ],
-      );
+      ),
+    );
   }
 }
 
@@ -254,5 +255,5 @@ class _PLRow extends StatelessWidget {
         fontWeight: bold ? FontWeight.w700 : FontWeight.w500, color: AppColors.t1)),
       Text(formatCurrency(value), style: GoogleFonts.plusJakartaSans(
         fontSize: bold ? 17 : 14, fontWeight: FontWeight.w800, color: color)),
-    ])));
+    ]));
 }
