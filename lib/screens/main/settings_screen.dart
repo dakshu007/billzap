@@ -3,8 +3,6 @@
 // ✅ Loading fixed with try/finally
 // ✅ Zero Firebase
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -366,7 +364,7 @@ class _AboutPanel extends StatelessWidget {
               'Free forever — no subscriptions'].map((f) => Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Row(children: [
-              const Icon(Symbols.check_circle, size: 16, color: AppColors.green),
+              const Icon(MaterialSymbols.check_circle, size: 16, color: AppColors.green),
               const Gap(8),
               Text(f, style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t2)),
             ]))),
@@ -407,4 +405,4 @@ Widget _F(String label, TextEditingController ctrl,
             borderSide: const BorderSide(color: AppColors.brand, width: 1.5)),
           contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13)),
         style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.t1)),
-    ]))))
+    ]));
