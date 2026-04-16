@@ -15,8 +15,8 @@ class ExpensesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final expenses = ref.watch(expenseProvider);
-    final total  = expenses.fold<double>(0, (s, e) => s + e.amount);
-    final month  = expenses.where((e) =>
+    final total = expenses.fold<double>(0, (s, e) => s + e.amount);
+    final month = expenses.where((e) =>
       e.date.month == DateTime.now().month &&
       e.date.year  == DateTime.now().year).fold<double>(0, (s, e) => s + e.amount);
 
@@ -34,7 +34,6 @@ class ExpensesScreen extends ConsumerWidget {
         ],
       ),
       body: Column(children: [
-        // Summary row
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
           child: Row(children: [
@@ -86,10 +85,10 @@ class ExpensesScreen extends ConsumerWidget {
                       Expanded(child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(e.description, style: GoogleFonts.plusJakartaSans(
+                          Text(e.title, style: GoogleFonts.plusJakartaSans(
                             fontSize: 14, fontWeight: FontWeight.w700,
                             color: AppColors.t1)),
-                          Text('${e.category} · ${DateFormat('dd MMM yyyy').format(e.date)}',
+                          Text('${e.category} · ${DateFormat("dd MMM yyyy").format(e.date)}',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12, color: AppColors.t3)),
                         ])),
@@ -112,11 +111,10 @@ class ExpensesScreen extends ConsumerWidget {
   }
 
   void _addSheet(BuildContext context, WidgetRef ref) {
-    final desc   = TextEditingController();
+    final title  = TextEditingController();
     final amount = TextEditingController();
     String category = 'Other';
     DateTime date = DateTime.now();
-
     final cats = ['Rent','Salary','Utilities','Travel','Food',
                   'Marketing','Equipment','Other'];
 
@@ -147,8 +145,8 @@ class ExpensesScreen extends ConsumerWidget {
                   Text('Add Expense', style: GoogleFonts.plusJakartaSans(
                     fontSize: 18, fontWeight: FontWeight.w800)),
                   const Gap(16),
-                  TextField(controller: desc,
-                    decoration: InputDecoration(labelText: 'Description *',
+                  TextField(controller: title,
+                    decoration: InputDecoration(labelText: 'Title *',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
@@ -175,15 +173,14 @@ class ExpensesScreen extends ConsumerWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: saving ? null : () async {
-                        if (desc.text.trim().isEmpty) return;
+                        if (title.text.trim().isEmpty) return;
                         ss(() => saving = true);
                         try {
-                          await ref.read(expenseProvider.notifier).add(
-                            Expense(
-                              description: desc.text.trim(),
-                              amount: double.tryParse(amount.text) ?? 0,
-                              category: category,
-                              date: date));
+                          await ref.read(expenseProvider.notifier).add(Expense(
+                            title: title.text.trim(),
+                            amount: double.tryParse(amount.text) ?? 0,
+                            category: category,
+                            date: date));
                           if (ctx.mounted) Navigator.pop(ctx);
                         } finally {
                           if (ctx.mounted) ss(() => saving = false);

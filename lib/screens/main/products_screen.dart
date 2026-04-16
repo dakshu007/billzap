@@ -66,7 +66,7 @@ class ProductsScreen extends ConsumerWidget {
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(p.name, style: GoogleFonts.plusJakartaSans(
                       fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.t1)),
-                    Text(formatCurrency(p.rate), style: GoogleFonts.plusJakartaSans(
+                    Text(formatCurrency(p.price), style: GoogleFonts.plusJakartaSans(
                       fontSize: 12, color: AppColors.t3)),
                     if (p.hsnCode.isNotEmpty)
                       Text('HSN: ${p.hsnCode}', style: GoogleFonts.plusJakartaSans(
@@ -96,8 +96,7 @@ class ProductsScreen extends ConsumerWidget {
               Navigator.of(ctx).pop();
               ref.read(productProvider.notifier).delete(p.id);
             },
-            child: const Text('Delete',
-              style: TextStyle(color: AppColors.red))),
+            child: const Text('Delete', style: TextStyle(color: AppColors.red))),
         ],
       ),
     );
@@ -105,9 +104,9 @@ class ProductsScreen extends ConsumerWidget {
 
   void _addSheet(BuildContext context, WidgetRef ref) {
     final name  = TextEditingController();
-    final rate  = TextEditingController();
+    final price = TextEditingController();
     final hsn   = TextEditingController();
-    final unit  = TextEditingController();
+    final unit  = TextEditingController(text: 'Nos');
 
     showModalBottomSheet<void>(
       context: context,
@@ -143,16 +142,15 @@ class ProductsScreen extends ConsumerWidget {
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
                   const Gap(10),
                   Row(children: [
-                    Expanded(child: TextField(controller: rate,
+                    Expanded(child: TextField(controller: price,
                       keyboardType: TextInputType.number,
-                      decoration: InputDecoration(labelText: 'Rate (₹)',
+                      decoration: InputDecoration(labelText: 'Price (₹)',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10))),
                       style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
                     const Gap(10),
                     Expanded(child: TextField(controller: unit,
                       decoration: InputDecoration(labelText: 'Unit',
-                        hintText: 'pcs, kg, hrs',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10))),
                       style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
@@ -172,12 +170,11 @@ class ProductsScreen extends ConsumerWidget {
                         if (name.text.trim().isEmpty) return;
                         ss(() => saving = true);
                         try {
-                          await ref.read(productProvider.notifier).add(
-                            Product(
-                              name: name.text.trim(),
-                              rate: double.tryParse(rate.text) ?? 0,
-                              hsnCode: hsn.text.trim(),
-                              unit: unit.text.trim()));
+                          await ref.read(productProvider.notifier).add(Product(
+                            name: name.text.trim(),
+                            price: double.tryParse(price.text) ?? 0,
+                            hsnCode: hsn.text.trim(),
+                            unit: unit.text.trim()));
                           if (ctx.mounted) Navigator.pop(ctx);
                         } finally {
                           if (ctx.mounted) ss(() => saving = false);
