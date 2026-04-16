@@ -184,8 +184,6 @@ class ExpensesScreen extends ConsumerWidget {
           ]),
         ),
       )),
-    ),
-    );
   }
 }
 

@@ -42,7 +42,6 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
       _InvoicePanel(),
       _AboutPanel(),
     ]),
-  ),
   );
 }
 

@@ -197,7 +197,5 @@ class ProductsScreen extends ConsumerWidget {
           ]),
         ),
       )),
-    ),
-    );
   }
 }

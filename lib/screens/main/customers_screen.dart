@@ -186,7 +186,5 @@ class CustomersScreen extends ConsumerWidget {
           ]),
         ),
       )),
-    ),
-    );
   }
 }
