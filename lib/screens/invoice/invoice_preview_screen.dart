@@ -1,5 +1,6 @@
-// lib/screens/invoice/invoice_preview_screen.dart — all bugs fixed
+// lib/screens/invoice/invoice_preview_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -42,74 +43,88 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     final c = isPaid ? AppColors.green
         : invoice.isOverdue ? AppColors.red : AppColors.yellow;
 
-    return Scaffold(
-      backgroundColor: AppColors.bg,
-      appBar: AppBar(
-        backgroundColor: AppColors.card,
-        leading: IconButton(
-          icon: Container(width: 34, height: 34,
-            decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(10)),
-            child: const Icon(Symbols.arrow_back, size: 19, color: AppColors.t1)),
-          onPressed: () => context.go('/home')),
-        title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Invoice Preview', style: GoogleFonts.plusJakartaSans(
-            fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
-          Text(invoice.invoiceNumber, style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.t3)),
-        ]),
-        actions: [
-          // ✅ EDIT button
-          if (!isPaid)
+    // ✅ PopScope: back → /invoices (not /home, since we came from invoices)
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (!didPop) {
+          HapticFeedback.lightImpact();
+          context.go('/invoices');
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.bg,
+        appBar: AppBar(
+          backgroundColor: AppColors.card,
+          leading: IconButton(
+            icon: Container(width: 34, height: 34,
+              decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(10)),
+              child: const Icon(Symbols.arrow_back, size: 19, color: AppColors.t1)),
+            onPressed: () => context.go('/invoices')),
+          title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Invoice Preview', style: GoogleFonts.plusJakartaSans(
+              fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
+            Text(invoice.invoiceNumber, style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.t3)),
+          ]),
+          actions: [
+            if (!isPaid)
+              IconButton(
+                icon: const Icon(Symbols.edit, color: AppColors.brand),
+                onPressed: () => _editInvoice(context, invoice)),
             IconButton(
-              icon: const Icon(Symbols.edit, color: AppColors.brand),
-              onPressed: () => _editInvoice(context, invoice)),
-          IconButton(
-            icon: const Icon(Symbols.more_vert, color: AppColors.t1),
-            onPressed: () => _moreOptions(invoice, biz)),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(14, 10, 14, 110),
-        children: [
-          Row(children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-              decoration: BoxDecoration(
-                color: c.withOpacity(0.12), borderRadius: BorderRadius.circular(99),
-                border: Border.all(color: c.withOpacity(0.3))),
-              child: Text(invoice.isOverdue ? 'OVERDUE' : invoice.status.name.toUpperCase(),
-                style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w800, color: c))),
-            if (invoice.isOverdue) ...[
-              const Gap(8),
+              icon: const Icon(Symbols.more_vert, color: AppColors.t1),
+              onPressed: () => _moreOptions(invoice, biz)),
+          ],
+        ),
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 110),
+          children: [
+            Row(children: [
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                decoration: BoxDecoration(color: AppColors.redSoft, borderRadius: BorderRadius.circular(99),
-                  border: Border.all(color: AppColors.red.withOpacity(0.3))),
-                child: Text('OVERDUE', style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.red))),
-            ],
-          ]),
-          const Gap(12),
-          _buildDoc(invoice, biz),
-          const Gap(12),
-          _ActionTile('📄', 'Download & Share PDF', 'Professional GST invoice PDF',
-            loading: _pdfLoading, onTap: () => _downloadPdf(invoice, biz)),
-          const Gap(8),
-          _ActionTile('🖨️', 'Print Invoice', 'Print via WiFi or Bluetooth',
-            loading: _printLoading, onTap: () => _printInvoice(invoice, biz)),
-          const Gap(8),
-          if (!isPaid)
-            _ActionTile('✅', 'Mark as Paid', 'Record payment received',
-              onTap: () => _markPaid(invoice))
-          else
-            _ActionTile('↩️', 'Mark as Unpaid', 'Undo paid status',
-              color: AppColors.orange, onTap: () => _markUnpaid(invoice)),
-        ],
+                decoration: BoxDecoration(
+                  color: c.withOpacity(0.12), borderRadius: BorderRadius.circular(99),
+                  border: Border.all(color: c.withOpacity(0.3))),
+                child: Text(invoice.isOverdue ? 'OVERDUE' : invoice.status.name.toUpperCase(),
+                  style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w800, color: c))),
+            ]),
+            const Gap(12),
+            _buildDoc(invoice, biz),
+            const Gap(12),
+
+            // ✅ Material Symbols action tiles
+            _ActionTile(
+              icon: Symbols.picture_as_pdf, iconColor: AppColors.brand,
+              title: 'Download & Share PDF', sub: 'Professional GST invoice PDF',
+              loading: _pdfLoading, onTap: () => _downloadPdf(invoice, biz)),
+            const Gap(8),
+            _ActionTile(
+              icon: Symbols.print, iconColor: AppColors.t2,
+              title: 'Print Invoice', sub: 'Print via WiFi or Bluetooth',
+              loading: _printLoading, onTap: () => _printInvoice(invoice, biz)),
+            const Gap(8),
+            if (!isPaid)
+              _ActionTile(
+                icon: Symbols.check_circle, iconColor: AppColors.green,
+                title: 'Mark as Paid', sub: 'Record payment received',
+                onTap: () => _markPaid(invoice))
+            else
+              _ActionTile(
+                icon: Symbols.undo, iconColor: AppColors.orange,
+                title: 'Mark as Unpaid', sub: 'Undo paid status',
+                color: AppColors.orange, onTap: () => _markUnpaid(invoice)),
+            const Gap(8),
+            _ActionTile(
+              icon: Symbols.delete, iconColor: AppColors.red,
+              title: 'Delete Invoice', sub: 'Permanently remove this invoice',
+              color: AppColors.red, onTap: () => _deleteInvoice(invoice)),
+          ],
+        ),
+        bottomNavigationBar: _buildBottomBar(invoice, biz),
       ),
-      bottomNavigationBar: _buildBottomBar(invoice, biz),
     );
   }
 
-  // ✅ Edit invoice — opens edit sheet
   void _editInvoice(BuildContext context, Invoice invoice) {
     showModalBottomSheet(
       context: context, isScrollControlled: true, backgroundColor: Colors.transparent,
@@ -238,9 +253,10 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     decoration: const BoxDecoration(color: Colors.white,
       border: Border(top: BorderSide(color: AppColors.border))),
     child: Row(children: [
+      // ✅ WhatsApp button with Material Symbol icon
       Expanded(flex: 2, child: ElevatedButton.icon(
         onPressed: () => _sendWhatsApp(invoice),
-        icon: const Text('📱', style: TextStyle(fontSize: 16)),
+        icon: const Icon(Symbols.chat, size: 18),
         label: Text('WhatsApp', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 14)),
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF25D366), foregroundColor: Colors.white,
@@ -272,18 +288,22 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           Container(width: 36, height: 4,
             decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(99))),
           const Gap(16),
-          if (!isPaid) _OptTile('✏️', 'Edit Invoice',
+          if (!isPaid) _OptTile(Symbols.edit, 'Edit Invoice', AppColors.brand,
             () { Navigator.pop(context); _editInvoice(context, invoice); }),
-          _OptTile('📄', 'Download PDF', () { Navigator.pop(context); _downloadPdf(invoice, biz); }),
-          _OptTile('🖨️', 'Print Invoice', () { Navigator.pop(context); _printInvoice(invoice, biz); }),
-          _OptTile('📱', 'Send WhatsApp', () { Navigator.pop(context); _sendWhatsApp(invoice); }),
+          _OptTile(Symbols.picture_as_pdf, 'Download PDF', AppColors.brand,
+            () { Navigator.pop(context); _downloadPdf(invoice, biz); }),
+          _OptTile(Symbols.print, 'Print Invoice', AppColors.t2,
+            () { Navigator.pop(context); _printInvoice(invoice, biz); }),
+          _OptTile(Symbols.chat, 'Send WhatsApp', const Color(0xFF25D366),
+            () { Navigator.pop(context); _sendWhatsApp(invoice); }),
           if (!isPaid)
-            _OptTile('✅', 'Mark as Paid', () { Navigator.pop(context); _markPaid(invoice); })
+            _OptTile(Symbols.check_circle, 'Mark as Paid', AppColors.green,
+              () { Navigator.pop(context); _markPaid(invoice); })
           else
-            _OptTile('↩️', 'Mark as Unpaid', () { Navigator.pop(context); _markUnpaid(invoice); },
-              color: AppColors.orange),
-          _OptTile('🗑️', 'Delete Invoice', () { Navigator.pop(context); _deleteInvoice(invoice); },
-            color: AppColors.red),
+            _OptTile(Symbols.undo, 'Mark as Unpaid', AppColors.orange,
+              () { Navigator.pop(context); _markUnpaid(invoice); }),
+          _OptTile(Symbols.delete, 'Delete Invoice', AppColors.red,
+            () { Navigator.pop(context); _deleteInvoice(invoice); }),
         ])));
   }
 
@@ -347,7 +367,6 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
             pw.Text('Date: ${DateFormat('dd MMM yyyy').format(invoice.invoiceDate)}', style: const pw.TextStyle(fontSize: 10)),
             pw.Text('Due:  ${DateFormat('dd MMM yyyy').format(invoice.dueDate)}', style: const pw.TextStyle(fontSize: 10)),
-            pw.Text('Place: ${invoice.placeOfSupply}', style: const pw.TextStyle(fontSize: 10)),
           ]),
         ]),
         pw.SizedBox(height: 16), pw.Divider(), pw.SizedBox(height: 8),
@@ -502,19 +521,49 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     }
   }
 
-  void _sendWhatsApp(Invoice invoice) async {
-    final phone = invoice.customerPhone.replaceAll(RegExp(r'[^0-9]'), '');
+  // ✅ WhatsApp fix: try wa.me with phone, fallback to wa.me without phone
+  Future<void> _sendWhatsApp(Invoice invoice) async {
     final msg = Uri.encodeComponent(
-      'Hi ${invoice.customerName},\n\nYour invoice *${invoice.invoiceNumber}* '
+      'Hi ${invoice.customerName},\n\n'
+      'Your invoice *${invoice.invoiceNumber}* '
       'for *${formatCurrency(invoice.grandTotal)}* is ready.\n\n'
       'Due: ${DateFormat('dd MMM yyyy').format(invoice.dueDate)}\n\n'
       'Thank you! 🙏\n\n— Sent via BillZap ⚡');
-    final url = Uri.parse('https://wa.me/91$phone?text=$msg');
-    if (await canLaunchUrl(url)) await launchUrl(url, mode: LaunchMode.externalApplication);
+
+    final phone = invoice.customerPhone.replaceAll(RegExp(r'[^0-9]'), '');
+    
+    // Try with phone number first
+    Uri url;
+    if (phone.isNotEmpty) {
+      final fullPhone = phone.startsWith('91') ? phone : '91$phone';
+      url = Uri.parse('https://wa.me/$fullPhone?text=$msg');
+    } else {
+      url = Uri.parse('https://wa.me/?text=$msg');
+    }
+
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        // Fallback: open WhatsApp directly
+        final fallback = Uri.parse('whatsapp://send?text=$msg');
+        if (await canLaunchUrl(fallback)) {
+          await launchUrl(fallback, mode: LaunchMode.externalApplication);
+        } else {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('WhatsApp not installed'), backgroundColor: AppColors.red));
+        }
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.red));
+    }
   }
 }
 
-// ✅ Edit Invoice Sheet
+// ── Edit Invoice Sheet ─────────────────────────────────────────
 class _EditInvoiceSheet extends ConsumerStatefulWidget {
   final Invoice invoice;
   const _EditInvoiceSheet({required this.invoice});
@@ -541,7 +590,8 @@ class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
 
   @override
   void dispose() {
-    _custName.dispose(); _custPhone.dispose(); _custGstin.dispose(); _notes.dispose();
+    _custName.dispose(); _custPhone.dispose();
+    _custGstin.dispose(); _notes.dispose();
     super.dispose();
   }
 
@@ -642,6 +692,7 @@ class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
   }
 }
 
+// ── Helper widgets ─────────────────────────────────────────────
 Widget _IRow(String l, String v) => Padding(
   padding: const EdgeInsets.only(bottom: 3),
   child: Row(children: [
@@ -662,13 +713,19 @@ Widget _TotRow(String label, double amount, {bool neg = false}) => Padding(
         color: neg ? AppColors.green : AppColors.t1)),
   ]));
 
+// ✅ Action tile with Material Symbol icon
 class _ActionTile extends StatelessWidget {
-  final String emoji, title, sub;
+  final IconData icon;
+  final Color iconColor;
+  final String title, sub;
   final bool loading;
   final Color? color;
   final VoidCallback onTap;
-  const _ActionTile(this.emoji, this.title, this.sub,
-    {this.loading = false, this.color, required this.onTap});
+  const _ActionTile({
+    required this.icon, required this.iconColor,
+    required this.title, required this.sub,
+    this.loading = false, this.color, required this.onTap});
+
   @override
   Widget build(BuildContext context) => GestureDetector(
     onTap: loading ? null : onTap,
@@ -677,29 +734,42 @@ class _ActionTile extends StatelessWidget {
       decoration: BoxDecoration(color: loading ? AppColors.bg : AppColors.card,
         borderRadius: BorderRadius.circular(13), border: Border.all(color: AppColors.border)),
       child: Row(children: [
-        loading
-          ? const SizedBox(width: 28, height: 28,
-              child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.brand))
-          : Text(emoji, style: const TextStyle(fontSize: 22)),
+        Container(
+          width: 40, height: 40,
+          decoration: BoxDecoration(
+            color: iconColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10)),
+          child: loading
+            ? const Center(child: SizedBox(width: 20, height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.brand)))
+            : Icon(icon, size: 20, color: iconColor)),
         const Gap(12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(title, style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 14,
             color: color ?? AppColors.t1)),
           Text(sub, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t3)),
         ])),
-        const Icon(Symbols.chevron_right, color: AppColors.t3),
+        Icon(Symbols.chevron_right, color: AppColors.t3),
       ])));
 }
 
+// ✅ Options tile with Material Symbol icon
 class _OptTile extends StatelessWidget {
-  final String emoji, label;
+  final IconData icon;
+  final String label;
+  final Color color;
   final VoidCallback onTap;
-  final Color? color;
-  const _OptTile(this.emoji, this.label, this.onTap, {this.color});
+  const _OptTile(this.icon, this.label, this.color, this.onTap);
+
   @override
   Widget build(BuildContext context) => ListTile(
-    leading: Text(emoji, style: const TextStyle(fontSize: 22)),
+    leading: Container(
+      width: 36, height: 36,
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8)),
+      child: Icon(icon, size: 18, color: color)),
     title: Text(label, style: GoogleFonts.plusJakartaSans(
-      fontWeight: FontWeight.w700, color: color ?? AppColors.t1)),
+      fontWeight: FontWeight.w700, color: AppColors.t1)),
     onTap: onTap);
 }
