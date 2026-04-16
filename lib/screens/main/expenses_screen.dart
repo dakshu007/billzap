@@ -1,7 +1,5 @@
 // lib/screens/main/expenses_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -25,15 +23,7 @@ class ExpensesScreen extends ConsumerWidget {
                       .fold<double>(0, (s, i) => s + i.grandTotal);
     final profit = rev - total;
 
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) {
-        if (!didPop) {
-          HapticFeedback.lightImpact();
-          context.go('/home');
-        }
-      },
-      child: Scaffold(
+    return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         automaticallyImplyLeading: false, backgroundColor: AppColors.card,
@@ -109,7 +99,6 @@ class ExpensesScreen extends ConsumerWidget {
               }),
         ),
       ]),
-    ),
     );
   }
 
@@ -202,5 +191,5 @@ class _SumCard extends StatelessWidget {
       const Gap(3),
       Text(value, style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w900, color: color),
         maxLines: 1, overflow: TextOverflow.ellipsis),
-    ])));
+    ]));;
 }

@@ -407,4 +407,4 @@ Widget _F(String label, TextEditingController ctrl,
             borderSide: const BorderSide(color: AppColors.brand, width: 1.5)),
           contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13)),
         style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.t1)),
-    ]));
+    ]))))

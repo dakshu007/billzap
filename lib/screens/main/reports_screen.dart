@@ -181,8 +181,7 @@ class ReportsScreen extends ConsumerWidget {
                 ]))).toList());
             })),
         ],
-      ),
-    );
+      );
   }
 }
 

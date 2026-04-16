@@ -1,9 +1,7 @@
 // lib/screens/main/invoices_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
@@ -48,15 +46,7 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
     final all = ref.watch(invoiceProvider);
     final list = _filtered(all);
 
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) {
-        if (!didPop) {
-          HapticFeedback.lightImpact();
-          context.go('/home');
-        }
-      },
-      child: Scaffold(
+    return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -180,7 +170,6 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
               }),
         ),
       ]),
-    ),
     );
   }
 }

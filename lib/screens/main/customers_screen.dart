@@ -1,8 +1,6 @@
 // lib/screens/main/customers_screen.dart
 // ✅ Delete dialog dark overlay fixed
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -19,15 +17,7 @@ class CustomersScreen extends ConsumerWidget {
     final custs = ref.watch(customerProvider);
     final invs  = ref.watch(invoiceProvider);
 
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) {
-        if (!didPop) {
-          HapticFeedback.lightImpact();
-          context.go('/home');
-        }
-      },
-      child: Scaffold(
+    return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         automaticallyImplyLeading: false, backgroundColor: AppColors.card,
@@ -95,7 +85,6 @@ class CustomersScreen extends ConsumerWidget {
                 ]),
               );
             }),
-    ),
     );
   }
 
@@ -118,8 +107,7 @@ class CustomersScreen extends ConsumerWidget {
             },
             child: const Text('Delete', style: TextStyle(color: AppColors.red))),
         ],
-      ),
-    );
+      );
   }
 
   void _addSheet(BuildContext context, WidgetRef ref) {
@@ -185,7 +173,6 @@ class CustomersScreen extends ConsumerWidget {
                 : const Text('Save Customer'))),
           ]),
         ),
-      )),
-    );
+      ));
   }
 }
