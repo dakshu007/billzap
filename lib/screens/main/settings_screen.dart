@@ -3,6 +3,8 @@
 // ✅ Loading fixed with try/finally
 // ✅ Zero Firebase
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -20,7 +22,16 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsState extends ConsumerState<SettingsScreen> {
   int _tab = 0;
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (!didPop) {
+          HapticFeedback.lightImpact();
+          context.go('/home');
+        }
+      },
+      child: Scaffold(
     backgroundColor: AppColors.bg,
     appBar: AppBar(
       automaticallyImplyLeading: false, backgroundColor: AppColors.card,
@@ -40,6 +51,7 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
       _InvoicePanel(),
       _AboutPanel(),
     ]),
+  ),
   );
 }
 
@@ -377,6 +389,8 @@ class _AboutPanel extends StatelessWidget {
         fontSize: 12, color: AppColors.t4)),
       const Gap(20),
     ]));
+    );
+  }
 }
 
 // ─── Shared helpers ───────────────────────────────────────────────────────

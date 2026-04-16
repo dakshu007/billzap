@@ -1,9 +1,4 @@
 // lib/screens/main/shell_screen.dart
-// ✅ PopScope: any tab → back → Home
-// ✅ Home → double back → exit
-// ✅ Smooth fade+scale transitions between tabs
-// ✅ Predictive back (Android API 33+) supported via canPop: false
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -20,37 +15,8 @@ class ShellScreen extends StatefulWidget {
   State<ShellScreen> createState() => _ShellScreenState();
 }
 
-class _ShellScreenState extends State<ShellScreen>
-    with SingleTickerProviderStateMixin {
+class _ShellScreenState extends State<ShellScreen> {
   DateTime? _lastBackPress;
-
-  late AnimationController _tabAnim;
-  late Animation<double> _fadeAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabAnim = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 220),
-    );
-    _fadeAnim = CurvedAnimation(parent: _tabAnim, curve: Curves.easeOut);
-    _tabAnim.value = 1.0;
-  }
-
-  @override
-  void didUpdateWidget(ShellScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.location != widget.location) {
-      _tabAnim.forward(from: 0.0);
-    }
-  }
-
-  @override
-  void dispose() {
-    _tabAnim.dispose();
-    super.dispose();
-  }
 
   bool get _isHome => widget.location.startsWith('/home');
 
@@ -77,8 +43,7 @@ class _ShellScreenState extends State<ShellScreen>
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
           backgroundColor: AppColors.t1,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: const EdgeInsets.fromLTRB(14, 0, 14, 20),
         ),
       );
@@ -88,15 +53,15 @@ class _ShellScreenState extends State<ShellScreen>
   }
 
   int get _idx {
-    if (widget.location.startsWith('/home'))     return 0;
-    if (widget.location.startsWith('/invoices')) return 1;
-    if (widget.location.startsWith('/reports'))  return 3;
-    if (widget.location.startsWith('/settings')) return 4;
+    if (widget.location.startsWith('/home'))      return 0;
+    if (widget.location.startsWith('/invoices'))  return 1;
+    if (widget.location.startsWith('/reports'))   return 3;
+    if (widget.location.startsWith('/settings'))  return 4;
     return 0;
   }
 
   void _go(String path) {
-    if (widget.location == path) return; // already here
+    if (widget.location == path) return;
     HapticFeedback.lightImpact();
     context.go(path);
   }
@@ -109,8 +74,22 @@ class _ShellScreenState extends State<ShellScreen>
         if (!didPop) _handleBack();
       },
       child: Scaffold(
-        body: FadeTransition(
-          opacity: _fadeAnim,
+        // ✅ Match all child scaffold backgrounds — no colour flash
+        backgroundColor: AppColors.bg,
+        body: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 180),
+          // ✅ Crossfade: old fades OUT while new fades IN — no blank frame
+          transitionBuilder: (child, animation) => FadeTransition(
+            opacity: animation,
+            child: child,
+          ),
+          layoutBuilder: (currentChild, previousChildren) => Stack(
+            alignment: Alignment.topCenter,
+            children: [
+              ...previousChildren,
+              if (currentChild != null) currentChild,
+            ],
+          ),
           child: KeyedSubtree(
             key: ValueKey(widget.location),
             child: widget.child,
@@ -132,7 +111,6 @@ class _ShellScreenState extends State<ShellScreen>
   }
 }
 
-// ── Bottom Nav ──────────────────────────────────────────────────
 class _BottomNav extends StatelessWidget {
   final int idx;
   final VoidCallback onHome, onInvoices, onCreate, onReports, onMe;
@@ -160,7 +138,6 @@ class _BottomNav extends StatelessWidget {
           child: Row(children: [
             _NavItem(icon: Symbols.home,         label: 'Home',     on: idx == 0, onTap: onHome),
             _NavItem(icon: Symbols.receipt_long, label: 'Invoices', on: idx == 1, onTap: onInvoices),
-            // Centre FAB
             Expanded(
               child: Center(
                 child: GestureDetector(
@@ -188,7 +165,6 @@ class _BottomNav extends StatelessWidget {
   }
 }
 
-// ── Nav Item ────────────────────────────────────────────────────
 class _NavItem extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -196,7 +172,7 @@ class _NavItem extends StatelessWidget {
   final VoidCallback onTap;
   const _NavItem({
     required this.icon, required this.label,
-    required this.on, required this.onTap,
+    required this.on,   required this.onTap,
   });
 
   @override
@@ -209,13 +185,15 @@ class _NavItem extends StatelessWidget {
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
         AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOutBack,
-          padding: EdgeInsets.symmetric(horizontal: on ? 12 : 0, vertical: on ? 3 : 0),
+          curve: Curves.easeOut,
+          padding: EdgeInsets.symmetric(
+              horizontal: on ? 14 : 0, vertical: on ? 4 : 0),
           decoration: BoxDecoration(
             color: on ? AppColors.brandSoft : Colors.transparent,
             borderRadius: BorderRadius.circular(20),
           ),
-          child: Icon(icon, size: 22, color: on ? AppColors.brand : AppColors.t3),
+          child: Icon(icon, size: 22,
+              color: on ? AppColors.brand : AppColors.t3),
         ),
         const SizedBox(height: 3),
         AnimatedDefaultTextStyle(
