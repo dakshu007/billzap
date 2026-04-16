@@ -95,6 +95,7 @@ class CustomersScreen extends ConsumerWidget {
                 ]),
               );
             }),
+    ),
     );
   }
 

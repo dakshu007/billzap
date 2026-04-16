@@ -22,16 +22,7 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsState extends ConsumerState<SettingsScreen> {
   int _tab = 0;
   @override
-  Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) {
-        if (!didPop) {
-          HapticFeedback.lightImpact();
-          context.go('/home');
-        }
-      },
-      child: Scaffold(
+  Widget build(BuildContext context) => Scaffold(
     backgroundColor: AppColors.bg,
     appBar: AppBar(
       automaticallyImplyLeading: false, backgroundColor: AppColors.card,
@@ -389,8 +380,6 @@ class _AboutPanel extends StatelessWidget {
         fontSize: 12, color: AppColors.t4)),
       const Gap(20),
     ]));
-    );
-  }
 }
 
 // ─── Shared helpers ───────────────────────────────────────────────────────

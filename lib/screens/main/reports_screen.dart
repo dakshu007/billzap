@@ -1,7 +1,5 @@
 // lib/screens/main/reports_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
@@ -45,15 +43,7 @@ class ReportsScreen extends ConsumerWidget {
     final topCusts = custMap.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) {
-        if (!didPop) {
-          HapticFeedback.lightImpact();
-          context.go('/home');
-        }
-      },
-      child: Scaffold(
+    return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         automaticallyImplyLeading: false, backgroundColor: AppColors.card,
@@ -236,7 +226,6 @@ class _Card extends StatelessWidget {
       const Gap(14),
       child,
     ]),
-  ),
   );
 }
 
