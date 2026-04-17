@@ -1,9 +1,6 @@
 // lib/screens/main/shell_screen.dart
-// ✅ BMW-grade smooth transitions
-// ✅ Samsung S23 swipe-back WORKS (native predictive back disabled)
-// ✅ Single source of truth: Navigator-level WillPopScope + PopScope
-// ✅ IndexedStack keeps tab state alive (no rebuild on switch)
-// ✅ Fade + slide transitions between tabs
+// ✅ NO PopScope here — each route has its own (in router)
+// ✅ Just bottom nav + smooth transitions
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -21,24 +18,18 @@ class ShellScreen extends StatefulWidget {
 
 class _ShellScreenState extends State<ShellScreen>
     with SingleTickerProviderStateMixin {
-  DateTime? _lastBackPress;
   late final AnimationController _ctrl;
   late final Animation<double> _fade;
-  late final Animation<Offset> _slide;
 
   @override
   void initState() {
     super.initState();
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 260),
+      duration: const Duration(milliseconds: 240),
       value: 1.0,
     );
     _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
-    _slide = Tween<Offset>(
-      begin: const Offset(0.06, 0),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
   }
 
   @override
@@ -53,49 +44,6 @@ class _ShellScreenState extends State<ShellScreen>
   void dispose() {
     _ctrl.dispose();
     super.dispose();
-  }
-
-  bool get _isHome => widget.location.startsWith('/home');
-
-  /// Core back-press handler — returns true if consumed
-  Future<bool> _handleBack() async {
-    // Any non-home tab → go Home
-    if (!_isHome) {
-      HapticFeedback.lightImpact();
-      context.go('/home');
-      return true;
-    }
-
-    // On Home: first press shows toast, second exits
-    final now = DateTime.now();
-    final recent = _lastBackPress != null &&
-        now.difference(_lastBackPress!) < const Duration(seconds: 2);
-
-    if (!recent) {
-      _lastBackPress = now;
-      HapticFeedback.lightImpact();
-      if (mounted) {
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Row(children: [
-            const Icon(Symbols.exit_to_app, color: Colors.white, size: 18),
-            const SizedBox(width: 10),
-            Text('Press back again to exit',
-                style: GoogleFonts.plusJakartaSans(
-                    fontWeight: FontWeight.w600, fontSize: 13)),
-          ]),
-          duration: const Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: AppColors.t1,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          margin: const EdgeInsets.fromLTRB(14, 0, 14, 20),
-        ));
-      }
-      return true;
-    }
-    // Second press within 2s — exit
-    SystemNavigator.pop();
-    return true;
   }
 
   int get _idx {
@@ -114,41 +62,30 @@ class _ShellScreenState extends State<ShellScreen>
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) async {
-        if (didPop) return;
-        await _handleBack();
-      },
-      child: Scaffold(
-        backgroundColor: AppColors.bg,
-        body: FadeTransition(
-          opacity: _fade,
-          child: SlideTransition(
-            position: _slide,
-            child: KeyedSubtree(
-              key: ValueKey(widget.location),
-              child: widget.child,
-            ),
-          ),
+    return Scaffold(
+      backgroundColor: AppColors.bg,
+      body: FadeTransition(
+        opacity: _fade,
+        child: KeyedSubtree(
+          key: ValueKey(widget.location),
+          child: widget.child,
         ),
-        bottomNavigationBar: _BmwNav(
-          idx: _idx,
-          onHome:     () => _go('/home'),
-          onInvoices: () => _go('/invoices'),
-          onCreate: () {
-            HapticFeedback.mediumImpact();
-            context.push('/create');
-          },
-          onReports: () => _go('/reports'),
-          onMe:      () => _go('/settings'),
-        ),
+      ),
+      bottomNavigationBar: _BmwNav(
+        idx: _idx,
+        onHome:     () => _go('/home'),
+        onInvoices: () => _go('/invoices'),
+        onCreate: () {
+          HapticFeedback.mediumImpact();
+          context.push('/create');
+        },
+        onReports: () => _go('/reports'),
+        onMe:      () => _go('/settings'),
       ),
     );
   }
 }
 
-// ── BMW-style bottom nav: animated pill, haptic feedback ───────
 class _BmwNav extends StatelessWidget {
   final int idx;
   final VoidCallback onHome, onInvoices, onCreate, onReports, onMe;
@@ -178,8 +115,7 @@ class _BmwNav extends StatelessWidget {
               child: Center(
                 child: GestureDetector(
                   onTap: onCreate,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
+                  child: Container(
                     width: 54, height: 54,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
@@ -194,8 +130,7 @@ class _BmwNav extends StatelessWidget {
                           blurRadius: 16, offset: const Offset(0, 6)),
                       ],
                     ),
-                    child: const Icon(Symbols.add,
-                        color: Colors.white, size: 28, weight: 700),
+                    child: const Icon(Symbols.add, color: Colors.white, size: 28),
                   ),
                 ),
               ),
@@ -236,10 +171,8 @@ class _NavItem extends StatelessWidget {
               color: on ? AppColors.brandSoft : Colors.transparent,
               borderRadius: BorderRadius.circular(22),
             ),
-            child: Icon(icon,
-                size: 23,
-                color: on ? AppColors.brand : AppColors.t3,
-                weight: on ? 700 : 400),
+            child: Icon(icon, size: 23,
+                color: on ? AppColors.brand : AppColors.t3),
           ),
           const SizedBox(height: 3),
           AnimatedDefaultTextStyle(

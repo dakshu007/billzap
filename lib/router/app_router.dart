@@ -1,9 +1,10 @@
 // lib/router/app_router.dart
-// ✅ BMW-grade smooth route transitions
-// ✅ Slide from right for detail screens (iOS-like)
-// ✅ Fade for shell routes
-// ✅ Slide up from bottom for modals (create invoice)
+// ✅ Each tab route is wrapped with PopScope at router level
+// ✅ Back gesture on any tab → Home
+// ✅ Back on Home → double-tap to exit
+// ✅ Smooth transitions
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../screens/main/shell_screen.dart';
@@ -17,76 +18,120 @@ import '../screens/main/settings_screen.dart';
 import '../screens/invoice/create_invoice_screen.dart';
 import '../screens/invoice/invoice_preview_screen.dart';
 import '../screens/splash/splash_screen.dart';
+import '../theme/app_theme.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
-// ── Slide from right (iOS-like, premium feel) ────────────────
-CustomTransitionPage<void> _slideRight(BuildContext ctx, GoRouterState st, Widget child) {
+// ── Back-to-home wrapper for tab screens ─────────────────────
+class _BackToHome extends StatelessWidget {
+  final Widget child;
+  const _BackToHome({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
+        HapticFeedback.lightImpact();
+        context.go('/home');
+      },
+      child: child,
+    );
+  }
+}
+
+// ── Home handler: double-back to exit ────────────────────────
+class _HomeBackHandler extends StatefulWidget {
+  final Widget child;
+  const _HomeBackHandler({required this.child});
+
+  @override
+  State<_HomeBackHandler> createState() => _HomeBackHandlerState();
+}
+
+class _HomeBackHandlerState extends State<_HomeBackHandler> {
+  DateTime? _lastPress;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
+        final now = DateTime.now();
+        if (_lastPress == null ||
+            now.difference(_lastPress!) > const Duration(seconds: 2)) {
+          _lastPress = now;
+          HapticFeedback.lightImpact();
+          ScaffoldMessenger.of(context).clearSnackBars();
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Row(children: [
+              const Icon(Symbols.exit_to_app, color: Colors.white, size: 18),
+              const SizedBox(width: 10),
+              Text('Press back again to exit',
+                  style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w600, fontSize: 13)),
+            ]),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppColors.t1,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
+            margin: const EdgeInsets.fromLTRB(14, 0, 14, 20),
+          ));
+        } else {
+          SystemNavigator.pop();
+        }
+      },
+      child: widget.child,
+    );
+  }
+}
+
+// ── Transitions ──────────────────────────────────────────────
+CustomTransitionPage<void> _slideRight(BuildContext c, GoRouterState s, Widget w) {
   return CustomTransitionPage<void>(
-    key: st.pageKey,
-    child: child,
-    transitionDuration: const Duration(milliseconds: 320),
-    reverseTransitionDuration: const Duration(milliseconds: 280),
-    transitionsBuilder: (ctx, anim, secAnim, child) {
-      final fwd = CurvedAnimation(parent: anim, curve: Curves.easeOutCubic);
-      final rev = CurvedAnimation(parent: secAnim, curve: Curves.easeInCubic);
+    key: s.pageKey, child: w,
+    transitionDuration: const Duration(milliseconds: 300),
+    reverseTransitionDuration: const Duration(milliseconds: 260),
+    transitionsBuilder: (c, a, sa, child) {
+      final f = CurvedAnimation(parent: a, curve: Curves.easeOutCubic);
       return SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(1, 0),
-          end: Offset.zero,
-        ).animate(fwd),
+        position: Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero).animate(f),
         child: FadeTransition(
-          opacity: Tween<double>(begin: 0.4, end: 1.0).animate(fwd),
-          child: SlideTransition(
-            position: Tween<Offset>(
-              begin: Offset.zero,
-              end: const Offset(-0.25, 0),
-            ).animate(rev),
-            child: child,
-          ),
-        ),
-      );
+          opacity: Tween<double>(begin: 0.4, end: 1.0).animate(f),
+          child: child));
     },
   );
 }
 
-// ── Slide up from bottom (modal sheet style) ─────────────────
-CustomTransitionPage<void> _slideUp(BuildContext ctx, GoRouterState st, Widget child) {
+CustomTransitionPage<void> _slideUp(BuildContext c, GoRouterState s, Widget w) {
   return CustomTransitionPage<void>(
-    key: st.pageKey,
-    child: child,
+    key: s.pageKey, child: w,
     transitionDuration: const Duration(milliseconds: 340),
     reverseTransitionDuration: const Duration(milliseconds: 300),
-    transitionsBuilder: (ctx, anim, secAnim, child) {
-      final curve = CurvedAnimation(parent: anim, curve: Curves.easeOutCubic);
+    transitionsBuilder: (c, a, sa, child) {
+      final f = CurvedAnimation(parent: a, curve: Curves.easeOutCubic);
       return SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(0, 1),
-          end: Offset.zero,
-        ).animate(curve),
-        child: FadeTransition(
-          opacity: Tween<double>(begin: 0.0, end: 1.0).animate(curve),
-          child: child,
-        ),
-      );
+        position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(f),
+        child: FadeTransition(opacity: f, child: child));
     },
   );
 }
 
-// ── Clean fade (splash → home) ───────────────────────────────
-CustomTransitionPage<void> _fade(BuildContext ctx, GoRouterState st, Widget child) {
+CustomTransitionPage<void> _fade(BuildContext c, GoRouterState s, Widget w) {
   return CustomTransitionPage<void>(
-    key: st.pageKey,
-    child: child,
+    key: s.pageKey, child: w,
     transitionDuration: const Duration(milliseconds: 400),
-    transitionsBuilder: (ctx, anim, _, child) =>
-        FadeTransition(opacity: anim, child: child),
+    transitionsBuilder: (c, a, _, child) =>
+        FadeTransition(opacity: a, child: child),
   );
 }
 
-// ── No transition (shell handles its own animations) ─────────
-CustomTransitionPage<void> _noTransition(BuildContext ctx, GoRouterState st, Widget child) {
+CustomTransitionPage<void> _none(BuildContext c, GoRouterState s, Widget w) {
   return CustomTransitionPage<void>(
-    key: st.pageKey,
-    child: child,
+    key: s.pageKey, child: w,
     transitionDuration: Duration.zero,
     transitionsBuilder: (_, __, ___, child) => child,
   );
@@ -101,24 +146,51 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (c, s) => _fade(c, s, const SplashScreen()),
       ),
 
-      // Shell — all tabs use no-transition (shell animates internally)
+      // Shell — each tab has its own back handler
       ShellRoute(
         builder: (ctx, st, child) => ShellScreen(
           location: st.uri.path,
           child: child,
         ),
         routes: [
-          GoRoute(path: '/home',      pageBuilder: (c, s) => _noTransition(c, s, const DashboardScreen())),
-          GoRoute(path: '/invoices',  pageBuilder: (c, s) => _noTransition(c, s, const InvoicesScreen())),
-          GoRoute(path: '/customers', pageBuilder: (c, s) => _noTransition(c, s, const CustomersScreen())),
-          GoRoute(path: '/products',  pageBuilder: (c, s) => _noTransition(c, s, const ProductsScreen())),
-          GoRoute(path: '/expenses',  pageBuilder: (c, s) => _noTransition(c, s, const ExpensesScreen())),
-          GoRoute(path: '/reports',   pageBuilder: (c, s) => _noTransition(c, s, const ReportsScreen())),
-          GoRoute(path: '/settings',  pageBuilder: (c, s) => _noTransition(c, s, const SettingsScreen())),
+          GoRoute(
+            path: '/home',
+            pageBuilder: (c, s) => _none(c, s,
+              const _HomeBackHandler(child: DashboardScreen())),
+          ),
+          GoRoute(
+            path: '/invoices',
+            pageBuilder: (c, s) => _none(c, s,
+              const _BackToHome(child: InvoicesScreen())),
+          ),
+          GoRoute(
+            path: '/customers',
+            pageBuilder: (c, s) => _none(c, s,
+              const _BackToHome(child: CustomersScreen())),
+          ),
+          GoRoute(
+            path: '/products',
+            pageBuilder: (c, s) => _none(c, s,
+              const _BackToHome(child: ProductsScreen())),
+          ),
+          GoRoute(
+            path: '/expenses',
+            pageBuilder: (c, s) => _none(c, s,
+              const _BackToHome(child: ExpensesScreen())),
+          ),
+          GoRoute(
+            path: '/reports',
+            pageBuilder: (c, s) => _none(c, s,
+              const _BackToHome(child: ReportsScreen())),
+          ),
+          GoRoute(
+            path: '/settings',
+            pageBuilder: (c, s) => _none(c, s,
+              const _BackToHome(child: SettingsScreen())),
+          ),
         ],
       ),
 
-      // Full-screen overlays
       GoRoute(
         path: '/create',
         pageBuilder: (c, s) => _slideUp(c, s, const CreateInvoiceScreen()),
