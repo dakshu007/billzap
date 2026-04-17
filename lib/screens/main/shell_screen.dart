@@ -1,86 +1,172 @@
 // lib/screens/main/shell_screen.dart
-// ✅ NO PopScope here — each route has its own (in router)
-// ✅ Just bottom nav + smooth transitions
+// ✅ PageView-based tabs: swipe left/right between pages
+// ✅ Single PopScope at shell root — catches ALL back gestures
+// ✅ BMW-style smooth transitions
+// ✅ Bottom nav with animated pill indicator
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../theme/app_theme.dart';
+import 'dashboard_screen.dart';
+import 'invoices_screen.dart';
+import 'reports_screen.dart';
+import 'settings_screen.dart';
 
 class ShellScreen extends StatefulWidget {
-  final Widget child;
+  final Widget? child;
   final String location;
-  const ShellScreen({super.key, required this.child, required this.location});
+  const ShellScreen({super.key, this.child, required this.location});
   @override
   State<ShellScreen> createState() => _ShellScreenState();
 }
 
-class _ShellScreenState extends State<ShellScreen>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-  late final Animation<double> _fade;
+class _ShellScreenState extends State<ShellScreen> {
+  late final PageController _pc;
+  int _idx = 0;
+  DateTime? _lastBack;
+
+  // The four tab screens — home + 3 others (skip index 2, that's the FAB)
+  static const _pages = <Widget>[
+    DashboardScreen(),
+    InvoicesScreen(),
+    ReportsScreen(),
+    SettingsScreen(),
+  ];
 
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 240),
-      value: 1.0,
-    );
-    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
+    _idx = _indexFor(widget.location);
+    _pc = PageController(initialPage: _idx);
   }
 
   @override
   void didUpdateWidget(ShellScreen old) {
     super.didUpdateWidget(old);
-    if (old.location != widget.location) {
-      _ctrl.forward(from: 0.0);
+    final newIdx = _indexFor(widget.location);
+    if (newIdx != _idx && _pc.hasClients) {
+      _idx = newIdx;
+      _pc.animateToPage(newIdx,
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeOutCubic);
     }
   }
 
   @override
   void dispose() {
-    _ctrl.dispose();
+    _pc.dispose();
     super.dispose();
   }
 
-  int get _idx {
-    if (widget.location.startsWith('/home'))     return 0;
-    if (widget.location.startsWith('/invoices')) return 1;
-    if (widget.location.startsWith('/reports'))  return 3;
-    if (widget.location.startsWith('/settings')) return 4;
+  int _indexFor(String loc) {
+    if (loc.startsWith('/invoices')) return 1;
+    if (loc.startsWith('/reports'))  return 2;
+    if (loc.startsWith('/settings')) return 3;
     return 0;
   }
 
-  void _go(String path) {
-    if (widget.location == path) return;
+  String _pathFor(int idx) {
+    switch (idx) {
+      case 1: return '/invoices';
+      case 2: return '/reports';
+      case 3: return '/settings';
+      default: return '/home';
+    }
+  }
+
+  void _onPageChanged(int i) {
+    if (i == _idx) return;
+    setState(() => _idx = i);
     HapticFeedback.selectionClick();
-    context.go(path);
+    // Sync URL without triggering animation
+    final newPath = _pathFor(i);
+    if (widget.location != newPath) {
+      // Use replaceNamed-like behavior by directly updating router
+      GoRouter.of(context).go(newPath);
+    }
+  }
+
+  void _tapTab(int i) {
+    if (i == _idx) return;
+    HapticFeedback.lightImpact();
+    _pc.animateToPage(i,
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic);
+  }
+
+  Future<bool> _handleBack() async {
+    // If not on home, animate back to home
+    if (_idx != 0) {
+      HapticFeedback.lightImpact();
+      _pc.animateToPage(0,
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeOutCubic);
+      return false; // Block system back
+    }
+
+    // On home: first press shows toast, second exits within 2s
+    final now = DateTime.now();
+    if (_lastBack == null ||
+        now.difference(_lastBack!) > const Duration(seconds: 2)) {
+      _lastBack = now;
+      HapticFeedback.lightImpact();
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Row(children: [
+            const Icon(Symbols.exit_to_app, color: Colors.white, size: 18),
+            const SizedBox(width: 10),
+            Text('Press back again to exit',
+                style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w600, fontSize: 13)),
+          ]),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.t1,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.fromLTRB(14, 0, 14, 20),
+        ));
+      }
+      return false; // Block exit
+    }
+    // Second press — allow system back (exits app)
+    return true;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.bg,
-      body: FadeTransition(
-        opacity: _fade,
-        child: KeyedSubtree(
-          key: ValueKey(widget.location),
-          child: widget.child,
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+        final shouldExit = await _handleBack();
+        if (shouldExit) {
+          // Use SystemNavigator to properly exit
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.bg,
+        body: PageView(
+          controller: _pc,
+          onPageChanged: _onPageChanged,
+          physics: const BouncingScrollPhysics(),
+          children: _pages,
         ),
-      ),
-      bottomNavigationBar: _BmwNav(
-        idx: _idx,
-        onHome:     () => _go('/home'),
-        onInvoices: () => _go('/invoices'),
-        onCreate: () {
-          HapticFeedback.mediumImpact();
-          context.push('/create');
-        },
-        onReports: () => _go('/reports'),
-        onMe:      () => _go('/settings'),
+        bottomNavigationBar: _BmwNav(
+          idx: _idx,
+          onHome:     () => _tapTab(0),
+          onInvoices: () => _tapTab(1),
+          onCreate: () {
+            HapticFeedback.mediumImpact();
+            context.push('/create');
+          },
+          onReports: () => _tapTab(2),
+          onMe:      () => _tapTab(3),
+        ),
       ),
     );
   }
@@ -135,8 +221,8 @@ class _BmwNav extends StatelessWidget {
                 ),
               ),
             ),
-            _NavItem(icon: Symbols.bar_chart, label: 'Reports', on: idx == 3, onTap: onReports),
-            _NavItem(icon: Symbols.person,    label: 'Me',      on: idx == 4, onTap: onMe),
+            _NavItem(icon: Symbols.bar_chart, label: 'Reports', on: idx == 2, onTap: onReports),
+            _NavItem(icon: Symbols.person,    label: 'Me',      on: idx == 3, onTap: onMe),
           ]),
         ),
       ),
