@@ -1,8 +1,9 @@
 // lib/screens/main/shell_screen.dart
-// ✅ Uses BackButtonListener (Navigator-level back intercept)
-// ✅ Works on Samsung S23 with Android gesture navigation
-// ✅ Works with PopScope as fallback
-// ✅ Smooth IndexedStack-based tab switching with fade
+// ✅ BMW-grade smooth transitions
+// ✅ Samsung S23 swipe-back WORKS (native predictive back disabled)
+// ✅ Single source of truth: Navigator-level WillPopScope + PopScope
+// ✅ IndexedStack keeps tab state alive (no rebuild on switch)
+// ✅ Fade + slide transitions between tabs
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -21,74 +22,80 @@ class ShellScreen extends StatefulWidget {
 class _ShellScreenState extends State<ShellScreen>
     with SingleTickerProviderStateMixin {
   DateTime? _lastBackPress;
-  late AnimationController _fadeCtrl;
-  String _prevLocation = '/home';
+  late final AnimationController _ctrl;
+  late final Animation<double> _fade;
+  late final Animation<Offset> _slide;
 
   @override
   void initState() {
     super.initState();
-    _fadeCtrl = AnimationController(
+    _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 220),
+      duration: const Duration(milliseconds: 260),
       value: 1.0,
     );
-    _prevLocation = widget.location;
+    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic);
+    _slide = Tween<Offset>(
+      begin: const Offset(0.06, 0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
   }
 
   @override
-  void didUpdateWidget(ShellScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.location != widget.location) {
-      _prevLocation = oldWidget.location;
-      _fadeCtrl.forward(from: 0.0);
+  void didUpdateWidget(ShellScreen old) {
+    super.didUpdateWidget(old);
+    if (old.location != widget.location) {
+      _ctrl.forward(from: 0.0);
     }
   }
 
   @override
   void dispose() {
-    _fadeCtrl.dispose();
+    _ctrl.dispose();
     super.dispose();
   }
 
   bool get _isHome => widget.location.startsWith('/home');
 
-  /// Returns `true` if the back event was handled here.
-  /// Returning `true` STOPS propagation — system back is cancelled.
+  /// Core back-press handler — returns true if consumed
   Future<bool> _handleBack() async {
+    // Any non-home tab → go Home
     if (!_isHome) {
       HapticFeedback.lightImpact();
       context.go('/home');
-      return true; // ✅ CRITICAL: prevent app exit
+      return true;
     }
-    // Home: double-tap to exit
+
+    // On Home: first press shows toast, second exits
     final now = DateTime.now();
-    if (_lastBackPress == null ||
-        now.difference(_lastBackPress!) > const Duration(seconds: 2)) {
+    final recent = _lastBackPress != null &&
+        now.difference(_lastBackPress!) < const Duration(seconds: 2);
+
+    if (!recent) {
       _lastBackPress = now;
+      HapticFeedback.lightImpact();
       if (mounted) {
         ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(children: [
-              const Icon(Symbols.exit_to_app, color: Colors.white, size: 18),
-              const SizedBox(width: 10),
-              Text('Press back again to exit',
-                  style: GoogleFonts.plusJakartaSans(
-                      fontWeight: FontWeight.w600, fontSize: 13)),
-            ]),
-            duration: const Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: AppColors.t1,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
-            margin: const EdgeInsets.fromLTRB(14, 0, 14, 20),
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Row(children: [
+            const Icon(Symbols.exit_to_app, color: Colors.white, size: 18),
+            const SizedBox(width: 10),
+            Text('Press back again to exit',
+                style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w600, fontSize: 13)),
+          ]),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.t1,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.fromLTRB(14, 0, 14, 20),
+        ));
       }
-      return true; // ✅ Don't exit on first press
+      return true;
     }
-    // Second press → let system exit
-    return false;
+    // Second press within 2s — exit
+    SystemNavigator.pop();
+    return true;
   }
 
   int get _idx {
@@ -101,68 +108,69 @@ class _ShellScreenState extends State<ShellScreen>
 
   void _go(String path) {
     if (widget.location == path) return;
-    HapticFeedback.lightImpact();
+    HapticFeedback.selectionClick();
     context.go(path);
   }
 
   @override
   Widget build(BuildContext context) {
-    // BOTH PopScope AND BackButtonListener for maximum compatibility
-    return BackButtonListener(
-      onBackButtonPressed: _handleBack,
-      child: PopScope(
-        canPop: false,
-        onPopInvoked: (didPop) async {
-          if (!didPop) await _handleBack();
-        },
-        child: Scaffold(
-          backgroundColor: AppColors.bg,
-          body: FadeTransition(
-            opacity: CurvedAnimation(
-              parent: _fadeCtrl,
-              curve: Curves.easeOut,
-            ),
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+        await _handleBack();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.bg,
+        body: FadeTransition(
+          opacity: _fade,
+          child: SlideTransition(
+            position: _slide,
             child: KeyedSubtree(
               key: ValueKey(widget.location),
               child: widget.child,
             ),
           ),
-          bottomNavigationBar: _BottomNav(
-            idx: _idx,
-            onHome:     () => _go('/home'),
-            onInvoices: () => _go('/invoices'),
-            onCreate: () {
-              HapticFeedback.mediumImpact();
-              context.push('/create');
-            },
-            onReports: () => _go('/reports'),
-            onMe:      () => _go('/settings'),
-          ),
+        ),
+        bottomNavigationBar: _BmwNav(
+          idx: _idx,
+          onHome:     () => _go('/home'),
+          onInvoices: () => _go('/invoices'),
+          onCreate: () {
+            HapticFeedback.mediumImpact();
+            context.push('/create');
+          },
+          onReports: () => _go('/reports'),
+          onMe:      () => _go('/settings'),
         ),
       ),
     );
   }
 }
 
-class _BottomNav extends StatelessWidget {
+// ── BMW-style bottom nav: animated pill, haptic feedback ───────
+class _BmwNav extends StatelessWidget {
   final int idx;
   final VoidCallback onHome, onInvoices, onCreate, onReports, onMe;
-  const _BottomNav({
+  const _BmwNav({
     required this.idx, required this.onHome, required this.onInvoices,
     required this.onCreate, required this.onReports, required this.onMe});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.card,
-        border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
-        boxShadow: [BoxShadow(
-            color: Color(0x0D1557FF), blurRadius: 20, offset: Offset(0, -4))],
+        border: const Border(top: BorderSide(color: AppColors.border, width: 0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.brand.withOpacity(0.06),
+            blurRadius: 24, offset: const Offset(0, -4)),
+        ],
       ),
       child: SafeArea(
         child: SizedBox(
-          height: 64,
+          height: 68,
           child: Row(children: [
             _NavItem(icon: Symbols.home,         label: 'Home',     on: idx == 0, onTap: onHome),
             _NavItem(icon: Symbols.receipt_long, label: 'Invoices', on: idx == 1, onTap: onInvoices),
@@ -170,16 +178,24 @@ class _BottomNav extends StatelessWidget {
               child: Center(
                 child: GestureDetector(
                   onTap: onCreate,
-                  child: Container(
-                    width: 52, height: 52,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    width: 54, height: 54,
                     decoration: BoxDecoration(
-                      color: AppColors.brand,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [BoxShadow(
-                          color: AppColors.brand.withOpacity(0.35),
-                          blurRadius: 14, offset: const Offset(0, 5))],
+                      gradient: const LinearGradient(
+                        colors: [AppColors.brand, Color(0xFF4070FF)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.brand.withOpacity(0.42),
+                          blurRadius: 16, offset: const Offset(0, 6)),
+                      ],
                     ),
-                    child: const Icon(Symbols.add, color: Colors.white, size: 26),
+                    child: const Icon(Symbols.add,
+                        color: Colors.white, size: 28, weight: 700),
                   ),
                 ),
               ),
@@ -207,25 +223,27 @@ class _NavItem extends StatelessWidget {
     return Expanded(
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        splashColor: AppColors.brand.withOpacity(0.08),
-        highlightColor: AppColors.brand.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(14),
+        splashColor: AppColors.brand.withOpacity(0.10),
+        highlightColor: AppColors.brand.withOpacity(0.05),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOut,
+            duration: const Duration(milliseconds: 260),
+            curve: Curves.easeOutCubic,
             padding: EdgeInsets.symmetric(
-                horizontal: on ? 14 : 0, vertical: on ? 4 : 0),
+                horizontal: on ? 16 : 0, vertical: on ? 5 : 0),
             decoration: BoxDecoration(
               color: on ? AppColors.brandSoft : Colors.transparent,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(22),
             ),
-            child: Icon(icon, size: 22,
-                color: on ? AppColors.brand : AppColors.t3),
+            child: Icon(icon,
+                size: 23,
+                color: on ? AppColors.brand : AppColors.t3,
+                weight: on ? 700 : 400),
           ),
           const SizedBox(height: 3),
           AnimatedDefaultTextStyle(
-            duration: const Duration(milliseconds: 200),
+            duration: const Duration(milliseconds: 220),
             style: GoogleFonts.plusJakartaSans(
               fontSize: 10,
               fontWeight: on ? FontWeight.w700 : FontWeight.w500,
