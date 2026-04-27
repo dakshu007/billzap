@@ -180,7 +180,7 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
   Future<void> _save() async {
     if (_name.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text(tr('cust.required', ref)),
+        content: Text('Customer name is required'),
         backgroundColor: AppColors.red));
       return;
     }
@@ -269,7 +269,7 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
       await ref.read(businessProvider.notifier).save(b);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text(tr('common.saved', ref)), backgroundColor: AppColors.green));
+        content: Text('Saved'), backgroundColor: AppColors.green));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -350,7 +350,7 @@ class _InvoicePanelState extends ConsumerState<_InvoicePanel> {
       await ref.read(businessProvider.notifier).save(b);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text(tr('common.saved', ref)), backgroundColor: AppColors.green));
+        content: Text('Saved'), backgroundColor: AppColors.green));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(

@@ -60,7 +60,7 @@ class ExpensesScreen extends ConsumerWidget {
                 ElevatedButton.icon(
                   onPressed: () => _addSheet(context, ref),
                   icon: const Icon(Symbols.add, size: 18),
-                  label: const Text(tr('exp.add_new', ref))),
+                  label: Text(tr('exp.add_new', ref))),
               ]))
             : ListView.builder(
                 padding: const EdgeInsets.fromLTRB(12, 0, 12, 100),
@@ -191,7 +191,7 @@ class ExpensesScreen extends ConsumerWidget {
                         ? const SizedBox(width: 20, height: 20,
                             child: CircularProgressIndicator(
                               color: Colors.white, strokeWidth: 2))
-                        : const Text(tr('common.save', ref)))),
+                        : Text(tr('common.save', ref)))),
                 ],
               ),
             ),
@@ -208,7 +208,7 @@ class _SumCard extends StatelessWidget {
   const _SumCard(this.label, this.value, this.color, this.soft);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => Expanded(
+  Widget build(BuildContext context) => Expanded(
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       decoration: BoxDecoration(

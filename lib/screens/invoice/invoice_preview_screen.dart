@@ -514,7 +514,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
       actions: [
         TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
         TextButton(onPressed: () => Navigator.pop(context, true),
-          child: const Text(tr('common.delete', ref), style: TextStyle(color: AppColors.red))),
+          child: Text(tr('common.delete', ref), style: TextStyle(color: AppColors.red))),
       ]));
     if (ok == true) {
       await ref.read(invoiceProvider.notifier).delete(invoice.id);

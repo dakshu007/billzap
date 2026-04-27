@@ -42,7 +42,7 @@ class ProductsScreen extends ConsumerWidget {
             ElevatedButton.icon(
               onPressed: () => _addSheet(context, ref),
               icon: const Icon(Symbols.add_box, size: 18),
-              label: const Text(tr('prod.add_new', ref))),
+              label: Text(tr('prod.add_new', ref))),
           ]))
         : ListView.builder(
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 100),
@@ -86,18 +86,18 @@ class ProductsScreen extends ConsumerWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text(tr('common.delete', ref)),
+        title: Text(tr('common.delete', ref)),
         content: Text('${p.name} will be removed.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text(tr('common.cancel', ref))),
+            child: Text(tr('common.cancel', ref))),
           TextButton(
             onPressed: () {
               Navigator.of(ctx).pop();
               ref.read(productProvider.notifier).delete(p.id);
             },
-            child: const Text(tr('common.delete', ref), style: TextStyle(color: AppColors.red))),
+            child: Text(tr('common.delete', ref), style: TextStyle(color: AppColors.red))),
         ],
       ),
     );
@@ -185,7 +185,7 @@ class ProductsScreen extends ConsumerWidget {
                         ? const SizedBox(width: 20, height: 20,
                             child: CircularProgressIndicator(
                               color: Colors.white, strokeWidth: 2))
-                        : const Text(tr('common.save', ref)))),
+                        : Text(tr('common.save', ref)))),
                 ],
               ),
             ),

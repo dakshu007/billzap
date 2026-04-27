@@ -432,7 +432,7 @@ class _LineRowState extends State<_LineRow> {
       const Gap(8),
       Row(children: [
         Expanded(child: TextField(controller: _hsn,
-          decoration: InputDecoration(hintText: tr('create.hsn', ref),
+          decoration: InputDecoration(hintText: 'HSN/SAC',
             hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t4), isDense: true,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(9)),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(9),
