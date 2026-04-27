@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'services/local_storage.dart';
 import 'theme/app_theme.dart';
 import 'router/app_router.dart';
+import 'i18n/translations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
