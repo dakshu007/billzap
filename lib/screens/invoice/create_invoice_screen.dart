@@ -11,6 +11,7 @@ import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
+import '../../i18n/translations.dart';
 
 class CreateInvoiceScreen extends ConsumerStatefulWidget {
   const CreateInvoiceScreen({super.key});
@@ -85,7 +86,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
   double get _grand => _sub + _gstAmt + (_applyShipping ? _shipping : 0) - (_applyDiscount ? _discount : 0);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
@@ -95,7 +96,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
             decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(10)),
             child: const Icon(Symbols.close, size: 19, color: AppColors.t1)),
           onPressed: () => context.go('/home')),
-        title: Text('New Invoice', style: GoogleFonts.plusJakartaSans(
+        title: Text(tr('create.title', ref), style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
           Padding(padding: const EdgeInsets.only(right: 12),
@@ -105,7 +106,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
               child: _saving
                 ? const SizedBox(width: 16, height: 16,
                     child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : Text('Save', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13.5)))),
+                : Text(tr('common.save', ref), style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13.5)))),
         ],
       ),
       body: ListView(
@@ -239,7 +240,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
             if (_applyDiscount && _discount > 0) _SRow('Discount', -_discount),
             const Divider(height: 18),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text('Grand Total', style: GoogleFonts.plusJakartaSans(
+              Text(tr('inv.grand_total', ref), style: GoogleFonts.plusJakartaSans(
                 fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.t1)),
               Text(formatCurrency(_grand), style: GoogleFonts.plusJakartaSans(
                 fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.brand)),
@@ -431,7 +432,7 @@ class _LineRowState extends State<_LineRow> {
       const Gap(8),
       Row(children: [
         Expanded(child: TextField(controller: _hsn,
-          decoration: InputDecoration(hintText: 'HSN/SAC',
+          decoration: InputDecoration(hintText: tr('create.hsn', ref),
             hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t4), isDense: true,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(9)),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(9),

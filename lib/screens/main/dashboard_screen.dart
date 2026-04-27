@@ -11,6 +11,7 @@ import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
+import '../../i18n/translations.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -154,7 +155,7 @@ class DashboardScreen extends ConsumerWidget {
 
           // Recent invoices
           Row(children: [
-            Text('Recent Invoices', style: GoogleFonts.plusJakartaSans(
+            Text(tr('dash.recent_invoices', ref), style: GoogleFonts.plusJakartaSans(
               fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1)),
             const Spacer(),
             TextButton(
@@ -184,7 +185,7 @@ class _StatCard extends StatelessWidget {
   const _StatCard(this.label, this.value, this.icon, this.color, this.soft, this.sub);
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context, WidgetRef ref) => Container(
     padding: const EdgeInsets.all(13),
     decoration: BoxDecoration(color: AppColors.card,
       borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.border)),
@@ -289,7 +290,7 @@ class _EmptyInvoice extends StatelessWidget {
     child: Column(children: [
       const Icon(Symbols.receipt_long, size: 44, color: AppColors.t4),
       const Gap(10),
-      Text('No invoices yet', style: GoogleFonts.plusJakartaSans(
+      Text(tr('dash.no_invoices', ref), style: GoogleFonts.plusJakartaSans(
         fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1)),
       const Gap(4),
       Text('Create your first GST invoice', style: GoogleFonts.plusJakartaSans(

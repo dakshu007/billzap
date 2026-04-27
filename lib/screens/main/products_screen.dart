@@ -7,6 +7,7 @@ import 'package:gap/gap.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
+import '../../i18n/translations.dart';
 
 class ProductsScreen extends ConsumerWidget {
   const ProductsScreen({super.key});
@@ -20,7 +21,7 @@ class ProductsScreen extends ConsumerWidget {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: AppColors.card,
-        title: Text('Products', style: GoogleFonts.plusJakartaSans(
+        title: Text(tr('prod.title', ref), style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
           IconButton(
@@ -32,16 +33,16 @@ class ProductsScreen extends ConsumerWidget {
         ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
             const Icon(Symbols.inventory_2, size: 48, color: AppColors.t4),
             const Gap(10),
-            Text('No products yet', style: GoogleFonts.plusJakartaSans(
+            Text(tr('prod.no_products', ref), style: GoogleFonts.plusJakartaSans(
               fontSize: 16, fontWeight: FontWeight.w800)),
             const Gap(6),
-            Text('Add products to use in invoices', style: GoogleFonts.plusJakartaSans(
+            Text(tr('prod.no_products', ref), style: GoogleFonts.plusJakartaSans(
               fontSize: 13, color: AppColors.t3)),
             const Gap(16),
             ElevatedButton.icon(
               onPressed: () => _addSheet(context, ref),
               icon: const Icon(Symbols.add_box, size: 18),
-              label: const Text('Add Product')),
+              label: const Text(tr('prod.add_new', ref))),
           ]))
         : ListView.builder(
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 100),
@@ -85,18 +86,18 @@ class ProductsScreen extends ConsumerWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete product?'),
+        title: const Text(tr('common.delete', ref)),
         content: Text('${p.name} will be removed.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel')),
+            child: const Text(tr('common.cancel', ref))),
           TextButton(
             onPressed: () {
               Navigator.of(ctx).pop();
               ref.read(productProvider.notifier).delete(p.id);
             },
-            child: const Text('Delete', style: TextStyle(color: AppColors.red))),
+            child: const Text(tr('common.delete', ref), style: TextStyle(color: AppColors.red))),
         ],
       ),
     );
@@ -132,11 +133,11 @@ class ProductsScreen extends ConsumerWidget {
                       color: AppColors.border,
                       borderRadius: BorderRadius.circular(99)))),
                   const Gap(16),
-                  Text('Add Product', style: GoogleFonts.plusJakartaSans(
+                  Text(tr('prod.add_new', ref), style: GoogleFonts.plusJakartaSans(
                     fontSize: 18, fontWeight: FontWeight.w800)),
                   const Gap(16),
                   TextField(controller: name,
-                    decoration: InputDecoration(labelText: 'Product Name *',
+                    decoration: InputDecoration(labelText: tr('prod.name', ref),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
@@ -144,13 +145,13 @@ class ProductsScreen extends ConsumerWidget {
                   Row(children: [
                     Expanded(child: TextField(controller: price,
                       keyboardType: TextInputType.number,
-                      decoration: InputDecoration(labelText: 'Price (₹)',
+                      decoration: InputDecoration(labelText: tr('prod.price', ref),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10))),
                       style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
                     const Gap(10),
                     Expanded(child: TextField(controller: unit,
-                      decoration: InputDecoration(labelText: 'Unit',
+                      decoration: InputDecoration(labelText: tr('prod.unit', ref),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10))),
                       style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
@@ -158,7 +159,7 @@ class ProductsScreen extends ConsumerWidget {
                   const Gap(10),
                   TextField(controller: hsn,
                     keyboardType: TextInputType.number,
-                    decoration: InputDecoration(labelText: 'HSN/SAC Code',
+                    decoration: InputDecoration(labelText: tr('create.hsn', ref),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
@@ -184,7 +185,7 @@ class ProductsScreen extends ConsumerWidget {
                         ? const SizedBox(width: 20, height: 20,
                             child: CircularProgressIndicator(
                               color: Colors.white, strokeWidth: 2))
-                        : const Text('Save Product'))),
+                        : const Text(tr('common.save', ref)))),
                 ],
               ),
             ),

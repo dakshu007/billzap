@@ -17,6 +17,7 @@ import 'dart:io';
 import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
+import '../../i18n/translations.dart';
 
 class InvoicePreviewScreen extends ConsumerStatefulWidget {
   const InvoicePreviewScreen({super.key});
@@ -29,7 +30,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
   bool _printLoading = false;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final invoice = ref.watch(selectedInvoiceProvider);
     final biz     = ref.watch(businessProvider);
 
@@ -513,7 +514,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
       actions: [
         TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
         TextButton(onPressed: () => Navigator.pop(context, true),
-          child: const Text('Delete', style: TextStyle(color: AppColors.red))),
+          child: const Text(tr('common.delete', ref), style: TextStyle(color: AppColors.red))),
       ]));
     if (ok == true) {
       await ref.read(invoiceProvider.notifier).delete(invoice.id);
@@ -552,7 +553,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
         } else {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('WhatsApp not installed'), backgroundColor: AppColors.red));
+            content: Text(tr('msg.whatsapp_not_installed', ref)), backgroundColor: AppColors.red));
         }
       }
     } catch (e) {

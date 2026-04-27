@@ -8,6 +8,7 @@ import 'package:gap/gap.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
+import '../../i18n/translations.dart';
 
 class CustomersScreen extends ConsumerWidget {
   const CustomersScreen({super.key});
@@ -22,7 +23,7 @@ class CustomersScreen extends ConsumerWidget {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: AppColors.card,
-        title: Text('Customers', style: GoogleFonts.plusJakartaSans(
+        title: Text(tr('cust.title', ref), style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
           IconButton(
@@ -34,16 +35,16 @@ class CustomersScreen extends ConsumerWidget {
         ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
             const Icon(Symbols.group, size: 48, color: AppColors.t4),
             const Gap(10),
-            Text('No customers yet', style: GoogleFonts.plusJakartaSans(
+            Text(tr('cust.no_customers', ref), style: GoogleFonts.plusJakartaSans(
               fontSize: 16, fontWeight: FontWeight.w800)),
             const Gap(6),
-            Text('Add your first customer', style: GoogleFonts.plusJakartaSans(
+            Text(tr('cust.no_customers', ref), style: GoogleFonts.plusJakartaSans(
               fontSize: 13, color: AppColors.t3)),
             const Gap(16),
             ElevatedButton.icon(
               onPressed: () => _addSheet(context, ref),
               icon: const Icon(Symbols.person_add, size: 18),
-              label: const Text('Add Customer')),
+              label: const Text(tr('cust.add_new', ref))),
           ]))
         : ListView.builder(
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 100),
@@ -94,18 +95,18 @@ class CustomersScreen extends ConsumerWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete customer?'),
+        title: const Text(tr('common.delete', ref)),
         content: Text('${c.name} will be removed.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel')),
+            child: const Text(tr('common.cancel', ref))),
           TextButton(
             onPressed: () {
               Navigator.of(ctx).pop();
               ref.read(customerProvider.notifier).delete(c.id);
             },
-            child: const Text('Delete',
+            child: const Text(tr('common.delete', ref),
               style: TextStyle(color: AppColors.red))),
         ],
       ),
@@ -142,18 +143,18 @@ class CustomersScreen extends ConsumerWidget {
                       color: AppColors.border,
                       borderRadius: BorderRadius.circular(99)))),
                   const Gap(16),
-                  Text('Add Customer', style: GoogleFonts.plusJakartaSans(
+                  Text(tr('cust.add_new', ref), style: GoogleFonts.plusJakartaSans(
                     fontSize: 18, fontWeight: FontWeight.w800)),
                   const Gap(16),
                   TextField(controller: name,
-                    decoration: InputDecoration(labelText: 'Name *',
+                    decoration: InputDecoration(labelText: tr('cust.name', ref),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
                   const Gap(10),
                   TextField(controller: phone,
                     keyboardType: TextInputType.phone,
-                    decoration: InputDecoration(labelText: 'Phone',
+                    decoration: InputDecoration(labelText: tr('cust.phone', ref),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
@@ -161,7 +162,7 @@ class CustomersScreen extends ConsumerWidget {
                   Row(children: [
                     Expanded(child: TextField(controller: gstin,
                       textCapitalization: TextCapitalization.characters,
-                      decoration: InputDecoration(labelText: 'GSTIN',
+                      decoration: InputDecoration(labelText: tr('cust.gstin', ref),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10))),
                       style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
@@ -195,7 +196,7 @@ class CustomersScreen extends ConsumerWidget {
                         ? const SizedBox(width: 20, height: 20,
                             child: CircularProgressIndicator(
                               color: Colors.white, strokeWidth: 2))
-                        : const Text('Save Customer'))),
+                        : const Text(tr('common.save', ref)))),
                 ],
               ),
             ),

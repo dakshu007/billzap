@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
+import '../../i18n/translations.dart';
 
 class ExpensesScreen extends ConsumerWidget {
   const ExpensesScreen({super.key});
@@ -25,7 +26,7 @@ class ExpensesScreen extends ConsumerWidget {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: AppColors.card,
-        title: Text('Expenses', style: GoogleFonts.plusJakartaSans(
+        title: Text(tr('exp.title', ref), style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
           IconButton(
@@ -50,16 +51,16 @@ class ExpensesScreen extends ConsumerWidget {
             ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                 const Icon(Symbols.payments, size: 48, color: AppColors.t4),
                 const Gap(10),
-                Text('No expenses yet', style: GoogleFonts.plusJakartaSans(
+                Text(tr('exp.no_expenses', ref), style: GoogleFonts.plusJakartaSans(
                   fontSize: 16, fontWeight: FontWeight.w800)),
                 const Gap(6),
-                Text('Track your business expenses', style: GoogleFonts.plusJakartaSans(
+                Text(tr('exp.no_expenses', ref), style: GoogleFonts.plusJakartaSans(
                   fontSize: 13, color: AppColors.t3)),
                 const Gap(16),
                 ElevatedButton.icon(
                   onPressed: () => _addSheet(context, ref),
                   icon: const Icon(Symbols.add, size: 18),
-                  label: const Text('Add Expense')),
+                  label: const Text(tr('exp.add_new', ref))),
               ]))
             : ListView.builder(
                 padding: const EdgeInsets.fromLTRB(12, 0, 12, 100),
@@ -142,25 +143,25 @@ class ExpensesScreen extends ConsumerWidget {
                       color: AppColors.border,
                       borderRadius: BorderRadius.circular(99)))),
                   const Gap(16),
-                  Text('Add Expense', style: GoogleFonts.plusJakartaSans(
+                  Text(tr('exp.add_new', ref), style: GoogleFonts.plusJakartaSans(
                     fontSize: 18, fontWeight: FontWeight.w800)),
                   const Gap(16),
                   TextField(controller: title,
-                    decoration: InputDecoration(labelText: 'Title *',
+                    decoration: InputDecoration(labelText: tr('exp.expense_title', ref),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
                   const Gap(10),
                   TextField(controller: amount,
                     keyboardType: TextInputType.number,
-                    decoration: InputDecoration(labelText: 'Amount (₹)',
+                    decoration: InputDecoration(labelText: tr('exp.amount', ref),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
                   const Gap(10),
                   DropdownButtonFormField<String>(
                     value: category,
-                    decoration: InputDecoration(labelText: 'Category',
+                    decoration: InputDecoration(labelText: tr('exp.category', ref),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
                     items: cats.map((c) => DropdownMenuItem(
@@ -190,7 +191,7 @@ class ExpensesScreen extends ConsumerWidget {
                         ? const SizedBox(width: 20, height: 20,
                             child: CircularProgressIndicator(
                               color: Colors.white, strokeWidth: 2))
-                        : const Text('Save Expense'))),
+                        : const Text(tr('common.save', ref)))),
                 ],
               ),
             ),
@@ -207,7 +208,7 @@ class _SumCard extends StatelessWidget {
   const _SumCard(this.label, this.value, this.color, this.soft);
 
   @override
-  Widget build(BuildContext context) => Expanded(
+  Widget build(BuildContext context, WidgetRef ref) => Expanded(
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       decoration: BoxDecoration(

@@ -6,6 +6,7 @@ import 'package:gap/gap.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
+import '../../i18n/translations.dart';
 
 class ReportsScreen extends ConsumerWidget {
   const ReportsScreen({super.key});
@@ -47,7 +48,7 @@ class ReportsScreen extends ConsumerWidget {
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         automaticallyImplyLeading: false, backgroundColor: AppColors.card,
-        title: Text('Reports', style: GoogleFonts.plusJakartaSans(
+        title: Text(tr('rep.title', ref), style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 100),
@@ -217,7 +218,7 @@ class _Card extends StatelessWidget {
   final Widget child;
   const _Card(this.title, {required this.child});
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context, WidgetRef ref) => Container(
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(color: AppColors.card,
       borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.border)),

@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
+import '../../i18n/translations.dart';
 
 class InvoicesScreen extends ConsumerStatefulWidget {
   const InvoicesScreen({super.key});
@@ -43,7 +44,7 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final all = ref.watch(invoiceProvider);
     final list = _filtered(all);
 
@@ -52,7 +53,7 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: AppColors.card,
-        title: Text('Invoices', style: GoogleFonts.plusJakartaSans(
+        title: Text(tr('inv.title', ref), style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
           IconButton(

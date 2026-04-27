@@ -26,7 +26,7 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: AppColors.card,
-        title: Text('Settings', style: GoogleFonts.plusJakartaSans(
+        title: Text(tr('set.title', ref), style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1))),
       body: Column(children: [
         Container(
@@ -131,7 +131,7 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
               width: 20, height: 20,
               child: CircularProgressIndicator(
                 color: Colors.white, strokeWidth: 2))
-          : Text('Save Business Profile',
+          : Text(tr('common.save', ref),
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 14, fontWeight: FontWeight.w700))));
 
@@ -180,7 +180,7 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
   Future<void> _save() async {
     if (_name.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Business name is required'),
+        content: Text(tr('cust.required', ref)),
         backgroundColor: AppColors.red));
       return;
     }
@@ -195,7 +195,7 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
       await ref.read(businessProvider.notifier).save(b);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Saved ✓'), backgroundColor: AppColors.green));
+        content: Text(tr('common.saved', ref)), backgroundColor: AppColors.green));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -254,7 +254,7 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
             child: _saving
               ? const SizedBox(width: 20, height: 20,
                   child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-              : Text('Save Bank Details',
+              : Text(tr('common.save', ref),
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14, fontWeight: FontWeight.w700)))),
       ]));
@@ -269,7 +269,7 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
       await ref.read(businessProvider.notifier).save(b);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Saved ✓'), backgroundColor: AppColors.green));
+        content: Text(tr('common.saved', ref)), backgroundColor: AppColors.green));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -335,7 +335,7 @@ class _InvoicePanelState extends ConsumerState<_InvoicePanel> {
             child: _saving
               ? const SizedBox(width: 20, height: 20,
                   child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-              : Text('Save Settings',
+              : Text(tr('common.save', ref),
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14, fontWeight: FontWeight.w700)))),
       ]));
@@ -350,7 +350,7 @@ class _InvoicePanelState extends ConsumerState<_InvoicePanel> {
       await ref.read(businessProvider.notifier).save(b);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Saved ✓'), backgroundColor: AppColors.green));
+        content: Text(tr('common.saved', ref)), backgroundColor: AppColors.green));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
