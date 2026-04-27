@@ -143,25 +143,25 @@ class ExpensesScreen extends ConsumerWidget {
                       color: AppColors.border,
                       borderRadius: BorderRadius.circular(99)))),
                   const Gap(16),
-                  Text(tr('exp.add_new', ref), style: GoogleFonts.plusJakartaSans(
+                  Text('Add Expense', style: GoogleFonts.plusJakartaSans(
                     fontSize: 18, fontWeight: FontWeight.w800)),
                   const Gap(16),
                   TextField(controller: title,
-                    decoration: InputDecoration(labelText: tr('exp.expense_title', ref),
+                    decoration: InputDecoration(labelText: 'Title',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
                   const Gap(10),
                   TextField(controller: amount,
                     keyboardType: TextInputType.number,
-                    decoration: InputDecoration(labelText: tr('exp.amount', ref),
+                    decoration: InputDecoration(labelText: 'Amount',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
                   const Gap(10),
                   DropdownButtonFormField<String>(
                     value: category,
-                    decoration: InputDecoration(labelText: tr('exp.category', ref),
+                    decoration: InputDecoration(labelText: 'Category',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
                     items: cats.map((c) => DropdownMenuItem(
@@ -191,7 +191,7 @@ class ExpensesScreen extends ConsumerWidget {
                         ? const SizedBox(width: 20, height: 20,
                             child: CircularProgressIndicator(
                               color: Colors.white, strokeWidth: 2))
-                        : Text(tr('common.save', ref)))),
+                        : Text('Save'))),
                 ],
               ),
             ),

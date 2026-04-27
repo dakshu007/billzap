@@ -133,11 +133,11 @@ class ProductsScreen extends ConsumerWidget {
                       color: AppColors.border,
                       borderRadius: BorderRadius.circular(99)))),
                   const Gap(16),
-                  Text(tr('prod.add_new', ref), style: GoogleFonts.plusJakartaSans(
+                  Text('Add Product', style: GoogleFonts.plusJakartaSans(
                     fontSize: 18, fontWeight: FontWeight.w800)),
                   const Gap(16),
                   TextField(controller: name,
-                    decoration: InputDecoration(labelText: tr('prod.name', ref),
+                    decoration: InputDecoration(labelText: 'Product Name',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
@@ -145,13 +145,13 @@ class ProductsScreen extends ConsumerWidget {
                   Row(children: [
                     Expanded(child: TextField(controller: price,
                       keyboardType: TextInputType.number,
-                      decoration: InputDecoration(labelText: tr('prod.price', ref),
+                      decoration: InputDecoration(labelText: 'Price',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10))),
                       style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
                     const Gap(10),
                     Expanded(child: TextField(controller: unit,
-                      decoration: InputDecoration(labelText: tr('prod.unit', ref),
+                      decoration: InputDecoration(labelText: 'Unit',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10))),
                       style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
@@ -159,7 +159,7 @@ class ProductsScreen extends ConsumerWidget {
                   const Gap(10),
                   TextField(controller: hsn,
                     keyboardType: TextInputType.number,
-                    decoration: InputDecoration(labelText: tr('create.hsn', ref),
+                    decoration: InputDecoration(labelText: 'HSN/SAC',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
@@ -185,7 +185,7 @@ class ProductsScreen extends ConsumerWidget {
                         ? const SizedBox(width: 20, height: 20,
                             child: CircularProgressIndicator(
                               color: Colors.white, strokeWidth: 2))
-                        : Text(tr('common.save', ref)))),
+                        : Text('Save'))),
                 ],
               ),
             ),

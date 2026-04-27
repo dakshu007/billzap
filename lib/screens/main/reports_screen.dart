@@ -218,7 +218,7 @@ class _Card extends StatelessWidget {
   final Widget child;
   const _Card(this.title, {required this.child});
   @override
-  Widget build(BuildContext context, WidgetRef ref) => Container(
+  Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(color: AppColors.card,
       borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.border)),
