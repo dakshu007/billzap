@@ -30,7 +30,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
   bool _printLoading = false;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final invoice = ref.watch(selectedInvoiceProvider);
     final biz     = ref.watch(businessProvider);
 

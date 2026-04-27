@@ -44,7 +44,7 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final all = ref.watch(invoiceProvider);
     final list = _filtered(all);
 
