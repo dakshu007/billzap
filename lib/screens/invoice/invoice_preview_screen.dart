@@ -552,8 +552,229 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           await launchUrl(fallback, mode: LaunchMode.externalApplication);
         } else {
           if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(trGlobal('msg.whatsapp_not_installed')), backgroundColor: AppColors.red));
+        }
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.red));
+    }
+  }
+}
+
+// ── Edit Invoice Sheet ─────────────────────────────────────────
+class _EditInvoiceSheet extends ConsumerStatefulWidget {
+  final Invoice invoice;
+  const _EditInvoiceSheet({required this.invoice});
+  @override
+  ConsumerState<_EditInvoiceSheet> createState() => _EditInvoiceSheetState();
+}
+
+class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
+  late TextEditingController _custName, _custPhone, _custGstin, _notes;
+  late DateTime _date, _due;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final inv = widget.invoice;
+    _custName  = TextEditingController(text: inv.customerName);
+    _custPhone = TextEditingController(text: inv.customerPhone);
+    _custGstin = TextEditingController(text: inv.customerGstin);
+    _notes     = TextEditingController(text: inv.notes);
+    _date = inv.invoiceDate;
+    _due  = inv.dueDate;
+  }
+
+  @override
+  void dispose() {
+    _custName.dispose(); _custPhone.dispose();
+    _custGstin.dispose(); _notes.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+    child: Container(
+      decoration: const BoxDecoration(color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Container(width: 36, height: 4,
+          decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(99))),
+        const Gap(14),
+        Text('Edit Invoice', style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w800)),
+        const Gap(16),
+        TextField(controller: _custName,
+          decoration: InputDecoration(labelText: 'Customer Name',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+          style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
+        const Gap(10),
+        Row(children: [
+          Expanded(child: TextField(controller: _custPhone, keyboardType: TextInputType.phone,
+            decoration: InputDecoration(labelText: trGlobal('cust.phone'),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+            style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
+          const Gap(10),
+          Expanded(child: TextField(controller: _custGstin,
+            decoration: InputDecoration(labelText: trGlobal('cust.gstin'),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+            style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
+        ]),
+        const Gap(10),
+        Row(children: [
+          Expanded(child: _DateField('Invoice Date', _date, (d) => setState(() => _date = d))),
+          const Gap(10),
+          Expanded(child: _DateField('Due Date', _due, (d) => setState(() => _due = d))),
+        ]),
+        const Gap(10),
+        TextField(controller: _notes, maxLines: 2,
+          decoration: InputDecoration(labelText: trGlobal('inv.notes'),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+          style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
+        const Gap(16),
+        SizedBox(width: double.infinity, child: ElevatedButton(
+          onPressed: _saving ? null : _save,
+          style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+          child: _saving
+            ? const SizedBox(width: 20, height: 20,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+            : Text('Save Changes', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700)))),
+      ])));
+
+  Widget _DateField(String label, DateTime date, ValueChanged<DateTime> onPick) =>
+    GestureDetector(
+      onTap: () async {
+        final picked = await showDatePicker(context: context,
+          initialDate: date, firstDate: DateTime(2020), lastDate: DateTime(2035));
+        if (picked != null) onPick(picked);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(border: Border.all(color: AppColors.border),
+          borderRadius: BorderRadius.circular(10)),
+        child: Row(children: [
+          const Icon(Symbols.calendar_today, size: 14, color: AppColors.t3),
+          const Gap(6),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.t3)),
+            Text(DateFormat('dd MMM yyyy').format(date),
+              style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t1)),
+          ])),
+        ])));
+
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    try {
+      final inv = widget.invoice;
+      inv.customerName  = _custName.text.trim();
+      inv.customerPhone = _custPhone.text.trim();
+      inv.customerGstin = _custGstin.text.trim().toUpperCase();
+      inv.notes = _notes.text.trim();
+      inv.invoiceDate = _date;
+      inv.dueDate = _due;
+      await ref.read(invoiceProvider.notifier).update(inv);
+      ref.read(selectedInvoiceProvider.notifier).state = inv;
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Invoice updated ✓'), backgroundColor: AppColors.green));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.red));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+}
+
+// ── Helper widgets ─────────────────────────────────────────────
+Widget _IRow(String l, String v) => Padding(
+  padding: const EdgeInsets.only(bottom: 3),
+  child: Row(children: [
+    Text('$l: ', style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.t3)),
+    Text(v, style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.t1)),
+  ]));
+
+Widget _TH(String t, {bool right = false}) => Text(t,
+  textAlign: right ? TextAlign.right : TextAlign.left,
+  style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.t3, letterSpacing: 0.5));
+
+Widget _TotRow(String label, double amount, {bool neg = false}) => Padding(
+  padding: const EdgeInsets.symmetric(vertical: 2),
+  child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+    Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t2)),
+    Text(neg ? '- ${formatCurrency(amount)}' : formatCurrency(amount),
+      style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600,
+        color: neg ? AppColors.green : AppColors.t1)),
+  ]));
+
+// ✅ Action tile with Material Symbol icon
+class _ActionTile extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title, sub;
+  final bool loading;
+  final Color? color;
+  final VoidCallback onTap;
+  const _ActionTile({
+    required this.icon, required this.iconColor,
+    required this.title, required this.sub,
+    this.loading = false, this.color, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: loading ? null : onTap,
+    child: Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: loading ? AppColors.bg : AppColors.card,
+        borderRadius: BorderRadius.circular(13), border: Border.all(color: AppColors.border)),
+      child: Row(children: [
+        Container(
+          width: 40, height: 40,
+          decoration: BoxDecoration(
+            color: iconColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10)),
+          child: loading
+            ? const Center(child: SizedBox(width: 20, height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.brand)))
+            : Icon(icon, size: 20, color: iconColor)),
+        const Gap(12),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(title, style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 14,
+            color: color ?? AppColors.t1)),
+          Text(sub, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t3)),
+        ])),
+        Icon(Symbols.chevron_right, color: AppColors.t3),
+      ])));
+}
+
+// ✅ Options tile with Material Symbol icon
+class _OptTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+  const _OptTile(this.icon, this.label, this.color, this.onTap);
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+    leading: Container(
+      width: 36, height: 36,
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8)),
+      child: Icon(icon, size: 18, color: color)),
+    title: Text(label, style: GoogleFonts.plusJakartaSans(
+      fontWeight: FontWeight.w700, color: AppColors.t1)),
+    onTap: onTap);
+}
+);
         }
       }
     } catch (e) {

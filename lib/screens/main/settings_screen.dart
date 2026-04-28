@@ -179,7 +179,7 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
 
   Future<void> _save() async {
     if (_name.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(trGlobal('cust.required')),
         backgroundColor: AppColors.red));
       return;
@@ -351,6 +351,1083 @@ class _InvoicePanelState extends ConsumerState<_InvoicePanel> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(trGlobal('common.saved')), backgroundColor: AppColors.green));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Error: $e'), backgroundColor: AppColors.red));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+}
+
+class _AboutPanel extends ConsumerWidget {
+  const _AboutPanel();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentLang = currentLanguage(ref.watch(languageProvider));
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(14),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(
+          margin: const EdgeInsets.only(bottom: 14),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => const LanguagePickerScreen(),
+                ));
+              },
+              borderRadius: BorderRadius.circular(14),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: Row(children: [
+                  Container(
+                    width: 40, height: 40,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.brand, Color(0xFF4070FF)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(11),
+                    ),
+                    child: const Icon(Symbols.translate, color: Colors.white, size: 20),
+                  ),
+                  const Gap(12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(tr('set.language', ref),
+                            style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.t1)),
+                        const Gap(2),
+                        Text(currentLang.name,
+                            style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12, color: AppColors.t3)),
+                      ],
+                    ),
+                  ),
+                  const Icon(Symbols.chevron_right, color: AppColors.t3, size: 22),
+                ]),
+              ),
+            ),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(children: [
+            const Icon(Symbols.bolt, size: 48, color: AppColors.brand),
+            const Gap(8),
+            Text('BillZap',
+                style: GoogleFonts.plusJakartaSans(
+                    fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.t1)),
+            Text(tr('splash.tagline', ref),
+                style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t3)),
+            const Gap(16),
+            const Divider(),
+            const Gap(12),
+            _InfoRow(Symbols.check_circle, tr('set.version', ref), '1.3.0', AppColors.green),
+            _InfoRow(Symbols.wifi_off, tr('set.offline', ref), tr('set.no_internet', ref), AppColors.brand),
+            _InfoRow(Symbols.lock, tr('set.privacy', ref), tr('set.data_on_device', ref), AppColors.purple),
+            _InfoRow(Symbols.currency_rupee, tr('set.price', ref), tr('set.always_free', ref), AppColors.green),
+            const Gap(16),
+            Text('© 2026 BillZap Technologies',
+                style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t4)),
+          ]),
+        ),
+      ]),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label, value;
+  final Color color;
+  const _InfoRow(this.icon, this.label, this.value, this.color);
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(children: [
+        Icon(icon, size: 16, color: color),
+        const Gap(10),
+        Text(label, style: GoogleFonts.plusJakartaSans(
+          fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.t2)),
+        const Spacer(),
+        Text(value, style: GoogleFonts.plusJakartaSans(
+          fontSize: 13, color: AppColors.t3)),
+      ]));
+  }
+}
+
+Widget _Sec(String t) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Text(t, style: GoogleFonts.plusJakartaSans(
+      fontSize: 14.5, fontWeight: FontWeight.w800, color: AppColors.t1)));
+}
+
+Widget _Label(String t) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 5),
+    child: Text(t, style: GoogleFonts.plusJakartaSans(
+      fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.t3)));
+}
+
+Widget _F(String label, TextEditingController ctrl,
+    {String? hint, TextInputType? type, bool caps = false, int? max}) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      _Label(label),
+      TextField(
+        controller: ctrl,
+        keyboardType: type,
+        maxLength: max,
+        textCapitalization: caps
+          ? TextCapitalization.characters
+          : TextCapitalization.sentences,
+        decoration: InputDecoration(
+          hintText: hint,
+          counterText: '',
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppColors.border)),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppColors.brand, width: 1.5)),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13)),
+        style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.t1)),
+    ]));
+}
+);
+      return;
+    }
+    setState(() => _saving = true);
+    try {
+      final b = (ref.read(businessProvider) ?? Business()).copyWith(
+        name: _name.text.trim(), gstin: _gstin.text.trim().toUpperCase(),
+        phone: _phone.text.trim(), email: _email.text.trim(),
+        address: _addr.text.trim(), city: _city.text.trim(),
+        state: _state, stateCode: kStateMap[_state] ?? '33',
+        pincode: _pin.text.trim());
+      await ref.read(businessProvider.notifier).save(b);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(trGlobal('common.saved')), backgroundColor: AppColors.green));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Error: $e'), backgroundColor: AppColors.red));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+}
+
+class _BankPanel extends ConsumerStatefulWidget {
+  const _BankPanel();
+  @override
+  ConsumerState<_BankPanel> createState() => _BankPanelState();
+}
+
+class _BankPanelState extends ConsumerState<_BankPanel> {
+  late final TextEditingController _bank, _acc, _ifsc, _upi;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final b = ref.read(businessProvider);
+    _bank = TextEditingController(text: b?.bankName ?? '');
+    _acc  = TextEditingController(text: b?.accountNumber ?? '');
+    _ifsc = TextEditingController(text: b?.ifscCode ?? '');
+    _upi  = TextEditingController(text: b?.upiId ?? '');
+  }
+
+  @override
+  void dispose() {
+    _bank.dispose(); _acc.dispose(); _ifsc.dispose(); _upi.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(14),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _Sec('Bank Details'),
+        _F('Bank Name', _bank, hint: 'State Bank of India'),
+        _F('Account Number', _acc, hint: '1234567890', type: TextInputType.number),
+        _F('IFSC Code', _ifsc, hint: 'SBIN0001234', caps: true),
+        const Gap(8),
+        _Sec('UPI'),
+        _F('UPI ID', _upi, hint: 'business@upi'),
+        const Gap(20),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: _saving ? null : _save,
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 15)),
+            child: _saving
+              ? const SizedBox(width: 20, height: 20,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+              : Text(trGlobal('common.save'),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14, fontWeight: FontWeight.w700)))),
+      ]));
+  }
+
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    try {
+      final b = (ref.read(businessProvider) ?? Business()).copyWith(
+        bankName: _bank.text.trim(), accountNumber: _acc.text.trim(),
+        ifscCode: _ifsc.text.trim().toUpperCase(), upiId: _upi.text.trim());
+      await ref.read(businessProvider.notifier).save(b);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(trGlobal('common.saved')), backgroundColor: AppColors.green));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Error: $e'), backgroundColor: AppColors.red));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+}
+
+class _InvoicePanel extends ConsumerStatefulWidget {
+  const _InvoicePanel();
+  @override
+  ConsumerState<_InvoicePanel> createState() => _InvoicePanelState();
+}
+
+class _InvoicePanelState extends ConsumerState<_InvoicePanel> {
+  late final TextEditingController _prefix, _terms;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final b = ref.read(businessProvider);
+    _prefix = TextEditingController(text: b?.invoicePrefix ?? 'INV-');
+    _terms  = TextEditingController(text: b?.defaultTerms ?? '');
+  }
+
+  @override
+  void dispose() {
+    _prefix.dispose(); _terms.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(14),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _Sec('Invoice Settings'),
+        _F('Invoice Prefix', _prefix, hint: 'INV-'),
+        _Label('Default Terms'),
+        TextField(
+          controller: _terms, maxLines: 4,
+          decoration: InputDecoration(
+            hintText: 'Payment due within 30 days.',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: AppColors.border)),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: AppColors.brand, width: 1.5)),
+            contentPadding: const EdgeInsets.all(13)),
+          style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.t1)),
+        const Gap(20),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: _saving ? null : _save,
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 15)),
+            child: _saving
+              ? const SizedBox(width: 20, height: 20,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+              : Text(trGlobal('common.save'),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14, fontWeight: FontWeight.w700)))),
+      ]));
+  }
+
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    try {
+      final b = (ref.read(businessProvider) ?? Business()).copyWith(
+        invoicePrefix: _prefix.text.trim(),
+        defaultTerms: _terms.text.trim());
+      await ref.read(businessProvider.notifier).save(b);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(trGlobal('common.saved')), backgroundColor: AppColors.green));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Error: $e'), backgroundColor: AppColors.red));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+}
+
+class _AboutPanel extends ConsumerWidget {
+  const _AboutPanel();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentLang = currentLanguage(ref.watch(languageProvider));
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(14),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(
+          margin: const EdgeInsets.only(bottom: 14),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => const LanguagePickerScreen(),
+                ));
+              },
+              borderRadius: BorderRadius.circular(14),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: Row(children: [
+                  Container(
+                    width: 40, height: 40,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.brand, Color(0xFF4070FF)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(11),
+                    ),
+                    child: const Icon(Symbols.translate, color: Colors.white, size: 20),
+                  ),
+                  const Gap(12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(tr('set.language', ref),
+                            style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.t1)),
+                        const Gap(2),
+                        Text(currentLang.name,
+                            style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12, color: AppColors.t3)),
+                      ],
+                    ),
+                  ),
+                  const Icon(Symbols.chevron_right, color: AppColors.t3, size: 22),
+                ]),
+              ),
+            ),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(children: [
+            const Icon(Symbols.bolt, size: 48, color: AppColors.brand),
+            const Gap(8),
+            Text('BillZap',
+                style: GoogleFonts.plusJakartaSans(
+                    fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.t1)),
+            Text(tr('splash.tagline', ref),
+                style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t3)),
+            const Gap(16),
+            const Divider(),
+            const Gap(12),
+            _InfoRow(Symbols.check_circle, tr('set.version', ref), '1.3.0', AppColors.green),
+            _InfoRow(Symbols.wifi_off, tr('set.offline', ref), tr('set.no_internet', ref), AppColors.brand),
+            _InfoRow(Symbols.lock, tr('set.privacy', ref), tr('set.data_on_device', ref), AppColors.purple),
+            _InfoRow(Symbols.currency_rupee, tr('set.price', ref), tr('set.always_free', ref), AppColors.green),
+            const Gap(16),
+            Text('© 2026 BillZap Technologies',
+                style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t4)),
+          ]),
+        ),
+      ]),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label, value;
+  final Color color;
+  const _InfoRow(this.icon, this.label, this.value, this.color);
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(children: [
+        Icon(icon, size: 16, color: color),
+        const Gap(10),
+        Text(label, style: GoogleFonts.plusJakartaSans(
+          fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.t2)),
+        const Spacer(),
+        Text(value, style: GoogleFonts.plusJakartaSans(
+          fontSize: 13, color: AppColors.t3)),
+      ]));
+  }
+}
+
+Widget _Sec(String t) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Text(t, style: GoogleFonts.plusJakartaSans(
+      fontSize: 14.5, fontWeight: FontWeight.w800, color: AppColors.t1)));
+}
+
+Widget _Label(String t) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 5),
+    child: Text(t, style: GoogleFonts.plusJakartaSans(
+      fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.t3)));
+}
+
+Widget _F(String label, TextEditingController ctrl,
+    {String? hint, TextInputType? type, bool caps = false, int? max}) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      _Label(label),
+      TextField(
+        controller: ctrl,
+        keyboardType: type,
+        maxLength: max,
+        textCapitalization: caps
+          ? TextCapitalization.characters
+          : TextCapitalization.sentences,
+        decoration: InputDecoration(
+          hintText: hint,
+          counterText: '',
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppColors.border)),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppColors.brand, width: 1.5)),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13)),
+        style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.t1)),
+    ]));
+}
+);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Error: $e'), backgroundColor: AppColors.red));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+}
+
+class _BankPanel extends ConsumerStatefulWidget {
+  const _BankPanel();
+  @override
+  ConsumerState<_BankPanel> createState() => _BankPanelState();
+}
+
+class _BankPanelState extends ConsumerState<_BankPanel> {
+  late final TextEditingController _bank, _acc, _ifsc, _upi;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final b = ref.read(businessProvider);
+    _bank = TextEditingController(text: b?.bankName ?? '');
+    _acc  = TextEditingController(text: b?.accountNumber ?? '');
+    _ifsc = TextEditingController(text: b?.ifscCode ?? '');
+    _upi  = TextEditingController(text: b?.upiId ?? '');
+  }
+
+  @override
+  void dispose() {
+    _bank.dispose(); _acc.dispose(); _ifsc.dispose(); _upi.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(14),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _Sec('Bank Details'),
+        _F('Bank Name', _bank, hint: 'State Bank of India'),
+        _F('Account Number', _acc, hint: '1234567890', type: TextInputType.number),
+        _F('IFSC Code', _ifsc, hint: 'SBIN0001234', caps: true),
+        const Gap(8),
+        _Sec('UPI'),
+        _F('UPI ID', _upi, hint: 'business@upi'),
+        const Gap(20),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: _saving ? null : _save,
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 15)),
+            child: _saving
+              ? const SizedBox(width: 20, height: 20,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+              : Text(trGlobal('common.save'),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14, fontWeight: FontWeight.w700)))),
+      ]));
+  }
+
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    try {
+      final b = (ref.read(businessProvider) ?? Business()).copyWith(
+        bankName: _bank.text.trim(), accountNumber: _acc.text.trim(),
+        ifscCode: _ifsc.text.trim().toUpperCase(), upiId: _upi.text.trim());
+      await ref.read(businessProvider.notifier).save(b);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(trGlobal('common.saved')), backgroundColor: AppColors.green));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Error: $e'), backgroundColor: AppColors.red));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+}
+
+class _InvoicePanel extends ConsumerStatefulWidget {
+  const _InvoicePanel();
+  @override
+  ConsumerState<_InvoicePanel> createState() => _InvoicePanelState();
+}
+
+class _InvoicePanelState extends ConsumerState<_InvoicePanel> {
+  late final TextEditingController _prefix, _terms;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final b = ref.read(businessProvider);
+    _prefix = TextEditingController(text: b?.invoicePrefix ?? 'INV-');
+    _terms  = TextEditingController(text: b?.defaultTerms ?? '');
+  }
+
+  @override
+  void dispose() {
+    _prefix.dispose(); _terms.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(14),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _Sec('Invoice Settings'),
+        _F('Invoice Prefix', _prefix, hint: 'INV-'),
+        _Label('Default Terms'),
+        TextField(
+          controller: _terms, maxLines: 4,
+          decoration: InputDecoration(
+            hintText: 'Payment due within 30 days.',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: AppColors.border)),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: AppColors.brand, width: 1.5)),
+            contentPadding: const EdgeInsets.all(13)),
+          style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.t1)),
+        const Gap(20),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: _saving ? null : _save,
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 15)),
+            child: _saving
+              ? const SizedBox(width: 20, height: 20,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+              : Text(trGlobal('common.save'),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14, fontWeight: FontWeight.w700)))),
+      ]));
+  }
+
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    try {
+      final b = (ref.read(businessProvider) ?? Business()).copyWith(
+        invoicePrefix: _prefix.text.trim(),
+        defaultTerms: _terms.text.trim());
+      await ref.read(businessProvider.notifier).save(b);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(trGlobal('common.saved')), backgroundColor: AppColors.green));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Error: $e'), backgroundColor: AppColors.red));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+}
+
+class _AboutPanel extends ConsumerWidget {
+  const _AboutPanel();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentLang = currentLanguage(ref.watch(languageProvider));
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(14),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(
+          margin: const EdgeInsets.only(bottom: 14),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => const LanguagePickerScreen(),
+                ));
+              },
+              borderRadius: BorderRadius.circular(14),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: Row(children: [
+                  Container(
+                    width: 40, height: 40,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.brand, Color(0xFF4070FF)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(11),
+                    ),
+                    child: const Icon(Symbols.translate, color: Colors.white, size: 20),
+                  ),
+                  const Gap(12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(tr('set.language', ref),
+                            style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.t1)),
+                        const Gap(2),
+                        Text(currentLang.name,
+                            style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12, color: AppColors.t3)),
+                      ],
+                    ),
+                  ),
+                  const Icon(Symbols.chevron_right, color: AppColors.t3, size: 22),
+                ]),
+              ),
+            ),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(children: [
+            const Icon(Symbols.bolt, size: 48, color: AppColors.brand),
+            const Gap(8),
+            Text('BillZap',
+                style: GoogleFonts.plusJakartaSans(
+                    fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.t1)),
+            Text(tr('splash.tagline', ref),
+                style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t3)),
+            const Gap(16),
+            const Divider(),
+            const Gap(12),
+            _InfoRow(Symbols.check_circle, tr('set.version', ref), '1.3.0', AppColors.green),
+            _InfoRow(Symbols.wifi_off, tr('set.offline', ref), tr('set.no_internet', ref), AppColors.brand),
+            _InfoRow(Symbols.lock, tr('set.privacy', ref), tr('set.data_on_device', ref), AppColors.purple),
+            _InfoRow(Symbols.currency_rupee, tr('set.price', ref), tr('set.always_free', ref), AppColors.green),
+            const Gap(16),
+            Text('© 2026 BillZap Technologies',
+                style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t4)),
+          ]),
+        ),
+      ]),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label, value;
+  final Color color;
+  const _InfoRow(this.icon, this.label, this.value, this.color);
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(children: [
+        Icon(icon, size: 16, color: color),
+        const Gap(10),
+        Text(label, style: GoogleFonts.plusJakartaSans(
+          fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.t2)),
+        const Spacer(),
+        Text(value, style: GoogleFonts.plusJakartaSans(
+          fontSize: 13, color: AppColors.t3)),
+      ]));
+  }
+}
+
+Widget _Sec(String t) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Text(t, style: GoogleFonts.plusJakartaSans(
+      fontSize: 14.5, fontWeight: FontWeight.w800, color: AppColors.t1)));
+}
+
+Widget _Label(String t) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 5),
+    child: Text(t, style: GoogleFonts.plusJakartaSans(
+      fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.t3)));
+}
+
+Widget _F(String label, TextEditingController ctrl,
+    {String? hint, TextInputType? type, bool caps = false, int? max}) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      _Label(label),
+      TextField(
+        controller: ctrl,
+        keyboardType: type,
+        maxLength: max,
+        textCapitalization: caps
+          ? TextCapitalization.characters
+          : TextCapitalization.sentences,
+        decoration: InputDecoration(
+          hintText: hint,
+          counterText: '',
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppColors.border)),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppColors.brand, width: 1.5)),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13)),
+        style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.t1)),
+    ]));
+}
+);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Error: $e'), backgroundColor: AppColors.red));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+}
+
+class _InvoicePanel extends ConsumerStatefulWidget {
+  const _InvoicePanel();
+  @override
+  ConsumerState<_InvoicePanel> createState() => _InvoicePanelState();
+}
+
+class _InvoicePanelState extends ConsumerState<_InvoicePanel> {
+  late final TextEditingController _prefix, _terms;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final b = ref.read(businessProvider);
+    _prefix = TextEditingController(text: b?.invoicePrefix ?? 'INV-');
+    _terms  = TextEditingController(text: b?.defaultTerms ?? '');
+  }
+
+  @override
+  void dispose() {
+    _prefix.dispose(); _terms.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(14),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _Sec('Invoice Settings'),
+        _F('Invoice Prefix', _prefix, hint: 'INV-'),
+        _Label('Default Terms'),
+        TextField(
+          controller: _terms, maxLines: 4,
+          decoration: InputDecoration(
+            hintText: 'Payment due within 30 days.',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: AppColors.border)),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: AppColors.brand, width: 1.5)),
+            contentPadding: const EdgeInsets.all(13)),
+          style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.t1)),
+        const Gap(20),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: _saving ? null : _save,
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 15)),
+            child: _saving
+              ? const SizedBox(width: 20, height: 20,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+              : Text(trGlobal('common.save'),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14, fontWeight: FontWeight.w700)))),
+      ]));
+  }
+
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    try {
+      final b = (ref.read(businessProvider) ?? Business()).copyWith(
+        invoicePrefix: _prefix.text.trim(),
+        defaultTerms: _terms.text.trim());
+      await ref.read(businessProvider.notifier).save(b);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(trGlobal('common.saved')), backgroundColor: AppColors.green));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Error: $e'), backgroundColor: AppColors.red));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+}
+
+class _AboutPanel extends ConsumerWidget {
+  const _AboutPanel();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentLang = currentLanguage(ref.watch(languageProvider));
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(14),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(
+          margin: const EdgeInsets.only(bottom: 14),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => const LanguagePickerScreen(),
+                ));
+              },
+              borderRadius: BorderRadius.circular(14),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: Row(children: [
+                  Container(
+                    width: 40, height: 40,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.brand, Color(0xFF4070FF)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(11),
+                    ),
+                    child: const Icon(Symbols.translate, color: Colors.white, size: 20),
+                  ),
+                  const Gap(12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(tr('set.language', ref),
+                            style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.t1)),
+                        const Gap(2),
+                        Text(currentLang.name,
+                            style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12, color: AppColors.t3)),
+                      ],
+                    ),
+                  ),
+                  const Icon(Symbols.chevron_right, color: AppColors.t3, size: 22),
+                ]),
+              ),
+            ),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(children: [
+            const Icon(Symbols.bolt, size: 48, color: AppColors.brand),
+            const Gap(8),
+            Text('BillZap',
+                style: GoogleFonts.plusJakartaSans(
+                    fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.t1)),
+            Text(tr('splash.tagline', ref),
+                style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t3)),
+            const Gap(16),
+            const Divider(),
+            const Gap(12),
+            _InfoRow(Symbols.check_circle, tr('set.version', ref), '1.3.0', AppColors.green),
+            _InfoRow(Symbols.wifi_off, tr('set.offline', ref), tr('set.no_internet', ref), AppColors.brand),
+            _InfoRow(Symbols.lock, tr('set.privacy', ref), tr('set.data_on_device', ref), AppColors.purple),
+            _InfoRow(Symbols.currency_rupee, tr('set.price', ref), tr('set.always_free', ref), AppColors.green),
+            const Gap(16),
+            Text('© 2026 BillZap Technologies',
+                style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t4)),
+          ]),
+        ),
+      ]),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label, value;
+  final Color color;
+  const _InfoRow(this.icon, this.label, this.value, this.color);
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(children: [
+        Icon(icon, size: 16, color: color),
+        const Gap(10),
+        Text(label, style: GoogleFonts.plusJakartaSans(
+          fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.t2)),
+        const Spacer(),
+        Text(value, style: GoogleFonts.plusJakartaSans(
+          fontSize: 13, color: AppColors.t3)),
+      ]));
+  }
+}
+
+Widget _Sec(String t) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Text(t, style: GoogleFonts.plusJakartaSans(
+      fontSize: 14.5, fontWeight: FontWeight.w800, color: AppColors.t1)));
+}
+
+Widget _Label(String t) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 5),
+    child: Text(t, style: GoogleFonts.plusJakartaSans(
+      fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.t3)));
+}
+
+Widget _F(String label, TextEditingController ctrl,
+    {String? hint, TextInputType? type, bool caps = false, int? max}) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      _Label(label),
+      TextField(
+        controller: ctrl,
+        keyboardType: type,
+        maxLength: max,
+        textCapitalization: caps
+          ? TextCapitalization.characters
+          : TextCapitalization.sentences,
+        decoration: InputDecoration(
+          hintText: hint,
+          counterText: '',
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppColors.border)),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppColors.brand, width: 1.5)),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13)),
+        style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.t1)),
+    ]));
+}
+);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
