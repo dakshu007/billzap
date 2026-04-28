@@ -36,7 +36,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
 
     if (invoice == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text(trGlobal('set.invoice'))),
+        appBar: AppBar(title: Text(trGlobal('set.invoice'))),
         body: const Center(child: Text('No invoice selected')));
     }
 
@@ -495,7 +495,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
       title: const Text('Mark as Unpaid?'),
       content: const Text('This will change the invoice status back to Sent.'),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text(trGlobal('common.cancel'))),
+        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(trGlobal('common.cancel'))),
         TextButton(onPressed: () => Navigator.pop(context, true),
           child: const Text('Mark Unpaid', style: TextStyle(color: AppColors.orange))),
       ]));
@@ -512,7 +512,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
       title: const Text('Delete Invoice?'),
       content: Text('${invoice.invoiceNumber} will be permanently deleted.'),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text(trGlobal('common.cancel'))),
+        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(trGlobal('common.cancel'))),
         TextButton(onPressed: () => Navigator.pop(context, true),
           child: Text(trGlobal('common.delete'), style: TextStyle(color: AppColors.red))),
       ]));
