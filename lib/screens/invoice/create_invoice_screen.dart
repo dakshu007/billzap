@@ -323,7 +323,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
   Future<void> _save() async {
     if (_custName.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Customer name is required'), backgroundColor: AppColors.red));
+        content: Text(trGlobal('cust.required')), backgroundColor: AppColors.red));
       return;
     }
     final valid = _lines.where((l) => l.name.isNotEmpty).toList();
@@ -432,7 +432,7 @@ class _LineRowState extends State<_LineRow> {
       const Gap(8),
       Row(children: [
         Expanded(child: TextField(controller: _hsn,
-          decoration: InputDecoration(hintText: 'HSN/SAC',
+          decoration: InputDecoration(hintText: trGlobal('create.hsn'),
             hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t4), isDense: true,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(9)),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(9),

@@ -24,8 +24,7 @@ class ExpensesScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: AppColors.card,
+                backgroundColor: AppColors.card,
         title: Text(tr('exp.title', ref), style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
@@ -143,25 +142,25 @@ class ExpensesScreen extends ConsumerWidget {
                       color: AppColors.border,
                       borderRadius: BorderRadius.circular(99)))),
                   const Gap(16),
-                  Text('Add Expense', style: GoogleFonts.plusJakartaSans(
+                  Text(trGlobal('exp.add_new'), style: GoogleFonts.plusJakartaSans(
                     fontSize: 18, fontWeight: FontWeight.w800)),
                   const Gap(16),
                   TextField(controller: title,
-                    decoration: InputDecoration(labelText: 'Title',
+                    decoration: InputDecoration(labelText: trGlobal('exp.expense_title'),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
                   const Gap(10),
                   TextField(controller: amount,
                     keyboardType: TextInputType.number,
-                    decoration: InputDecoration(labelText: 'Amount',
+                    decoration: InputDecoration(labelText: trGlobal('exp.amount'),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
                   const Gap(10),
                   DropdownButtonFormField<String>(
                     value: category,
-                    decoration: InputDecoration(labelText: 'Category',
+                    decoration: InputDecoration(labelText: trGlobal('exp.category'),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
                     items: cats.map((c) => DropdownMenuItem(
@@ -191,7 +190,7 @@ class ExpensesScreen extends ConsumerWidget {
                         ? const SizedBox(width: 20, height: 20,
                             child: CircularProgressIndicator(
                               color: Colors.white, strokeWidth: 2))
-                        : Text('Save'))),
+                        : Text(trGlobal('common.save')))),
                 ],
               ),
             ),

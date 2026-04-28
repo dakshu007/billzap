@@ -21,8 +21,7 @@ class CustomersScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: AppColors.card,
+                backgroundColor: AppColors.card,
         title: Text(tr('cust.title', ref), style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
@@ -143,18 +142,18 @@ class CustomersScreen extends ConsumerWidget {
                       color: AppColors.border,
                       borderRadius: BorderRadius.circular(99)))),
                   const Gap(16),
-                  Text('Add Customer', style: GoogleFonts.plusJakartaSans(
+                  Text(trGlobal('cust.add_new'), style: GoogleFonts.plusJakartaSans(
                     fontSize: 18, fontWeight: FontWeight.w800)),
                   const Gap(16),
                   TextField(controller: name,
-                    decoration: InputDecoration(labelText: 'Name',
+                    decoration: InputDecoration(labelText: trGlobal('cust.name'),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
                   const Gap(10),
                   TextField(controller: phone,
                     keyboardType: TextInputType.phone,
-                    decoration: InputDecoration(labelText: 'Phone',
+                    decoration: InputDecoration(labelText: trGlobal('cust.phone'),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
@@ -162,7 +161,7 @@ class CustomersScreen extends ConsumerWidget {
                   Row(children: [
                     Expanded(child: TextField(controller: gstin,
                       textCapitalization: TextCapitalization.characters,
-                      decoration: InputDecoration(labelText: 'GSTIN',
+                      decoration: InputDecoration(labelText: trGlobal('cust.gstin'),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10))),
                       style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
@@ -196,7 +195,7 @@ class CustomersScreen extends ConsumerWidget {
                         ? const SizedBox(width: 20, height: 20,
                             child: CircularProgressIndicator(
                               color: Colors.white, strokeWidth: 2))
-                        : Text('Save'))),
+                        : Text(trGlobal('common.save')))),
                 ],
               ),
             ),

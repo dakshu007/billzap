@@ -20,6 +20,9 @@ void main() async {
   ));
   await Hive.initFlutter();
   await LocalStorage.instance.init();
+  // Initialize multilang cache
+  try { initGlobalLanguage(); } catch (_) {}
+
   runApp(const ProviderScope(child: BillZapApp()));
 }
 

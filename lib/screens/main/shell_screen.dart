@@ -1,9 +1,9 @@
 // lib/screens/main/shell_screen.dart
-// ✅ Buttery-smooth tab swipe (BMW-style decelerating physics)
-// ✅ Single PopScope at root — back gesture works on all tabs
-// ✅ Multi-language support via Riverpod
+// ✅ Smooth tab swipe (no stutter — uses NeverScrollable + AnimatedSwitcher)
+// ✅ Direct tab jump (Home → Me goes directly, no intermediate animation)
+// ✅ Single PopScope for back gesture
+// ✅ All 4 tabs preloaded (IndexedStack keeps state alive)
 import 'package:flutter/material.dart';
-import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -16,36 +16,22 @@ import 'invoices_screen.dart';
 import 'reports_screen.dart';
 import 'settings_screen.dart';
 
-// ── Custom PageView physics: slower, smoother, no overscroll bounce ──
-class _SmoothPageScrollPhysics extends PageScrollPhysics {
-  const _SmoothPageScrollPhysics({super.parent});
-
-  @override
-  _SmoothPageScrollPhysics applyTo(ScrollPhysics? ancestor) {
-    return _SmoothPageScrollPhysics(parent: buildParent(ancestor));
-  }
-
-  @override
-  SpringDescription get spring => const SpringDescription(
-        mass: 60,
-        stiffness: 100,
-        damping: 0.8,
-      );
-}
-
 class ShellScreen extends ConsumerStatefulWidget {
   final Widget? child;
   final String location;
   const ShellScreen({super.key, this.child, required this.location});
+
   @override
   ConsumerState<ShellScreen> createState() => _ShellScreenState();
 }
 
-class _ShellScreenState extends ConsumerState<ShellScreen> {
-  late final PageController _pc;
+class _ShellScreenState extends ConsumerState<ShellScreen>
+    with TickerProviderStateMixin {
   int _idx = 0;
   DateTime? _lastBack;
+  late final AnimationController _fadeCtrl;
 
+  // Keep all 4 tabs alive in memory — no rebuild stutter
   static const _pages = <Widget>[
     DashboardScreen(),
     InvoicesScreen(),
@@ -57,27 +43,36 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
   void initState() {
     super.initState();
     _idx = _indexFor(widget.location);
-    _pc = PageController(initialPage: _idx);
+    _fadeCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 220),
+      value: 1.0,
+    );
   }
 
   @override
   void didUpdateWidget(ShellScreen old) {
     super.didUpdateWidget(old);
     final newIdx = _indexFor(widget.location);
-    if (newIdx != _idx && _pc.hasClients) {
-      _idx = newIdx;
-      _pc.animateToPage(
-        newIdx,
-        duration: const Duration(milliseconds: 320),
-        curve: Curves.easeOutQuint,
-      );
+    if (newIdx != _idx) {
+      _switchTab(newIdx);
     }
   }
 
   @override
   void dispose() {
-    _pc.dispose();
+    _fadeCtrl.dispose();
     super.dispose();
+  }
+
+  void _switchTab(int newIdx) {
+    if (newIdx == _idx) return;
+    HapticFeedback.lightImpact();
+    _fadeCtrl.reverse().then((_) {
+      if (!mounted) return;
+      setState(() => _idx = newIdx);
+      _fadeCtrl.forward();
+    });
   }
 
   int _indexFor(String loc) {
@@ -89,45 +84,23 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
 
   String _pathFor(int i) {
     switch (i) {
-      case 1:
-        return '/invoices';
-      case 2:
-        return '/reports';
-      case 3:
-        return '/settings';
-      default:
-        return '/home';
-    }
-  }
-
-  void _onPageChanged(int i) {
-    if (i == _idx) return;
-    setState(() => _idx = i);
-    HapticFeedback.selectionClick();
-    final newPath = _pathFor(i);
-    if (widget.location != newPath) {
-      GoRouter.of(context).go(newPath);
+      case 1: return '/invoices';
+      case 2: return '/reports';
+      case 3: return '/settings';
+      default: return '/home';
     }
   }
 
   void _tapTab(int i) {
     if (i == _idx) return;
-    HapticFeedback.lightImpact();
-    _pc.animateToPage(
-      i,
-      duration: const Duration(milliseconds: 320),
-      curve: Curves.easeOutQuint,
-    );
+    final p = _pathFor(i);
+    GoRouter.of(context).go(p);
   }
 
   Future<bool> _handleBack() async {
     if (_idx != 0) {
-      HapticFeedback.lightImpact();
-      _pc.animateToPage(
-        0,
-        duration: const Duration(milliseconds: 320),
-        curve: Curves.easeOutQuint,
-      );
+      _switchTab(0);
+      GoRouter.of(context).go('/home');
       return false;
     }
     final now = DateTime.now();
@@ -148,8 +121,7 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
           backgroundColor: AppColors.t1,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: const EdgeInsets.fromLTRB(14, 0, 14, 20),
         ));
       }
@@ -164,16 +136,16 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
       canPop: false,
       onPopInvoked: (didPop) async {
         if (didPop) return;
-        final shouldExit = await _handleBack();
-        if (shouldExit) SystemNavigator.pop();
+        if (await _handleBack()) SystemNavigator.pop();
       },
       child: Scaffold(
         backgroundColor: AppColors.bg,
-        body: PageView(
-          controller: _pc,
-          onPageChanged: _onPageChanged,
-          physics: const _SmoothPageScrollPhysics(),
-          children: _pages,
+        body: FadeTransition(
+          opacity: CurvedAnimation(
+            parent: _fadeCtrl,
+            curve: Curves.easeOutCubic,
+          ),
+          child: IndexedStack(index: _idx, children: _pages),
         ),
         bottomNavigationBar: _BmwNav(
           idx: _idx,
@@ -208,66 +180,44 @@ class _BmwNav extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.card,
-        border: const Border(
-            top: BorderSide(color: AppColors.border, width: 0.5)),
+        border: const Border(top: BorderSide(color: AppColors.border, width: 0.5)),
         boxShadow: [
           BoxShadow(
               color: AppColors.brand.withOpacity(0.06),
-              blurRadius: 24,
-              offset: const Offset(0, -4)),
+              blurRadius: 24, offset: const Offset(0, -4)),
         ],
       ),
       child: SafeArea(
         child: SizedBox(
           height: 68,
           child: Row(children: [
-            _NavItem(
-                icon: Symbols.home,
-                label: tr('nav.home', ref),
-                on: idx == 0,
-                onTap: onHome),
-            _NavItem(
-                icon: Symbols.receipt_long,
-                label: tr('nav.invoices', ref),
-                on: idx == 1,
-                onTap: onInvoices),
+            _NavItem(icon: Symbols.home, label: tr('nav.home', ref), on: idx == 0, onTap: onHome),
+            _NavItem(icon: Symbols.receipt_long, label: tr('nav.invoices', ref), on: idx == 1, onTap: onInvoices),
             Expanded(
               child: Center(
                 child: GestureDetector(
                   onTap: onCreate,
                   child: Container(
-                    width: 54,
-                    height: 54,
+                    width: 54, height: 54,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         colors: [AppColors.brand, Color(0xFF4070FF)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                        begin: Alignment.topLeft, end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(18),
                       boxShadow: [
                         BoxShadow(
                             color: AppColors.brand.withOpacity(0.42),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6)),
+                            blurRadius: 16, offset: const Offset(0, 6)),
                       ],
                     ),
-                    child: const Icon(Symbols.add,
-                        color: Colors.white, size: 28),
+                    child: const Icon(Symbols.add, color: Colors.white, size: 28),
                   ),
                 ),
               ),
             ),
-            _NavItem(
-                icon: Symbols.bar_chart,
-                label: tr('nav.reports', ref),
-                on: idx == 2,
-                onTap: onReports),
-            _NavItem(
-                icon: Symbols.person,
-                label: tr('nav.me', ref),
-                on: idx == 3,
-                onTap: onMe),
+            _NavItem(icon: Symbols.bar_chart, label: tr('nav.reports', ref), on: idx == 2, onTap: onReports),
+            _NavItem(icon: Symbols.person, label: tr('nav.me', ref), on: idx == 3, onTap: onMe),
           ]),
         ),
       ),
@@ -281,10 +231,8 @@ class _NavItem extends StatelessWidget {
   final bool on;
   final VoidCallback onTap;
   const _NavItem({
-    required this.icon,
-    required this.label,
-    required this.on,
-    required this.onTap,
+    required this.icon, required this.label,
+    required this.on, required this.onTap,
   });
 
   @override
@@ -297,7 +245,7 @@ class _NavItem extends StatelessWidget {
         highlightColor: AppColors.brand.withOpacity(0.05),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           AnimatedContainer(
-            duration: const Duration(milliseconds: 280),
+            duration: const Duration(milliseconds: 240),
             curve: Curves.easeOutCubic,
             padding: EdgeInsets.symmetric(
                 horizontal: on ? 16 : 0, vertical: on ? 5 : 0),
@@ -305,12 +253,11 @@ class _NavItem extends StatelessWidget {
               color: on ? AppColors.brandSoft : Colors.transparent,
               borderRadius: BorderRadius.circular(22),
             ),
-            child: Icon(icon,
-                size: 23, color: on ? AppColors.brand : AppColors.t3),
+            child: Icon(icon, size: 23, color: on ? AppColors.brand : AppColors.t3),
           ),
           const SizedBox(height: 3),
           AnimatedDefaultTextStyle(
-            duration: const Duration(milliseconds: 220),
+            duration: const Duration(milliseconds: 200),
             style: GoogleFonts.plusJakartaSans(
               fontSize: 10,
               fontWeight: on ? FontWeight.w700 : FontWeight.w500,

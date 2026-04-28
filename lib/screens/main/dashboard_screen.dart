@@ -290,7 +290,7 @@ class _EmptyInvoice extends StatelessWidget {
     child: Column(children: [
       const Icon(Symbols.receipt_long, size: 44, color: AppColors.t4),
       const Gap(10),
-      Text('No invoices yet', style: GoogleFonts.plusJakartaSans(
+      Text(trGlobal('dash.no_invoices'), style: GoogleFonts.plusJakartaSans(
         fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1)),
       const Gap(4),
       Text('Create your first GST invoice', style: GoogleFonts.plusJakartaSans(

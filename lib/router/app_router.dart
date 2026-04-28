@@ -16,8 +16,8 @@ import '../screens/main/expenses_screen.dart';
 CustomTransitionPage<void> _slideRight(BuildContext c, GoRouterState s, Widget w) {
   return CustomTransitionPage<void>(
     key: s.pageKey, child: w,
-    transitionDuration: const Duration(milliseconds: 300),
-    reverseTransitionDuration: const Duration(milliseconds: 260),
+    transitionDuration: const Duration(milliseconds: 280),
+    reverseTransitionDuration: const Duration(milliseconds: 240),
     transitionsBuilder: (c, a, sa, child) {
       final f = CurvedAnimation(parent: a, curve: Curves.easeOutCubic);
       return SlideTransition(
@@ -32,8 +32,8 @@ CustomTransitionPage<void> _slideRight(BuildContext c, GoRouterState s, Widget w
 CustomTransitionPage<void> _slideUp(BuildContext c, GoRouterState s, Widget w) {
   return CustomTransitionPage<void>(
     key: s.pageKey, child: w,
-    transitionDuration: const Duration(milliseconds: 340),
-    reverseTransitionDuration: const Duration(milliseconds: 300),
+    transitionDuration: const Duration(milliseconds: 280),
+    reverseTransitionDuration: const Duration(milliseconds: 240),
     transitionsBuilder: (c, a, sa, child) {
       final f = CurvedAnimation(parent: a, curve: Curves.easeOutCubic);
       return SlideTransition(

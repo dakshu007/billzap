@@ -19,8 +19,7 @@ class ProductsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: AppColors.card,
+                backgroundColor: AppColors.card,
         title: Text(tr('prod.title', ref), style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
@@ -133,11 +132,11 @@ class ProductsScreen extends ConsumerWidget {
                       color: AppColors.border,
                       borderRadius: BorderRadius.circular(99)))),
                   const Gap(16),
-                  Text('Add Product', style: GoogleFonts.plusJakartaSans(
+                  Text(trGlobal('prod.add_new'), style: GoogleFonts.plusJakartaSans(
                     fontSize: 18, fontWeight: FontWeight.w800)),
                   const Gap(16),
                   TextField(controller: name,
-                    decoration: InputDecoration(labelText: 'Product Name',
+                    decoration: InputDecoration(labelText: trGlobal('prod.name'),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
@@ -145,13 +144,13 @@ class ProductsScreen extends ConsumerWidget {
                   Row(children: [
                     Expanded(child: TextField(controller: price,
                       keyboardType: TextInputType.number,
-                      decoration: InputDecoration(labelText: 'Price',
+                      decoration: InputDecoration(labelText: trGlobal('set.price'),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10))),
                       style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
                     const Gap(10),
                     Expanded(child: TextField(controller: unit,
-                      decoration: InputDecoration(labelText: 'Unit',
+                      decoration: InputDecoration(labelText: trGlobal('prod.unit'),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10))),
                       style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
@@ -159,7 +158,7 @@ class ProductsScreen extends ConsumerWidget {
                   const Gap(10),
                   TextField(controller: hsn,
                     keyboardType: TextInputType.number,
-                    decoration: InputDecoration(labelText: 'HSN/SAC',
+                    decoration: InputDecoration(labelText: trGlobal('create.hsn'),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
                     style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
@@ -185,7 +184,7 @@ class ProductsScreen extends ConsumerWidget {
                         ? const SizedBox(width: 20, height: 20,
                             child: CircularProgressIndicator(
                               color: Colors.white, strokeWidth: 2))
-                        : Text('Save'))),
+                        : Text(trGlobal('common.save')))),
                 ],
               ),
             ),

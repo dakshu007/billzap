@@ -36,7 +36,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
 
     if (invoice == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Invoice')),
+        appBar: AppBar(title: const Text(trGlobal('set.invoice'))),
         body: const Center(child: Text('No invoice selected')));
     }
 
@@ -495,7 +495,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
       title: const Text('Mark as Unpaid?'),
       content: const Text('This will change the invoice status back to Sent.'),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text(trGlobal('common.cancel'))),
         TextButton(onPressed: () => Navigator.pop(context, true),
           child: const Text('Mark Unpaid', style: TextStyle(color: AppColors.orange))),
       ]));
@@ -512,9 +512,9 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
       title: const Text('Delete Invoice?'),
       content: Text('${invoice.invoiceNumber} will be permanently deleted.'),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text(trGlobal('common.cancel'))),
         TextButton(onPressed: () => Navigator.pop(context, true),
-          child: Text('Delete', style: TextStyle(color: AppColors.red))),
+          child: Text(trGlobal('common.delete'), style: TextStyle(color: AppColors.red))),
       ]));
     if (ok == true) {
       await ref.read(invoiceProvider.notifier).delete(invoice.id);
@@ -553,7 +553,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
         } else {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('WhatsApp not installed'), backgroundColor: AppColors.red));
+            content: Text(trGlobal('msg.whatsapp_not_installed')), backgroundColor: AppColors.red));
         }
       }
     } catch (e) {
@@ -616,12 +616,12 @@ class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
         const Gap(10),
         Row(children: [
           Expanded(child: TextField(controller: _custPhone, keyboardType: TextInputType.phone,
-            decoration: InputDecoration(labelText: 'Phone',
+            decoration: InputDecoration(labelText: trGlobal('cust.phone'),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
             style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
           const Gap(10),
           Expanded(child: TextField(controller: _custGstin,
-            decoration: InputDecoration(labelText: 'GSTIN',
+            decoration: InputDecoration(labelText: trGlobal('cust.gstin'),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
             style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
         ]),
@@ -633,7 +633,7 @@ class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
         ]),
         const Gap(10),
         TextField(controller: _notes, maxLines: 2,
-          decoration: InputDecoration(labelText: 'Notes',
+          decoration: InputDecoration(labelText: trGlobal('inv.notes'),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
           style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
         const Gap(16),

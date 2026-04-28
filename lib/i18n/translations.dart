@@ -1301,6 +1301,7 @@ class LanguageNotifier extends StateNotifier<String> {
       final saved = box.get('language', defaultValue: 'en') as String;
       if (_allTranslations.containsKey(saved)) {
         state = saved;
+        updateGlobalLanguage(saved);
       }
     } catch (_) {}
   }
@@ -1308,6 +1309,7 @@ class LanguageNotifier extends StateNotifier<String> {
   Future<void> setLanguage(String code) async {
     if (!_allTranslations.containsKey(code)) return;
     state = code;
+    updateGlobalLanguage(code);
     try {
       final box = await Hive.openBox('settings');
       await box.put('language', code);
@@ -1338,4 +1340,24 @@ AppLanguage currentLanguage(String code) {
     (l) => l.code == code,
     orElse: () => supportedLanguages.first,
   );
+}
+
+// ── Global tr() that doesn't require ref ────────────────────────
+// Reads language from Hive synchronously. Falls back to English.
+String _currentLangCache = 'en';
+
+void initGlobalLanguage() {
+  try {
+    final box = Hive.box('settings');
+    _currentLangCache = box.get('language', defaultValue: 'en') as String;
+  } catch (_) {}
+}
+
+void updateGlobalLanguage(String code) {
+  _currentLangCache = code;
+}
+
+String trGlobal(String key) {
+  final dict = _allTranslations[_currentLangCache] ?? _en;
+  return dict[key] ?? _en[key] ?? key;
 }
