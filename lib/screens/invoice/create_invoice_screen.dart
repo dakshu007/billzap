@@ -11,7 +11,6 @@ import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
-import '../../i18n/translations.dart';
 
 class CreateInvoiceScreen extends ConsumerStatefulWidget {
   const CreateInvoiceScreen({super.key});
@@ -96,7 +95,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
             decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(10)),
             child: const Icon(Symbols.close, size: 19, color: AppColors.t1)),
           onPressed: () => context.go('/home')),
-        title: Text(tr('create.title', ref), style: GoogleFonts.plusJakartaSans(
+        title: Text('New Invoice', style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
           Padding(padding: const EdgeInsets.only(right: 12),
@@ -106,7 +105,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
               child: _saving
                 ? const SizedBox(width: 16, height: 16,
                     child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : Text(tr('common.save', ref), style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13.5)))),
+                : Text('Save', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13.5)))),
         ],
       ),
       body: ListView(
@@ -240,7 +239,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
             if (_applyDiscount && _discount > 0) _SRow('Discount', -_discount),
             const Divider(height: 18),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text(tr('inv.grand_total', ref), style: GoogleFonts.plusJakartaSans(
+              Text('Grand Total', style: GoogleFonts.plusJakartaSans(
                 fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.t1)),
               Text(formatCurrency(_grand), style: GoogleFonts.plusJakartaSans(
                 fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.brand)),
@@ -322,8 +321,8 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
 
   Future<void> _save() async {
     if (_custName.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(trGlobal('cust.required')), backgroundColor: AppColors.red));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Customer name is required'), backgroundColor: AppColors.red));
       return;
     }
     final valid = _lines.where((l) => l.name.isNotEmpty).toList();
@@ -432,286 +431,7 @@ class _LineRowState extends State<_LineRow> {
       const Gap(8),
       Row(children: [
         Expanded(child: TextField(controller: _hsn,
-          decoration: InputDecoration(hintText: trGlobal('create.hsn'),
-            hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t4), isDense: true,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(9)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(9),
-              borderSide: const BorderSide(color: AppColors.border)),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 11, vertical: 10)),
-          style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.t3))),
-        const Gap(8),
-        // Qty stepper
-        _QtyBtn('\u2212', () { if (widget.item.qty > 1) { setState(() => widget.item.qty--); widget.onChange(); } }),
-        Padding(padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: Text('${widget.item.qty.toInt()}',
-            style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w900))),
-        _QtyBtn('+', () { setState(() => widget.item.qty++); widget.onChange(); }),
-        const Gap(8),
-        SizedBox(width: 90, child: TextField(controller: _rate,
-          keyboardType: TextInputType.number, textAlign: TextAlign.right,
-          decoration: InputDecoration(hintText: 'Rate \u20b9',
-            hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t4), isDense: true,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(9)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(9),
-              borderSide: const BorderSide(color: AppColors.border)),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 11, vertical: 10)),
-          style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
-      ]),
-      const Gap(8),
-      Row(children: [
-        Text('GST: ', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t3)),
-        Expanded(child: DropdownButton<double>(
-          value: [0, 0.25, 5, 12, 18, 28, 40].map((e) => e.toDouble()).contains(widget.item.gstRate)
-            ? widget.item.gstRate : 18.0,
-          isExpanded: true,
-          underline: const SizedBox(),
-          style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.brand, fontWeight: FontWeight.w700),
-          items: [
-            (r: 0.0,   l: '0% — Exempt'),
-            (r: 0.25,  l: '0.25% — Stones'),
-            (r: 5.0,   l: '5% — Essentials'),
-            (r: 12.0,  l: '12% — Standard'),
-            (r: 18.0,  l: '18% — General'),
-            (r: 28.0,  l: '28% — Luxury'),
-            (r: 40.0,  l: '40% — Sin tax'),
-          ].map((g) => DropdownMenuItem(
-            value: g.r,
-            child: Text(g.l, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t1)))).toList(),
-          onChanged: (v) {
-            if (v != null) { setState(() => widget.item.gstRate = v); widget.onChange(); }
-          },
-        )),
-        const Gap(8),
-        Text(formatCurrency(widget.item.qty * widget.item.rate), style: GoogleFonts.plusJakartaSans(
-          fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.brand)),
-      ]),
-    ]),
-  );
-}
-
-Widget _QtyBtn(String label, VoidCallback onTap) => GestureDetector(
-  onTap: onTap,
-  child: Container(width: 28, height: 28,
-    decoration: BoxDecoration(color: AppColors.brand, borderRadius: BorderRadius.circular(7)),
-    child: Center(child: Text(label, style: const TextStyle(
-      color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)))));
-
-// ── Shared helpers ──────────────────────────────────────────────────────────
-class _Section extends StatelessWidget {
-  final String title; final Widget? trailing; final List<Widget> children;
-  const _Section(this.title, {this.trailing, required this.children});
-  @override
-  Widget build(BuildContext context) => Container(
-    margin: const EdgeInsets.only(bottom: 12),
-    decoration: BoxDecoration(color: AppColors.card,
-      borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.border)),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Padding(padding: const EdgeInsets.fromLTRB(14, 14, 10, 10),
-        child: Row(children: [
-          Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.t1)),
-          if (trailing != null) ...[const Spacer(), trailing!],
-        ])),
-      const Divider(height: 1),
-      Padding(padding: const EdgeInsets.all(14),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children)),
-    ]));
-}
-
-Widget _LF(String t) => Padding(
-  padding: const EdgeInsets.only(bottom: 5),
-  child: Text(t, style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.t3)));
-
-Widget _TextField(TextEditingController ctrl, String hint,
-    {TextInputType? type, bool caps = false}) =>
-  TextField(controller: ctrl, keyboardType: type,
-    textCapitalization: caps ? TextCapitalization.characters : TextCapitalization.sentences,
-    decoration: InputDecoration(hintText: hint,
-      hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t4),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: AppColors.border)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: AppColors.brand, width: 1.5)),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13)),
-    style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.t1));
-
-Widget _DateBtn(DateTime date, ValueChanged<DateTime> onPick) =>
-  Builder(builder: (ctx) => GestureDetector(
-    onTap: () async {
-      final picked = await showDatePicker(context: ctx,
-        initialDate: date, firstDate: DateTime(2020), lastDate: DateTime(2035));
-      if (picked != null) onPick(picked);
-    },
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.border)),
-      child: Row(children: [
-        const Icon(Symbols.calendar_today, size: 15, color: AppColors.t3),
-        const Gap(7),
-        Text(DateFormat('dd MMM yyyy').format(date),
-          style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.t1)),
-      ]))));
-
-Widget _TogRow(String label, String sub, bool value, ValueChanged<bool> onChange) =>
-  GestureDetector(
-    onTap: () => onChange(!value),
-    child: Row(children: [
-      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.t1)),
-        Text(sub, style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.t3)),
-      ])),
-      AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 48, height: 28,
-        decoration: BoxDecoration(
-          color: value ? AppColors.brand : AppColors.borderDark,
-          borderRadius: BorderRadius.circular(99)),
-        child: AnimatedAlign(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOutCubic,
-          alignment: value ? Alignment.centerRight : Alignment.centerLeft,
-          child: Container(
-            margin: const EdgeInsets.all(3),
-            width: 22, height: 22,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(99),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 4)]),
-          )),
-      ),
-    ]));
-
-Widget _TypeBtn(String label, bool selected, VoidCallback onTap) =>
-  Expanded(child: GestureDetector(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 9),
-      decoration: BoxDecoration(
-        color: selected ? AppColors.brand : AppColors.bg,
-        borderRadius: BorderRadius.circular(9),
-        border: Border.all(color: selected ? AppColors.brand : AppColors.border)),
-      child: Text(label, textAlign: TextAlign.center,
-        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700,
-          color: selected ? Colors.white : AppColors.t2)))));
-
-Widget _SRow(String label, double amount) => Padding(
-  padding: const EdgeInsets.symmetric(vertical: 3),
-  child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-    Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t2)),
-    Text(formatCurrency(amount), style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600,
-      color: amount < 0 ? AppColors.green : AppColors.t1)),
-  ]));
-);
-      return;
-    }
-    final valid = _lines.where((l) => l.name.isNotEmpty).toList();
-    if (valid.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Add at least one item'), backgroundColor: AppColors.red));
-      return;
-    }
-    setState(() => _saving = true);
-    try {
-      final db    = ref.read(storageProvider);
-      final invNo = db.nextInvoiceNumber();
-      final items = valid.map((l) => InvoiceItem(
-        name: l.name, hsnCode: l.hsn, quantity: l.qty,
-        rate: l.rate, gstRate: l.gstRate, applyGst: _applyGst)).toList();
-
-      final inv = Invoice(
-        invoiceNumber: invNo,
-        customerName: _custName.text.trim(),
-        customerPhone: _custPhone.text.trim(),
-        customerGstin: _custGstin.text.trim().toUpperCase(),
-        customerAddress: _custAddr.text.trim(),
-        invoiceDate: _date, dueDate: _due,
-        lineItems: items, gstType: _gstType,
-        shippingCharge: _applyShipping ? _shipping : 0,
-        flatDiscount: _applyDiscount ? _discount : 0,
-        notes: _notes.text.trim(), placeOfSupply: _place,
-        status: InvoiceStatus.sent);
-
-      await ref.read(invoiceProvider.notifier).add(inv);
-
-      // Auto-save new customer
-      final custs = ref.read(customerProvider);
-      final exists = custs.any((c) => c.name.toLowerCase() == inv.customerName.toLowerCase());
-      if (!exists && inv.customerPhone.isNotEmpty) {
-        await ref.read(customerProvider.notifier).add(Customer(
-          name: inv.customerName, phone: inv.customerPhone,
-          gstin: inv.customerGstin, address: inv.customerAddress));
-      }
-
-      if (!mounted) return;
-      ref.read(selectedInvoiceProvider.notifier).state = inv;
-      context.go('/preview');
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.red));
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-}
-
-// ── Line item state ─────────────────────────────────────────────────────────
-class _LineItem {
-  String name; String hsn; double qty; double rate; double gstRate;
-  _LineItem({this.name='', this.hsn='', this.qty=1, this.rate=0, this.gstRate=18});
-}
-
-class _LineRow extends StatefulWidget {
-  final _LineItem item; final int index;
-  final VoidCallback? onRemove; final VoidCallback onChange;
-  const _LineRow({required this.item, required this.index, this.onRemove, required this.onChange});
-  @override
-  State<_LineRow> createState() => _LineRowState();
-}
-class _LineRowState extends State<_LineRow> {
-  late final TextEditingController _name, _hsn, _rate;
-  @override
-  void initState() {
-    super.initState();
-    _name = TextEditingController(text: widget.item.name)
-      ..addListener(() { widget.item.name = _name.text; widget.onChange(); });
-    _hsn  = TextEditingController(text: widget.item.hsn)
-      ..addListener(() => widget.item.hsn = _hsn.text);
-    _rate = TextEditingController(text: widget.item.rate > 0 ? widget.item.rate.toStringAsFixed(0) : '')
-      ..addListener(() { widget.item.rate = double.tryParse(_rate.text) ?? 0; widget.onChange(); });
-  }
-  @override
-  void dispose() { _name.dispose(); _hsn.dispose(); _rate.dispose(); super.dispose(); }
-
-  @override
-  Widget build(BuildContext context) => Container(
-    margin: const EdgeInsets.only(bottom: 10),
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: AppColors.border)),
-    child: Column(children: [
-      Row(children: [
-        Expanded(child: TextField(controller: _name,
-          decoration: InputDecoration(hintText: 'Product / service name',
-            hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t4), isDense: true,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(9)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(9),
-              borderSide: const BorderSide(color: AppColors.border)),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 11, vertical: 11)),
-          style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
-        if (widget.onRemove != null) ...[
-          const Gap(8),
-          GestureDetector(onTap: widget.onRemove,
-            child: Container(width: 32, height: 32,
-              decoration: BoxDecoration(color: AppColors.redSoft, borderRadius: BorderRadius.circular(8)),
-              child: const Icon(Symbols.delete, size: 16, color: AppColors.red))),
-        ],
-      ]),
-      const Gap(8),
-      Row(children: [
-        Expanded(child: TextField(controller: _hsn,
-          decoration: InputDecoration(hintText: trGlobal('create.hsn'),
+          decoration: InputDecoration(hintText: 'HSN/SAC',
             hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t4), isDense: true,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(9)),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(9),
