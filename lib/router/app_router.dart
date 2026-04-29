@@ -12,6 +12,7 @@ import '../screens/splash/splash_screen.dart';
 import '../screens/main/customers_screen.dart';
 import '../screens/main/products_screen.dart';
 import '../screens/main/expenses_screen.dart';
+import '../screens/main/catalog_screen.dart';
 
 CustomTransitionPage<void> _slideRight(BuildContext c, GoRouterState s, Widget w) {
   return CustomTransitionPage<void>(
@@ -90,6 +91,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           ShellScreen(location: s.uri.path)),
       ),
       // Separate utility routes (dashboard quick actions)
+      GoRoute(
+        path: '/catalog',
+        builder: (c, s) => const CatalogScreen(),
+      ),
       GoRoute(
         path: '/customers',
         pageBuilder: (c, s) => _slideRight(c, s, const CustomersScreen()),
