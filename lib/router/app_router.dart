@@ -13,6 +13,7 @@ import '../screens/main/customers_screen.dart';
 import '../screens/main/products_screen.dart';
 import '../screens/main/expenses_screen.dart';
 import '../screens/main/catalog_screen.dart';
+import '../screens/onboarding/onboarding_screen.dart';
 
 CustomTransitionPage<void> _slideRight(BuildContext c, GoRouterState s, Widget w) {
   return CustomTransitionPage<void>(
@@ -70,6 +71,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (c, s) => _fade(c, s, const SplashScreen()),
       ),
       // All tab routes show the same ShellScreen (PageView switches internally)
+      GoRoute(
+        path: '/onboarding',
+        builder: (c, s) => const OnboardingScreen(),
+      ),
       GoRoute(
         path: '/home',
         pageBuilder: (c, s) => _none(c, s,

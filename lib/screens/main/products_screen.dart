@@ -19,6 +19,7 @@ class ProductsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
+        iconTheme: const IconThemeData(color: AppColors.t1),
                 backgroundColor: AppColors.card,
         title: Text(tr('prod.title', ref), style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),

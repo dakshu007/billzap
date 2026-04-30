@@ -1,8 +1,6 @@
 // lib/screens/main/shell_screen.dart
-// ✅ Smooth tab swipe (no stutter — uses NeverScrollable + AnimatedSwitcher)
-// ✅ Direct tab jump (Home → Me goes directly, no intermediate animation)
-// ✅ Single PopScope for back gesture
-// ✅ All 4 tabs preloaded (IndexedStack keeps state alive)
+// Buttery smooth tab switching using IndexedStack (no rebuild stutter)
+// + direct tab jumps + double-press-back to exit
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,7 +29,6 @@ class _ShellScreenState extends ConsumerState<ShellScreen>
   DateTime? _lastBack;
   late final AnimationController _fadeCtrl;
 
-  // Keep all 4 tabs alive in memory — no rebuild stutter
   static const _pages = <Widget>[
     DashboardScreen(),
     InvoicesScreen(),
@@ -54,9 +51,7 @@ class _ShellScreenState extends ConsumerState<ShellScreen>
   void didUpdateWidget(ShellScreen old) {
     super.didUpdateWidget(old);
     final newIdx = _indexFor(widget.location);
-    if (newIdx != _idx) {
-      _switchTab(newIdx);
-    }
+    if (newIdx != _idx) _switchTab(newIdx);
   }
 
   @override
@@ -93,8 +88,7 @@ class _ShellScreenState extends ConsumerState<ShellScreen>
 
   void _tapTab(int i) {
     if (i == _idx) return;
-    final p = _pathFor(i);
-    GoRouter.of(context).go(p);
+    GoRouter.of(context).go(_pathFor(i));
   }
 
   Future<bool> _handleBack() async {
@@ -114,14 +108,15 @@ class _ShellScreenState extends ConsumerState<ShellScreen>
           content: Row(children: [
             const Icon(Symbols.exit_to_app, color: Colors.white, size: 18),
             const SizedBox(width: 10),
-            Text(tr('toast.exit_again', ref),
+            Text(trGlobal('toast.exit_again'),
                 style: GoogleFonts.plusJakartaSans(
                     fontWeight: FontWeight.w600, fontSize: 13)),
           ]),
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
           backgroundColor: AppColors.t1,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           margin: const EdgeInsets.fromLTRB(14, 0, 14, 20),
         ));
       }
@@ -142,9 +137,7 @@ class _ShellScreenState extends ConsumerState<ShellScreen>
         backgroundColor: AppColors.bg,
         body: FadeTransition(
           opacity: CurvedAnimation(
-            parent: _fadeCtrl,
-            curve: Curves.easeOutCubic,
-          ),
+              parent: _fadeCtrl, curve: Curves.easeOutCubic),
           child: IndexedStack(index: _idx, children: _pages),
         ),
         bottomNavigationBar: _BmwNav(
@@ -180,44 +173,66 @@ class _BmwNav extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.card,
-        border: const Border(top: BorderSide(color: AppColors.border, width: 0.5)),
+        border: const Border(
+            top: BorderSide(color: AppColors.border, width: 0.5)),
         boxShadow: [
           BoxShadow(
               color: AppColors.brand.withOpacity(0.06),
-              blurRadius: 24, offset: const Offset(0, -4)),
+              blurRadius: 24,
+              offset: const Offset(0, -4)),
         ],
       ),
       child: SafeArea(
         child: SizedBox(
           height: 68,
           child: Row(children: [
-            _NavItem(icon: Symbols.home, label: tr('nav.home', ref), on: idx == 0, onTap: onHome),
-            _NavItem(icon: Symbols.receipt_long, label: tr('nav.invoices', ref), on: idx == 1, onTap: onInvoices),
+            _NavItem(
+                icon: Symbols.home,
+                label: tr('nav.home', ref),
+                on: idx == 0,
+                onTap: onHome),
+            _NavItem(
+                icon: Symbols.receipt_long,
+                label: tr('nav.invoices', ref),
+                on: idx == 1,
+                onTap: onInvoices),
             Expanded(
               child: Center(
                 child: GestureDetector(
                   onTap: onCreate,
                   child: Container(
-                    width: 54, height: 54,
+                    width: 54,
+                    height: 54,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         colors: [AppColors.brand, Color(0xFF4070FF)],
-                        begin: Alignment.topLeft, end: Alignment.bottomRight,
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(18),
                       boxShadow: [
                         BoxShadow(
                             color: AppColors.brand.withOpacity(0.42),
-                            blurRadius: 16, offset: const Offset(0, 6)),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6)),
                       ],
                     ),
-                    child: const Icon(Symbols.add, color: Colors.white, size: 28),
+                    child: const Icon(Symbols.add,
+                        color: Colors.white, size: 28),
                   ),
                 ),
               ),
             ),
-            _NavItem(icon: Symbols.bar_chart, label: tr('nav.reports', ref), on: idx == 2, onTap: onReports),
-            _NavItem(icon: Symbols.person, label: tr('nav.me', ref), on: idx == 3, onTap: onMe),
+            _NavItem(
+                icon: Symbols.bar_chart,
+                label: tr('nav.reports', ref),
+                on: idx == 2,
+                onTap: onReports),
+            _NavItem(
+                icon: Symbols.person,
+                label: tr('nav.me', ref),
+                on: idx == 3,
+                onTap: onMe),
           ]),
         ),
       ),
@@ -231,8 +246,10 @@ class _NavItem extends StatelessWidget {
   final bool on;
   final VoidCallback onTap;
   const _NavItem({
-    required this.icon, required this.label,
-    required this.on, required this.onTap,
+    required this.icon,
+    required this.label,
+    required this.on,
+    required this.onTap,
   });
 
   @override
@@ -253,7 +270,8 @@ class _NavItem extends StatelessWidget {
               color: on ? AppColors.brandSoft : Colors.transparent,
               borderRadius: BorderRadius.circular(22),
             ),
-            child: Icon(icon, size: 23, color: on ? AppColors.brand : AppColors.t3),
+            child: Icon(icon,
+                size: 23, color: on ? AppColors.brand : AppColors.t3),
           ),
           const SizedBox(height: 3),
           AnimatedDefaultTextStyle(
