@@ -242,6 +242,13 @@ const _en = <String, String>{
   'onboard.done_title': 'You\'re all set!',
   'onboard.done_sub': 'Start creating professional GST invoices for your customers.',
   'onboard.get_started': 'Get started',
+  'inv.sent': 'Sent',
+  'inv.pending': 'Pending',
+  'inv.overdue': 'Overdue',
+  'inv.due': 'Due',
+  'inv.no_results': 'No results found',
+  'inv.try_diff_search': 'Try a different search',
+  'inv.tap_plus_create': 'Tap + to create one',
 };
 
 // ── Hindi ─────────────────────────────────────────────────────
@@ -439,6 +446,13 @@ const _hi = <String, String>{
   'onboard.done_title': 'सब कुछ तैयार है!',
   'onboard.done_sub': 'अपने ग्राहकों के लिए पेशेवर GST बिल बनाना शुरू करें।',
   'onboard.get_started': 'शुरू करें',
+  'inv.sent': 'भेजा गया',
+  'inv.pending': 'लंबित',
+  'inv.overdue': 'अतिदेय',
+  'inv.due': 'देय',
+  'inv.no_results': 'कोई परिणाम नहीं मिला',
+  'inv.try_diff_search': 'कोई अलग खोज आज़माएं',
+  'inv.tap_plus_create': 'बनाने के लिए + पर टैप करें',
 };
 
 // ── Tamil ─────────────────────────────────────────────────────
@@ -636,6 +650,13 @@ const _ta = <String, String>{
   'onboard.done_title': 'அனைத்தும் தயார்!',
   'onboard.done_sub': 'உங்கள் வாடிக்கையாளர்களுக்காக தொழில்முறை GST பில்களை உருவாக்கத் தொடங்குங்கள்.',
   'onboard.get_started': 'தொடங்கு',
+  'inv.sent': 'அனுப்பப்பட்டது',
+  'inv.pending': 'நிலுவையில்',
+  'inv.overdue': 'தாமதமான',
+  'inv.due': 'செலுத்த',
+  'inv.no_results': 'முடிவுகள் இல்லை',
+  'inv.try_diff_search': 'வேறு தேடல் முயற்சிக்கவும்',
+  'inv.tap_plus_create': 'உருவாக்க + ஐ தட்டவும்',
 };
 
 // ── Telugu ────────────────────────────────────────────────────
@@ -823,6 +844,13 @@ const _te = <String, String>{
   'onboard.done_title': 'అంతా సిద్ధం!',
   'onboard.done_sub': 'మీ కస్టమర్ల కోసం ప్రొఫెషనల్ GST బిల్లులు సృష్టించడం ప్రారంభించండి.',
   'onboard.get_started': 'ప్రారంభించండి',
+  'inv.sent': 'పంపబడింది',
+  'inv.pending': 'పెండింగ్',
+  'inv.overdue': 'గడువు మీరిన',
+  'inv.due': 'గడువు',
+  'inv.no_results': 'ఫలితాలు లేవు',
+  'inv.try_diff_search': 'వేరే వెతుకులాట ప్రయత్నించండి',
+  'inv.tap_plus_create': 'సృష్టించడానికి + నొక్కండి',
 };
 
 // ── Kannada ───────────────────────────────────────────────────
@@ -951,6 +979,13 @@ const _kn = <String, String>{
   'onboard.done_title': 'ಎಲ್ಲವೂ ಸಿದ್ಧ!',
   'onboard.done_sub': 'ನಿಮ್ಮ ಗ್ರಾಹಕರಿಗಾಗಿ ವೃತ್ತಿಪರ GST ಬಿಲ್‌ಗಳನ್ನು ರಚಿಸಲು ಪ್ರಾರಂಭಿಸಿ.',
   'onboard.get_started': 'ಪ್ರಾರಂಭಿಸಿ',
+  'inv.sent': 'ಕಳುಹಿಸಲಾಗಿದೆ',
+  'inv.pending': 'ಬಾಕಿ',
+  'inv.overdue': 'ಮೀರಿದ',
+  'inv.due': 'ಬಾಕಿ',
+  'inv.no_results': 'ಫಲಿತಾಂಶಗಳಿಲ್ಲ',
+  'inv.try_diff_search': 'ಬೇರೆ ಹುಡುಕಾಟ ಪ್ರಯತ್ನಿಸಿ',
+  'inv.tap_plus_create': 'ರಚಿಸಲು + ಟ್ಯಾಪ್ ಮಾಡಿ',
 };
 
 // ── Malayalam ─────────────────────────────────────────────────
@@ -1069,6 +1104,13 @@ const _ml = <String, String>{
   'onboard.done_title': 'എല്ലാം തയ്യാർ!',
   'onboard.done_sub': 'നിങ്ങളുടെ ഉപഭോക്താക്കൾക്കായി പ്രൊഫഷണൽ GST ബില്ലുകൾ സൃഷ്ടിക്കാൻ തുടങ്ങുക.',
   'onboard.get_started': 'തുടങ്ങുക',
+  'inv.sent': 'അയച്ചു',
+  'inv.pending': 'തീർപ്പുകൽപ്പിക്കാത്ത',
+  'inv.overdue': 'കാലഹരണപ്പെട്ട',
+  'inv.due': 'കാലയളവ്',
+  'inv.no_results': 'ഫലങ്ങളില്ല',
+  'inv.try_diff_search': 'വേറെ തിരയൽ ശ്രമിക്കുക',
+  'inv.tap_plus_create': 'സൃഷ്ടിക്കാൻ + ടാപ്പുചെയ്യുക',
 };
 
 // ── Marathi, Gujarati, Bengali, Punjabi, Odia, Urdu ──────────
@@ -1176,6 +1218,13 @@ const _mr = <String, String>{
   'onboard.done_title': 'सर्व तयार!',
   'onboard.done_sub': 'तुमच्या ग्राहकांसाठी व्यावसायिक GST पावत्या तयार करण्यास सुरुवात करा.',
   'onboard.get_started': 'सुरू करा',
+  'inv.sent': 'पाठवले',
+  'inv.pending': 'प्रलंबित',
+  'inv.overdue': 'मुदतीनंतर',
+  'inv.due': 'देय',
+  'inv.no_results': 'परिणाम सापडले नाहीत',
+  'inv.try_diff_search': 'वेगळा शोध वापरून पहा',
+  'inv.tap_plus_create': 'तयार करण्यासाठी + दाबा',
 };
 
 const _gu = <String, String>{
@@ -1284,6 +1333,13 @@ const _gu = <String, String>{
   'onboard.done_title': 'બધું તૈયાર!',
   'onboard.done_sub': 'તમારા ગ્રાહકો માટે વ્યાવસાયિક GST ઇન્વૉઇસ બનાવવાનું શરૂ કરો.',
   'onboard.get_started': 'શરૂ કરો',
+  'inv.sent': 'મોકલેલ',
+  'inv.pending': 'બાકી',
+  'inv.overdue': 'મુદત વીતી',
+  'inv.due': 'મુદત',
+  'inv.no_results': 'કોઈ પરિણામ મળ્યું નથી',
+  'inv.try_diff_search': 'અલગ શોધ પ્રયાસ કરો',
+  'inv.tap_plus_create': 'બનાવવા + ટેપ કરો',
 };
 
 const _bn = <String, String>{
@@ -1394,6 +1450,13 @@ const _bn = <String, String>{
   'onboard.done_title': 'সব প্রস্তুত!',
   'onboard.done_sub': 'আপনার গ্রাহকদের জন্য পেশাদার GST চালান তৈরি করা শুরু করুন।',
   'onboard.get_started': 'শুরু করুন',
+  'inv.sent': 'প্রেরিত',
+  'inv.pending': 'অমীমাংসিত',
+  'inv.overdue': 'মেয়াদোত্তীর্ণ',
+  'inv.due': 'বকেয়া',
+  'inv.no_results': 'কোনো ফলাফল পাওয়া যায়নি',
+  'inv.try_diff_search': 'অন্য অনুসন্ধান চেষ্টা করুন',
+  'inv.tap_plus_create': 'তৈরি করতে + চাপুন',
 };
 
 const _pa = <String, String>{
@@ -1504,6 +1567,13 @@ const _pa = <String, String>{
   'onboard.done_title': 'ਸਭ ਤਿਆਰ!',
   'onboard.done_sub': 'ਆਪਣੇ ਗਾਹਕਾਂ ਲਈ ਪੇਸ਼ੇਵਰ GST ਬਿੱਲ ਬਣਾਉਣਾ ਸ਼ੁਰੂ ਕਰੋ।',
   'onboard.get_started': 'ਸ਼ੁਰੂ ਕਰੋ',
+  'inv.sent': 'ਭੇਜਿਆ',
+  'inv.pending': 'ਬਕਾਇਆ',
+  'inv.overdue': 'ਸਮਾਂ ਖਤਮ',
+  'inv.due': 'ਮਿਤੀ',
+  'inv.no_results': 'ਕੋਈ ਨਤੀਜਾ ਨਹੀਂ ਮਿਲਿਆ',
+  'inv.try_diff_search': 'ਵੱਖਰੀ ਖੋਜ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰੋ',
+  'inv.tap_plus_create': 'ਬਣਾਉਣ ਲਈ + ਦਬਾਓ',
 };
 
 const _or = <String, String>{
@@ -1616,6 +1686,13 @@ const _or = <String, String>{
   'onboard.done_title': 'ସବୁ ପ୍ରସ୍ତୁତ!',
   'onboard.done_sub': 'ଆପଣଙ୍କ ଗ୍ରାହକଙ୍କ ପାଇଁ ବୃତ୍ତିଗତ GST ବିଲ ସୃଷ୍ଟି କରିବା ଆରମ୍ଭ କରନ୍ତୁ।',
   'onboard.get_started': 'ଆରମ୍ଭ କରନ୍ତୁ',
+  'inv.sent': 'ପଠାଯାଇଛି',
+  'inv.pending': 'ବକାୟା',
+  'inv.overdue': 'ସମୟ ଅତିକ୍ରାନ୍ତ',
+  'inv.due': 'ଦେୟ',
+  'inv.no_results': 'କୌଣସି ଫଳାଫଳ ମିଳିଲା ନାହିଁ',
+  'inv.try_diff_search': 'ଅନ୍ୟ ସନ୍ଧାନ ଚେଷ୍ଟା କରନ୍ତୁ',
+  'inv.tap_plus_create': 'ସୃଷ୍ଟି ପାଇଁ + ଟ୍ୟାପ୍ କରନ୍ତୁ',
 };
 
 const _ur = <String, String>{
@@ -1727,6 +1804,13 @@ const _ur = <String, String>{
   'onboard.done_title': 'سب تیار!',
   'onboard.done_sub': 'اپنے گاہکوں کے لیے پیشہ ورانہ GST بل بنانا شروع کریں۔',
   'onboard.get_started': 'شروع کریں',
+  'inv.sent': 'بھیجا گیا',
+  'inv.pending': 'زیر التواء',
+  'inv.overdue': 'مدت ختم',
+  'inv.due': 'ادائیگی',
+  'inv.no_results': 'کوئی نتیجہ نہیں ملا',
+  'inv.try_diff_search': 'مختلف تلاش آزمائیں',
+  'inv.tap_plus_create': 'بنانے کے لیے + دبائیں',
 };
 
 // ── Master translation map ────────────────────────────────────
