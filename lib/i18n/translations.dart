@@ -249,6 +249,7 @@ const _en = <String, String>{
   'inv.no_results': 'No results found',
   'inv.try_diff_search': 'Try a different search',
   'inv.tap_plus_create': 'Tap + to create one',
+  'inv.cancelled': 'Cancelled',
 };
 
 // ── Hindi ─────────────────────────────────────────────────────
@@ -453,6 +454,7 @@ const _hi = <String, String>{
   'inv.no_results': 'कोई परिणाम नहीं मिला',
   'inv.try_diff_search': 'कोई अलग खोज आज़माएं',
   'inv.tap_plus_create': 'बनाने के लिए + पर टैप करें',
+  'inv.cancelled': 'रद्द',
 };
 
 // ── Tamil ─────────────────────────────────────────────────────
@@ -657,6 +659,7 @@ const _ta = <String, String>{
   'inv.no_results': 'முடிவுகள் இல்லை',
   'inv.try_diff_search': 'வேறு தேடல் முயற்சிக்கவும்',
   'inv.tap_plus_create': 'உருவாக்க + ஐ தட்டவும்',
+  'inv.cancelled': 'ரத்து',
 };
 
 // ── Telugu ────────────────────────────────────────────────────
@@ -851,6 +854,7 @@ const _te = <String, String>{
   'inv.no_results': 'ఫలితాలు లేవు',
   'inv.try_diff_search': 'వేరే వెతుకులాట ప్రయత్నించండి',
   'inv.tap_plus_create': 'సృష్టించడానికి + నొక్కండి',
+  'inv.cancelled': 'రద్దు',
 };
 
 // ── Kannada ───────────────────────────────────────────────────
@@ -986,6 +990,7 @@ const _kn = <String, String>{
   'inv.no_results': 'ಫಲಿತಾಂಶಗಳಿಲ್ಲ',
   'inv.try_diff_search': 'ಬೇರೆ ಹುಡುಕಾಟ ಪ್ರಯತ್ನಿಸಿ',
   'inv.tap_plus_create': 'ರಚಿಸಲು + ಟ್ಯಾಪ್ ಮಾಡಿ',
+  'inv.cancelled': 'ರದ್ದಾಗಿದೆ',
 };
 
 // ── Malayalam ─────────────────────────────────────────────────
@@ -1111,6 +1116,7 @@ const _ml = <String, String>{
   'inv.no_results': 'ഫലങ്ങളില്ല',
   'inv.try_diff_search': 'വേറെ തിരയൽ ശ്രമിക്കുക',
   'inv.tap_plus_create': 'സൃഷ്ടിക്കാൻ + ടാപ്പുചെയ്യുക',
+  'inv.cancelled': 'റദ്ദാക്കി',
 };
 
 // ── Marathi, Gujarati, Bengali, Punjabi, Odia, Urdu ──────────
@@ -1225,6 +1231,7 @@ const _mr = <String, String>{
   'inv.no_results': 'परिणाम सापडले नाहीत',
   'inv.try_diff_search': 'वेगळा शोध वापरून पहा',
   'inv.tap_plus_create': 'तयार करण्यासाठी + दाबा',
+  'inv.cancelled': 'रद्द',
 };
 
 const _gu = <String, String>{
@@ -1340,6 +1347,7 @@ const _gu = <String, String>{
   'inv.no_results': 'કોઈ પરિણામ મળ્યું નથી',
   'inv.try_diff_search': 'અલગ શોધ પ્રયાસ કરો',
   'inv.tap_plus_create': 'બનાવવા + ટેપ કરો',
+  'inv.cancelled': 'રદ',
 };
 
 const _bn = <String, String>{
@@ -1457,6 +1465,7 @@ const _bn = <String, String>{
   'inv.no_results': 'কোনো ফলাফল পাওয়া যায়নি',
   'inv.try_diff_search': 'অন্য অনুসন্ধান চেষ্টা করুন',
   'inv.tap_plus_create': 'তৈরি করতে + চাপুন',
+  'inv.cancelled': 'বাতিল',
 };
 
 const _pa = <String, String>{
@@ -1574,6 +1583,7 @@ const _pa = <String, String>{
   'inv.no_results': 'ਕੋਈ ਨਤੀਜਾ ਨਹੀਂ ਮਿਲਿਆ',
   'inv.try_diff_search': 'ਵੱਖਰੀ ਖੋਜ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰੋ',
   'inv.tap_plus_create': 'ਬਣਾਉਣ ਲਈ + ਦਬਾਓ',
+  'inv.cancelled': 'ਰੱਦ',
 };
 
 const _or = <String, String>{
@@ -1693,6 +1703,7 @@ const _or = <String, String>{
   'inv.no_results': 'କୌଣସି ଫଳାଫଳ ମିଳିଲା ନାହିଁ',
   'inv.try_diff_search': 'ଅନ୍ୟ ସନ୍ଧାନ ଚେଷ୍ଟା କରନ୍ତୁ',
   'inv.tap_plus_create': 'ସୃଷ୍ଟି ପାଇଁ + ଟ୍ୟାପ୍ କରନ୍ତୁ',
+  'inv.cancelled': 'ବାତିଲ',
 };
 
 const _ur = <String, String>{
@@ -1811,6 +1822,7 @@ const _ur = <String, String>{
   'inv.no_results': 'کوئی نتیجہ نہیں ملا',
   'inv.try_diff_search': 'مختلف تلاش آزمائیں',
   'inv.tap_plus_create': 'بنانے کے لیے + دبائیں',
+  'inv.cancelled': 'منسوخ',
 };
 
 // ── Master translation map ────────────────────────────────────

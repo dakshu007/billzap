@@ -78,6 +78,7 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
       case InvoiceStatus.sent:    return tr('inv.sent', ref).toUpperCase();
       case InvoiceStatus.pending: return tr('inv.pending', ref).toUpperCase();
       case InvoiceStatus.draft:   return tr('inv.draft', ref).toUpperCase();
+      case InvoiceStatus.cancelled: return tr('inv.cancelled', ref).toUpperCase();
     }
   }
 
