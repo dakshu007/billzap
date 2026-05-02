@@ -1,6 +1,7 @@
 // lib/screens/invoice/create_invoice_screen.dart
-// ✅ Loading fixed — try/catch/finally
-// ✅ Zero Firebase
+// ✅ FIX: "From Catalog" reads from CatalogService (Hive 'catalog' box), not productProvider
+// ✅ Fully translated
+// ✅ GST auto-classify on item name change
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +13,8 @@ import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../services/gst_classifier.dart';
+import '../../i18n/translations.dart';
+import '../main/catalog_screen.dart';
 
 class CreateInvoiceScreen extends ConsumerStatefulWidget {
   const CreateInvoiceScreen({super.key});
@@ -96,7 +99,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
             decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(10)),
             child: const Icon(Symbols.close, size: 19, color: AppColors.t1)),
           onPressed: () => context.go('/home')),
-        title: Text('New Invoice', style: GoogleFonts.plusJakartaSans(
+        title: Text(tr('create.title', ref), style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
           Padding(padding: const EdgeInsets.only(right: 12),
@@ -106,17 +109,17 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
               child: _saving
                 ? const SizedBox(width: 16, height: 16,
                     child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : Text('Save', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13.5)))),
+                : Text(tr('common.save', ref), style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13.5)))),
         ],
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 120),
         children: [
           // Customer
-          _Section('Customer', children: [
-            _LF('Customer Name *'),
+          _Section(tr('cust.title', ref), children: [
+            _LF(tr('cust.name', ref) + ' *'),
             Stack(clipBehavior: Clip.none, children: [
-              _TextField(_custName, 'Search or type customer name...'),
+              _TextField(_custName, tr('create.search_customer', ref)),
               if (_acShow) Positioned(top: 46, left: 0, right: 0, child: Material(
                 elevation: 6, borderRadius: BorderRadius.circular(10),
                 child: ListView(
@@ -133,26 +136,26 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
             const Gap(10),
             Row(children: [
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                _LF('Phone'), _TextField(_custPhone, '+91 98765 43210', type: TextInputType.phone)])),
+                _LF(tr('cust.phone', ref)), _TextField(_custPhone, '+91 98765 43210', type: TextInputType.phone)])),
               const Gap(10),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                _LF('GSTIN (optional)'), _TextField(_custGstin, '33RAAAA...', caps: true)])),
+                _LF(tr('cust.gstin', ref) + ' (' + tr('create.optional', ref) + ')'), _TextField(_custGstin, '33RAAAA...', caps: true)])),
             ]),
             const Gap(10),
-            _LF('Address'), _TextField(_custAddr, 'Street, Area, City'),
+            _LF(tr('cust.address', ref)), _TextField(_custAddr, 'Street, Area, City'),
           ]),
 
           // Invoice info
-          _Section('Invoice Details', children: [
+          _Section(tr('create.invoice_details', ref), children: [
             Row(children: [
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                _LF('Invoice Date'), _DateBtn(_date, (d) => setState(() => _date = d))])),
+                _LF(tr('create.invoice_date', ref)), _DateBtn(_date, (d) => setState(() => _date = d))])),
               const Gap(10),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                _LF('Due Date'), _DateBtn(_due, (d) => setState(() => _due = d))])),
+                _LF(tr('create.due_date', ref)), _DateBtn(_due, (d) => setState(() => _due = d))])),
             ]),
             const Gap(10),
-            _LF('Place of Supply'),
+            _LF(tr('create.place_of_supply', ref)),
             DropdownButtonFormField<String>(
               value: kStates.contains(_place) ? _place : kStates.first,
               decoration: InputDecoration(isDense: true,
@@ -166,11 +169,11 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
           ]),
 
           // Line items
-          _Section('Line Items',
+          _Section(tr('create.line_items', ref),
             trailing: TextButton.icon(
-              onPressed: _showPicker,
+              onPressed: _showCatalogPicker,
               icon: const Icon(Symbols.add, size: 16),
-              label: Text('From Catalog', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600))),
+              label: Text(tr('cat.from_catalog', ref), style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600))),
             children: [
               ..._lines.asMap().entries.map((e) => _LineRow(
                 item: e.value, index: e.key,
@@ -180,30 +183,30 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
               OutlinedButton.icon(
                 onPressed: () => setState(() => _lines.add(_LineItem())),
                 icon: const Icon(Symbols.add, size: 16),
-                label: Text('Add Line Item', style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600))),
+                label: Text(tr('create.add_line_item', ref), style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600))),
             ]),
 
           // Tax
-          _Section('Tax & Adjustments', children: [
-            _TogRow('Apply GST', 'CGST / SGST / IGST auto-calculated', _applyGst,
+          _Section(tr('create.tax_adjustments', ref), children: [
+            _TogRow(tr('create.apply_gst', ref), tr('create.gst_auto_calc', ref), _applyGst,
               (v) => setState(() => _applyGst = v)),
             if (_applyGst) ...[
               const Gap(8),
-              _LF('GST Type'),
+              _LF(tr('create.gst_type', ref)),
               Row(children: [
-                _TypeBtn('CGST + SGST (Intra-state)', _gstType == GstType.cgstSgst,
+                _TypeBtn(tr('create.cgst_sgst', ref), _gstType == GstType.cgstSgst,
                   () => setState(() => _gstType = GstType.cgstSgst)),
                 const Gap(8),
-                _TypeBtn('IGST (Inter-state)', _gstType == GstType.igst,
+                _TypeBtn(tr('create.igst', ref), _gstType == GstType.igst,
                   () => setState(() => _gstType = GstType.igst)),
               ]),
             ],
             const Divider(height: 20),
-            _TogRow('Apply Discount', 'Flat discount on subtotal', _applyDiscount,
+            _TogRow(tr('create.apply_discount', ref), tr('create.flat_discount', ref), _applyDiscount,
               (v) => setState(() => _applyDiscount = v)),
             if (_applyDiscount) ...[
               const Gap(8),
-              _LF('Discount (\u20b9)'),
+              _LF(tr('create.discount', ref) + ' (\u20b9)'),
               TextField(
                 keyboardType: TextInputType.number, onChanged: (v) => setState(() => _discount = double.tryParse(v) ?? 0),
                 decoration: InputDecoration(hintText: '0',
@@ -214,11 +217,11 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                 style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
             ],
             const Divider(height: 20),
-            _TogRow('Add Shipping', 'Delivery / freight charges', _applyShipping,
+            _TogRow(tr('create.add_shipping', ref), tr('create.delivery_charges', ref), _applyShipping,
               (v) => setState(() => _applyShipping = v)),
             if (_applyShipping) ...[
               const Gap(8),
-              _LF('Shipping (\u20b9)'),
+              _LF(tr('create.shipping', ref) + ' (\u20b9)'),
               TextField(
                 keyboardType: TextInputType.number, onChanged: (v) => setState(() => _shipping = double.tryParse(v) ?? 0),
                 decoration: InputDecoration(hintText: '0',
@@ -231,16 +234,16 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
           ]),
 
           // Summary
-          _Section('Summary', children: [
-            _SRow('Subtotal', _sub),
+          _Section(tr('create.summary', ref), children: [
+            _SRow(tr('create.subtotal', ref), _sub),
             if (_cgst > 0) _SRow('CGST', _cgst),
             if (_sgst > 0) _SRow('SGST', _sgst),
             if (_igst > 0) _SRow('IGST', _igst),
-            if (_applyShipping && _shipping > 0) _SRow('Shipping', _shipping),
-            if (_applyDiscount && _discount > 0) _SRow('Discount', -_discount),
+            if (_applyShipping && _shipping > 0) _SRow(tr('create.shipping', ref), _shipping),
+            if (_applyDiscount && _discount > 0) _SRow(tr('create.discount', ref), -_discount),
             const Divider(height: 18),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text('Grand Total', style: GoogleFonts.plusJakartaSans(
+              Text(tr('create.grand_total', ref), style: GoogleFonts.plusJakartaSans(
                 fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.t1)),
               Text(formatCurrency(_grand), style: GoogleFonts.plusJakartaSans(
                 fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.brand)),
@@ -248,9 +251,9 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
           ]),
 
           // Notes
-          _Section('Notes', children: [
+          _Section(tr('create.notes', ref), children: [
             TextField(controller: _notes, maxLines: 3,
-              decoration: InputDecoration(hintText: 'Additional notes for customer...',
+              decoration: InputDecoration(hintText: tr('create.notes_hint', ref),
                 hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t4),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                 enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
@@ -263,13 +266,19 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
     );
   }
 
-  void _showPicker() {
-    final prods = ref.read(productProvider);
-    if (prods.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('No products in catalog. Add products first.')));
+  // ═════════════════════════════════════════════════
+  // BUG FIX #1: Read from CatalogService not productProvider!
+  // ═════════════════════════════════════════════════
+  Future<void> _showCatalogPicker() async {
+    final items = await CatalogService.getAll();
+    if (!mounted) return;
+
+    if (items.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(trGlobal('create.catalog_empty'))));
       return;
     }
+
     showModalBottomSheet(
       context: context, isScrollControlled: true, backgroundColor: Colors.transparent,
       builder: (_) => DraggableScrollableSheet(
@@ -280,17 +289,17 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
           child: Column(children: [
             Container(width: 36, height: 4, margin: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(99))),
-            Text('Product Catalog', style: GoogleFonts.plusJakartaSans(fontSize: 17, fontWeight: FontWeight.w800)),
+            Text(trGlobal('cat.from_catalog'), style: GoogleFonts.plusJakartaSans(fontSize: 17, fontWeight: FontWeight.w800)),
             const Gap(10),
             Expanded(child: ListView.builder(
-              controller: ctrl, itemCount: prods.length,
+              controller: ctrl, itemCount: items.length,
               padding: const EdgeInsets.symmetric(horizontal: 14),
               itemBuilder: (_, i) {
-                final p = prods[i];
+                final p = items[i];
                 return GestureDetector(
                   onTap: () {
                     setState(() => _lines.add(_LineItem(
-                      name: p.name, hsn: p.hsnCode, rate: p.price, gstRate: p.gstRate)));
+                      name: p.name, hsn: p.hsnCode, rate: p.price, gstRate: p.gstRate.toDouble())));
                     Navigator.pop(context);
                   },
                   child: Container(
@@ -298,16 +307,21 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                     decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: AppColors.border)),
                     child: Row(children: [
+                      Container(width: 40, height: 40,
+                        decoration: BoxDecoration(color: AppColors.brandSoft,
+                          borderRadius: BorderRadius.circular(10)),
+                        child: const Icon(Symbols.shopping_basket, color: AppColors.brand, size: 20)),
+                      const Gap(12),
                       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Text(p.name, style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w700)),
                         if (p.hsnCode.isNotEmpty)
-                          Text('${p.isService ? 'SAC' : 'HSN'}: ${p.hsnCode} \u00b7 ${p.unit}',
+                          Text('HSN: ${p.hsnCode} \u00b7 ${p.unit}',
                             style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.t3)),
                       ])),
                       Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                         Text(formatCurrency(p.price), style: GoogleFonts.plusJakartaSans(
                           fontSize: 15, fontWeight: FontWeight.w900, color: AppColors.brand)),
-                        Text('GST ${p.gstRate.toInt()}%', style: GoogleFonts.plusJakartaSans(
+                        Text('GST ${p.gstRate}%', style: GoogleFonts.plusJakartaSans(
                           fontSize: 11, color: AppColors.green, fontWeight: FontWeight.w600)),
                       ]),
                     ]),
@@ -322,14 +336,14 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
 
   Future<void> _save() async {
     if (_custName.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Customer name is required'), backgroundColor: AppColors.red));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(trGlobal('create.cust_required')), backgroundColor: AppColors.red));
       return;
     }
     final valid = _lines.where((l) => l.name.isNotEmpty).toList();
     if (valid.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Add at least one item'), backgroundColor: AppColors.red));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(trGlobal('create.add_item_required')), backgroundColor: AppColors.red));
       return;
     }
     setState(() => _saving = true);
@@ -396,12 +410,25 @@ class _LineRowState extends State<_LineRow> {
   void initState() {
     super.initState();
     _name = TextEditingController(text: widget.item.name)
-      ..addListener(() { widget.item.name = _name.text; widget.onChange(); });
+      ..addListener(_onNameTyped);
     _hsn  = TextEditingController(text: widget.item.hsn)
       ..addListener(() => widget.item.hsn = _hsn.text);
     _rate = TextEditingController(text: widget.item.rate > 0 ? widget.item.rate.toStringAsFixed(0) : '')
       ..addListener(() { widget.item.rate = double.tryParse(_rate.text) ?? 0; widget.onChange(); });
   }
+
+  // ═════════════════════════════════════════════════
+  // GST AUTO-CLASSIFY: as user types item name
+  // ═════════════════════════════════════════════════
+  void _onNameTyped() {
+    widget.item.name = _name.text;
+    final detected = GstClassifier.classify(_name.text);
+    if (detected >= 0 && detected.toDouble() != widget.item.gstRate) {
+      setState(() => widget.item.gstRate = detected.toDouble());
+    }
+    widget.onChange();
+  }
+
   @override
   void dispose() { _name.dispose(); _hsn.dispose(); _rate.dispose(); super.dispose(); }
 

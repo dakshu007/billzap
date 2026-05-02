@@ -1,4 +1,5 @@
 // lib/screens/main/reports_screen.dart
+// ✅ Fully translated — every label uses tr()
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -54,7 +55,7 @@ class ReportsScreen extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 100),
         children: [
           // Revenue chart
-          _Card('Monthly Revenue', child: Column(children: [
+          _Card(tr('rep.monthly_revenue', ref), child: Column(children: [
             SizedBox(
               height: 140,
               child: Row(
@@ -89,7 +90,7 @@ class ReportsScreen extends ConsumerWidget {
           const Gap(12),
 
           // GST summary
-          _Card('GST Summary (All Paid Invoices)', child: Column(children: [
+          _Card(tr('rep.gst_summary', ref), child: Column(children: [
             Row(children: [
               _GBox('CGST', cgst, AppColors.brand, AppColors.brandSoft),
               const Gap(8),
@@ -104,7 +105,7 @@ class ReportsScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: AppColors.yellow.withOpacity(0.3))),
               child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Text('Total GST Payable', style: GoogleFonts.plusJakartaSans(
+                Text(tr('rep.total_gst_payable', ref), style: GoogleFonts.plusJakartaSans(
                   fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.t1)),
                 Text(formatCurrency(cgst + sgst + igst), style: GoogleFonts.plusJakartaSans(
                   fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.t1)),
@@ -113,20 +114,20 @@ class ReportsScreen extends ConsumerWidget {
           const Gap(12),
 
           // P&L
-          _Card('Profit & Loss', child: Column(children: [
-            _PLRow('Total Revenue', rev, AppColors.green),
-            _PLRow('Total Expenses', expTot, AppColors.red),
+          _Card(tr('rep.profit_loss', ref), child: Column(children: [
+            _PLRow(tr('rep.total_revenue', ref), rev, AppColors.green),
+            _PLRow(tr('rep.total_expenses', ref), expTot, AppColors.red),
             const Divider(height: 20),
-            _PLRow('Net Profit / Loss', rev - expTot,
+            _PLRow(tr('rep.net_profit', ref), rev - expTot,
               rev - expTot >= 0 ? AppColors.green : AppColors.red, bold: true),
           ])),
           const Gap(12),
 
           // Invoice status
-          _Card('Invoice Status', child: Column(children: [
-            _statusRow(invs, InvoiceStatus.paid, 'Paid', AppColors.green),
-            _statusRow(invs, InvoiceStatus.sent, 'Sent', AppColors.brand),
-            _statusRow(invs, InvoiceStatus.pending, 'Pending', AppColors.yellow),
+          _Card(tr('rep.invoice_status', ref), child: Column(children: [
+            _statusRow(invs, InvoiceStatus.paid, tr('inv.paid', ref), AppColors.green),
+            _statusRow(invs, InvoiceStatus.sent, tr('inv.sent', ref), AppColors.brand),
+            _statusRow(invs, InvoiceStatus.pending, tr('inv.pending', ref), AppColors.yellow),
             // Overdue
             Builder(builder: (_) {
               final ov = invs.where((i) => i.isOverdue).length;
@@ -135,7 +136,7 @@ class ReportsScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                   decoration: BoxDecoration(color: AppColors.redSoft,
                     borderRadius: BorderRadius.circular(99)),
-                  child: Text('Overdue', style: GoogleFonts.plusJakartaSans(
+                  child: Text(tr('inv.overdue', ref), style: GoogleFonts.plusJakartaSans(
                     fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.red)))),
                 const Gap(10),
                 Expanded(child: ClipRRect(
@@ -155,7 +156,7 @@ class ReportsScreen extends ConsumerWidget {
 
           // Top customers
           if (topCusts.isNotEmpty)
-            _Card('Top Customers', child: Builder(builder: (context) {
+            _Card(tr('rep.top_customers', ref), child: Builder(builder: (context) {
               final maxVal = topCusts.first.value;
               return Column(children: topCusts.take(5).map((e) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),

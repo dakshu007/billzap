@@ -1,6 +1,7 @@
 // lib/screens/main/shell_screen.dart
-// Buttery smooth tab switching using IndexedStack (no rebuild stutter)
-// + direct tab jumps + double-press-back to exit
+// ✅ Swipeable tabs (Home ↔ Invoices ↔ Reports ↔ Me)
+// ✅ Single back press shows toast, second back exits within 2s
+// ✅ Tap nav still works
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,11 +24,10 @@ class ShellScreen extends ConsumerStatefulWidget {
   ConsumerState<ShellScreen> createState() => _ShellScreenState();
 }
 
-class _ShellScreenState extends ConsumerState<ShellScreen>
-    with TickerProviderStateMixin {
+class _ShellScreenState extends ConsumerState<ShellScreen> {
+  late final PageController _pc;
   int _idx = 0;
   DateTime? _lastBack;
-  late final AnimationController _fadeCtrl;
 
   static const _pages = <Widget>[
     DashboardScreen(),
@@ -40,34 +40,24 @@ class _ShellScreenState extends ConsumerState<ShellScreen>
   void initState() {
     super.initState();
     _idx = _indexFor(widget.location);
-    _fadeCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 220),
-      value: 1.0,
-    );
+    _pc = PageController(initialPage: _idx);
   }
 
   @override
   void didUpdateWidget(ShellScreen old) {
     super.didUpdateWidget(old);
     final newIdx = _indexFor(widget.location);
-    if (newIdx != _idx) _switchTab(newIdx);
+    if (newIdx != _idx && _pc.hasClients) {
+      _pc.animateToPage(newIdx,
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeOutCubic);
+    }
   }
 
   @override
   void dispose() {
-    _fadeCtrl.dispose();
+    _pc.dispose();
     super.dispose();
-  }
-
-  void _switchTab(int newIdx) {
-    if (newIdx == _idx) return;
-    HapticFeedback.lightImpact();
-    _fadeCtrl.reverse().then((_) {
-      if (!mounted) return;
-      setState(() => _idx = newIdx);
-      _fadeCtrl.forward();
-    });
   }
 
   int _indexFor(String loc) {
@@ -86,17 +76,31 @@ class _ShellScreenState extends ConsumerState<ShellScreen>
     }
   }
 
-  void _tapTab(int i) {
+  void _onPageChanged(int i) {
     if (i == _idx) return;
+    HapticFeedback.selectionClick();
+    setState(() => _idx = i);
+    // Update URL silently without triggering didUpdateWidget animation
     GoRouter.of(context).go(_pathFor(i));
   }
 
+  void _tapTab(int i) {
+    if (i == _idx) return;
+    HapticFeedback.lightImpact();
+    _pc.animateToPage(i,
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic);
+  }
+
   Future<bool> _handleBack() async {
+    // If not on home tab, go to home first
     if (_idx != 0) {
-      _switchTab(0);
-      GoRouter.of(context).go('/home');
+      _pc.animateToPage(0,
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeOutCubic);
       return false;
     }
+    // On home — check double-press
     final now = DateTime.now();
     if (_lastBack == null ||
         now.difference(_lastBack!) > const Duration(seconds: 2)) {
@@ -115,8 +119,8 @@ class _ShellScreenState extends ConsumerState<ShellScreen>
           duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
           backgroundColor: AppColors.t1,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12)),
           margin: const EdgeInsets.fromLTRB(14, 0, 14, 20),
         ));
       }
@@ -135,10 +139,11 @@ class _ShellScreenState extends ConsumerState<ShellScreen>
       },
       child: Scaffold(
         backgroundColor: AppColors.bg,
-        body: FadeTransition(
-          opacity: CurvedAnimation(
-              parent: _fadeCtrl, curve: Curves.easeOutCubic),
-          child: IndexedStack(index: _idx, children: _pages),
+        body: PageView(
+          controller: _pc,
+          physics: const PageScrollPhysics(parent: ClampingScrollPhysics()),
+          onPageChanged: _onPageChanged,
+          children: _pages,
         ),
         bottomNavigationBar: _BmwNav(
           idx: _idx,
@@ -283,6 +288,7 @@ class _NavItem extends StatelessWidget {
             ),
             child: Text(label),
           ),
+          const SizedBox(height: 2),
         ]),
       ),
     );
