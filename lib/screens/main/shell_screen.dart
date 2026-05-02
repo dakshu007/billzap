@@ -1,7 +1,7 @@
 // lib/screens/main/shell_screen.dart
-// ✅ Native (MainActivity.kt) handles back gesture & exit logic
-// ✅ Flutter receives method-channel call to show toast
-// ✅ This is the bulletproof way: Android decides when to exit, not Flutter
+// ✅ Native MainActivity forwards back press to Flutter via MethodChannel
+// ✅ Flutter decides: pop sub-route OR snap to home OR show toast OR exit
+// ✅ Direct tab jump on tap, parallax swipe between pages
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,7 +16,6 @@ import 'invoices_screen.dart';
 import 'reports_screen.dart';
 import 'settings_screen.dart';
 
-// Listens for back gesture from MainActivity.kt
 const _backChannel = MethodChannel('billzap.app/back');
 
 class ShellScreen extends ConsumerStatefulWidget {
@@ -31,6 +30,7 @@ class ShellScreen extends ConsumerStatefulWidget {
 class _ShellScreenState extends ConsumerState<ShellScreen> {
   late final PageController _pc;
   int _idx = 0;
+  DateTime? _lastBackTime;
 
   static const _pages = <Widget>[
     DashboardScreen(),
@@ -45,10 +45,10 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
     _idx = _indexFor(widget.location);
     _pc = PageController(initialPage: _idx);
 
-    // Listen for back gesture from MainActivity.kt
+    // Listen for back press from MainActivity.kt
     _backChannel.setMethodCallHandler((call) async {
-      if (call.method == 'showExitToast') {
-        _onBackFromNative();
+      if (call.method == 'onBackPressed') {
+        _handleBackFromNative();
       }
       return null;
     });
@@ -70,16 +70,43 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
     super.dispose();
   }
 
-  // Called by MainActivity.kt when first back press happens
-  void _onBackFromNative() {
-    // If not on home tab, snap to home (no toast needed)
+  // ════════════════════════════════════════════════════════
+  // SMART BACK HANDLER
+  // Priority order:
+  //   1. If a sub-route is on top (Create Invoice, Preview, etc.) → pop it
+  //   2. If not on Home tab → snap to Home (no toast)
+  //   3. If on Home tab → show "press again" toast / exit on second press
+  // ════════════════════════════════════════════════════════
+  void _handleBackFromNative() {
+    final router = GoRouter.of(context);
+
+    // Priority 1: pop sub-route (Create Invoice, Preview, etc.)
+    if (router.canPop()) {
+      router.pop();
+      _lastBackTime = null; // reset exit timer when navigating back
+      return;
+    }
+
+    // Priority 2: not on home tab → go to home
     if (_idx != 0) {
       _pc.jumpToPage(0);
       setState(() => _idx = 0);
-      GoRouter.of(context).go('/home');
+      router.go('/home');
+      _lastBackTime = null;
       return;
     }
-    // On home — show exit toast
+
+    // Priority 3: on home tab → exit logic
+    final now = DateTime.now();
+    if (_lastBackTime != null &&
+        now.difference(_lastBackTime!) < const Duration(milliseconds: 2000)) {
+      // Second press within 2s → exit app via native
+      _backChannel.invokeMethod('exitApp');
+      return;
+    }
+
+    // First press → show toast
+    _lastBackTime = now;
     HapticFeedback.mediumImpact();
     if (mounted) {
       ScaffoldMessenger.of(context).clearSnackBars();

@@ -10,40 +10,43 @@ class MainActivity: FlutterActivity() {
 
     private val CHANNEL = "billzap.app/back"
     private var methodChannel: MethodChannel? = null
-    private var lastBackTime: Long = 0
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         methodChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
+
+        // Listen for "exit now" requests from Flutter (when user double-taps back at root)
+        methodChannel?.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "exitApp" -> {
+                    finish()
+                    result.success(null)
+                }
+                else -> result.notImplemented()
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Android 13+ predictive back — register native callback that handles toast logic
+        // Android 13+ predictive back
         if (Build.VERSION.SDK_INT >= 33) {
             onBackInvokedDispatcher.registerOnBackInvokedCallback(
                 android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT
             ) {
-                handleBack()
+                forwardToFlutter()
             }
         }
     }
 
     @Suppress("MissingSuperCall", "OVERRIDE_DEPRECATION")
     override fun onBackPressed() {
-        handleBack()
+        forwardToFlutter()
     }
 
-    private fun handleBack() {
-        val now = System.currentTimeMillis()
-        if (now - lastBackTime < 2000) {
-            // Second press within 2 seconds — actually close
-            finish()
-            return
-        }
-        // First press — record time, tell Flutter to show toast
-        lastBackTime = now
-        methodChannel?.invokeMethod("showExitToast", null)
+    // Always forward to Flutter — Flutter decides what to do (pop route, show toast, or exit)
+    private fun forwardToFlutter() {
+        methodChannel?.invokeMethod("onBackPressed", null)
     }
 }
