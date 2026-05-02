@@ -1,12 +1,11 @@
 // lib/screens/main/shell_screen.dart
-// ✅ back_button_interceptor — works on Samsung & all Android versions
-// ✅ Direct tab jump on tap, parallax swipe between pages
-// ✅ Single back press → toast, second within 2s → exit
+// ✅ Native (MainActivity.kt) handles back gesture & exit logic
+// ✅ Flutter receives method-channel call to show toast
+// ✅ This is the bulletproof way: Android decides when to exit, not Flutter
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -16,6 +15,9 @@ import 'dashboard_screen.dart';
 import 'invoices_screen.dart';
 import 'reports_screen.dart';
 import 'settings_screen.dart';
+
+// Listens for back gesture from MainActivity.kt
+const _backChannel = MethodChannel('billzap.app/back');
 
 class ShellScreen extends ConsumerStatefulWidget {
   final Widget? child;
@@ -29,7 +31,6 @@ class ShellScreen extends ConsumerStatefulWidget {
 class _ShellScreenState extends ConsumerState<ShellScreen> {
   late final PageController _pc;
   int _idx = 0;
-  DateTime? _lastBackTime;
 
   static const _pages = <Widget>[
     DashboardScreen(),
@@ -43,7 +44,14 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
     super.initState();
     _idx = _indexFor(widget.location);
     _pc = PageController(initialPage: _idx);
-    BackButtonInterceptor.add(_intercept, name: 'shell_back');
+
+    // Listen for back gesture from MainActivity.kt
+    _backChannel.setMethodCallHandler((call) async {
+      if (call.method == 'showExitToast') {
+        _onBackFromNative();
+      }
+      return null;
+    });
   }
 
   @override
@@ -58,41 +66,20 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
 
   @override
   void dispose() {
-    BackButtonInterceptor.removeByName('shell_back');
     _pc.dispose();
     super.dispose();
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // Returns true = consumed (block exit). false = let Android handle.
-  // back_button_interceptor catches back BEFORE Android can close.
-  // ═══════════════════════════════════════════════════════════════
-  bool _intercept(bool stopDefaultButtonEvent, RouteInfo info) {
-    // Only intercept when shell is currently visible (not behind a pushed route)
-    final route = ModalRoute.of(context);
-    if (route != null && !route.isCurrent) {
-      return false; // a sub-route is on top — let it handle back
-    }
-
-    // If not on home tab, snap to home
+  // Called by MainActivity.kt when first back press happens
+  void _onBackFromNative() {
+    // If not on home tab, snap to home (no toast needed)
     if (_idx != 0) {
       _pc.jumpToPage(0);
       setState(() => _idx = 0);
       GoRouter.of(context).go('/home');
-      _lastBackTime = null;
-      return true;
+      return;
     }
-
-    // On home — second press within 2s exits
-    final now = DateTime.now();
-    if (_lastBackTime != null &&
-        now.difference(_lastBackTime!) < const Duration(milliseconds: 2000)) {
-      SystemNavigator.pop();
-      return true;
-    }
-
-    // First press → record, show toast
-    _lastBackTime = now;
+    // On home — show exit toast
     HapticFeedback.mediumImpact();
     if (mounted) {
       ScaffoldMessenger.of(context).clearSnackBars();
@@ -112,7 +99,6 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
         margin: const EdgeInsets.fromLTRB(14, 0, 14, 20),
       ));
     }
-    return true;
   }
 
   int _indexFor(String loc) {
