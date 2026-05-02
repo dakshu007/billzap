@@ -4,6 +4,7 @@
 // ✅ Products quick action added
 // ✅ Live business name from provider
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -157,6 +158,47 @@ class DashboardScreen extends ConsumerWidget {
             ],
           ),
           const Gap(16),
+
+          // ✨ Voice Bill — featured banner
+          GestureDetector(
+            onTap: () { HapticFeedback.mediumImpact(); context.push('/voice'); },
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFE53E3E), Color(0xFFFF6B6B)],
+                  begin: Alignment.topLeft, end: Alignment.bottomRight),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [BoxShadow(
+                  color: const Color(0xFFE53E3E).withOpacity(0.35),
+                  blurRadius: 14, offset: const Offset(0, 6))],
+              ),
+              child: Row(children: [
+                Container(
+                  width: 46, height: 46,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.22),
+                    borderRadius: BorderRadius.circular(12)),
+                  child: const Icon(Symbols.mic, color: Colors.white, size: 26),
+                ),
+                const Gap(14),
+                Expanded(child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Voice Bill',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 16, fontWeight: FontWeight.w900,
+                        color: Colors.white)),
+                    Text('Speak to create invoices in your language',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5, color: Colors.white.withOpacity(0.85))),
+                  ]),
+                ),
+                const Icon(Symbols.arrow_forward, color: Colors.white, size: 20),
+              ]),
+            ),
+          ),
 
           // Quick actions row 1
           Row(children: [
