@@ -1,4 +1,6 @@
 // lib/screens/main/customers_screen.dart
+// ✅ Explicit back arrow leading icon — goes back to /home
+// ✅ Fully translated
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,8 +23,20 @@ class CustomersScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
-        iconTheme: const IconThemeData(color: AppColors.t1),
-                backgroundColor: AppColors.card,
+        backgroundColor: AppColors.card,
+        // ═════════════════════════════════════════════════
+        // EXPLICIT BACK BUTTON → goes to home
+        // ═════════════════════════════════════════════════
+        leading: IconButton(
+          icon: const Icon(Symbols.arrow_back, color: AppColors.t1, size: 24),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/home');
+            }
+          },
+        ),
         title: Text(tr('cust.title', ref), style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
@@ -38,7 +52,7 @@ class CustomersScreen extends ConsumerWidget {
             Text(tr('cust.no_customers', ref), style: GoogleFonts.plusJakartaSans(
               fontSize: 16, fontWeight: FontWeight.w800)),
             const Gap(6),
-            Text(tr('cust.no_customers', ref), style: GoogleFonts.plusJakartaSans(
+            Text(tr('cust.tap_add', ref), style: GoogleFonts.plusJakartaSans(
               fontSize: 13, color: AppColors.t3)),
             const Gap(16),
             ElevatedButton.icon(
@@ -65,21 +79,25 @@ class CustomersScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(11)),
                     child: Center(child: Text(c.name[0].toUpperCase(),
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 17, fontWeight: FontWeight.w900, color: AppColors.brand)))),
+                        fontSize: 17, fontWeight: FontWeight.w900,
+                        color: AppColors.brand)))),
                   const Gap(12),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(c.name, style: GoogleFonts.plusJakartaSans(
                       fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.t1)),
                     if (c.phone.isNotEmpty)
-                      Text(c.phone, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t3)),
+                      Text(c.phone, style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12, color: AppColors.t3)),
                     if (c.gstin.isNotEmpty)
-                      Text('GSTIN: ${c.gstin}', style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.t4)),
+                      Text('GSTIN: ${c.gstin}', style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5, color: AppColors.t4)),
                   ])),
                   Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                     Text(formatCurrency(tot), style: GoogleFonts.plusJakartaSans(
                       fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.t1)),
-                    Text('${ci.length} inv', style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10.5, color: AppColors.t3)),
+                    Text('${ci.length} ${tr('cust.inv_short', ref)}',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5, color: AppColors.t3)),
                     const Gap(4),
                     GestureDetector(
                       onTap: () => _confirmDelete(ctx, ref, c),
@@ -95,19 +113,19 @@ class CustomersScreen extends ConsumerWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(tr('common.delete', ref)),
-        content: Text('${c.name} will be removed.'),
+        title: Text(trGlobal('common.delete')),
+        content: Text('${c.name}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(tr('common.cancel', ref))),
+            child: Text(trGlobal('common.cancel'))),
           TextButton(
             onPressed: () {
               Navigator.of(ctx).pop();
               ref.read(customerProvider.notifier).delete(c.id);
             },
-            child: Text(tr('common.delete', ref),
-              style: TextStyle(color: AppColors.red))),
+            child: Text(trGlobal('common.delete'),
+              style: const TextStyle(color: AppColors.red))),
         ],
       ),
     );
@@ -168,7 +186,7 @@ class CustomersScreen extends ConsumerWidget {
                       style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
                     const Gap(10),
                     Expanded(child: TextField(controller: addr,
-                      decoration: InputDecoration(labelText: 'City',
+                      decoration: InputDecoration(labelText: trGlobal('set.city'),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10))),
                       style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),

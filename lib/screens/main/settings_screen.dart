@@ -1,5 +1,7 @@
 // lib/screens/main/settings_screen.dart
+// Fully translated + Language picker tile in About panel
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
@@ -7,6 +9,8 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
+import '../../i18n/translations.dart';
+import '../../widgets/language_picker.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -23,20 +27,20 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: AppColors.card,
-        title: Text('Settings', style: GoogleFonts.plusJakartaSans(
+        title: Text(tr('set.title', ref), style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1))),
       body: Column(children: [
         Container(
           color: AppColors.card,
           padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
           child: Row(children: [
-            _TabBtn('Business', 0, _tab, (i) => setState(() => _tab = i)),
+            _TabBtn(tr('set.business', ref), 0, _tab, (i) => setState(() => _tab = i)),
             const Gap(8),
-            _TabBtn('Bank & UPI', 1, _tab, (i) => setState(() => _tab = i)),
+            _TabBtn(tr('set.bank', ref), 1, _tab, (i) => setState(() => _tab = i)),
             const Gap(8),
-            _TabBtn('Invoice', 2, _tab, (i) => setState(() => _tab = i)),
+            _TabBtn(tr('set.invoice', ref), 2, _tab, (i) => setState(() => _tab = i)),
             const Gap(8),
-            _TabBtn('About', 3, _tab, (i) => setState(() => _tab = i)),
+            _TabBtn(tr('set.about', ref), 3, _tab, (i) => setState(() => _tab = i)),
           ])),
         Expanded(
           child: IndexedStack(index: _tab, children: const [
@@ -128,7 +132,7 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
               width: 20, height: 20,
               child: CircularProgressIndicator(
                 color: Colors.white, strokeWidth: 2))
-          : Text('Save Business Profile',
+          : Text(tr('set.save_business', ref),
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 14, fontWeight: FontWeight.w700))));
 
@@ -137,24 +141,24 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _Sec('Business Profile'),
-          _F('Business Name *', _name, hint: 'e.g. Ravi Electronics'),
-          _F('GSTIN', _gstin, hint: '33RAAAA1234B1Z5', caps: true),
+          _Sec(tr('set.business_profile', ref)),
+          _F(tr('set.business_name', ref) + ' *', _name, hint: 'e.g. Ravi Electronics'),
+          _F(tr('cust.gstin', ref), _gstin, hint: '33RAAAA1234B1Z5', caps: true),
           Row(children: [
-            Expanded(child: _F('Phone', _phone,
+            Expanded(child: _F(tr('cust.phone', ref), _phone,
               hint: '+91 98765 43210', type: TextInputType.phone)),
             const Gap(10),
-            Expanded(child: _F('Email', _email,
+            Expanded(child: _F(tr('cust.email', ref), _email,
               hint: 'you@email.com', type: TextInputType.emailAddress)),
           ]),
-          _F('Address', _addr, hint: 'Street, Area'),
+          _F(tr('cust.address', ref), _addr, hint: 'Street, Area'),
           Row(children: [
-            Expanded(child: _F('City', _city, hint: 'Coimbatore')),
+            Expanded(child: _F(tr('set.city', ref), _city, hint: 'Coimbatore')),
             const Gap(10),
-            Expanded(child: _F('Pincode', _pin,
+            Expanded(child: _F(tr('set.pincode', ref), _pin,
               hint: '641001', type: TextInputType.number, max: 6)),
           ]),
-          _Label('State'),
+          _Label(tr('set.state', ref)),
           DropdownButtonFormField<String>(
             value: currentState,
             decoration: InputDecoration(
@@ -176,8 +180,8 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
 
   Future<void> _save() async {
     if (_name.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Business name is required'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(trGlobal('cust.required')),
         backgroundColor: AppColors.red));
       return;
     }
@@ -191,8 +195,9 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
         pincode: _pin.text.trim());
       await ref.read(businessProvider.notifier).save(b);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Saved ✓'), backgroundColor: AppColors.green));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(trGlobal('common.saved')),
+        backgroundColor: AppColors.green));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -234,13 +239,13 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(14),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _Sec('Bank Details'),
-        _F('Bank Name', _bank, hint: 'State Bank of India'),
-        _F('Account Number', _acc, hint: '1234567890', type: TextInputType.number),
-        _F('IFSC Code', _ifsc, hint: 'SBIN0001234', caps: true),
+        _Sec(tr('set.bank_details', ref)),
+        _F(tr('set.bank_name', ref), _bank, hint: 'State Bank of India'),
+        _F(tr('set.account_number', ref), _acc, hint: '1234567890', type: TextInputType.number),
+        _F(tr('set.ifsc', ref), _ifsc, hint: 'SBIN0001234', caps: true),
         const Gap(8),
         _Sec('UPI'),
-        _F('UPI ID', _upi, hint: 'business@upi'),
+        _F(tr('set.upi_id', ref), _upi, hint: 'business@upi'),
         const Gap(20),
         SizedBox(
           width: double.infinity,
@@ -251,7 +256,7 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
             child: _saving
               ? const SizedBox(width: 20, height: 20,
                   child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-              : Text('Save Bank Details',
+              : Text(tr('set.save_bank', ref),
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14, fontWeight: FontWeight.w700)))),
       ]));
@@ -265,8 +270,9 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
         ifscCode: _ifsc.text.trim().toUpperCase(), upiId: _upi.text.trim());
       await ref.read(businessProvider.notifier).save(b);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Saved ✓'), backgroundColor: AppColors.green));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(trGlobal('common.saved')),
+        backgroundColor: AppColors.green));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -306,9 +312,9 @@ class _InvoicePanelState extends ConsumerState<_InvoicePanel> {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(14),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _Sec('Invoice Settings'),
-        _F('Invoice Prefix', _prefix, hint: 'INV-'),
-        _Label('Default Terms'),
+        _Sec(tr('set.invoice_settings', ref)),
+        _F(tr('set.invoice_prefix', ref), _prefix, hint: 'INV-'),
+        _Label(tr('set.default_terms', ref)),
         TextField(
           controller: _terms, maxLines: 4,
           decoration: InputDecoration(
@@ -332,7 +338,7 @@ class _InvoicePanelState extends ConsumerState<_InvoicePanel> {
             child: _saving
               ? const SizedBox(width: 20, height: 20,
                   child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-              : Text('Save Settings',
+              : Text(tr('set.save_settings', ref),
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14, fontWeight: FontWeight.w700)))),
       ]));
@@ -346,8 +352,9 @@ class _InvoicePanelState extends ConsumerState<_InvoicePanel> {
         defaultTerms: _terms.text.trim());
       await ref.read(businessProvider.notifier).save(b);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Saved ✓'), backgroundColor: AppColors.green));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(trGlobal('common.saved')),
+        backgroundColor: AppColors.green));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -358,14 +365,85 @@ class _InvoicePanelState extends ConsumerState<_InvoicePanel> {
   }
 }
 
-class _AboutPanel extends StatelessWidget {
+// ─── About panel — has the LANGUAGE TILE at the top! ───
+class _AboutPanel extends ConsumerWidget {
   const _AboutPanel();
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lang = currentLanguage(ref.watch(languageProvider));
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(14),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _Sec('About BillZap'),
+
+        // ═════════════════════════════════════════════════
+        // LANGUAGE TILE — TAP TO CHANGE APP LANGUAGE
+        // ═════════════════════════════════════════════════
+        Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border)),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () {
+                HapticFeedback.lightImpact();
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => const LanguagePickerScreen()));
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                child: Row(children: [
+                  Container(
+                    width: 42, height: 42,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.brand, Color(0xFF4070FF)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight),
+                      borderRadius: BorderRadius.circular(11)),
+                    child: const Icon(Symbols.translate,
+                      color: Colors.white, size: 22)),
+                  const Gap(12),
+                  Expanded(child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(tr('set.language', ref),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.t1)),
+                      const Gap(2),
+                      Text('${lang.name} • ${lang.englishName}',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          color: AppColors.t3)),
+                    ])),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: AppColors.brandSoft,
+                      borderRadius: BorderRadius.circular(20)),
+                    child: Text(tr('set.change', ref),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.brand))),
+                  const Gap(4),
+                  const Icon(Symbols.chevron_right,
+                    color: AppColors.t3, size: 22),
+                ]),
+              ),
+            ),
+          ),
+        ),
+
+        // ─── About BillZap card ───
+        _Sec(tr('set.about_billzap', ref)),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -377,16 +455,16 @@ class _AboutPanel extends StatelessWidget {
             const Gap(8),
             Text('BillZap', style: GoogleFonts.plusJakartaSans(
               fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.t1)),
-            Text('Free GST Billing for India',
+            Text(tr('splash.tagline', ref),
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 13, color: AppColors.t3)),
             const Gap(16),
             const Divider(),
             const Gap(12),
-            _InfoRow(Symbols.check_circle, 'Version', '1.3.0', AppColors.green),
-            _InfoRow(Symbols.wifi_off, '100% Offline', 'No internet needed', AppColors.brand),
-            _InfoRow(Symbols.lock, 'Privacy', 'Data stays on device', AppColors.purple),
-            _InfoRow(Symbols.currency_rupee, 'Price', 'Always free', AppColors.green),
+            _InfoRow(Symbols.check_circle, tr('set.version', ref), '1.3.0', AppColors.green),
+            _InfoRow(Symbols.wifi_off, tr('set.offline', ref), tr('set.no_internet', ref), AppColors.brand),
+            _InfoRow(Symbols.lock, tr('set.privacy', ref), tr('set.data_on_device', ref), AppColors.purple),
+            _InfoRow(Symbols.currency_rupee, tr('set.price', ref), tr('set.always_free', ref), AppColors.green),
             const Gap(16),
             Text('© 2026 BillZap Technologies',
               style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t4)),

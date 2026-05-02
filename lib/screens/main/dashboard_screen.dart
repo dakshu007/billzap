@@ -1,6 +1,8 @@
 // lib/screens/main/dashboard_screen.dart
-// ✅ Greeting fixed (real time check)
-// ✅ Business name updates live from provider
+// ✅ Fully translated
+// ✅ Catalog quick action added
+// ✅ Products quick action added
+// ✅ Live business name from provider
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,13 +18,12 @@ import '../../i18n/translations.dart';
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
-  // ✅ FIX: Real greeting based on current hour
-  String _greeting() {
+  String _greetingKey() {
     final h = DateTime.now().hour;
-    if (h >= 5 && h < 12)  return 'Good morning';
-    if (h >= 12 && h < 17) return 'Good afternoon';
-    if (h >= 17 && h < 21) return 'Good evening';
-    return 'Good night';
+    if (h >= 5 && h < 12)  return 'dash.greeting_morning';
+    if (h >= 12 && h < 17) return 'dash.greeting_afternoon';
+    if (h >= 17 && h < 21) return 'dash.greeting_evening';
+    return 'dash.greeting_night';
   }
 
   String _greetingEmoji() {
@@ -35,13 +36,12 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // ✅ FIX: Watch businessProvider so it updates when name changes in settings
-    final biz      = ref.watch(businessProvider);
-    final invoices = ref.watch(invoiceProvider);
-    final customers= ref.watch(customerProvider);
-    final now      = DateTime.now();
-    final greet    = _greeting();
-    final emoji    = _greetingEmoji();
+    final biz       = ref.watch(businessProvider);
+    final invoices  = ref.watch(invoiceProvider);
+    final customers = ref.watch(customerProvider);
+    final now       = DateTime.now();
+    final greet     = tr(_greetingKey(), ref);
+    final emoji     = _greetingEmoji();
 
     final thisMo = invoices.where((i) =>
       i.invoiceDate.month == now.month && i.invoiceDate.year == now.year).toList();
@@ -55,7 +55,6 @@ class DashboardScreen extends ConsumerWidget {
       .where((i) => i.status == InvoiceStatus.paid)
       .fold<double>(0, (s, i) => s + i.totalTax);
 
-    // ✅ FIX: Show business name from provider, updates immediately after settings save
     final bizName = biz?.name.isNotEmpty == true ? biz!.name : null;
 
     return Scaffold(
@@ -64,9 +63,10 @@ class DashboardScreen extends ConsumerWidget {
         automaticallyImplyLeading: false,
         backgroundColor: AppColors.card,
         title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Dashboard', style: GoogleFonts.plusJakartaSans(
+          Text(tr('nav.home', ref), style: GoogleFonts.plusJakartaSans(
             fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
-          Text('$greet $emoji', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t3)),
+          Text('$greet $emoji', style: GoogleFonts.plusJakartaSans(
+            fontSize: 12, color: AppColors.t3)),
         ]),
         actions: [
           GestureDetector(
@@ -75,11 +75,13 @@ class DashboardScreen extends ConsumerWidget {
               margin: const EdgeInsets.only(right: 14),
               width: 36, height: 36,
               decoration: BoxDecoration(
-                color: AppColors.brand, borderRadius: BorderRadius.circular(10)),
+                color: AppColors.brand,
+                borderRadius: BorderRadius.circular(10)),
               child: Center(child: Text(
-                // ✅ FIX: Show first letter of business name, updates live
                 (bizName?.isNotEmpty == true ? bizName![0] : 'B').toUpperCase(),
-                style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white))),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 15, fontWeight: FontWeight.w900,
+                  color: Colors.white))),
             ),
           ),
         ],
@@ -87,7 +89,7 @@ class DashboardScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 100),
         children: [
-          // Hero banner — shows business name live
+          // Hero banner
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -101,20 +103,22 @@ class DashboardScreen extends ConsumerWidget {
                 Text('$greet $emoji', style: GoogleFonts.plusJakartaSans(
                   color: Colors.white, fontSize: 17, fontWeight: FontWeight.w800)),
                 const Gap(3),
-                // ✅ Shows business name immediately after update
-                Text(bizName ?? 'Set up your business profile',
-                  style: GoogleFonts.plusJakartaSans(color: Colors.white60, fontSize: 12)),
+                Text(bizName ?? tr('dash.setup_profile', ref),
+                  style: GoogleFonts.plusJakartaSans(
+                    color: Colors.white60, fontSize: 12)),
                 if (biz?.gstin.isNotEmpty == true) ...[
                   const Gap(2),
                   Text('GSTIN: ${biz!.gstin}',
-                    style: GoogleFonts.plusJakartaSans(color: Colors.white38, fontSize: 10.5)),
+                    style: GoogleFonts.plusJakartaSans(
+                      color: Colors.white38, fontSize: 10.5)),
                 ],
               ])),
               Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                 Text(formatCurrency(revenue), style: GoogleFonts.plusJakartaSans(
                   color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
-                Text('Total revenue', style: GoogleFonts.plusJakartaSans(
-                  color: Colors.white54, fontSize: 10)),
+                Text(tr('dash.total_revenue', ref),
+                  style: GoogleFonts.plusJakartaSans(
+                    color: Colors.white54, fontSize: 10)),
               ]),
             ]),
           ),
@@ -126,42 +130,76 @@ class DashboardScreen extends ConsumerWidget {
             physics: const NeverScrollableScrollPhysics(),
             crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 1.55,
             children: [
-              _StatCard('Revenue', formatCurrency(revenue), Symbols.trending_up,
-                AppColors.brand, AppColors.brandSoft, '${thisMo.length} this month'),
-              _StatCard('Pending', formatCurrency(pendAmt), Symbols.schedule,
+              _StatCard(
+                tr('dash.revenue', ref),
+                formatCurrency(revenue),
+                Symbols.trending_up,
+                AppColors.brand, AppColors.brandSoft,
+                '${thisMo.length} ${tr('dash.this_month_label', ref)}'),
+              _StatCard(
+                tr('dash.pending', ref),
+                formatCurrency(pendAmt),
+                Symbols.schedule,
                 AppColors.yellow, AppColors.yellowSoft,
-                '${invoices.where((i) => i.status == InvoiceStatus.sent || i.status == InvoiceStatus.pending).length} invoices'),
-              _StatCard('GST Collected', formatCurrency(gstCollected), Symbols.calculate,
-                AppColors.green, AppColors.greenSoft, 'Auto-calculated'),
-              _StatCard('Customers', '${customers.length}', Symbols.group,
+                '${invoices.where((i) => i.status == InvoiceStatus.sent || i.status == InvoiceStatus.pending).length} ${tr('inv.title', ref).toLowerCase()}'),
+              _StatCard(
+                tr('dash.gst_collected', ref),
+                formatCurrency(gstCollected),
+                Symbols.calculate,
+                AppColors.green, AppColors.greenSoft,
+                tr('dash.auto_calc', ref)),
+              _StatCard(
+                tr('cust.title', ref),
+                '${customers.length}',
+                Symbols.group,
                 AppColors.purple, AppColors.purpleSoft,
-                '${invoices.where((i) => i.isOverdue).length} overdue'),
+                '${invoices.where((i) => i.isOverdue).length} ${tr('inv.overdue', ref).toLowerCase()}'),
             ],
           ),
           const Gap(16),
 
-          // Quick actions
+          // Quick actions row 1
           Row(children: [
-            _QuickBtn(Symbols.receipt_long, 'New Invoice', AppColors.brand, AppColors.brandSoft,
+            _QuickBtn(Symbols.receipt_long, tr('dash.new_invoice', ref),
+              AppColors.brand, AppColors.brandSoft,
               () => context.push('/create')),
             const Gap(8),
-            _QuickBtn(Symbols.group, 'Customers', AppColors.green, AppColors.greenSoft,
-              () => context.go('/customers')),
+            _QuickBtn(Symbols.group, tr('cust.title', ref),
+              AppColors.green, AppColors.greenSoft,
+              () => context.push('/customers')),
             const Gap(8),
-            _QuickBtn(Symbols.bar_chart, 'Reports', AppColors.purple, AppColors.purpleSoft,
+            _QuickBtn(Symbols.bar_chart, tr('rep.title', ref),
+              AppColors.purple, AppColors.purpleSoft,
               () => context.go('/reports')),
+          ]),
+          const Gap(8),
+          // Quick actions row 2 — products & catalog
+          Row(children: [
+            _QuickBtn(Symbols.shopping_basket, tr('prod.title', ref),
+              AppColors.brand, AppColors.brandSoft,
+              () => context.push('/products')),
+            const Gap(8),
+            _QuickBtn(Symbols.inventory_2, tr('cat.title', ref),
+              AppColors.purple, AppColors.purpleSoft,
+              () => context.push('/catalog')),
+            const Gap(8),
+            _QuickBtn(Symbols.payments, tr('exp.title', ref),
+              AppColors.yellow, AppColors.yellowSoft,
+              () => context.push('/expenses')),
           ]),
           const Gap(20),
 
-          // Recent invoices
+          // Recent invoices header
           Row(children: [
             Text(tr('dash.recent_invoices', ref), style: GoogleFonts.plusJakartaSans(
               fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1)),
             const Spacer(),
             TextButton(
               onPressed: () => context.go('/invoices'),
-              child: Text('View all', style: GoogleFonts.plusJakartaSans(
-                fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.brand))),
+              child: Text(tr('dash.see_all', ref),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5, fontWeight: FontWeight.w600,
+                  color: AppColors.brand))),
           ]),
           const Gap(6),
 
@@ -188,17 +226,22 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(13),
     decoration: BoxDecoration(color: AppColors.card,
-      borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.border)),
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: AppColors.border)),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Container(width: 32, height: 32,
         decoration: BoxDecoration(color: soft, borderRadius: BorderRadius.circular(8)),
         child: Icon(icon, size: 17, color: color)),
       const Gap(6),
-      Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.t3, fontWeight: FontWeight.w600)),
+      Text(label, style: GoogleFonts.plusJakartaSans(
+        fontSize: 10.5, color: AppColors.t3, fontWeight: FontWeight.w600)),
       const Gap(1),
-      Text(value, style: GoogleFonts.plusJakartaSans(fontSize: 17, fontWeight: FontWeight.w900, color: AppColors.t1),
+      Text(value, style: GoogleFonts.plusJakartaSans(
+        fontSize: 17, fontWeight: FontWeight.w900, color: AppColors.t1),
         maxLines: 1, overflow: TextOverflow.ellipsis),
-      Text(sub, style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.t3)),
+      Text(sub, style: GoogleFonts.plusJakartaSans(
+        fontSize: 10, color: AppColors.t3),
+        maxLines: 1, overflow: TextOverflow.ellipsis),
     ]),
   );
 }
@@ -224,21 +267,34 @@ class _QuickBtn extends StatelessWidget {
         child: Column(children: [
           Icon(icon, size: 24, color: color),
           const Gap(5),
-          Text(label, style: GoogleFonts.plusJakartaSans(
-            fontSize: 11, fontWeight: FontWeight.w700, color: color)),
+          Text(label,
+            maxLines: 1, overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11, fontWeight: FontWeight.w700, color: color)),
         ]),
       ),
     ),
   );
 }
 
-class _InvoiceRow extends StatelessWidget {
+class _InvoiceRow extends ConsumerWidget {
   final Invoice inv;
   final VoidCallback onTap;
   const _InvoiceRow({required this.inv, required this.onTap});
 
+  String _statusLabel(WidgetRef ref) {
+    if (inv.isOverdue) return tr('inv.overdue', ref).toUpperCase();
+    switch (inv.status) {
+      case InvoiceStatus.paid:    return tr('inv.paid', ref).toUpperCase();
+      case InvoiceStatus.sent:    return tr('inv.sent', ref).toUpperCase();
+      case InvoiceStatus.pending: return tr('inv.pending', ref).toUpperCase();
+      case InvoiceStatus.draft:   return tr('inv.draft', ref).toUpperCase();
+      case InvoiceStatus.cancelled: return tr('inv.cancelled', ref).toUpperCase();
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = inv.status == InvoiceStatus.paid ? AppColors.green
         : inv.isOverdue ? AppColors.red : AppColors.yellow;
     return GestureDetector(
@@ -247,13 +303,17 @@ class _InvoiceRow extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(color: AppColors.card,
-          borderRadius: BorderRadius.circular(13), border: Border.all(color: AppColors.border)),
+          borderRadius: BorderRadius.circular(13),
+          border: Border.all(color: AppColors.border)),
         child: Row(children: [
           Container(width: 38, height: 38,
-            decoration: BoxDecoration(color: AppColors.brandSoft, borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(color: AppColors.brandSoft,
+              borderRadius: BorderRadius.circular(10)),
             child: Center(child: Text(
               inv.customerName.isNotEmpty ? inv.customerName[0].toUpperCase() : '?',
-              style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w900, color: AppColors.brand)))),
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 15, fontWeight: FontWeight.w900,
+                color: AppColors.brand)))),
           const Gap(11),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(inv.customerName, style: GoogleFonts.plusJakartaSans(
@@ -269,8 +329,9 @@ class _InvoiceRow extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
               decoration: BoxDecoration(color: c.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(99)),
-              child: Text(inv.isOverdue ? 'OVERDUE' : inv.status.name.toUpperCase(),
-                style: GoogleFonts.plusJakartaSans(fontSize: 9.5, fontWeight: FontWeight.w800, color: c))),
+              child: Text(_statusLabel(ref),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 9.5, fontWeight: FontWeight.w800, color: c))),
           ]),
         ]),
       ),
@@ -278,28 +339,29 @@ class _InvoiceRow extends StatelessWidget {
   }
 }
 
-class _EmptyInvoice extends StatelessWidget {
+class _EmptyInvoice extends ConsumerWidget {
   final VoidCallback onTap;
   const _EmptyInvoice({required this.onTap});
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context, WidgetRef ref) => Container(
     padding: const EdgeInsets.all(24),
     decoration: BoxDecoration(color: AppColors.card,
-      borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.border)),
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: AppColors.border)),
     child: Column(children: [
       const Icon(Symbols.receipt_long, size: 44, color: AppColors.t4),
       const Gap(10),
-      Text(trGlobal('dash.no_invoices'), style: GoogleFonts.plusJakartaSans(
+      Text(tr('dash.no_invoices', ref), style: GoogleFonts.plusJakartaSans(
         fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1)),
       const Gap(4),
-      Text('Create your first GST invoice', style: GoogleFonts.plusJakartaSans(
+      Text(tr('dash.create_first', ref), style: GoogleFonts.plusJakartaSans(
         fontSize: 13, color: AppColors.t3)),
       const Gap(16),
       ElevatedButton.icon(
         onPressed: onTap,
         icon: const Icon(Symbols.add, size: 18),
-        label: const Text('Create Invoice')),
+        label: Text(tr('dash.new_invoice', ref))),
     ]),
   );
 }
