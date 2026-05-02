@@ -1,12 +1,12 @@
 // lib/screens/main/shell_screen.dart
-// ✅ Bulletproof double-back to exit (works on Samsung + all Android versions)
-// ✅ Uses both WillPopScope AND NavigatorObserver for redundancy
-// ✅ Direct tab jump on tap
-// ✅ Premium parallax swipe between pages
+// ✅ back_button_interceptor — works on Samsung & all Android versions
+// ✅ Direct tab jump on tap, parallax swipe between pages
+// ✅ Single back press → toast, second within 2s → exit
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -26,13 +26,10 @@ class ShellScreen extends ConsumerStatefulWidget {
   ConsumerState<ShellScreen> createState() => _ShellScreenState();
 }
 
-class _ShellScreenState extends ConsumerState<ShellScreen>
-    with WidgetsBindingObserver {
+class _ShellScreenState extends ConsumerState<ShellScreen> {
   late final PageController _pc;
   int _idx = 0;
-  int _backCount = 0;
   DateTime? _lastBackTime;
-  bool _waitingForExit = false;
 
   static const _pages = <Widget>[
     DashboardScreen(),
@@ -44,9 +41,9 @@ class _ShellScreenState extends ConsumerState<ShellScreen>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     _idx = _indexFor(widget.location);
     _pc = PageController(initialPage: _idx);
+    BackButtonInterceptor.add(_intercept, name: 'shell_back');
   }
 
   @override
@@ -61,15 +58,61 @@ class _ShellScreenState extends ConsumerState<ShellScreen>
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
+    BackButtonInterceptor.removeByName('shell_back');
     _pc.dispose();
     super.dispose();
   }
 
-  // Layer 1: WidgetsBindingObserver catches system back even before PopScope
-  @override
-  Future<bool> didPopRoute() async {
-    return _handleBack();
+  // ═══════════════════════════════════════════════════════════════
+  // Returns true = consumed (block exit). false = let Android handle.
+  // back_button_interceptor catches back BEFORE Android can close.
+  // ═══════════════════════════════════════════════════════════════
+  bool _intercept(bool stopDefaultButtonEvent, RouteInfo info) {
+    // Only intercept when shell is currently visible (not behind a pushed route)
+    final route = ModalRoute.of(context);
+    if (route != null && !route.isCurrent) {
+      return false; // a sub-route is on top — let it handle back
+    }
+
+    // If not on home tab, snap to home
+    if (_idx != 0) {
+      _pc.jumpToPage(0);
+      setState(() => _idx = 0);
+      GoRouter.of(context).go('/home');
+      _lastBackTime = null;
+      return true;
+    }
+
+    // On home — second press within 2s exits
+    final now = DateTime.now();
+    if (_lastBackTime != null &&
+        now.difference(_lastBackTime!) < const Duration(milliseconds: 2000)) {
+      SystemNavigator.pop();
+      return true;
+    }
+
+    // First press → record, show toast
+    _lastBackTime = now;
+    HapticFeedback.mediumImpact();
+    if (mounted) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Row(children: [
+          const Icon(Symbols.exit_to_app, color: Colors.white, size: 18),
+          const SizedBox(width: 10),
+          Text(trGlobal('toast.exit_again'),
+              style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w600, fontSize: 13)),
+        ]),
+        duration: const Duration(milliseconds: 1900),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.t1,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.fromLTRB(14, 0, 14, 20),
+      ));
+    }
+    return true;
   }
 
   int _indexFor(String loc) {
@@ -103,119 +146,51 @@ class _ShellScreenState extends ConsumerState<ShellScreen>
     GoRouter.of(context).go(_pathFor(i));
   }
 
-  // Returns true if back was consumed (don't pop), false to allow pop
-  bool _handleBack() {
-    // If not on home tab, snap to home
-    if (_idx != 0) {
-      _pc.jumpToPage(0);
-      setState(() => _idx = 0);
-      GoRouter.of(context).go('/home');
-      _backCount = 0;
-      _lastBackTime = null;
-      _waitingForExit = false;
-      return true; // consumed
-    }
-
-    final now = DateTime.now();
-
-    // If we're waiting for second press AND it's within window → exit
-    if (_waitingForExit &&
-        _lastBackTime != null &&
-        now.difference(_lastBackTime!) < const Duration(milliseconds: 2000)) {
-      // Allow exit
-      SystemNavigator.pop();
-      return true; // consumed (we handled it via SystemNavigator.pop)
-    }
-
-    // First press → start waiting, show toast
-    _waitingForExit = true;
-    _lastBackTime = now;
-    _backCount = 1;
-
-    HapticFeedback.mediumImpact();
-    if (mounted) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Row(children: [
-          const Icon(Symbols.exit_to_app, color: Colors.white, size: 18),
-          const SizedBox(width: 10),
-          Text(trGlobal('toast.exit_again'),
-              style: GoogleFonts.plusJakartaSans(
-                  fontWeight: FontWeight.w600, fontSize: 13)),
-        ]),
-        duration: const Duration(milliseconds: 1900),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.t1,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.fromLTRB(14, 0, 14, 20),
-      ));
-    }
-
-    // Reset waiting flag after window expires
-    Future.delayed(const Duration(milliseconds: 2100), () {
-      if (mounted) {
-        _waitingForExit = false;
-        _backCount = 0;
-      }
-    });
-
-    return true; // consumed — block default back
-  }
-
   @override
   Widget build(BuildContext context) {
-    // Layer 2: PopScope with new API (Flutter 3.41+)
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) {
-        if (didPop) return;
-        _handleBack();
-      },
-      child: Scaffold(
-        backgroundColor: AppColors.bg,
-        body: PageView.builder(
-          controller: _pc,
-          physics: const _CoolPhysics(),
-          itemCount: _pages.length,
-          onPageChanged: _onPageChanged,
-          itemBuilder: (ctx, i) {
-            return AnimatedBuilder(
-              animation: _pc,
-              child: _pages[i],
-              builder: (ctx, child) {
-                double offset = 0;
-                if (_pc.position.haveDimensions) {
-                  offset = (_pc.page ?? _idx.toDouble()) - i;
-                }
-                final clamped = offset.clamp(-1.0, 1.0);
-                final scale = 1.0 - (clamped.abs() * 0.06);
-                final opacity = 1.0 - (clamped.abs() * 0.25);
-                return Transform.translate(
-                  offset: Offset(clamped * 30, 0),
-                  child: Transform.scale(
-                    scale: scale,
-                    child: Opacity(
-                      opacity: opacity.clamp(0.0, 1.0),
-                      child: child,
-                    ),
+    return Scaffold(
+      backgroundColor: AppColors.bg,
+      body: PageView.builder(
+        controller: _pc,
+        physics: const _CoolPhysics(),
+        itemCount: _pages.length,
+        onPageChanged: _onPageChanged,
+        itemBuilder: (ctx, i) {
+          return AnimatedBuilder(
+            animation: _pc,
+            child: _pages[i],
+            builder: (ctx, child) {
+              double offset = 0;
+              if (_pc.position.haveDimensions) {
+                offset = (_pc.page ?? _idx.toDouble()) - i;
+              }
+              final clamped = offset.clamp(-1.0, 1.0);
+              final scale = 1.0 - (clamped.abs() * 0.06);
+              final opacity = 1.0 - (clamped.abs() * 0.25);
+              return Transform.translate(
+                offset: Offset(clamped * 30, 0),
+                child: Transform.scale(
+                  scale: scale,
+                  child: Opacity(
+                    opacity: opacity.clamp(0.0, 1.0),
+                    child: child,
                   ),
-                );
-              },
-            );
-          },
-        ),
-        bottomNavigationBar: _BmwNav(
-          idx: _idx,
-          onHome: () => _tapTab(0),
-          onInvoices: () => _tapTab(1),
-          onCreate: () {
-            HapticFeedback.mediumImpact();
-            context.push('/create');
-          },
-          onReports: () => _tapTab(2),
-          onMe: () => _tapTab(3),
-        ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+      bottomNavigationBar: _BmwNav(
+        idx: _idx,
+        onHome: () => _tapTab(0),
+        onInvoices: () => _tapTab(1),
+        onCreate: () {
+          HapticFeedback.mediumImpact();
+          context.push('/create');
+        },
+        onReports: () => _tapTab(2),
+        onMe: () => _tapTab(3),
       ),
     );
   }
