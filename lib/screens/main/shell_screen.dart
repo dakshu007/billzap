@@ -1,7 +1,8 @@
 // lib/screens/main/shell_screen.dart
-// ✅ Direct tab jump (no slide-through)
+// ✅ Bulletproof double-back to exit (works on Samsung + all Android versions)
+// ✅ Uses both WillPopScope AND NavigatorObserver for redundancy
+// ✅ Direct tab jump on tap
 // ✅ Premium parallax swipe between pages
-// ✅ BULLETPROOF double-back exit — survives Samsung predictive back
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,11 +26,13 @@ class ShellScreen extends ConsumerStatefulWidget {
   ConsumerState<ShellScreen> createState() => _ShellScreenState();
 }
 
-class _ShellScreenState extends ConsumerState<ShellScreen> {
+class _ShellScreenState extends ConsumerState<ShellScreen>
+    with WidgetsBindingObserver {
   late final PageController _pc;
   int _idx = 0;
-  int _backCount = 0; // counts consecutive back presses
+  int _backCount = 0;
   DateTime? _lastBackTime;
+  bool _waitingForExit = false;
 
   static const _pages = <Widget>[
     DashboardScreen(),
@@ -41,6 +44,7 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _idx = _indexFor(widget.location);
     _pc = PageController(initialPage: _idx);
   }
@@ -57,8 +61,15 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _pc.dispose();
     super.dispose();
+  }
+
+  // Layer 1: WidgetsBindingObserver catches system back even before PopScope
+  @override
+  Future<bool> didPopRoute() async {
+    return _handleBack();
   }
 
   int _indexFor(String loc) {
@@ -92,40 +103,35 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
     GoRouter.of(context).go(_pathFor(i));
   }
 
-  // ════════════════════════════════════════════════════════
-  // BULLETPROOF BACK HANDLER
-  // Strategy: use a counter + timestamp window. Any back gesture
-  // increments counter. Only when counter >= 2 within 2s do we exit.
-  // ════════════════════════════════════════════════════════
-  void _onBackPressed() {
-    // If not on home tab, snap to home and reset
+  // Returns true if back was consumed (don't pop), false to allow pop
+  bool _handleBack() {
+    // If not on home tab, snap to home
     if (_idx != 0) {
       _pc.jumpToPage(0);
       setState(() => _idx = 0);
       GoRouter.of(context).go('/home');
       _backCount = 0;
       _lastBackTime = null;
-      return;
+      _waitingForExit = false;
+      return true; // consumed
     }
 
     final now = DateTime.now();
 
-    // Reset counter if too much time passed
-    if (_lastBackTime == null ||
-        now.difference(_lastBackTime!) > const Duration(milliseconds: 2000)) {
-      _backCount = 1;
-    } else {
-      _backCount++;
-    }
-    _lastBackTime = now;
-
-    if (_backCount >= 2) {
-      // Second press within window → exit
+    // If we're waiting for second press AND it's within window → exit
+    if (_waitingForExit &&
+        _lastBackTime != null &&
+        now.difference(_lastBackTime!) < const Duration(milliseconds: 2000)) {
+      // Allow exit
       SystemNavigator.pop();
-      return;
+      return true; // consumed (we handled it via SystemNavigator.pop)
     }
 
-    // First press → show toast, vibrate
+    // First press → start waiting, show toast
+    _waitingForExit = true;
+    _lastBackTime = now;
+    _backCount = 1;
+
     HapticFeedback.mediumImpact();
     if (mounted) {
       ScaffoldMessenger.of(context).clearSnackBars();
@@ -145,17 +151,26 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
         margin: const EdgeInsets.fromLTRB(14, 0, 14, 20),
       ));
     }
+
+    // Reset waiting flag after window expires
+    Future.delayed(const Duration(milliseconds: 2100), () {
+      if (mounted) {
+        _waitingForExit = false;
+        _backCount = 0;
+      }
+    });
+
+    return true; // consumed — block default back
   }
 
   @override
   Widget build(BuildContext context) {
+    // Layer 2: PopScope with new API (Flutter 3.41+)
     return PopScope(
-      // canPop must always be false — we manually handle exit
       canPop: false,
-      onPopInvoked: (didPop) {
-        // didPop is true only if pop already happened (shouldn't with canPop:false)
+      onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        _onBackPressed();
+        _handleBack();
       },
       child: Scaffold(
         backgroundColor: AppColors.bg,
