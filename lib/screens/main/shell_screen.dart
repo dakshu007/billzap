@@ -168,7 +168,7 @@ class _ShellScreenState extends ConsumerState<ShellScreen>
     // Layer 2: PopScope with new API (Flutter 3.41+)
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
+      onPopInvoked: (didPop) {
         if (didPop) return;
         _handleBack();
       },
