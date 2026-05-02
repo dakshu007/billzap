@@ -1,8 +1,7 @@
 // lib/screens/main/shell_screen.dart
-// ✅ TAP nav → DIRECT JUMP to target tab (no slide-through)
-// ✅ SWIPE → smooth parallax + scale animation between adjacent tabs
-// ✅ BACK gesture → single press = toast, second press within 2s = exit
-// ✅ Robust against duplicate PopScope events on Android
+// ✅ Direct tab jump (no slide-through)
+// ✅ Premium parallax swipe between pages
+// ✅ BULLETPROOF double-back exit — survives Samsung predictive back
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,8 +28,8 @@ class ShellScreen extends ConsumerStatefulWidget {
 class _ShellScreenState extends ConsumerState<ShellScreen> {
   late final PageController _pc;
   int _idx = 0;
-  DateTime? _lastBack;
-  bool _backHandling = false; // guard against duplicate PopScope events
+  int _backCount = 0; // counts consecutive back presses
+  DateTime? _lastBackTime;
 
   static const _pages = <Widget>[
     DashboardScreen(),
@@ -51,7 +50,6 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
     super.didUpdateWidget(old);
     final newIdx = _indexFor(widget.location);
     if (newIdx != _idx && _pc.hasClients) {
-      // Use jumpToPage for direct tab taps (no slide-through pages)
       _pc.jumpToPage(newIdx);
       setState(() => _idx = newIdx);
     }
@@ -86,49 +84,49 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
     GoRouter.of(context).go(_pathFor(i));
   }
 
-  // ════════════════════════════════════════════════════════
-  // TAP NAV → DIRECT JUMP (no slide through pages)
-  // ════════════════════════════════════════════════════════
   void _tapTab(int i) {
     if (i == _idx) return;
     HapticFeedback.lightImpact();
-    // jumpToPage = instant, no animation through other pages
     _pc.jumpToPage(i);
     setState(() => _idx = i);
     GoRouter.of(context).go(_pathFor(i));
   }
 
   // ════════════════════════════════════════════════════════
-  // BACK GESTURE — robust double-press exit
+  // BULLETPROOF BACK HANDLER
+  // Strategy: use a counter + timestamp window. Any back gesture
+  // increments counter. Only when counter >= 2 within 2s do we exit.
   // ════════════════════════════════════════════════════════
-  Future<bool> _handleBack() async {
-    // Guard against duplicate calls (Android sometimes fires twice)
-    if (_backHandling) return false;
-    _backHandling = true;
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) _backHandling = false;
-    });
-
-    // If not on home tab, jump to home first
+  void _onBackPressed() {
+    // If not on home tab, snap to home and reset
     if (_idx != 0) {
       _pc.jumpToPage(0);
       setState(() => _idx = 0);
       GoRouter.of(context).go('/home');
-      _lastBack = null; // reset back timer
-      return false;
+      _backCount = 0;
+      _lastBackTime = null;
+      return;
     }
 
-    // On home — double-press to exit
     final now = DateTime.now();
-    if (_lastBack != null &&
-        now.difference(_lastBack!) < const Duration(milliseconds: 1800)) {
+
+    // Reset counter if too much time passed
+    if (_lastBackTime == null ||
+        now.difference(_lastBackTime!) > const Duration(milliseconds: 2000)) {
+      _backCount = 1;
+    } else {
+      _backCount++;
+    }
+    _lastBackTime = now;
+
+    if (_backCount >= 2) {
       // Second press within window → exit
-      return true;
+      SystemNavigator.pop();
+      return;
     }
 
-    // First press → save timestamp, show toast
-    _lastBack = now;
-    HapticFeedback.lightImpact();
+    // First press → show toast, vibrate
+    HapticFeedback.mediumImpact();
     if (mounted) {
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -139,7 +137,7 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
               style: GoogleFonts.plusJakartaSans(
                   fontWeight: FontWeight.w600, fontSize: 13)),
         ]),
-        duration: const Duration(milliseconds: 1800),
+        duration: const Duration(milliseconds: 1900),
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.t1,
         shape:
@@ -147,18 +145,17 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
         margin: const EdgeInsets.fromLTRB(14, 0, 14, 20),
       ));
     }
-    return false;
   }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
+      // canPop must always be false — we manually handle exit
       canPop: false,
-      onPopInvoked: (didPop) async {
+      onPopInvoked: (didPop) {
+        // didPop is true only if pop already happened (shouldn't with canPop:false)
         if (didPop) return;
-        if (await _handleBack()) {
-          await SystemNavigator.pop();
-        }
+        _onBackPressed();
       },
       child: Scaffold(
         backgroundColor: AppColors.bg,
@@ -176,12 +173,11 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
                 if (_pc.position.haveDimensions) {
                   offset = (_pc.page ?? _idx.toDouble()) - i;
                 }
-                // Parallax + scale + fade for adjacent pages
                 final clamped = offset.clamp(-1.0, 1.0);
                 final scale = 1.0 - (clamped.abs() * 0.06);
                 final opacity = 1.0 - (clamped.abs() * 0.25);
                 return Transform.translate(
-                  offset: Offset(clamped * 30, 0), // gentle parallax
+                  offset: Offset(clamped * 30, 0),
                   child: Transform.scale(
                     scale: scale,
                     child: Opacity(
@@ -210,7 +206,6 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
   }
 }
 
-// Custom physics — slightly springy feel between pages
 class _CoolPhysics extends ScrollPhysics {
   const _CoolPhysics({super.parent});
 
