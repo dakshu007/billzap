@@ -13,10 +13,14 @@ import 'package:printing/printing.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:barcode/barcode.dart' as bc;
 import 'dart:io';
 import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
+import '../../utils/upi_helper.dart';
+import '../../i18n/translations.dart';
 
 class InvoicePreviewScreen extends ConsumerStatefulWidget {
   const InvoicePreviewScreen({super.key});
@@ -43,7 +47,6 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     final c = isPaid ? AppColors.green
         : invoice.isOverdue ? AppColors.red : AppColors.yellow;
 
-    // ✅ PopScope: back → /invoices (not /home, since we came from invoices)
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) {
@@ -92,7 +95,14 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
             _buildDoc(invoice, biz),
             const Gap(12),
 
-            // ✅ Material Symbols action tiles
+            // ═══════════════════════════════════════════════
+            // ✨ NEW: UPI Payment QR card (only shown if not paid)
+            // ═══════════════════════════════════════════════
+            if (!isPaid) ...[
+              _UpiPaymentCard(invoice: invoice, biz: biz),
+              const Gap(12),
+            ],
+
             _ActionTile(
               icon: Symbols.picture_as_pdf, iconColor: AppColors.brand,
               title: 'Download & Share PDF', sub: 'Professional GST invoice PDF',
@@ -253,9 +263,8 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     decoration: const BoxDecoration(color: Colors.white,
       border: Border(top: BorderSide(color: AppColors.border))),
     child: Row(children: [
-      // ✅ WhatsApp button with Material Symbol icon
       Expanded(flex: 2, child: ElevatedButton.icon(
-        onPressed: () => _sendWhatsApp(invoice),
+        onPressed: () => _sendWhatsApp(invoice, biz),
         icon: const Icon(Symbols.chat, size: 18),
         label: Text('WhatsApp', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 14)),
         style: ElevatedButton.styleFrom(
@@ -295,7 +304,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           _OptTile(Symbols.print, 'Print Invoice', AppColors.t2,
             () { Navigator.pop(context); _printInvoice(invoice, biz); }),
           _OptTile(Symbols.chat, 'Send WhatsApp', const Color(0xFF25D366),
-            () { Navigator.pop(context); _sendWhatsApp(invoice); }),
+            () { Navigator.pop(context); _sendWhatsApp(invoice, biz); }),
           if (!isPaid)
             _OptTile(Symbols.check_circle, 'Mark as Paid', AppColors.green,
               () { Navigator.pop(context); _markPaid(invoice); })
@@ -307,12 +316,17 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
         ])));
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // PDF GENERATOR — now embeds UPI QR if business has UPI ID
+  // ═══════════════════════════════════════════════════════════
   static Future<pw.Document> buildPdf(Invoice invoice, Business? biz) async {
     final doc = pw.Document();
     final cgst = invoice.totalCgst;
     final sgst = invoice.totalSgst;
     final igst = invoice.totalIgst;
     final gr   = invoice.gstRateForDisplay;
+    final isPaid = invoice.status == InvoiceStatus.paid;
+
     String rs(double amount) {
       final abs = amount.abs();
       final parts = abs.toStringAsFixed(2).split('.');
@@ -324,10 +338,24 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
         for (var i = rest.length; i > 0; i -= 2) {
           groups.insert(0, rest.substring(i < 2 ? 0 : i - 2, i));
         }
-        integer = '${groups.join(',')},${last3}';
+        integer = '${groups.join(',')},$last3';
       }
       return '${amount < 0 ? '-' : ''}Rs.$integer.${parts[1]}';
     }
+
+    // Build UPI link if business has UPI ID and invoice not paid
+    final upiLink = (biz != null &&
+                     biz.upiId.isNotEmpty &&
+                     UpiHelper.isValidVpa(biz.upiId) &&
+                     !isPaid &&
+                     invoice.grandTotal > 0)
+        ? UpiHelper.buildLink(
+            vpa: biz.upiId,
+            name: biz.name,
+            amount: invoice.grandTotal,
+            note: invoice.invoiceNumber)
+        : null;
+
     doc.addPage(pw.Page(
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.all(32),
@@ -414,8 +442,60 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
               pw.Text(rs(invoice.grandTotal), style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 16)),
             ])),
         ])),
+
+        // ═══════════════════════════════════════════════
+        // ✨ NEW: UPI QR section in PDF
+        // ═══════════════════════════════════════════════
+        if (upiLink != null) ...[
+          pw.SizedBox(height: 18),
+          pw.Container(
+            padding: const pw.EdgeInsets.all(12),
+            decoration: pw.BoxDecoration(
+              color: const PdfColor.fromInt(0xFFF0F5FF),
+              borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+              border: pw.Border.all(color: const PdfColor.fromInt(0xFF1557FF), width: 0.6),
+            ),
+            child: pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.center, children: [
+              // QR code (left)
+              pw.Container(
+                width: 90, height: 90,
+                color: PdfColors.white,
+                padding: const pw.EdgeInsets.all(4),
+                child: pw.BarcodeWidget(
+                  barcode: bc.Barcode.qrCode(),
+                  data: upiLink,
+                  drawText: false,
+                ),
+              ),
+              pw.SizedBox(width: 14),
+              // Text (right)
+              pw.Expanded(child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text('SCAN TO PAY VIA UPI',
+                    style: pw.TextStyle(fontSize: 10,
+                      fontWeight: pw.FontWeight.bold,
+                      color: const PdfColor.fromInt(0xFF1557FF),
+                      letterSpacing: 0.6)),
+                  pw.SizedBox(height: 4),
+                  pw.Text(rs(invoice.grandTotal),
+                    style: pw.TextStyle(fontSize: 18,
+                      fontWeight: pw.FontWeight.bold,
+                      color: const PdfColor.fromInt(0xFF1557FF))),
+                  pw.SizedBox(height: 4),
+                  pw.Text('Pays exact amount with reference: ${invoice.invoiceNumber}',
+                    style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+                  pw.SizedBox(height: 2),
+                  pw.Text('Works with PhonePe, Google Pay, Paytm, BHIM & all UPI apps',
+                    style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+                ],
+              )),
+            ]),
+          ),
+        ],
+
         if (biz != null && (biz.bankName.isNotEmpty || biz.upiId.isNotEmpty)) ...[
-          pw.SizedBox(height: 16), pw.Divider(), pw.SizedBox(height: 8),
+          pw.SizedBox(height: 12), pw.Divider(), pw.SizedBox(height: 8),
           pw.Text('PAYMENT DETAILS', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.grey600)),
           pw.SizedBox(height: 4),
           if (biz.bankName.isNotEmpty)
@@ -521,18 +601,37 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     }
   }
 
-  // ✅ WhatsApp fix: try wa.me with phone, fallback to wa.me without phone
-  Future<void> _sendWhatsApp(Invoice invoice) async {
+  // ═══════════════════════════════════════════════════════════
+  // WhatsApp message — now includes UPI link if available
+  // ═══════════════════════════════════════════════════════════
+  Future<void> _sendWhatsApp(Invoice invoice, Business? biz) async {
+    final isPaid = invoice.status == InvoiceStatus.paid;
+
+    // Build UPI link for payment
+    String upiLine = '';
+    if (!isPaid &&
+        biz != null &&
+        biz.upiId.isNotEmpty &&
+        UpiHelper.isValidVpa(biz.upiId) &&
+        invoice.grandTotal > 0) {
+      final link = UpiHelper.buildLink(
+        vpa: biz.upiId,
+        name: biz.name,
+        amount: invoice.grandTotal,
+        note: invoice.invoiceNumber);
+      upiLine = '\n\n💳 *Pay instantly via UPI:*\n$link';
+    }
+
     final msg = Uri.encodeComponent(
       'Hi ${invoice.customerName},\n\n'
       'Your invoice *${invoice.invoiceNumber}* '
       'for *${formatCurrency(invoice.grandTotal)}* is ready.\n\n'
-      'Due: ${DateFormat('dd MMM yyyy').format(invoice.dueDate)}\n\n'
+      'Due: ${DateFormat('dd MMM yyyy').format(invoice.dueDate)}'
+      '$upiLine\n\n'
       'Thank you! 🙏\n\n— Sent via BillZap ⚡');
 
     final phone = invoice.customerPhone.replaceAll(RegExp(r'[^0-9]'), '');
-    
-    // Try with phone number first
+
     Uri url;
     if (phone.isNotEmpty) {
       final fullPhone = phone.startsWith('91') ? phone : '91$phone';
@@ -545,7 +644,6 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
       if (await canLaunchUrl(url)) {
         await launchUrl(url, mode: LaunchMode.externalApplication);
       } else {
-        // Fallback: open WhatsApp directly
         final fallback = Uri.parse('whatsapp://send?text=$msg');
         if (await canLaunchUrl(fallback)) {
           await launchUrl(fallback, mode: LaunchMode.externalApplication);
@@ -560,6 +658,249 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.red));
     }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ✨ NEW: UPI Payment Card widget
+// ═══════════════════════════════════════════════════════════════
+class _UpiPaymentCard extends ConsumerWidget {
+  final Invoice invoice;
+  final Business? biz;
+  const _UpiPaymentCard({required this.invoice, this.biz});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Edge case: business has no UPI ID configured yet
+    if (biz == null || biz!.upiId.isEmpty) {
+      return _NoUpiSetupCard();
+    }
+
+    // Edge case: invalid UPI format
+    if (!UpiHelper.isValidVpa(biz!.upiId)) {
+      return _InvalidUpiCard(vpa: biz!.upiId);
+    }
+
+    // Edge case: zero amount
+    if (invoice.grandTotal <= 0) {
+      return const SizedBox.shrink();
+    }
+
+    final upiLink = UpiHelper.buildLink(
+      vpa: biz!.upiId,
+      name: biz!.name,
+      amount: invoice.grandTotal,
+      note: invoice.invoiceNumber,
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppColors.brandSoft, Colors.white],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.brand.withOpacity(0.25)),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: AppColors.brand,
+              borderRadius: BorderRadius.circular(8)),
+            child: const Icon(Symbols.qr_code_2, color: Colors.white, size: 18),
+          ),
+          const Gap(10),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Pay via UPI',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.t1)),
+            Text('Instant payment • All UPI apps',
+              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.t3)),
+          ])),
+        ]),
+        const Gap(14),
+        // QR + amount block
+        Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+          // QR code with white background and rounded border
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: QrImageView(
+              data: upiLink,
+              version: QrVersions.auto,
+              size: 110,
+              backgroundColor: Colors.white,
+              eyeStyle: const QrEyeStyle(
+                eyeShape: QrEyeShape.square,
+                color: AppColors.t1),
+              dataModuleStyle: const QrDataModuleStyle(
+                dataModuleShape: QrDataModuleShape.square,
+                color: AppColors.t1),
+            ),
+          ),
+          const Gap(14),
+          // Right side - amount + actions
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Amount due',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.t3,
+                letterSpacing: 0.5)),
+            const Gap(2),
+            Text(formatCurrency(invoice.grandTotal),
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.brand)),
+            const Gap(2),
+            Text('Ref: ${invoice.invoiceNumber}',
+              style: GoogleFonts.plusJakartaSans(fontSize: 10.5, color: AppColors.t3)),
+            const Gap(10),
+            SizedBox(width: double.infinity, child: ElevatedButton.icon(
+              onPressed: () => _payNow(context, upiLink),
+              icon: const Icon(Symbols.bolt, size: 16),
+              label: Text('Pay now',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5, fontWeight: FontWeight.w800)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.brand,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 9),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(9)),
+              ),
+            )),
+          ])),
+        ]),
+        const Gap(10),
+        // Footer with copy link option
+        InkWell(
+          onTap: () {
+            Clipboard.setData(ClipboardData(text: upiLink));
+            HapticFeedback.lightImpact();
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: const Text('UPI link copied'),
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+              backgroundColor: AppColors.t1,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              margin: const EdgeInsets.fromLTRB(14, 0, 14, 20),
+            ));
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Icon(Symbols.content_copy, size: 13, color: AppColors.t3),
+              const Gap(6),
+              Text('Copy UPI link',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.t3)),
+            ]),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Future<void> _payNow(BuildContext context, String upiLink) async {
+    HapticFeedback.mediumImpact();
+    try {
+      final uri = Uri.parse(upiLink);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('No UPI app installed'),
+            backgroundColor: AppColors.red));
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.red));
+      }
+    }
+  }
+}
+
+// Shown when no UPI ID configured
+class _NoUpiSetupCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.yellowSoft,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.yellow.withOpacity(0.3)),
+      ),
+      child: Row(children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.yellow.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(8)),
+          child: const Icon(Symbols.qr_code_2, color: AppColors.orange, size: 18),
+        ),
+        const Gap(12),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Enable UPI payments',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.t1)),
+          Text('Add your UPI ID in Settings to let customers pay instantly via QR.',
+            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.t3)),
+        ])),
+        const Gap(8),
+        ElevatedButton(
+          onPressed: () => GoRouter.of(context).go('/settings'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.orange,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            minimumSize: const Size(0, 0),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+          child: Text('Setup',
+            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700)),
+        ),
+      ]),
+    );
+  }
+}
+
+// Shown when UPI ID is malformed
+class _InvalidUpiCard extends StatelessWidget {
+  final String vpa;
+  const _InvalidUpiCard({required this.vpa});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.redSoft,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.red.withOpacity(0.3)),
+      ),
+      child: Row(children: [
+        const Icon(Symbols.error, color: AppColors.red, size: 22),
+        const Gap(10),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Invalid UPI ID format',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.t1)),
+          Text('"$vpa" is not a valid UPI. Should look like name@bank',
+            style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.t3)),
+        ])),
+      ]),
+    );
   }
 }
 
@@ -713,7 +1054,6 @@ Widget _TotRow(String label, double amount, {bool neg = false}) => Padding(
         color: neg ? AppColors.green : AppColors.t1)),
   ]));
 
-// ✅ Action tile with Material Symbol icon
 class _ActionTile extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
@@ -753,7 +1093,6 @@ class _ActionTile extends StatelessWidget {
       ])));
 }
 
-// ✅ Options tile with Material Symbol icon
 class _OptTile extends StatelessWidget {
   final IconData icon;
   final String label;
