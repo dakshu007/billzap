@@ -25,6 +25,7 @@ dependencies:
   uuid: ^4.3.3
   material_symbols_icons: ^4.2719.2
   qr_flutter: ^4.1.0
+  speech_to_text: ^6.6.2
   barcode: ^2.2.4
 
 flutter_launcher_icons: ^0.13.1

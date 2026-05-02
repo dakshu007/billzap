@@ -13,6 +13,7 @@ import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../services/gst_classifier.dart';
+import '../../utils/voice_parser.dart';
 import '../../i18n/translations.dart';
 import '../main/catalog_screen.dart';
 
@@ -50,6 +51,12 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
   @override
   void initState() {
     super.initState();
+    // Prefill from voice if present
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final extra = GoRouterState.of(context).extra;
+      if (extra is ParsedInvoice) _applyVoiceData(extra);
+    });
+
     _custName.addListener(_onNameChanged);
   }
 
@@ -59,6 +66,27 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
     _custName.dispose(); _custPhone.dispose();
     _custGstin.dispose(); _custAddr.dispose(); _notes.dispose();
     super.dispose();
+  }
+
+
+  void _applyVoiceData(ParsedInvoice voice) {
+    if (voice.customerName != null && voice.customerName!.isNotEmpty) {
+      _custName.text = voice.customerName!;
+    }
+    if (voice.items.isNotEmpty) {
+      setState(() {
+        _lines.clear();
+        for (final pi in voice.items) {
+          final detectedGst = GstClassifier.classify(pi.name);
+          _lines.add(_LineItem(
+            name: pi.name,
+            qty: pi.qty,
+            rate: pi.price,
+            gstRate: detectedGst >= 0 ? detectedGst.toDouble() : 18.0,
+          ));
+        }
+      });
+    }
   }
 
   void _onNameChanged() {
