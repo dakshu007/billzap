@@ -85,7 +85,13 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
         },
         onStatus: (status) {
           if (status == 'done' || status == 'notListening') {
-            if (mounted) setState(() => _listening = false);
+            if (mounted) {
+              setState(() => _listening = false);
+              // Auto-process the transcript when speech ends naturally
+              if (_transcript.trim().isNotEmpty && _parsed == null) {
+                _processTranscript();
+              }
+            }
           }
         },
       );
@@ -360,7 +366,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                   ),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Row(children: [
-                      const Icon(Symbols.format_quote, size: 16, color: AppColors.t3),
+                      const Icon(Symbols.hearing, size: 16, color: AppColors.t3),
                       const Gap(6),
                       Text('I heard:',
                         style: GoogleFonts.plusJakartaSans(
