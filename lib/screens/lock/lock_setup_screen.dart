@@ -1,20 +1,19 @@
 // lib/screens/lock/lock_setup_screen.dart
 // Multi-step setup flow for enabling app lock:
-//  Step 1: Warning + create backup
-//  Step 2: Optional share backup (WhatsApp/Email/Skip)
-//  Step 3: Set 4-digit PIN
-//  Step 4: Confirm PIN
+//  Step 0: Warning
+//  Step 1: Set 4-digit PIN
+//  Step 2: Confirm PIN
+//  Step 3: Create backup (using that PIN)
+//  Step 4: Optional share backup
 //  Step 5: Optional fingerprint enrollment
 //  Step 6: Done
 
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
 import '../../services/app_lock_service.dart';
 import '../../utils/backup_service.dart';
@@ -29,7 +28,6 @@ class _LockSetupState extends State<LockSetupScreen> {
   int _step = 0;
   String? _backupFilePath;
   String _pin = '';
-  String _confirmPin = '';
   bool _busy = false;
   bool _biometricAvailable = false;
 
@@ -44,27 +42,45 @@ class _LockSetupState extends State<LockSetupScreen> {
     if (mounted) setState(() => _biometricAvailable = ok);
   }
 
-  // ─────────── Step 1: Create backup ───────────
+  // ─────────── Step 3: Create backup with PIN ───────────
   Future<void> _createBackup() async {
     setState(() => _busy = true);
     try {
-      final result = await BackupService.createBackup();
+      final result = await BackupService.createBackup(pin: _pin);
       if (!mounted) return;
       if (result.success && result.filePath != null) {
         setState(() {
           _backupFilePath = result.filePath;
-          _step = 1;
+          _step = 4;
           _busy = false;
         });
       } else {
+        // Backup failed but lock is critical. Continue without backup.
+        // The user can still set up lock — just no recovery file.
         setState(() => _busy = false);
-        _showError(result.error ?? 'Backup failed. Cannot enable lock.');
+        _showWarning('Backup failed: ${result.error ?? "Unknown"}. '
+          'Continuing — but you won\'t be able to recover if you forget your PIN.');
+        // Still proceed to next step
+        await Future.delayed(const Duration(seconds: 2));
+        if (!mounted) return;
+        if (_biometricAvailable) {
+          setState(() => _step = 5);
+        } else {
+          await _enableLockNoBio();
+        }
       }
     } catch (e) {
       if (!mounted) return;
       setState(() => _busy = false);
-      _showError('Backup failed: $e');
+      _showWarning('Backup error: $e');
     }
+  }
+
+  void _showWarning(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg),
+      backgroundColor: AppColors.orange,
+      duration: const Duration(seconds: 4)));
   }
 
   void _showError(String msg) {
@@ -73,7 +89,7 @@ class _LockSetupState extends State<LockSetupScreen> {
       backgroundColor: AppColors.red));
   }
 
-  // ─────────── Step 2: Share backup ───────────
+  // ─────────── Step 4: Share backup ───────────
   Future<void> _shareBackup() async {
     if (_backupFilePath == null) return;
     try {
@@ -88,23 +104,19 @@ class _LockSetupState extends State<LockSetupScreen> {
     final ok = await AppLockService.instance.authenticateBiometric();
     if (!mounted) return;
     if (ok) {
-      // Enable lock with PIN + biometric
       await AppLockService.instance.enableLock(pin: _pin, useBiometric: true);
       if (!mounted) return;
-      setState(() => _step = 5); // Done step
+      setState(() => _step = 6);
     } else {
       _showError('Fingerprint not enrolled. PIN-only lock will be set up.');
-      await AppLockService.instance.enableLock(pin: _pin, useBiometric: false);
-      if (!mounted) return;
-      setState(() => _step = 5);
+      await _enableLockNoBio();
     }
   }
 
-  // ─────────── Skip biometric ───────────
-  Future<void> _skipBiometric() async {
+  Future<void> _enableLockNoBio() async {
     await AppLockService.instance.enableLock(pin: _pin, useBiometric: false);
     if (!mounted) return;
-    setState(() => _step = 5);
+    setState(() => _step = 6);
   }
 
   @override
@@ -131,51 +143,54 @@ class _LockSetupState extends State<LockSetupScreen> {
     switch (_step) {
       case 0: return _StepWarning(
         key: const ValueKey(0),
-        busy: _busy,
-        onContinue: _createBackup,
+        onContinue: () => setState(() => _step = 1),
       );
-      case 1: return _StepBackupShare(
+      case 1: return _StepPin(
         key: const ValueKey(1),
-        backupPath: _backupFilePath ?? '',
-        onShare: _shareBackup,
-        onContinue: () => setState(() => _step = 2),
-      );
-      case 2: return _StepPin(
-        key: const ValueKey(2),
         title: 'Set 4-digit PIN',
         subtitle: 'Choose a PIN you\'ll remember',
         onComplete: (pin) {
           setState(() {
             _pin = pin;
-            _step = 3;
+            _step = 2;
           });
         },
       );
-      case 3: return _StepPin(
-        key: const ValueKey(3),
+      case 2: return _StepPin(
+        key: const ValueKey(2),
         title: 'Confirm PIN',
         subtitle: 'Re-enter your PIN to confirm',
         onComplete: (pin) {
           if (pin == _pin) {
-            // Move to biometric step (or skip if not available)
-            if (_biometricAvailable) {
-              setState(() => _step = 4);
-            } else {
-              _skipBiometric();
-            }
+            // Now create backup using that PIN
+            setState(() => _step = 3);
+            _createBackup();
           } else {
             _showError('PINs don\'t match. Please try again.');
-            setState(() => _step = 2);
+            setState(() => _step = 1);
           }
         },
       );
-      case 4: return _StepBiometric(
+      case 3: return _StepCreatingBackup(key: const ValueKey(3));
+      case 4: return _StepBackupShare(
         key: const ValueKey(4),
-        onEnroll: _enrollBiometric,
-        onSkip: _skipBiometric,
+        backupPath: _backupFilePath ?? '',
+        onShare: _shareBackup,
+        onContinue: () {
+          if (_biometricAvailable) {
+            setState(() => _step = 5);
+          } else {
+            _enableLockNoBio();
+          }
+        },
       );
-      case 5: return _StepDone(
+      case 5: return _StepBiometric(
         key: const ValueKey(5),
+        onEnroll: _enrollBiometric,
+        onSkip: _enableLockNoBio,
+      );
+      case 6: return _StepDone(
+        key: const ValueKey(6),
         onClose: () => Navigator.of(context).pop(true),
       );
       default: return const SizedBox.shrink();
@@ -184,12 +199,11 @@ class _LockSetupState extends State<LockSetupScreen> {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// STEP 0: Warning + backup
+// STEP 0: Warning
 // ═══════════════════════════════════════════════════════════════
 class _StepWarning extends StatelessWidget {
-  final bool busy;
   final VoidCallback onContinue;
-  const _StepWarning({super.key, required this.busy, required this.onContinue});
+  const _StepWarning({super.key, required this.onContinue});
 
   @override
   Widget build(BuildContext context) {
@@ -197,23 +211,23 @@ class _StepWarning extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         const Gap(16),
-        Container(
+        Center(child: Container(
           width: 76, height: 76,
           decoration: BoxDecoration(
             color: AppColors.yellowSoft,
             borderRadius: BorderRadius.circular(20)),
           child: const Icon(Symbols.warning, color: AppColors.orange, size: 40),
-        ).animate(),
+        )),
         const Gap(20),
-        Text('Before we set your PIN',
+        Text('Set up App Lock',
           textAlign: TextAlign.center,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.t1)),
         const Gap(10),
         Text(
-          'BillZap will create a backup of your data first. '
-          'You\'ll need this backup if you ever forget your PIN — '
-          'it\'s the only way to recover.',
+          'Your PIN will be used both to unlock the app AND to encrypt '
+          'a backup of your data. Keep your PIN safe — and we\'ll show you '
+          'how to back it up next.',
           textAlign: TextAlign.center,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 13.5, color: AppColors.t2, height: 1.55)),
@@ -236,8 +250,7 @@ class _StepWarning extends StatelessWidget {
               const Gap(3),
               Text(
                 'If you forget your PIN AND lose your backup file, your data '
-                'cannot be recovered. Please make sure to save the backup '
-                'somewhere safe (we\'ll prompt you next).',
+                'cannot be recovered.',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12, color: AppColors.t1, height: 1.5)),
             ])),
@@ -245,7 +258,7 @@ class _StepWarning extends StatelessWidget {
         ),
         const Spacer(),
         ElevatedButton(
-          onPressed: busy ? null : onContinue,
+          onPressed: onContinue,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.brand,
             foregroundColor: Colors.white,
@@ -253,17 +266,9 @@ class _StepWarning extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(13)),
             elevation: 0),
-          child: busy
-            ? const SizedBox(width: 20, height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2, color: Colors.white))
-            : Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                const Icon(Symbols.shield, size: 18),
-                const Gap(8),
-                Text('Create backup & continue',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14.5, fontWeight: FontWeight.w800)),
-              ]),
+          child: Text('I understand, continue',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14.5, fontWeight: FontWeight.w800)),
         ),
       ]),
     );
@@ -271,7 +276,38 @@ class _StepWarning extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// STEP 1: Share backup (recommended)
+// STEP 3: Creating backup (loading screen)
+// ═══════════════════════════════════════════════════════════════
+class _StepCreatingBackup extends StatelessWidget {
+  const _StepCreatingBackup({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+      Container(
+        width: 76, height: 76,
+        decoration: BoxDecoration(
+          color: AppColors.brandSoft,
+          borderRadius: BorderRadius.circular(20)),
+        child: const Center(child: SizedBox(
+          width: 32, height: 32,
+          child: CircularProgressIndicator(
+            strokeWidth: 3, color: AppColors.brand))),
+      ),
+      const Gap(20),
+      Text('Creating encrypted backup...',
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1)),
+      const Gap(6),
+      Text('This will take a moment',
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 12, color: AppColors.t3)),
+    ]));
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STEP 4: Share backup
 // ═══════════════════════════════════════════════════════════════
 class _StepBackupShare extends StatelessWidget {
   final String backupPath;
@@ -291,15 +327,15 @@ class _StepBackupShare extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         const Gap(16),
-        Container(
+        Center(child: Container(
           width: 76, height: 76,
           decoration: BoxDecoration(
             color: AppColors.greenSoft,
             borderRadius: BorderRadius.circular(20)),
           child: const Icon(Symbols.check_circle, color: AppColors.green, size: 44),
-        ),
+        )),
         const Gap(20),
-        Text('Backup created ✓',
+        Text('Backup created \u2713',
           textAlign: TextAlign.center,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.t1)),
@@ -314,15 +350,14 @@ class _StepBackupShare extends StatelessWidget {
             const Gap(8),
             Expanded(child: Text(filename,
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.brand,
-                fontFeatures: const [FontFeature.tabularFigures()]),
+                fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.brand),
               overflow: TextOverflow.ellipsis)),
           ]),
         ),
         const Gap(18),
         Text(
-          'For extra safety, send this backup to yourself on WhatsApp '
-          'or email. If you ever lose your phone, you can restore from it.',
+          'Send this backup to yourself on WhatsApp or email for extra '
+          'safety. If you ever lose your phone, you can restore from it.',
           textAlign: TextAlign.center,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 13, color: AppColors.t2, height: 1.55)),
@@ -344,7 +379,7 @@ class _StepBackupShare extends StatelessWidget {
         const Spacer(),
         TextButton(
           onPressed: onContinue,
-          child: Text('Skip — backup is on phone',
+          child: Text('Skip for now',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.t3)),
         ),
@@ -368,7 +403,7 @@ class _StepBackupShare extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// STEP 2/3: PIN entry (used for set + confirm)
+// STEP 1/2: PIN entry
 // ═══════════════════════════════════════════════════════════════
 class _StepPin extends StatefulWidget {
   final String title;
@@ -451,7 +486,7 @@ class _StepPinState extends State<_StepPin> {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// STEP 4: Biometric enrollment
+// STEP 5: Biometric enrollment
 // ═══════════════════════════════════════════════════════════════
 class _StepBiometric extends StatelessWidget {
   final VoidCallback onEnroll;
@@ -515,7 +550,7 @@ class _StepBiometric extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// STEP 5: Done
+// STEP 6: Done
 // ═══════════════════════════════════════════════════════════════
 class _StepDone extends StatelessWidget {
   final VoidCallback onClose;
@@ -525,9 +560,9 @@ class _StepDone extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      child: Column(children: [
         const Spacer(),
-        Center(child: Container(
+        Container(
           width: 96, height: 96,
           decoration: BoxDecoration(
             gradient: const LinearGradient(
@@ -539,21 +574,21 @@ class _StepDone extends StatelessWidget {
               blurRadius: 22, offset: const Offset(0, 10))],
           ),
           child: const Icon(Symbols.check, color: Colors.white, size: 56),
-        )),
+        ),
         const Gap(22),
-        Text('App Lock Enabled 🔒',
+        Text('App Lock Enabled \ud83d\udd12',
           textAlign: TextAlign.center,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.t1)),
         const Gap(10),
         Text(
           'BillZap will lock when you switch apps and return after 1 minute. '
-          'Make sure you remember your PIN — and keep your backup file safe!',
+          'Make sure you remember your PIN!',
           textAlign: TextAlign.center,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 13.5, color: AppColors.t2, height: 1.6)),
         const Spacer(),
-        ElevatedButton(
+        SizedBox(width: double.infinity, child: ElevatedButton(
           onPressed: onClose,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.brand,
@@ -565,14 +600,14 @@ class _StepDone extends StatelessWidget {
           child: Text('Done',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14.5, fontWeight: FontWeight.w800)),
-        ),
+        )),
       ]),
     );
   }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// Compact number pad (used during setup — slightly smaller)
+// Compact number pad
 // ═══════════════════════════════════════════════════════════════
 class _NumberPadCompact extends StatelessWidget {
   final ValueChanged<String> onDigit;
@@ -629,6 +664,3 @@ class _NumberPadCompact extends StatelessWidget {
     ),
   );
 }
-
-// no-op helper for any code that referenced `.animate()` from animate package
-extension _NoAnim on Widget { Widget animate() => this; }

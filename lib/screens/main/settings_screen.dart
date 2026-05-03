@@ -32,6 +32,9 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
         title: Text(tr('set.title', ref), style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1))),
 
+
+      body: Column(children: [
+
           // 🔒 App Lock
           Container(
             margin: const EdgeInsets.only(bottom: 10),
@@ -52,7 +55,7 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
                   fontSize: 14.5, fontWeight: FontWeight.w800, color: AppColors.t1)),
               subtitle: Text(
                 AppLockService.instance.isEnabled
-                  ? 'Enabled • PIN${AppLockService.instance.isBiometricEnabled ? " + Fingerprint" : ""}'
+                  ? 'Enabled${AppLockService.instance.isBiometricEnabled ? " — PIN + Fingerprint" : " — PIN only"}'
                   : 'Lock app with PIN or fingerprint',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 11.5,
@@ -68,8 +71,7 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
                       title: Text('Disable App Lock?',
                         style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w900)),
                       content: const Text(
-                        'Your data will no longer require a PIN to access. '
-                        'Anyone with your phone can open BillZap.'),
+                        'Your data will no longer require a PIN to access.'),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(ctx, false),
@@ -85,25 +87,17 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
                     await AppLockService.instance.disableLock();
                     if (context.mounted) {
                       setState(() {});
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Text('App Lock disabled'),
-                        backgroundColor: AppColors.t3));
                     }
                   }
                 } else {
                   final result = await context.push('/lock-setup');
                   if (result == true && context.mounted) {
                     setState(() {});
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text('App Lock enabled 🔒'),
-                      backgroundColor: AppColors.green));
                   }
                 }
               },
             ),
           ),
-
-      body: Column(children: [
         Container(
           color: AppColors.card,
           padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
