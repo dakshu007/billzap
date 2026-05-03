@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../screens/main/shell_screen.dart';
 import '../screens/invoice/create_invoice_screen.dart';
 import '../screens/invoice/voice_invoice_screen.dart';
+import '../screens/settings/backup_export_screen.dart';
 import '../screens/invoice/invoice_preview_screen.dart';
 import '../screens/splash/splash_screen.dart';
 import '../screens/main/customers_screen.dart';
@@ -115,6 +116,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       // Full-screen routes
             GoRoute(
+        path: '/backup',
+        builder: (_, __) => const BackupExportScreen()),
+      GoRoute(
         path: '/voice',
         builder: (_, __) => const VoiceInvoiceScreen()),
       GoRoute(

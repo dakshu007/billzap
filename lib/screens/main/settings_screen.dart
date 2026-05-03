@@ -442,6 +442,59 @@ class _AboutPanel extends ConsumerWidget {
           ),
         ),
 
+        // ═════════════════════════════════════════════════
+        // BACKUP & EXPORT TILE
+        // ═════════════════════════════════════════════════
+        Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border)),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () {
+                HapticFeedback.lightImpact();
+                context.push('/backup');
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                child: Row(children: [
+                  Container(
+                    width: 42, height: 42,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF2E7D32), Color(0xFF66BB6A)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight),
+                      borderRadius: BorderRadius.circular(11)),
+                    child: const Icon(Symbols.shield,
+                      color: Colors.white, size: 22)),
+                  const Gap(12),
+                  Expanded(child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Backup & Export',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.t1)),
+                      const Gap(2),
+                      Text('Save your data • Export CSVs for accountant',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          color: AppColors.t3)),
+                    ])),
+                  const Icon(Symbols.chevron_right,
+                    color: AppColors.t3, size: 22),
+                ]),
+              ),
+            ),
+          ),
+        ),
+
         // ─── About BillZap card ───
         _Sec(tr('set.about_billzap', ref)),
         Container(
