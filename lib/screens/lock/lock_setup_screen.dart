@@ -101,14 +101,23 @@ class _LockSetupState extends State<LockSetupScreen> {
 
   // ─────────── Step 5: Biometric enrollment ───────────
   Future<void> _enrollBiometric() async {
-    final ok = await AppLockService.instance.authenticateBiometric();
+    // Use testBiometricForSetup() instead of authenticateBiometric()
+    // because the latter checks _biometric flag which isn't set yet during setup.
+    final ok = await AppLockService.instance.testBiometricForSetup();
     if (!mounted) return;
     if (ok) {
       await AppLockService.instance.enableLock(pin: _pin, useBiometric: true);
       if (!mounted) return;
       setState(() => _step = 6);
     } else {
-      _showError('Fingerprint not enrolled. PIN-only lock will be set up.');
+      // Show clearer error and continue with PIN-only
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text(
+          'Fingerprint not available. Make sure a fingerprint is registered '
+          'in your phone Settings → Biometrics. PIN-only lock will be set up.'),
+        backgroundColor: AppColors.orange,
+        duration: const Duration(seconds: 5),
+      ));
       await _enableLockNoBio();
     }
   }

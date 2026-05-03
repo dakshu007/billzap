@@ -4,6 +4,7 @@
 // PIN is hashed with SHA-256 + salt, never stored plaintext.
 
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:crypto/crypto.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -45,12 +46,52 @@ class AppLockService {
     try {
       final canCheck = await _localAuth.canCheckBiometrics;
       final isSupported = await _localAuth.isDeviceSupported();
+      debugPrint("AppLock: canCheckBiometrics=$canCheck, isDeviceSupported=$isSupported");
       if (!canCheck || !isSupported) return false;
       final available = await _localAuth.getAvailableBiometrics();
-      return available.contains(BiometricType.fingerprint) ||
-             available.contains(BiometricType.strong);
-    } catch (_) {
+      debugPrint("AppLock: availableBiometrics=$available");
+      // Accept ANY enrolled biometric — some devices report 'weak' for fingerprint sensors
+      return available.isNotEmpty;
+    } catch (e) {
+      debugPrint("AppLock: canUseBiometric error: $e");
       return false;
+    }
+  }
+
+  /// Used during SETUP to test if biometric works, before _biometric flag is set.
+  /// Unlike authenticateBiometric(), does not require lock to already be enabled.
+  Future<bool> testBiometricForSetup() async {
+    try {
+      debugPrint("AppLock: testBiometricForSetup starting...");
+      final ok = await _localAuth.authenticate(
+        localizedReason: 'Confirm your fingerprint to enable for BillZap',
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: false,
+          useErrorDialogs: true,
+        ),
+      );
+      debugPrint("AppLock: testBiometricForSetup result=$ok");
+      return ok;
+    } on Exception catch (e) {
+      debugPrint("AppLock: testBiometricForSetup exception: $e");
+      // Try once more without biometricOnly — some devices reject strict mode
+      try {
+        debugPrint("AppLock: retrying without biometricOnly...");
+        final ok = await _localAuth.authenticate(
+          localizedReason: 'Confirm your fingerprint to enable for BillZap',
+          options: const AuthenticationOptions(
+            biometricOnly: false,
+            stickyAuth: false,
+            useErrorDialogs: true,
+          ),
+        );
+        debugPrint("AppLock: retry result=$ok");
+        return ok;
+      } catch (e2) {
+        debugPrint("AppLock: retry also failed: $e2");
+        return false;
+      }
     }
   }
 
@@ -98,6 +139,7 @@ class AppLockService {
   Future<bool> authenticateBiometric() async {
     if (!_biometric) return false;
     try {
+      debugPrint("AppLock: authenticateBiometric starting...");
       final ok = await _localAuth.authenticate(
         localizedReason: 'Unlock BillZap with your fingerprint',
         options: const AuthenticationOptions(
@@ -106,13 +148,33 @@ class AppLockService {
           useErrorDialogs: true,
         ),
       );
+      debugPrint("AppLock: authenticate result=$ok");
       if (ok) {
         _hasUnlocked = true;
         await _markActive();
       }
       return ok;
-    } catch (_) {
-      return false;
+    } catch (e) {
+      debugPrint("AppLock: auth exception: $e");
+      // Retry without biometricOnly
+      try {
+        final ok = await _localAuth.authenticate(
+          localizedReason: 'Unlock BillZap',
+          options: const AuthenticationOptions(
+            biometricOnly: false,
+            stickyAuth: true,
+            useErrorDialogs: true,
+          ),
+        );
+        if (ok) {
+          _hasUnlocked = true;
+          await _markActive();
+        }
+        return ok;
+      } catch (e2) {
+        debugPrint("AppLock: retry failed: $e2");
+        return false;
+      }
     }
   }
 
