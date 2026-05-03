@@ -1,5 +1,6 @@
 // lib/screens/main/expenses_screen.dart
 import 'package:flutter/material.dart';
+import '../../utils/smart_amount.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';

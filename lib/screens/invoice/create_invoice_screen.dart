@@ -3,6 +3,7 @@
 // ✅ Fully translated
 // ✅ GST auto-classify on item name change
 import 'package:flutter/material.dart';
+import '../../utils/smart_amount.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -517,7 +518,8 @@ class _LineRowState extends State<_LineRow> {
         _QtyBtn('+', () { setState(() => widget.item.qty++); widget.onChange(); }),
         const Gap(8),
         SizedBox(width: 90, child: TextField(controller: _rate,
-          keyboardType: TextInputType.number, textAlign: TextAlign.right,
+          keyboardType: TextInputType.number,
+              inputFormatters: [SmartAmountFormatter()], textAlign: TextAlign.right,
           decoration: InputDecoration(hintText: 'Rate \u20b9',
             hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t4), isDense: true,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(9)),
