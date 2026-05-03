@@ -1,6 +1,7 @@
 // lib/screens/main/reports_screen.dart
 // ✅ Fully translated — every label uses tr()
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
@@ -8,6 +9,7 @@ import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../i18n/translations.dart';
+import '../reports/export_reports_sheet.dart';
 
 class ReportsScreen extends ConsumerWidget {
   const ReportsScreen({super.key});
@@ -50,7 +52,24 @@ class ReportsScreen extends ConsumerWidget {
       appBar: AppBar(
         automaticallyImplyLeading: false, backgroundColor: AppColors.card,
         title: Text(tr('rep.title', ref), style: GoogleFonts.plusJakartaSans(
-          fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1))),
+          fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: TextButton.icon(
+              onPressed: () => ExportReportsSheet.show(context),
+              icon: const Icon(Symbols.download, size: 18, color: AppColors.brand),
+              label: Text('Export',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.brand)),
+              style: TextButton.styleFrom(
+                backgroundColor: AppColors.brandSoft,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+            ),
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 100),
         children: [
