@@ -13,6 +13,7 @@ import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
+import '../../widgets/insight_card.dart';
 import '../../models/models.dart';
 import '../../i18n/translations.dart';
 
@@ -125,6 +126,8 @@ class DashboardScreen extends ConsumerWidget {
           ),
           const Gap(14),
 
+          // ✨ Daily insight banner
+          const InsightCard(),
           // Stat cards
           GridView.count(
             crossAxisCount: 2, shrinkWrap: true,
