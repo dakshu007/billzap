@@ -9,6 +9,7 @@ import '../screens/main/shell_screen.dart';
 import '../screens/invoice/create_invoice_screen.dart';
 import '../screens/invoice/voice_invoice_screen.dart';
 import '../screens/main/cash_drawer_screen.dart';
+import '../screens/festival/festival_greeting_screen.dart';
 import '../screens/settings/backup_export_screen.dart';
 import '../screens/invoice/invoice_preview_screen.dart';
 import '../screens/splash/splash_screen.dart';
@@ -122,6 +123,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/day-close',
         builder: (_, __) => const CashDrawerScreen()),
+      GoRoute(
+        path: '/festival-greet/:id',
+        builder: (_, s) => FestivalGreetingScreen(festivalId: s.pathParameters['id'] ?? '')),
       GoRoute(
         path: '/voice',
         builder: (_, __) => const VoiceInvoiceScreen()),
