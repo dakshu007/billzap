@@ -429,7 +429,7 @@ class _LineItem {
 class _LineRow extends StatefulWidget {
   final _LineItem item; final int index;
   final VoidCallback? onRemove; final VoidCallback onChange;
-  const _LineRow({required this.item, required this.index, this.onRemove, required this.onChange});
+  const _LineRow({super.key, required this.item, required this.index, this.onRemove, required this.onChange});
   @override
   State<_LineRow> createState() => _LineRowState();
 }
