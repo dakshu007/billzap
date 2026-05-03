@@ -1,6 +1,7 @@
 // lib/screens/main/settings_screen.dart
 // Fully translated + Language picker tile in About panel
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
