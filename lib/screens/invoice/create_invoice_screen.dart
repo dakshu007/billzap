@@ -205,7 +205,6 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
               label: Text(tr('cat.from_catalog', ref), style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600))),
             children: [
               ..._lines.asMap().entries.map((e) => _LineRow(
-              key: ObjectKey(e),
               item: e.value, index: e.key,
                 onRemove: _lines.length > 1 ? () => setState(() => _lines.removeAt(e.key)) : null,
                 onChange: () => setState(() {}))),
@@ -430,7 +429,7 @@ class _LineItem {
 class _LineRow extends StatefulWidget {
   final _LineItem item; final int index;
   final VoidCallback? onRemove; final VoidCallback onChange;
-  const _LineRow({super.key, required this.item, required this.index, this.onRemove, required this.onChange});
+  const _LineRow({required this.item, required this.index, this.onRemove, required this.onChange});
   @override
   State<_LineRow> createState() => _LineRowState();
 }
@@ -450,19 +449,6 @@ class _LineRowState extends State<_LineRow> {
   // ═════════════════════════════════════════════════
   // GST AUTO-CLASSIFY: as user types item name
   // ═════════════════════════════════════════════════
-
-  @override
-  void didUpdateWidget(_LineRow oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Refresh controllers if the underlying item changed (e.g., voice prefill)
-    if (oldWidget.item != widget.item) {
-      if (_name.text != widget.item.name) _name.text = widget.item.name;
-      if (_hsn.text != widget.item.hsn) _hsn.text = widget.item.hsn;
-      final newRate = widget.item.rate > 0 ? widget.item.rate.toStringAsFixed(0) : '';
-      if (_rate.text != newRate) _rate.text = newRate;
-    }
-  }
-
   void _onNameTyped() {
     widget.item.name = _name.text;
     final detected = GstClassifier.classify(_name.text);
