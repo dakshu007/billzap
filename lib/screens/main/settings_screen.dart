@@ -2,6 +2,7 @@
 // Fully translated + Language picker tile in About panel
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../services/app_lock_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -30,6 +31,78 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
         backgroundColor: AppColors.card,
         title: Text(tr('set.title', ref), style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1))),
+
+          // 🔒 App Lock
+          Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.border)),
+            child: ListTile(
+              leading: Container(
+                width: 38, height: 38,
+                decoration: BoxDecoration(
+                  color: AppColors.brandSoft,
+                  borderRadius: BorderRadius.circular(10)),
+                child: const Icon(Symbols.lock, color: AppColors.brand, size: 20),
+              ),
+              title: Text('App Lock',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14.5, fontWeight: FontWeight.w800, color: AppColors.t1)),
+              subtitle: Text(
+                AppLockService.instance.isEnabled
+                  ? 'Enabled • PIN${AppLockService.instance.isBiometricEnabled ? " + Fingerprint" : ""}'
+                  : 'Lock app with PIN or fingerprint',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11.5,
+                  color: AppLockService.instance.isEnabled ? AppColors.green : AppColors.t3,
+                  fontWeight: AppLockService.instance.isEnabled ? FontWeight.w700 : FontWeight.w500)),
+              trailing: const Icon(Symbols.chevron_right, color: AppColors.t3),
+              onTap: () async {
+                HapticFeedback.lightImpact();
+                if (AppLockService.instance.isEnabled) {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: Text('Disable App Lock?',
+                        style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w900)),
+                      content: const Text(
+                        'Your data will no longer require a PIN to access. '
+                        'Anyone with your phone can open BillZap.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: const Text('Cancel')),
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          child: const Text('Disable',
+                            style: TextStyle(color: AppColors.red))),
+                      ],
+                    ),
+                  );
+                  if (confirm == true) {
+                    await AppLockService.instance.disableLock();
+                    if (context.mounted) {
+                      setState(() {});
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('App Lock disabled'),
+                        backgroundColor: AppColors.t3));
+                    }
+                  }
+                } else {
+                  final result = await context.push('/lock-setup');
+                  if (result == true && context.mounted) {
+                    setState(() {});
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('App Lock enabled 🔒'),
+                      backgroundColor: AppColors.green));
+                  }
+                }
+              },
+            ),
+          ),
+
       body: Column(children: [
         Container(
           color: AppColors.card,

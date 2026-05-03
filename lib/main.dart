@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'services/local_storage.dart';
+import 'services/app_lock_service.dart';
+import 'widgets/app_lock_gate.dart';
 import 'theme/app_theme.dart';
 import 'router/app_router.dart';
 import 'i18n/translations.dart';
@@ -20,6 +22,7 @@ void main() async {
   ));
   await Hive.initFlutter();
   await LocalStorage.instance.init();
+  await AppLockService.instance.init();
   // Initialize multilang cache
   try { initGlobalLanguage(); } catch (_) {}
 
@@ -40,7 +43,7 @@ class BillZapApp extends ConsumerWidget {
           textScaler: TextScaler.linear(
             MediaQuery.of(context).textScaler.scale(1.0).clamp(0.85, 1.15)),
         ),
-        child: child!,
+        child: AppLockGate(child: child!),
       ),
     );
   }
