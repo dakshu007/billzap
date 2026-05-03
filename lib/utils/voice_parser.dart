@@ -2,15 +2,11 @@
 // Parses natural-language voice input into structured invoice items.
 // Works offline. Supports 12 Indian languages.
 //
-// Tested cases (all passing):
-//   "for Ravi 2 kg sugar 50 rupees" → Ravi, sugar 2kg @50
-//   "Ravi ke liye 3 kilo cheeni 60 rupaye" → Ravi, cheeni 3kg @60
-//   "5 pieces soap at 30 rupees" → soap 5pcs @30
-//   "for John 2 kg rice 50 and 1 kg dal 80" → John, rice 2kg @50, dal 1kg @80
-//   "two kilo sugar fifty rupees" → sugar 2kg @50
-//   "Ravi book 5 pcs 100 each" → Ravi, book 5pcs @100
-//   "3 boxes biscuits 40 rupees" → biscuits 3box @40
-//   "10 pieces pen 5 rupees each" → pen 10pcs @5
+// FIXES (v3):
+// 1. "Rs 50" prefix now correctly picks 50 (number AFTER price marker)
+// 2. "for customer X" no longer captures "customer" as the name
+// 3. "for Mr Ramesh" / "for Mrs Priya" correctly captures the actual name
+// 4. Word "a" / "an" / "the" now treated as stop words (won't pollute item names)
 
 class ParsedItem {
   final double qty;
@@ -50,11 +46,10 @@ class VoiceParser {
     'onnu': 1, 'rendu': 2, 'moonu': 3, 'naalu': 4, 'anju': 5,
     'aaru': 6, 'ezhu': 7, 'ettu': 8, 'onbathu': 9, 'pathu': 10,
     'irubathu': 20, 'muppathu': 30, 'aimbathu': 50, 'nooru': 100, 'aayiram': 1000,
-    // Other languages (limited transliteration)
     'don': 2, 'paach': 5, 'mooru': 3, 'naalku': 4, 'eradu': 2,
   };
 
-  // Unit normalization - includes plurals
+  // Unit normalization
   static const Map<String, String> _unitNormalizer = {
     'kg': 'kg', 'kgs': 'kg', 'kilo': 'kg', 'kilos': 'kg',
     'kilogram': 'kg', 'kilograms': 'kg',
@@ -80,7 +75,6 @@ class VoiceParser {
     'roll': 'roll', 'rolls': 'roll',
   };
 
-  // Price marker keywords
   static const List<String> _priceMarkers = [
     'rupees', 'rupee', 'rs', '₹', 'inr',
     'rupaye', 'rupaya', 'rupiya', 'paisa',
@@ -93,8 +87,11 @@ class VoiceParser {
     'each', 'per',
   ];
 
-  // Customer extraction patterns (order matters: more specific first)
+  // Customer extraction patterns — order matters (more specific first)
   static final List<RegExp> _customerPatterns = [
+    // FIX 3: "for Mr Ramesh", "for Mrs Priya", "for Sir John", "for Madam Lakshmi", "for Miss Anu"
+    RegExp(r'(?:bill\s+)?(?:for|to)\s+(?:mr|mrs|sir|madam|miss|ms|mister)\s+([a-zA-Z]+)',
+      caseSensitive: false),
     // English: "for Ravi", "to Ravi", "bill for Ravi"
     RegExp(r'(?:bill\s+)?(?:for|to)\s+([a-zA-Z]+)', caseSensitive: false),
     // "customer Ravi", "customer name Ravi"
@@ -105,16 +102,20 @@ class VoiceParser {
     RegExp(r'^([a-zA-Z]+)[-\s]+(?:ku|kku|ukku)\b', caseSensitive: false),
   ];
 
-  // Words to skip when extracting item name
+  // FIX 2 + 4: Words to skip when extracting item names AND customer names
   static const Set<String> _stopWords = {
     'add', 'please', 'put', 'and', 'also', 'with', 'plus',
     'create', 'invoice', 'bill', 'generate', 'make',
     'aur', 'ya', 'ke', 'ka', 'ki', 'ko', 'mein', 'liye',
     'pannu', 'podu', 'kuduku', 'sera',
     'for', 'to', 'at', 'of',
+    // FIX 4: Articles
+    'a', 'an', 'the',
+    // FIX 2: Generic placeholders that aren't names
+    'customer', 'client', 'buyer', 'person', 'someone',
+    'mr', 'mrs', 'sir', 'madam', 'miss', 'ms', 'mister',
   };
 
-  // Common item words used to prevent first-word from being mistaken as customer name
   static const Set<String> _commonItemWords = {
     'sugar', 'salt', 'rice', 'oil', 'soap', 'milk',
     'tea', 'coffee', 'bread', 'eggs', 'apple', 'banana', 'water',
@@ -149,7 +150,6 @@ class VoiceParser {
 
   // ─── Customer extraction ──────────────────────────────
   static String? _extractCustomer(String text) {
-    // Try standard patterns first
     for (final pattern in _customerPatterns) {
       final match = pattern.firstMatch(text);
       if (match != null) {
@@ -201,7 +201,7 @@ class VoiceParser {
     if (numbers.isEmpty) return null;
 
     final unitMatch = _findUnit(clause);
-    final priceMarkerPos = _findPriceMarkerPosition(clause);
+    final priceMarker = _findPriceMarker(clause);
 
     double qty = 1;
     String unit = 'nos';
@@ -214,13 +214,31 @@ class VoiceParser {
       if (beforeUnit.isNotEmpty) qty = beforeUnit.last.value;
       unit = unitMatch.normalized;
 
-      // Find price: number IMMEDIATELY BEFORE the price marker
-      if (priceMarkerPos != null) {
-        final beforePm = numbers.where((n) => n.position < priceMarkerPos).toList();
-        if (beforePm.isNotEmpty) {
-          // The closest one before the marker is the price
-          beforePm.sort((a, b) => b.position.compareTo(a.position));
-          price = beforePm.first.value;
+      // ═════════════════════════════════════════════════════════
+      // FIX 1: Smart price detection
+      // - First, look AFTER the price marker (handles "Rs 50")
+      // - Then, look BEFORE the price marker (handles "50 rupees")
+      // - Skip numbers that match the qty (they're not the price)
+      // ═════════════════════════════════════════════════════════
+      if (priceMarker != null) {
+        final afterPm = numbers.where((n) => n.position >= priceMarker.end).toList();
+        final beforePm = numbers.where((n) => n.position < priceMarker.start).toList();
+
+        if (afterPm.isNotEmpty) {
+          // Pattern: "Rs 50" — number right after the marker is the price
+          afterPm.sort((a, b) => a.position.compareTo(b.position));
+          price = afterPm.first.value;
+        } else if (beforePm.isNotEmpty) {
+          // Pattern: "50 rupees" — number right before the marker is the price
+          // Filter out numbers that equal the qty (they're not the price)
+          final candidates = beforePm.where((n) => n.value != qty).toList();
+          if (candidates.isNotEmpty) {
+            candidates.sort((a, b) => b.position.compareTo(a.position));
+            price = candidates.first.value;
+          } else {
+            beforePm.sort((a, b) => b.position.compareTo(a.position));
+            price = beforePm.first.value;
+          }
         } else if (afterUnit.isNotEmpty) {
           price = afterUnit.first.value;
         }
@@ -228,7 +246,6 @@ class VoiceParser {
         price = afterUnit.first.value;
       }
     } else {
-      // No unit found
       if (numbers.length >= 2) {
         final sorted = List<_NumberMatch>.from(numbers)..sort((a, b) => a.value.compareTo(b.value));
         qty = sorted.first.value;
@@ -244,7 +261,6 @@ class VoiceParser {
     return ParsedItem(qty: qty, unit: unit, name: name, price: price);
   }
 
-  // ─── Find all numbers ──────────────────────────────────
   static List<_NumberMatch> _findNumbers(String text) {
     final matches = <_NumberMatch>[];
     final digitRegex = RegExp(r'\b(\d+(?:\.\d+)?)\b');
@@ -267,14 +283,12 @@ class VoiceParser {
     return matches;
   }
 
-  // ─── Find unit keyword ─────────────────────────────────
   static _UnitMatch? _findUnit(String text) {
     int? bestStart;
     int? bestEnd;
     String? bestNorm;
     String? bestRaw;
 
-    // Sort keys by length DESC so longer keywords match first (e.g. "kgs" before "g")
     final sortedKeys = _unitNormalizer.keys.toList()
       ..sort((a, b) => b.length.compareTo(a.length));
 
@@ -295,20 +309,24 @@ class VoiceParser {
     return _UnitMatch(start: bestStart, end: bestEnd!, normalized: bestNorm!, raw: bestRaw!);
   }
 
-  // ─── Find earliest price marker position ──────────────
-  static int? _findPriceMarkerPosition(String text) {
-    int? earliest;
+  // FIX 1: Now returns _PriceMarkerMatch with both start and end
+  static _PriceMarkerMatch? _findPriceMarker(String text) {
+    int? earliestStart;
+    int? earliestEnd;
     for (final marker in _priceMarkers) {
       final pattern = RegExp('\\b${RegExp.escape(marker)}\\b', caseSensitive: false);
       final m = pattern.firstMatch(text);
       if (m != null) {
-        if (earliest == null || m.start < earliest) earliest = m.start;
+        if (earliestStart == null || m.start < earliestStart) {
+          earliestStart = m.start;
+          earliestEnd = m.end;
+        }
       }
     }
-    return earliest;
+    if (earliestStart == null) return null;
+    return _PriceMarkerMatch(start: earliestStart, end: earliestEnd!);
   }
 
-  // ─── Extract item name ────────────────────────────────
   static String _extractItemName(String clause, String? customerName) {
     var working = clause;
 
@@ -317,7 +335,7 @@ class VoiceParser {
       working = working.replaceFirst(pattern, ' ');
     }
 
-    // Also remove customer name itself if it remains as standalone word
+    // Remove customer name itself if it remains
     if (customerName != null && customerName.isNotEmpty) {
       final namePattern = RegExp(
         r'\b' + RegExp.escape(customerName.toLowerCase()) + r'\b',
@@ -336,7 +354,7 @@ class VoiceParser {
       working = working.replaceAll(RegExp('\\b${RegExp.escape(marker)}\\b', caseSensitive: false), ' ');
     }
 
-    // Remove digit numbers
+    // Remove digits
     working = working.replaceAll(RegExp(r'\d+(?:\.\d+)?'), ' ');
 
     // Filter remaining words
@@ -346,7 +364,7 @@ class VoiceParser {
       final lc = w.toLowerCase().replaceAll(RegExp(r"[,.!?@-]"), '').trim();
       if (lc.isEmpty) continue;
       if (_numberWords.containsKey(lc)) continue;
-      if (_stopWords.contains(lc)) continue;
+      if (_stopWords.contains(lc)) continue;  // FIX 4: 'a', 'an', 'the' filtered
       if (lc.length < 2) continue;
       cleaned.add(lc);
     }
@@ -368,4 +386,10 @@ class _UnitMatch {
   final String normalized;
   final String raw;
   _UnitMatch({required this.start, required this.end, required this.normalized, required this.raw});
+}
+
+class _PriceMarkerMatch {
+  final int start;
+  final int end;
+  _PriceMarkerMatch({required this.start, required this.end});
 }
