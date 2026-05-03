@@ -15,6 +15,7 @@ import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../widgets/insight_card.dart';
 import '../../widgets/festival_banner.dart';
+import '../../widgets/profile_setup_widgets.dart';
 import '../../models/models.dart';
 import '../../i18n/translations.dart';
 
@@ -92,6 +93,8 @@ class DashboardScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 100),
         children: [
+          // Auto-shows welcome modal on first home visit if profile is empty
+          const WelcomeProfileModalTrigger(),
           // Hero banner
           Container(
             padding: const EdgeInsets.all(20),
@@ -127,6 +130,8 @@ class DashboardScreen extends ConsumerWidget {
           ),
           const Gap(14),
 
+          // ⚠️ Profile incomplete banner (shown if <80% complete)
+          const ProfileIncompleteBanner(),
           // 🎆 Festival banner (only shows on festival day or 1 day before)
           const FestivalBanner(),
           // ✨ Daily insight banner
