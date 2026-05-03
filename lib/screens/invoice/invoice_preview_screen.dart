@@ -603,7 +603,54 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
 
   // ═══════════════════════════════════════════════════════════
   // WhatsApp message — now includes UPI link if available
+
   // ═══════════════════════════════════════════════════════════
+  // ASK PAYMENT MODE — small dialog when marking invoice paid
+  // ═══════════════════════════════════════════════════════════
+  Future<String?> _askPaymentMode() async {
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('How was it paid?',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 17, fontWeight: FontWeight.w900, color: AppColors.t1)),
+        contentPadding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          _payOpt(ctx, 'cash', '💵 Cash', AppColors.green),
+          _payOpt(ctx, 'upi', '📱 UPI', AppColors.brand),
+          _payOpt(ctx, 'bank', '🏦 Bank Transfer', AppColors.purple),
+          _payOpt(ctx, 'other', '📋 Other', AppColors.orange),
+        ]),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel')),
+        ],
+      ),
+    );
+  }
+
+  Widget _payOpt(BuildContext ctx, String mode, String label, Color color) {
+    return InkWell(
+      onTap: () => Navigator.pop(ctx, mode),
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color.withOpacity(0.25))),
+        child: Row(children: [
+          Expanded(child: Text(label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.t1))),
+          Icon(Symbols.chevron_right, color: color, size: 18),
+        ]),
+      ),
+    );
+  }
+
   Future<void> _sendWhatsApp(Invoice invoice, Business? biz) async {
     final isPaid = invoice.status == InvoiceStatus.paid;
 

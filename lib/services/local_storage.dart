@@ -64,12 +64,18 @@ class LocalStorage {
     await _box.put(_kInvoices, jsonEncode(list.map((i) => i.toMap()).toList()));
   }
 
-  Future<void> markInvoicePaid(String id) async {
+  Future<void> markInvoicePaid(String id, {String? paymentMode}) async {
     final list = getInvoices();
     for (final inv in list) {
       if (inv.id == id) {
         inv.status = InvoiceStatus.paid;
         inv.paidAt = DateTime.now();
+        // Store payment mode as a tag in notes (backward compat with existing fields)
+        if (paymentMode != null && paymentMode.isNotEmpty) {
+          // Strip any existing [PAY:xxx] tag
+          inv.notes = inv.notes.replaceAll(RegExp(r'\s*\[PAY:\w+\]'), '').trim();
+          inv.notes = (inv.notes.isEmpty ? '' : '${inv.notes} ') + '[PAY:$paymentMode]';
+        }
         break;
       }
     }

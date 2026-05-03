@@ -162,6 +162,45 @@ class DashboardScreen extends ConsumerWidget {
           ),
           const Gap(16),
 
+          // 💰 Day Close — daily collections summary
+          GestureDetector(
+            onTap: () { HapticFeedback.lightImpact(); context.push('/day-close'); },
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF2E7D32), Color(0xFF66BB6A)],
+                  begin: Alignment.topLeft, end: Alignment.bottomRight),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [BoxShadow(
+                  color: const Color(0xFF2E7D32).withOpacity(0.3),
+                  blurRadius: 12, offset: const Offset(0, 5))],
+              ),
+              child: Row(children: [
+                Container(
+                  width: 44, height: 44,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.22),
+                    borderRadius: BorderRadius.circular(11)),
+                  child: const Icon(Symbols.point_of_sale, color: Colors.white, size: 24),
+                ),
+                const Gap(13),
+                Expanded(child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('Day Close',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
+                    Text('Today\'s collections by Cash, UPI, Bank',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5, color: Colors.white.withOpacity(0.85))),
+                  ]),
+                ),
+                const Icon(Symbols.arrow_forward, color: Colors.white, size: 20),
+              ]),
+            ),
+          ),
+
           // ✨ Voice Bill — featured banner
           GestureDetector(
             onTap: () { HapticFeedback.mediumImpact(); context.push('/voice'); },
