@@ -187,7 +187,7 @@ Currently in **closed testing** on the Google Play Store, working toward product
 ## Contact
 
 - Website: https://billzap.netlify.app
-- Email: hello@billzap.app
+- Email: daksheshbabu@gmail.com
 - Made in Coimbatore · Tamil Nadu, India
 
 ---
