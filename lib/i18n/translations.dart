@@ -332,6 +332,18 @@ const _en = <String, String>{
   'dash.day_close_sub':      "Today's collections by Cash, UPI, Bank",
   'dash.voice_bill':         'Voice Bill',
   'dash.voice_bill_sub':     'Speak to create invoices in your language',
+  // Refer friends + stock + GSTR-1 (round 5)
+  'set.refer_friend':      'Refer a friend',
+  'set.refer_friend_sub':  'Tell shop owners about BillZap',
+  'dash.stock_alert':      'Stock alert',
+  'prod.edit':             'Edit Product',
+  'prod.cost':             'Cost (optional)',
+  'prod.margin':           'Margin',
+  'prod.track_stock':      'Track stock',
+  'prod.stock_on_hand':    'Stock on hand',
+  'prod.low_alert_at':     'Low-stock alert at',
+  'prod.out_of_stock':     'Out',
+  'rep.gstr1_json':        'GSTR-1 JSON',
 };
 
 // ── Hindi ─────────────────────────────────────────────────────
@@ -616,6 +628,8 @@ const _hi = <String, String>{
   'dash.day_close_sub': 'आज का संग्रह — नकद, UPI, बैंक',
   'dash.voice_bill': 'वॉयस बिल',
   'dash.voice_bill_sub': 'अपनी भाषा में बोलकर इनवॉइस बनाएं',
+  'set.refer_friend': 'दोस्त को बताएं', 'set.refer_friend_sub': 'दुकानदारों को BillZap के बारे में बताएं',
+  'dash.stock_alert': 'स्टॉक चेतावनी', 'rep.gstr1_json': 'GSTR-1 JSON',
 };
 
 // ── Tamil ─────────────────────────────────────────────────────
@@ -900,6 +914,8 @@ const _ta = <String, String>{
   'dash.day_close_sub': 'இன்றைய வசூல் — பணம், UPI, வங்கி',
   'dash.voice_bill': 'குரல் பில்',
   'dash.voice_bill_sub': 'உங்கள் மொழியில் பேசி பில் உருவாக்குங்கள்',
+  'set.refer_friend': 'நண்பருக்கு சொல்லுங்கள்', 'set.refer_friend_sub': 'BillZap பற்றி கடைக்காரர்களுக்கு சொல்லுங்கள்',
+  'dash.stock_alert': 'பங்கு எச்சரிக்கை', 'rep.gstr1_json': 'GSTR-1 JSON',
 };
 
 // ── Telugu ────────────────────────────────────────────────────
@@ -1174,6 +1190,8 @@ const _te = <String, String>{
   'dash.day_close_sub': 'నేటి వసూళ్లు — నగదు, UPI, బ్యాంక్',
   'dash.voice_bill': 'వాయిస్ బిల్',
   'dash.voice_bill_sub': 'మీ భాషలో మాట్లాడి ఇన్‌వాయిస్‌లు సృష్టించండి',
+  'set.refer_friend': 'స్నేహితుడికి చెప్పండి', 'set.refer_friend_sub': 'వ్యాపారులకు BillZap గురించి చెప్పండి',
+  'dash.stock_alert': 'స్టాక్ హెచ్చరిక', 'rep.gstr1_json': 'GSTR-1 JSON',
 };
 
 // ── Kannada ───────────────────────────────────────────────────
@@ -1389,6 +1407,8 @@ const _kn = <String, String>{
   'dash.day_close_sub': 'ಇಂದಿನ ಸಂಗ್ರಹ — ನಗದು, UPI, ಬ್ಯಾಂಕ್',
   'dash.voice_bill': 'ಧ್ವನಿ ಬಿಲ್',
   'dash.voice_bill_sub': 'ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ಮಾತನಾಡಿ ಇನ್‌ವಾಯ್ಸ್ ರಚಿಸಿ',
+  'set.refer_friend': 'ಸ್ನೇಹಿತರಿಗೆ ಹೇಳಿ', 'set.refer_friend_sub': 'ಅಂಗಡಿಯವರಿಗೆ BillZap ಬಗ್ಗೆ ಹೇಳಿ',
+  'dash.stock_alert': 'ಸ್ಟಾಕ್ ಎಚ್ಚರಿಕೆ', 'rep.gstr1_json': 'GSTR-1 JSON',
 };
 
 // ── Malayalam ─────────────────────────────────────────────────
@@ -1594,6 +1614,8 @@ const _ml = <String, String>{
   'dash.day_close_sub': 'ഇന്നത്തെ ശേഖരം — പണം, UPI, ബാങ്ക്',
   'dash.voice_bill': 'വോയ്സ് ബിൽ',
   'dash.voice_bill_sub': 'നിങ്ങളുടെ ഭാഷയിൽ സംസാരിച്ച് ഇൻവോയ്സ് സൃഷ്ടിക്കുക',
+  'set.refer_friend': 'സുഹൃത്തിനോട് പറയുക', 'set.refer_friend_sub': 'കടയുടമകളോട് BillZap-നെ കുറിച്ച് പറയുക',
+  'dash.stock_alert': 'സ്റ്റോക്ക് മുന്നറിയിപ്പ്', 'rep.gstr1_json': 'GSTR-1 JSON',
 };
 
 // ── Marathi, Gujarati, Bengali, Punjabi, Odia, Urdu ──────────
@@ -1775,6 +1797,8 @@ const _mr = <String, String>{
   'set.visit_website_sub': 'मदत मिळवा, अधिक जाणून घ्या', 'set.visit_site_btn': 'आमची वेबसाइट पहा',
   'dash.day_close': 'दिवस संपला', 'dash.day_close_sub': 'आजचे संकलन — रोख, UPI, बँक',
   'dash.voice_bill': 'व्हॉइस बिल', 'dash.voice_bill_sub': 'तुमच्या भाषेत बोलून इनव्हॉइस तयार करा',
+  'set.refer_friend': 'मित्राला सांगा', 'set.refer_friend_sub': 'दुकानदारांना BillZap बद्दल सांगा',
+  'dash.stock_alert': 'स्टॉक सूचना', 'rep.gstr1_json': 'GSTR-1 JSON',
 };
 
 const _gu = <String, String>{
@@ -1957,6 +1981,8 @@ const _gu = <String, String>{
   'set.visit_website_sub': 'મદદ મેળવો, વધુ જાણો', 'set.visit_site_btn': 'અમારી વેબસાઇટ જુઓ',
   'dash.day_close': 'દિવસ બંધ', 'dash.day_close_sub': 'આજનો સંગ્રહ — રોકડ, UPI, બેંક',
   'dash.voice_bill': 'વોઇસ બિલ', 'dash.voice_bill_sub': 'તમારી ભાષામાં બોલીને ઇન્વોઇસ બનાવો',
+  'set.refer_friend': 'મિત્રને કહો', 'set.refer_friend_sub': 'દુકાનદારોને BillZap વિશે કહો',
+  'dash.stock_alert': 'સ્ટોક ચેતવણી', 'rep.gstr1_json': 'GSTR-1 JSON',
 };
 
 const _bn = <String, String>{
@@ -2141,6 +2167,8 @@ const _bn = <String, String>{
   'set.visit_website_sub': 'সাহায্য পান, আরও জানুন', 'set.visit_site_btn': 'আমাদের ওয়েবসাইটে যান',
   'dash.day_close': 'দিন শেষ', 'dash.day_close_sub': 'আজকের সংগ্রহ — নগদ, UPI, ব্যাঙ্ক',
   'dash.voice_bill': 'ভয়েস বিল', 'dash.voice_bill_sub': 'আপনার ভাষায় কথা বলে ইনভয়েস তৈরি',
+  'set.refer_friend': 'বন্ধুকে বলুন', 'set.refer_friend_sub': 'দোকানদারদের BillZap সম্পর্কে বলুন',
+  'dash.stock_alert': 'স্টক সতর্কতা', 'rep.gstr1_json': 'GSTR-1 JSON',
 };
 
 const _pa = <String, String>{
@@ -2325,6 +2353,8 @@ const _pa = <String, String>{
   'set.visit_website_sub': 'ਮਦਦ ਲਵੋ, ਹੋਰ ਜਾਣੋ', 'set.visit_site_btn': 'ਸਾਡੀ ਵੈੱਬਸਾਈਟ ਵੇਖੋ',
   'dash.day_close': 'ਦਿਨ ਬੰਦ', 'dash.day_close_sub': 'ਅੱਜ ਦਾ ਇਕੱਠ — ਨਕਦ, UPI, ਬੈਂਕ',
   'dash.voice_bill': 'ਵਾਇਸ ਬਿੱਲ', 'dash.voice_bill_sub': 'ਆਪਣੀ ਭਾਸ਼ਾ ਵਿੱਚ ਬੋਲ ਕੇ ਇਨਵਾਇਸ ਬਣਾਓ',
+  'set.refer_friend': 'ਦੋਸਤ ਨੂੰ ਦੱਸੋ', 'set.refer_friend_sub': 'ਦੁਕਾਨਦਾਰਾਂ ਨੂੰ BillZap ਬਾਰੇ ਦੱਸੋ',
+  'dash.stock_alert': 'ਸਟਾਕ ਚੇਤਾਵਨੀ', 'rep.gstr1_json': 'GSTR-1 JSON',
 };
 
 const _or = <String, String>{
@@ -2511,6 +2541,8 @@ const _or = <String, String>{
   'set.visit_website_sub': 'ସାହାଯ୍ୟ ନିଅନ୍ତୁ, ଅଧିକ ଜାଣନ୍ତୁ', 'set.visit_site_btn': 'ଆମର ୱେବସାଇଟ୍ ଦେଖନ୍ତୁ',
   'dash.day_close': 'ଦିନ ସମାପ୍ତ', 'dash.day_close_sub': 'ଆଜିର ସଂଗ୍ରହ — ନଗଦ, UPI, ବ୍ୟାଙ୍କ',
   'dash.voice_bill': 'ସ୍ୱର ବିଲ୍', 'dash.voice_bill_sub': 'ଆପଣଙ୍କ ଭାଷାରେ କଥା ହୋଇ ଇନଭଏସ୍ ତିଆରି କରନ୍ତୁ',
+  'set.refer_friend': 'ସାଙ୍ଗଙ୍କୁ କୁହନ୍ତୁ', 'set.refer_friend_sub': 'ଦୋକାନୀଙ୍କୁ BillZap ବିଷୟରେ କୁହନ୍ତୁ',
+  'dash.stock_alert': 'ଷ୍ଟକ୍ ସତର୍କତା', 'rep.gstr1_json': 'GSTR-1 JSON',
 };
 
 const _ur = <String, String>{
@@ -2696,6 +2728,8 @@ const _ur = <String, String>{
   'set.visit_website_sub': 'مدد لیں، مزید جانیں', 'set.visit_site_btn': 'ہماری ویب سائٹ دیکھیں',
   'dash.day_close': 'دن ختم', 'dash.day_close_sub': 'آج کا جمع — نقد، UPI، بینک',
   'dash.voice_bill': 'صوتی بل', 'dash.voice_bill_sub': 'اپنی زبان میں بول کر انوائس بنائیں',
+  'set.refer_friend': 'دوست کو بتائیں', 'set.refer_friend_sub': 'دکانداروں کو BillZap کے بارے میں بتائیں',
+  'dash.stock_alert': 'اسٹاک انتباہ', 'rep.gstr1_json': 'GSTR-1 JSON',
 };
 
 // ── Master translation map ────────────────────────────────────

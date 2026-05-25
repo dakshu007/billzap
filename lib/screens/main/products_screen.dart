@@ -124,44 +124,60 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                     background: _swipeBg(),
                     confirmDismiss: (_) => _confirmDelete(p),
                     onDismissed: (_) => _doDelete(p),
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: AppColors.card,
-                        borderRadius: BorderRadius.circular(13),
-                        border: Border.all(color: AppColors.border)),
-                      child: Row(children: [
-                        Container(width: 42, height: 42,
-                          decoration: BoxDecoration(
-                            color: AppColors.brandSoft,
-                            borderRadius: BorderRadius.circular(11)),
-                          child: const Center(
-                            child: Icon(Symbols.inventory_2, size: 20, color: AppColors.brand))),
-                        const Gap(12),
-                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text(p.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.t1)),
-                          Text(formatCurrency(p.price),
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12, color: AppColors.t3)),
-                          if (p.hsnCode.isNotEmpty)
-                            Text('HSN: ${p.hsnCode}', style: GoogleFonts.plusJakartaSans(
-                              fontSize: 10.5, color: AppColors.t4)),
-                        ])),
-                        IconButton(
-                          icon: const Icon(Symbols.delete, size: 18, color: AppColors.red),
-                          tooltip: tr('common.delete', ref),
-                          onPressed: () async {
-                            if (await _confirmDelete(p)) {
-                              await _doDelete(p);
-                            }
-                          },
-                        ),
-                      ]),
+                    child: GestureDetector(
+                      onTap: () => _editSheet(context, ref, p),
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppColors.card,
+                          borderRadius: BorderRadius.circular(13),
+                          border: Border.all(color: AppColors.border)),
+                        child: Row(children: [
+                          Container(width: 42, height: 42,
+                            decoration: BoxDecoration(
+                              color: AppColors.brandSoft,
+                              borderRadius: BorderRadius.circular(11)),
+                            child: const Center(
+                              child: Icon(Symbols.inventory_2, size: 20, color: AppColors.brand))),
+                          const Gap(12),
+                          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Row(children: [
+                              Expanded(child: Text(p.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.t1))),
+                              // Stock badge — only shown when tracking is on.
+                              if (p.tracksStock) _StockBadge(p: p),
+                            ]),
+                            const Gap(2),
+                            Row(children: [
+                              Text(formatCurrency(p.price),
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12, fontWeight: FontWeight.w600,
+                                  color: AppColors.t2)),
+                              // Profit-margin chip — only when a cost is set.
+                              if (p.marginPercent != null) ...[
+                                const Gap(8),
+                                _MarginChip(margin: p.marginPercent!),
+                              ],
+                            ]),
+                            if (p.hsnCode.isNotEmpty)
+                              Text('HSN: ${p.hsnCode}', style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10.5, color: AppColors.t4)),
+                          ])),
+                          IconButton(
+                            icon: const Icon(Symbols.delete, size: 18, color: AppColors.red),
+                            tooltip: tr('common.delete', ref),
+                            onPressed: () async {
+                              if (await _confirmDelete(p)) {
+                                await _doDelete(p);
+                              }
+                            },
+                          ),
+                        ]),
+                      ),
                     ),
                   );
                 }),
@@ -191,11 +207,33 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
     ),
   );
 
-  void _addSheet(BuildContext context, WidgetRef ref) {
-    final name  = TextEditingController();
-    final price = TextEditingController();
-    final hsn   = TextEditingController();
-    final unit  = TextEditingController(text: 'Nos');
+  void _addSheet(BuildContext context, WidgetRef ref) =>
+      _showProductSheet(context, ref, existing: null);
+
+  void _editSheet(BuildContext context, WidgetRef ref, Product p) =>
+      _showProductSheet(context, ref, existing: p);
+
+  /// Shared add/edit form. When `existing` is null we add; otherwise we
+  /// mutate the passed product in place and save through `update`.
+  void _showProductSheet(BuildContext context, WidgetRef ref,
+      {required Product? existing}) {
+    final isEdit = existing != null;
+    final name  = TextEditingController(text: existing?.name ?? '');
+    final price = TextEditingController(
+        text: existing != null && existing.price > 0
+            ? existing.price.toStringAsFixed(0) : '');
+    final cost  = TextEditingController(
+        text: existing != null && existing.cost > 0
+            ? existing.cost.toStringAsFixed(0) : '');
+    final hsn   = TextEditingController(text: existing?.hsnCode ?? '');
+    final unit  = TextEditingController(text: existing?.unit ?? 'Nos');
+    final stock = TextEditingController(
+        text: existing != null && existing.stock >= 0
+            ? existing.stock.toStringAsFixed(0) : '');
+    final lowAt = TextEditingController(
+        text: existing != null && existing.lowStockAt > 0
+            ? existing.lowStockAt.toStringAsFixed(0) : '');
+    bool trackStock = existing?.tracksStock ?? false;
 
     showModalBottomSheet<void>(
       context: context,
@@ -204,16 +242,23 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, ss) {
           bool saving = false;
+          // Live margin preview as the user types price & cost.
+          double? livePrice = double.tryParse(price.text);
+          double? liveCost  = double.tryParse(cost.text);
+          double? livePct;
+          if (livePrice != null && liveCost != null &&
+              livePrice > 0 && liveCost > 0) {
+            livePct = ((livePrice - liveCost) / livePrice) * 100;
+          }
           return Padding(
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(context).viewInsets.bottom),
             child: Container(
-              // Theme-aware so the Add Product sheet flips with dark mode.
               decoration: BoxDecoration(
                 color: AppColors.card,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(20))),
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-              child: Column(
+              child: SingleChildScrollView(child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -222,36 +267,70 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                       color: AppColors.border,
                       borderRadius: BorderRadius.circular(99)))),
                   const Gap(16),
-                  Text(trGlobal('prod.add_new'), style: GoogleFonts.plusJakartaSans(
-                    fontSize: 18, fontWeight: FontWeight.w800)),
+                  Text(isEdit ? 'Edit Product' : trGlobal('prod.add_new'),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 18, fontWeight: FontWeight.w800,
+                      color: AppColors.t1)),
                   const Gap(16),
-                  TextField(controller: name,
-                    decoration: InputDecoration(labelText: trGlobal('prod.name'),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10))),
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
+                  _SheetField(name, label: trGlobal('prod.name')),
                   const Gap(10),
                   Row(children: [
-                    Expanded(child: TextField(controller: price,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(labelText: trGlobal('set.price'),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10))),
-                      style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
+                    Expanded(child: _SheetField(price,
+                      label: trGlobal('set.price'),
+                      type: TextInputType.number,
+                      onChanged: (_) => ss(() {}))),
                     const Gap(10),
-                    Expanded(child: TextField(controller: unit,
-                      decoration: InputDecoration(labelText: trGlobal('prod.unit'),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10))),
-                      style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
+                    // Cost field — feeds the margin calc above.
+                    Expanded(child: _SheetField(cost,
+                      label: 'Cost (optional)',
+                      type: TextInputType.number,
+                      onChanged: (_) => ss(() {}))),
                   ]),
+                  if (livePct != null) ...[
+                    const Gap(8),
+                    Row(children: [
+                      const Icon(Symbols.trending_up, size: 16, color: AppColors.green),
+                      const Gap(6),
+                      Text('Margin: ${livePct.toStringAsFixed(1)}%',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12.5, fontWeight: FontWeight.w700,
+                          color: AppColors.green)),
+                    ]),
+                  ],
                   const Gap(10),
-                  TextField(controller: hsn,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(labelText: trGlobal('create.hsn'),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10))),
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
+                  Row(children: [
+                    Expanded(child: _SheetField(unit,
+                      label: trGlobal('prod.unit'))),
+                    const Gap(10),
+                    Expanded(child: _SheetField(hsn,
+                      label: trGlobal('create.hsn'),
+                      type: TextInputType.number)),
+                  ]),
+                  const Gap(14),
+                  // Inventory section ──────────────────────────────────
+                  Row(children: [
+                    Icon(Symbols.inventory, size: 18, color: AppColors.t2),
+                    const Gap(8),
+                    Text('Track stock',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13, fontWeight: FontWeight.w700,
+                        color: AppColors.t1)),
+                    const Spacer(),
+                    Switch(value: trackStock,
+                      onChanged: (v) => ss(() => trackStock = v)),
+                  ]),
+                  if (trackStock) ...[
+                    const Gap(8),
+                    Row(children: [
+                      Expanded(child: _SheetField(stock,
+                        label: 'Stock on hand',
+                        type: TextInputType.number)),
+                      const Gap(10),
+                      Expanded(child: _SheetField(lowAt,
+                        label: 'Low-stock alert at',
+                        type: TextInputType.number)),
+                    ]),
+                  ],
                   const Gap(20),
                   SizedBox(
                     width: double.infinity,
@@ -265,18 +344,41 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                         }
                         ss(() => saving = true);
                         try {
-                          await ref.read(productProvider.notifier).add(Product(
-                            name: name.text.trim(),
-                            price: double.tryParse(price.text) ?? 0,
-                            hsnCode: hsn.text.trim(),
-                            unit: unit.text.trim()));
+                          final priceVal = double.tryParse(price.text) ?? 0;
+                          final costVal  = double.tryParse(cost.text)  ?? 0;
+                          final stockVal = trackStock
+                              ? (double.tryParse(stock.text) ?? 0) : -1.0;
+                          final lowAtVal = trackStock
+                              ? (double.tryParse(lowAt.text) ?? 0) : 0.0;
+                          if (isEdit) {
+                            existing.name = name.text.trim();
+                            existing.price = priceVal;
+                            existing.cost = costVal;
+                            existing.hsnCode = hsn.text.trim();
+                            existing.unit = unit.text.trim();
+                            existing.stock = stockVal;
+                            existing.lowStockAt = lowAtVal;
+                            await ref.read(productProvider.notifier)
+                                .update(existing);
+                          } else {
+                            await ref.read(productProvider.notifier).add(Product(
+                              name: name.text.trim(),
+                              price: priceVal,
+                              cost: costVal,
+                              hsnCode: hsn.text.trim(),
+                              unit: unit.text.trim(),
+                              stock: stockVal,
+                              lowStockAt: lowAtVal));
+                          }
                           if (ctx.mounted) {
                             HapticFeedback.mediumImpact();
                             Navigator.pop(ctx);
                           }
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text('${name.text.trim()} added ✓'),
+                              content: Text(isEdit
+                                  ? '${name.text.trim()} updated ✓'
+                                  : '${name.text.trim()} added ✓'),
                               backgroundColor: AppColors.green));
                           }
                         } finally {
@@ -289,11 +391,82 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                               color: Colors.white, strokeWidth: 2))
                         : Text(trGlobal('common.save')))),
                 ],
-              ),
+              )),
             ),
           );
         },
       ),
     );
+  }
+}
+
+// ── Helper widgets ───────────────────────────────────────────────────
+
+class _SheetField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final TextInputType? type;
+  final ValueChanged<String>? onChanged;
+  const _SheetField(this.controller, {
+    required this.label, this.type, this.onChanged});
+
+  @override
+  Widget build(BuildContext context) => TextField(
+    controller: controller,
+    keyboardType: type,
+    onChanged: onChanged,
+    decoration: InputDecoration(
+      labelText: label,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+    style: GoogleFonts.plusJakartaSans(fontSize: 13.5));
+}
+
+class _MarginChip extends StatelessWidget {
+  final double margin;
+  const _MarginChip({required this.margin});
+
+  @override
+  Widget build(BuildContext context) {
+    final positive = margin >= 0;
+    final color = positive ? AppColors.green : AppColors.red;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(99)),
+      child: Text('${margin.toStringAsFixed(0)}%',
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 10.5, fontWeight: FontWeight.w800, color: color)));
+  }
+}
+
+class _StockBadge extends StatelessWidget {
+  final Product p;
+  const _StockBadge({required this.p});
+
+  @override
+  Widget build(BuildContext context) {
+    final Color bg, fg;
+    final String label;
+    if (p.isOutOfStock) {
+      bg = AppColors.red.withOpacity(0.15);
+      fg = AppColors.red;
+      label = 'Out';
+    } else if (p.isLowStock) {
+      bg = AppColors.orange.withOpacity(0.15);
+      fg = AppColors.orange;
+      label = '${p.stock.toStringAsFixed(0)} left';
+    } else {
+      bg = AppColors.brand.withOpacity(0.10);
+      fg = AppColors.brand;
+      label = '${p.stock.toStringAsFixed(0)} ${p.unit}';
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg, borderRadius: BorderRadius.circular(99)),
+      child: Text(label,
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 10.5, fontWeight: FontWeight.w800, color: fg)));
   }
 }

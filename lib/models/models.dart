@@ -135,17 +135,48 @@ class Product {
   double price;
   double gstRate;
   bool isService;
+  // Round-5 additions ───────────────────────────────────────
+  // `cost`         — buying price; used to derive profit margin.
+  // `stock`        — current on-hand quantity. Auto-decremented when an
+  //                  invoice is saved (best-effort name match). Set to
+  //                  -1 to opt-out of stock tracking for this item
+  //                  (e.g. services that don't have inventory).
+  // `lowStockAt`   — threshold for "low stock" alert; 0 disables.
+  double cost;
+  double stock;
+  double lowStockAt;
+  // ─────────────────────────────────────────────────────────
   final DateTime createdAt;
 
   Product({
     String? id, required this.name, this.hsnCode = '', this.unit = 'Nos',
     required this.price, this.gstRate = 18, this.isService = false,
+    this.cost = 0, this.stock = -1, this.lowStockAt = 0,
     DateTime? createdAt,
   }) : id = id ?? genId(), createdAt = createdAt ?? DateTime.now();
+
+  /// % profit margin on the sell price. Returns null when cost is 0/empty
+  /// so callers can render "—" instead of a misleading 100%.
+  double? get marginPercent {
+    if (cost <= 0 || price <= 0) return null;
+    return ((price - cost) / price) * 100;
+  }
+
+  /// True if we're actively tracking stock for this product AND it has
+  /// hit (or dipped below) the configured threshold.
+  bool get isLowStock =>
+      stock >= 0 && lowStockAt > 0 && stock <= lowStockAt;
+
+  /// True if stock tracking is on and we're sold out.
+  bool get isOutOfStock => stock == 0;
+
+  /// Whether stock tracking is enabled for this product.
+  bool get tracksStock => stock >= 0;
 
   Map<String, dynamic> toMap() => {
     'id': id, 'name': name, 'hsnCode': hsnCode, 'unit': unit,
     'price': price, 'gstRate': gstRate, 'isService': isService,
+    'cost': cost, 'stock': stock, 'lowStockAt': lowStockAt,
     'createdAt': createdAt.toIso8601String(),
   };
 
@@ -155,6 +186,11 @@ class Product {
     price: (m['price'] as num?)?.toDouble() ?? 0,
     gstRate: (m['gstRate'] as num?)?.toDouble() ?? 18,
     isService: m['isService'] ?? false,
+    // -1 default for `stock` preserves backwards-compat: products created
+    // before round 5 won't accidentally read as "0 stock = out of stock".
+    cost: (m['cost'] as num?)?.toDouble() ?? 0,
+    stock: (m['stock'] as num?)?.toDouble() ?? -1,
+    lowStockAt: (m['lowStockAt'] as num?)?.toDouble() ?? 0,
     createdAt: DateTime.tryParse(m['createdAt'] ?? '') ?? DateTime.now(),
   );
 }

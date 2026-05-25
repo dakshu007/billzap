@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../services/app_lock_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -433,6 +434,30 @@ class _AboutPanelState extends ConsumerState<_AboutPanel> {
     }
   }
 
+  Future<void> _shareApp() async {
+    HapticFeedback.lightImpact();
+    // Friendly WhatsApp-ready message. The Play Store URL is the
+    // production listing path — works even before the app is live
+    // (returns "not available" gracefully) and updates the moment
+    // it's published.
+    const playStoreUrl =
+        'https://play.google.com/store/apps/details?id=com.billzap.app';
+    final msg = '''
+🚀 *BillZap* — Free GST billing for India
+
+I'm using BillZap to send professional GST invoices in seconds.
+✓ 100% offline • No sign-up • Free forever
+✓ UPI QR on every invoice — get paid instantly
+✓ Available in 12 Indian languages
+✓ Voice billing in your language
+
+Try it: $_siteUrl
+Download: $playStoreUrl
+
+— Sent via BillZap ⚡''';
+    await Share.share(msg, subject: 'Try BillZap — Free GST Billing');
+  }
+
   Future<void> _toggleAppLock() async {
     HapticFeedback.lightImpact();
     if (AppLockService.instance.isEnabled) {
@@ -580,6 +605,17 @@ class _AboutPanelState extends ConsumerState<_AboutPanel> {
           title: tr('set.visit_website', ref),
           subtitle: tr('set.visit_website_sub', ref),
           onTap: _openSite,
+        ),
+
+        // ═════════════════════════════════════════════════
+        // REFER A FRIEND — share via WhatsApp / system share
+        // ═════════════════════════════════════════════════
+        _SettingsTile(
+          icon: Symbols.group_add,
+          gradient: const [Color(0xFF7C3AED), Color(0xFFA855F7)],
+          title: tr('set.refer_friend', ref),
+          subtitle: tr('set.refer_friend_sub', ref),
+          onTap: _shareApp,
         ),
 
         // ─── About BillZap card ───

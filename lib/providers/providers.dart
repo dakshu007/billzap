@@ -29,6 +29,12 @@ class InvoiceNotifier extends StateNotifier<List<Invoice>> {
 
   Future<void> add(Invoice inv) async {
     await _db.saveInvoice(inv);
+    // Auto-decrement stock for each line item that matches a tracked
+    // product by name (case-insensitive). Best-effort — if the name
+    // doesn't match exactly, we just skip (no error). Products with
+    // `stock == -1` (tracking opted-out / default for legacy products)
+    // are also skipped.
+    _decrementStockForInvoice(inv);
     state = _db.getInvoices();
   }
 
@@ -55,6 +61,26 @@ class InvoiceNotifier extends StateNotifier<List<Invoice>> {
   }
 
   void reload() => state = _db.getInvoices();
+
+  /// Walks the invoice's line items and decrements `stock` on any
+  /// matching tracked product. Called only on `add()` so editing a saved
+  /// invoice doesn't double-deduct.
+  void _decrementStockForInvoice(Invoice inv) {
+    final products = _db.getProducts();
+    for (final li in inv.lineItems) {
+      final key = li.name.trim().toLowerCase();
+      if (key.isEmpty) continue;
+      final idx = products.indexWhere(
+          (p) => p.name.trim().toLowerCase() == key);
+      if (idx < 0) continue;
+      final p = products[idx];
+      if (!p.tracksStock) continue;
+      // Allow stock to go negative — gives shopkeepers a chance to
+      // notice an oversell without blocking the invoice save.
+      p.stock = p.stock - li.quantity;
+      _db.saveProduct(p);
+    }
+  }
 }
 
 final invoiceProvider = StateNotifierProvider<InvoiceNotifier, List<Invoice>>(
@@ -89,6 +115,26 @@ class ProductNotifier extends StateNotifier<List<Product>> {
   ProductNotifier(this._db) : super(_db.getProducts());
 
   Future<void> add(Product p) async {
+    await _db.saveProduct(p);
+    state = _db.getProducts();
+  }
+
+  /// Upsert — used for editing cost / stock / threshold after creation.
+  /// (saveProduct already does an upsert, so this is a semantic alias.)
+  Future<void> update(Product p) async {
+    await _db.saveProduct(p);
+    state = _db.getProducts();
+  }
+
+  /// Manual stock adjustment helper (e.g. "received 20 more units" or
+  /// "wrote off 3 damaged units"). `delta` may be negative.
+  Future<void> adjustStock(String id, double delta) async {
+    final list = _db.getProducts();
+    final i = list.indexWhere((p) => p.id == id);
+    if (i < 0) return;
+    final p = list[i];
+    if (!p.tracksStock) return;
+    p.stock = p.stock + delta;
     await _db.saveProduct(p);
     state = _db.getProducts();
   }

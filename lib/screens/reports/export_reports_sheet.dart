@@ -16,6 +16,7 @@ import '../../providers/providers.dart';
 import '../../utils/csv_helper.dart';
 import '../../utils/report_csv_helper.dart';
 import '../../utils/report_pdf_builder.dart';
+import '../../utils/gstr1_builder.dart';
 
 enum _ReportKind { monthlyRevenue, profitLoss, gstSummary, invoiceStatus }
 enum _PeriodPreset { thisMonth, lastMonth, thisQuarter, thisYear, allTime, custom }
@@ -213,6 +214,30 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
     }
   }
 
+  Future<void> _exportGstr1Json() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      final biz  = ref.read(businessProvider);
+      final invs = ref.read(invoiceProvider);
+      final json = Gstr1Builder.build(
+        invoices: invs, from: _from, to: _to, biz: biz);
+      final dir = await getApplicationDocumentsDirectory();
+      final filename =
+          'BillZap_GSTR1_${DateFormat('MMyyyy').format(_from)}.json';
+      final file = File('${dir.path}/$filename');
+      await file.writeAsString(json);
+      await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'application/json')],
+        subject: 'GSTR-1 JSON — ${DateFormat('MMM yyyy').format(_from)}');
+      _toast('GSTR-1 JSON ready ✓', AppColors.green);
+    } catch (e) {
+      _toast('GSTR-1 export failed: $e', AppColors.red);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   void _toast(String msg, Color color) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -358,6 +383,10 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
                   busy: _busy,
                   onPdf: () => _exportPdf(_ReportKind.gstSummary),
                   onCsv: () => _exportCsv(_ReportKind.gstSummary),
+                  // Extra JSON export: ready-to-upload GSTR-1 file in the
+                  // GST offline-utility schema. Saves your CA the typing.
+                  onJson: _exportGstr1Json,
+                  jsonLabel: 'GSTR-1 JSON',
                 ),
                 const Gap(10),
                 _ReportRow(
@@ -432,6 +461,10 @@ class _ReportRow extends StatelessWidget {
   final bool busy;
   final VoidCallback onPdf;
   final VoidCallback onCsv;
+  // Optional third action — currently used by the GST Summary row to
+  // expose the GSTR-1 JSON export. Hidden when not supplied.
+  final VoidCallback? onJson;
+  final String? jsonLabel;
 
   const _ReportRow({
     required this.icon,
@@ -441,6 +474,8 @@ class _ReportRow extends StatelessWidget {
     required this.busy,
     required this.onPdf,
     required this.onCsv,
+    this.onJson,
+    this.jsonLabel,
   });
 
   @override
@@ -497,6 +532,21 @@ class _ReportRow extends StatelessWidget {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
           )),
         ]),
+        // GSTR-1 JSON action — full-width second row, only when supplied.
+        if (onJson != null) ...[
+          const Gap(8),
+          SizedBox(width: double.infinity, child: OutlinedButton.icon(
+            onPressed: busy ? null : onJson,
+            icon: const Icon(Symbols.data_object, size: 16, color: AppColors.purple),
+            label: Text(jsonLabel ?? 'JSON',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12.5, fontWeight: FontWeight.w800, color: AppColors.purple)),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 9),
+              side: BorderSide(color: AppColors.purple.withOpacity(0.35)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+          )),
+        ],
       ]),
     );
   }

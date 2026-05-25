@@ -43,6 +43,9 @@ class DashboardScreen extends ConsumerWidget {
     final biz       = ref.watch(businessProvider);
     final invoices  = ref.watch(invoiceProvider);
     final customers = ref.watch(customerProvider);
+    final products  = ref.watch(productProvider);
+    final lowStock  = products.where((p) => p.tracksStock &&
+        (p.isOutOfStock || p.isLowStock)).toList();
     final now       = DateTime.now();
     final greet     = tr(_greetingKey(), ref);
     final emoji     = _greetingEmoji();
@@ -132,6 +135,9 @@ class DashboardScreen extends ConsumerWidget {
 
           // ⚠️ Profile incomplete banner (shown if <80% complete)
           const ProfileIncompleteBanner(),
+          // 📦 Low-stock / out-of-stock alert (only when at least one
+          //    tracked product hit its threshold).
+          if (lowStock.isNotEmpty) _LowStockBanner(items: lowStock),
           // 🎆 Festival banner (only shows on festival day or 1 day before)
           const FestivalBanner(),
           // ✨ Daily insight banner
@@ -469,4 +475,65 @@ class _EmptyInvoice extends ConsumerWidget {
         label: Text(tr('dash.new_invoice', ref))),
     ]),
   );
+}
+
+
+// ─── Low-stock banner ─────────────────────────────────────────────────
+// Tapping it jumps to the Products screen so the owner can re-order or
+// adjust stock. We deliberately keep it compact (single row) so it
+// doesn't dominate the dashboard.
+class _LowStockBanner extends ConsumerWidget {
+  final List<Product> items;
+  const _LowStockBanner({required this.items});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final out = items.where((p) => p.isOutOfStock).length;
+    final low = items.length - out;
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        context.push('/products');
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.orangeSoft,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: AppColors.orange.withOpacity(
+                AppColors.isDark ? 0.55 : 0.4)),
+        ),
+        child: Row(children: [
+          Container(
+            width: 42, height: 42,
+            decoration: BoxDecoration(
+              color: AppColors.orange.withOpacity(0.18),
+              borderRadius: BorderRadius.circular(11)),
+            child: const Icon(Symbols.inventory_2,
+                color: AppColors.orange, size: 22),
+          ),
+          const Gap(12),
+          Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(tr('dash.stock_alert', ref),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13.5, fontWeight: FontWeight.w800,
+                  color: AppColors.t1)),
+              const Gap(2),
+              Text(
+                out > 0 && low > 0
+                  ? '$out out of stock • $low running low'
+                  : out > 0
+                    ? '$out item${out == 1 ? "" : "s"} out of stock'
+                    : '$low item${low == 1 ? "" : "s"} running low',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11.5, color: AppColors.t2)),
+            ])),
+          Icon(Symbols.chevron_right, color: AppColors.t3, size: 22),
+        ]),
+      ),
+    );
+  }
 }
