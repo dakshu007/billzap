@@ -154,7 +154,16 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
   void _tapTab(int i) {
     if (i == _idx) return;
     HapticFeedback.lightImpact();
-    _pc.jumpToPage(i);
+    // Adjacent tab → animate (feels smoother than a jump). Non-adjacent
+    // tab → jump (animating across multiple pages renders all the pages
+    // in between, which causes a brief stutter).
+    if ((i - _idx).abs() == 1) {
+      _pc.animateToPage(i,
+          duration: const Duration(milliseconds: 260),
+          curve: Curves.easeOutCubic);
+    } else {
+      _pc.jumpToPage(i);
+    }
     setState(() => _idx = i);
     GoRouter.of(context).go(_pathFor(i));
   }
@@ -163,36 +172,16 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bg,
-      body: PageView.builder(
+      // Plain PageView — no per-frame Transform/Scale/Opacity wrappers.
+      // The previous build re-evaluated those for every page on every
+      // scroll tick (Opacity triggers `saveLayer`), which caused visible
+      // stutter on mid-range Android. Default page physics already give
+      // a buttery iOS-style swipe.
+      body: PageView(
         controller: _pc,
-        physics: const _CoolPhysics(),
-        itemCount: _pages.length,
+        physics: const PageScrollPhysics(parent: ClampingScrollPhysics()),
         onPageChanged: _onPageChanged,
-        itemBuilder: (ctx, i) {
-          return AnimatedBuilder(
-            animation: _pc,
-            child: _pages[i],
-            builder: (ctx, child) {
-              double offset = 0;
-              if (_pc.position.haveDimensions) {
-                offset = (_pc.page ?? _idx.toDouble()) - i;
-              }
-              final clamped = offset.clamp(-1.0, 1.0);
-              final scale = 1.0 - (clamped.abs() * 0.06);
-              final opacity = 1.0 - (clamped.abs() * 0.25);
-              return Transform.translate(
-                offset: Offset(clamped * 30, 0),
-                child: Transform.scale(
-                  scale: scale,
-                  child: Opacity(
-                    opacity: opacity.clamp(0.0, 1.0),
-                    child: child,
-                  ),
-                ),
-              );
-            },
-          );
-        },
+        children: _pages,
       ),
       bottomNavigationBar: _BmwNav(
         idx: _idx,
@@ -207,28 +196,6 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
       ),
     );
   }
-}
-
-class _CoolPhysics extends ScrollPhysics {
-  const _CoolPhysics({super.parent});
-
-  @override
-  _CoolPhysics applyTo(ScrollPhysics? ancestor) {
-    return _CoolPhysics(parent: buildParent(ancestor));
-  }
-
-  @override
-  SpringDescription get spring => const SpringDescription(
-        mass: 0.5,
-        stiffness: 100,
-        damping: 1.0,
-      );
-
-  @override
-  double get minFlingVelocity => 50.0;
-
-  @override
-  double get maxFlingVelocity => 5000.0;
 }
 
 class _BmwNav extends ConsumerWidget {

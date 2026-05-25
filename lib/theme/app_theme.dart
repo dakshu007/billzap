@@ -13,21 +13,46 @@ class AppColors {
   AppColors._();
 
   // ─── Brightness-independent brand palette (kept const) ─────────────
+  // Strong brand hues stay identical across themes. Only the "soft" tints
+  // (used as panel backgrounds) flip per-mode — see the getters below.
   static const brand       = Color(0xFF1557FF);
   static const brandDark   = Color(0xFF0A3BCC);
-  static const brandSoft   = Color(0xFFEBF0FF);
-  static const brandSofter = Color(0xFFF4F7FF);
   static const green       = Color(0xFF00BFA5);
-  static const greenSoft   = Color(0xFFE6FAF7);
   static const red         = Color(0xFFEF4444);
-  static const redSoft     = Color(0xFFFEF2F2);
   static const yellow      = Color(0xFFF59E0B);
-  static const yellowSoft  = Color(0xFFFFFBEB);
   static const orange      = Color(0xFFFF5722);
-  static const orangeSoft  = Color(0xFFFFF1EE);
   static const purple      = Color(0xFF7C3AED);
-  static const purpleSoft  = Color(0xFFF5F3FF);
   static const navBg       = Color(0xFF0F172A);
+
+  // ─── Soft tints (brightness-aware) ─────────────────────────────────
+  // Light = pale pastel of the hue. Dark = deep tinted overlay that sits
+  // cleanly on `_darkCard` / `_darkBg` so text drawn over it stays
+  // readable. These used to be `static const` but became getters so that
+  // soft-backed panels (Profile Incomplete banner, GST Summary, etc.)
+  // adapt to dark mode instead of staying stuck in light mode.
+  static const _lightBrandSoft   = Color(0xFFEBF0FF);
+  static const _lightBrandSofter = Color(0xFFF4F7FF);
+  static const _lightGreenSoft   = Color(0xFFE6FAF7);
+  static const _lightRedSoft     = Color(0xFFFEF2F2);
+  static const _lightYellowSoft  = Color(0xFFFFFBEB);
+  static const _lightOrangeSoft  = Color(0xFFFFF1EE);
+  static const _lightPurpleSoft  = Color(0xFFF5F3FF);
+
+  static const _darkBrandSoft    = Color(0xFF1B2546);
+  static const _darkBrandSofter  = Color(0xFF161D38);
+  static const _darkGreenSoft    = Color(0xFF12281F);
+  static const _darkRedSoft      = Color(0xFF2A1818);
+  static const _darkYellowSoft   = Color(0xFF2B2517);
+  static const _darkOrangeSoft   = Color(0xFF2D1F16);
+  static const _darkPurpleSoft   = Color(0xFF20183A);
+
+  static Color get brandSoft   => isDark ? _darkBrandSoft   : _lightBrandSoft;
+  static Color get brandSofter => isDark ? _darkBrandSofter : _lightBrandSofter;
+  static Color get greenSoft   => isDark ? _darkGreenSoft   : _lightGreenSoft;
+  static Color get redSoft     => isDark ? _darkRedSoft     : _lightRedSoft;
+  static Color get yellowSoft  => isDark ? _darkYellowSoft  : _lightYellowSoft;
+  static Color get orangeSoft  => isDark ? _darkOrangeSoft  : _lightOrangeSoft;
+  static Color get purpleSoft  => isDark ? _darkPurpleSoft  : _lightPurpleSoft;
 
   // ─── Brightness-aware tokens ───────────────────────────────────────
   // Default to light values; switched at runtime by AppColors.setMode().
@@ -39,8 +64,9 @@ class AppColors {
   /// non-const tokens below resolve to the dark palette on next paint.
   static void setMode(Brightness b) => _mode = b;
 
-  // Light defaults (also used as fallback)
-  static const _lightBg         = Color(0xFFF1F5FF);
+  // Light defaults (also used as fallback). Light bg is a warm cream so
+  // the white card surfaces pop against it (#F6F2E9 — requested tone).
+  static const _lightBg         = Color(0xFFF6F2E9);
   static const _lightCard       = Color(0xFFFFFFFF);
   static const _lightT1         = Color(0xFF0F172A);
   static const _lightT2         = Color(0xFF334155);

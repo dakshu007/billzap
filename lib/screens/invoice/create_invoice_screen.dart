@@ -313,8 +313,8 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
       builder: (_) => DraggableScrollableSheet(
         initialChildSize: 0.65, maxChildSize: 0.9, minChildSize: 0.4,
         builder: (_, ctrl) => Container(
-          decoration: const BoxDecoration(color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+          decoration: BoxDecoration(color: AppColors.card,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20))),
           child: Column(children: [
             Container(width: 36, height: 4, margin: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(99))),
@@ -601,7 +601,9 @@ Widget _DateBtn(DateTime date, ValueChanged<DateTime> onPick) =>
     },
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10),
+      // Use theme-aware card colour so the Invoice/Due Date picker flips
+      // with dark mode instead of staying white forever.
+      decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppColors.border)),
       child: Row(children: [
         Icon(Symbols.calendar_today, size: 15, color: AppColors.t3),

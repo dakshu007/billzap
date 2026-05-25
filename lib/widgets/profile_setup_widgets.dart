@@ -69,10 +69,11 @@ void _showWelcomeModal(BuildContext context) {
       child: Container(
         padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          // Use the theme-aware card color so the modal flips with dark mode.
+          color: AppColors.card,
           borderRadius: BorderRadius.circular(22),
           boxShadow: [BoxShadow(
-            color: Colors.black.withOpacity(0.15),
+            color: Colors.black.withOpacity(AppColors.isDark ? 0.5 : 0.15),
             blurRadius: 28, offset: const Offset(0, 10))],
         ),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -205,9 +206,12 @@ class ProfileIncompleteBanner extends ConsumerWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
+          // yellowSoft is now brightness-aware (dark amber in dark mode),
+          // so the t1 text drawn over it stays readable on both themes.
           color: AppColors.yellowSoft,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.yellow.withOpacity(0.4)),
+          border: Border.all(
+            color: AppColors.yellow.withOpacity(AppColors.isDark ? 0.55 : 0.4)),
         ),
         child: Row(children: [
           Container(
@@ -240,13 +244,16 @@ class ProfileIncompleteBanner extends ConsumerWidget {
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 11.5, color: AppColors.t2)),
             const Gap(6),
-            // Progress bar
+            // Progress bar — track adapts so it doesn't flash bright white
+            // against the dark amber panel in dark mode.
             ClipRRect(
               borderRadius: BorderRadius.circular(99),
               child: LinearProgressIndicator(
                 value: score / 100,
                 minHeight: 4,
-                backgroundColor: Colors.white,
+                backgroundColor: AppColors.isDark
+                    ? Colors.white.withOpacity(0.08)
+                    : Colors.white,
                 valueColor: const AlwaysStoppedAnimation(AppColors.orange),
               ),
             ),

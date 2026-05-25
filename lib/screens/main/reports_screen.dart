@@ -118,11 +118,17 @@ class ReportsScreen extends ConsumerWidget {
               _GBox('IGST', igst, AppColors.t3, AppColors.bg),
             ]),
             const Gap(12),
+            // Total GST Payable strip. yellowSoft is now brightness-aware
+            // (dark amber in dark mode) so the t1 text contrasts correctly
+            // on both themes; the border opacity is bumped in dark mode so
+            // the panel stays defined against the dark surface.
             Container(
               padding: const EdgeInsets.all(13),
               decoration: BoxDecoration(color: AppColors.yellowSoft,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.yellow.withOpacity(0.3))),
+                border: Border.all(
+                  color: AppColors.yellow.withOpacity(
+                    AppColors.isDark ? 0.5 : 0.3))),
               child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                 Text(tr('rep.total_gst_payable', ref), style: GoogleFonts.plusJakartaSans(
                   fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.t1)),
