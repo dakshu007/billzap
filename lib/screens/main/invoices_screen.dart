@@ -152,7 +152,7 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: AppColors.card,
+        backgroundColor: AppColors.bg,
         title: Text(tr('inv.title', ref),
             style: GoogleFonts.plusJakartaSans(
                 fontSize: 19,

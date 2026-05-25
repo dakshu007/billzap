@@ -131,8 +131,11 @@ class AppTheme {
         onBackground: t1,
       ),
       scaffoldBackgroundColor: bg,
+      // AppBar shares the scaffold tone so the warm cream extends edge-to-edge
+      // in light mode (and the dark surface stays flat in dark mode). White
+      // "card" surfaces inside the body do the heavy contrast lifting.
       appBarTheme: AppBarTheme(
-        backgroundColor: card,
+        backgroundColor: bg,
         foregroundColor: t1,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -199,6 +202,24 @@ class AppTheme {
         trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
       ),
       dividerTheme: DividerThemeData(color: border, space: 1, thickness: 1),
+      // Default sheet surfaces — used by Material's showModalBottomSheet,
+      // PopupMenu and AlertDialog when no explicit colour is provided.
+      // Without these, dark-mode sheets fall back to a near-white Material
+      // surface and look stuck in light mode.
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: card,
+        surfaceTintColor: Colors.transparent,
+        modalBackgroundColor: card,
+        modalBarrierColor: Colors.black.withOpacity(isDark ? 0.6 : 0.4),
+      ),
+      dialogTheme: DialogTheme(
+        backgroundColor: card,
+        surfaceTintColor: Colors.transparent,
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: card,
+        surfaceTintColor: Colors.transparent,
+      ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: t1,

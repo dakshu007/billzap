@@ -93,7 +93,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
-        backgroundColor: AppColors.card,
+        backgroundColor: AppColors.bg,
         elevation: 0,
         iconTheme: IconThemeData(color: AppColors.t1),
         title: Text(trGlobal('cat.title'),
@@ -232,9 +232,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
           child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            // Theme-aware so the Add to Catalog sheet flips with dark mode.
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             ),
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
             child: Column(

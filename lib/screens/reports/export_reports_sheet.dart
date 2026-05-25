@@ -86,17 +86,22 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
       firstDate: DateTime(2000),
       lastDate: DateTime.now().add(const Duration(days: 365)),
       initialDateRange: DateTimeRange(start: _from, end: _to),
-      builder: (ctx, child) => Theme(
-        data: Theme.of(ctx).copyWith(
-          colorScheme: ColorScheme.light(
-            primary: AppColors.brand,
-            onPrimary: Colors.white,
-            surface: Colors.white,
-            onSurface: AppColors.t1,
+      builder: (ctx, child) {
+        // Inherit the active theme (light or dark) so the date-range
+        // picker doesn't snap back to a hardcoded light scheme.
+        final base = Theme.of(ctx);
+        return Theme(
+          data: base.copyWith(
+            colorScheme: base.colorScheme.copyWith(
+              primary: AppColors.brand,
+              onPrimary: Colors.white,
+              surface: AppColors.card,
+              onSurface: AppColors.t1,
+            ),
           ),
-        ),
-        child: child!,
-      ),
+          child: child!,
+        );
+      },
     );
     if (picked != null) {
       setState(() {
@@ -240,9 +245,11 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
       maxChildSize: 0.95,
       expand: false,
       builder: (ctx, scrollCtrl) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        // Theme-aware so the export sheet from the Reports page flips
+        // with dark mode.
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
         child: Column(children: [
           // Drag handle
           Container(

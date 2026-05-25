@@ -56,6 +56,13 @@ class BillZapApp extends ConsumerWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: themeMode,
+      // Stretch the default 200ms theme tween → 360ms with an ease curve so
+      // the dark/light switch reads as a deliberate transition rather than
+      // a hard cut. Scaffold, AppBar, dividers, switches, button themes
+      // and the BottomNav (which now reads from theme) all crossfade in
+      // lockstep.
+      themeAnimationDuration: const Duration(milliseconds: 360),
+      themeAnimationCurve: Curves.easeInOut,
       routerConfig: ref.watch(routerProvider),
       builder: (context, child) => MediaQuery(
         data: MediaQuery.of(context).copyWith(

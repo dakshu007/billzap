@@ -77,7 +77,7 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         iconTheme: IconThemeData(color: AppColors.t1),
-        backgroundColor: AppColors.card,
+        backgroundColor: AppColors.bg,
         title: Text(tr('prod.title', ref), style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
@@ -208,9 +208,10 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(context).viewInsets.bottom),
             child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+              // Theme-aware so the Add Product sheet flips with dark mode.
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20))),
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
               child: Column(
                 mainAxisSize: MainAxisSize.min,

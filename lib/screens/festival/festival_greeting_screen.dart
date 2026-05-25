@@ -194,7 +194,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
-        backgroundColor: AppColors.card,
+        backgroundColor: AppColors.bg,
         iconTheme: IconThemeData(color: AppColors.t1),
         title: Row(children: [
           Text(festival.emoji, style: const TextStyle(fontSize: 22)),

@@ -133,7 +133,7 @@ class _LockSetupState extends State<LockSetupScreen> {
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
-        backgroundColor: AppColors.card,
+        backgroundColor: AppColors.bg,
         iconTheme: IconThemeData(color: AppColors.t1),
         title: Text('Set up App Lock',
           style: GoogleFonts.plusJakartaSans(

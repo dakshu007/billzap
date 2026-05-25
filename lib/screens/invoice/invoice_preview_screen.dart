@@ -58,10 +58,15 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
       child: Scaffold(
         backgroundColor: AppColors.bg,
         appBar: AppBar(
-          backgroundColor: AppColors.card,
+          // Inherits appBarTheme.backgroundColor (now `bg` cream/dark) so
+          // the header joins the seamless scaffold tone.
           leading: IconButton(
             icon: Container(width: 34, height: 34,
-              decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(10)),
+              // Tiny inverse chip — uses the card surface so it stands
+              // proud of the bg-toned appbar.
+              decoration: BoxDecoration(color: AppColors.card,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.border)),
               child: Icon(Symbols.arrow_back, size: 19, color: AppColors.t1)),
             onPressed: () => context.go('/invoices')),
           title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -262,7 +267,9 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     final isPaid = invoice.status == InvoiceStatus.paid;
     return Container(
       padding: EdgeInsets.fromLTRB(14, 12, 14, MediaQuery.of(context).padding.bottom + 12),
-      decoration: BoxDecoration(color: Colors.white,
+      // Theme-aware so the bottom action bar (Paid / Share / PDF) flips
+      // with dark mode instead of staying white.
+      decoration: BoxDecoration(color: AppColors.card,
         border: Border(top: BorderSide(color: AppColors.border))),
       child: Row(children: [
         // Mark Paid / Paid badge takes the prime spot when actionable
@@ -320,8 +327,10 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     final isPaid = invoice.status == InvoiceStatus.paid;
     showModalBottomSheet(context: context, backgroundColor: Colors.transparent,
       builder: (_) => Container(
-        decoration: const BoxDecoration(color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        // Theme-aware: 3-dot options sheet (Edit / Download PDF / Print /
+        // WhatsApp / Mark Paid / Delete) now respects dark mode.
+        decoration: BoxDecoration(color: AppColors.card,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 36),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Container(width: 36, height: 4,
@@ -773,13 +782,16 @@ class _UpiPaymentCard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
+        // Gradient endpoint reads from theme so the panel flips with dark
+        // mode instead of fading into bright white forever.
         gradient: LinearGradient(
-          colors: [AppColors.brandSoft, Colors.white],
+          colors: [AppColors.brandSoft, AppColors.card],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.brand.withOpacity(0.25)),
+        border: Border.all(color: AppColors.brand.withOpacity(
+          AppColors.isDark ? 0.45 : 0.25)),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
@@ -802,7 +814,11 @@ class _UpiPaymentCard extends ConsumerWidget {
         const Gap(14),
         // QR + amount block
         Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-          // QR code with white background and rounded border
+          // QR code — **always** rendered dark-on-white regardless of
+          // theme. UPI scanners need high contrast; the previous build
+          // used AppColors.t1 (near-white in dark mode), which made the
+          // code unscannable. Hardcoded slate-900 + white is the
+          // foolproof combo.
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -815,12 +831,12 @@ class _UpiPaymentCard extends ConsumerWidget {
               version: QrVersions.auto,
               size: 110,
               backgroundColor: Colors.white,
-              eyeStyle: QrEyeStyle(
+              eyeStyle: const QrEyeStyle(
                 eyeShape: QrEyeShape.square,
-                color: AppColors.t1),
-              dataModuleStyle: QrDataModuleStyle(
+                color: Color(0xFF0F172A)),
+              dataModuleStyle: const QrDataModuleStyle(
                 dataModuleShape: QrDataModuleShape.square,
-                color: AppColors.t1),
+                color: Color(0xFF0F172A)),
             ),
           ),
           const Gap(14),
@@ -1017,8 +1033,9 @@ class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
   Widget build(BuildContext context) => Padding(
     padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
     child: Container(
-      decoration: const BoxDecoration(color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      // Theme-aware so the Edit Invoice sheet matches dark mode.
+      decoration: BoxDecoration(color: AppColors.card,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Container(width: 36, height: 4,

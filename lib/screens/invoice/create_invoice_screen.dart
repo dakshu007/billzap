@@ -122,7 +122,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
-        backgroundColor: AppColors.card,
+        backgroundColor: AppColors.bg,
         leading: IconButton(
           icon: Container(width: 34, height: 34,
             decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(10)),

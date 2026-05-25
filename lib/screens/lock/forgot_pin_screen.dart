@@ -100,7 +100,7 @@ class _ForgotPinState extends State<ForgotPinScreen> {
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
-        backgroundColor: AppColors.card,
+        backgroundColor: AppColors.bg,
         iconTheme: IconThemeData(color: AppColors.t1),
         title: Text('Reset PIN',
           style: GoogleFonts.plusJakartaSans(

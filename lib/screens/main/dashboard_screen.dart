@@ -65,7 +65,7 @@ class DashboardScreen extends ConsumerWidget {
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: AppColors.card,
+        backgroundColor: AppColors.bg,
         title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(tr('nav.home', ref), style: GoogleFonts.plusJakartaSans(
             fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),

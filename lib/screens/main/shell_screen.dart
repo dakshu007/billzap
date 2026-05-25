@@ -146,7 +146,9 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
 
   void _onPageChanged(int i) {
     if (i == _idx) return;
-    HapticFeedback.selectionClick();
+    // No haptic on swipe — the gesture itself is the feedback. Firing
+    // selectionClick on every page-change felt twitchy while flicking.
+    // Explicit tab *taps* (see _tapTab) still vibrate.
     setState(() => _idx = i);
     GoRouter.of(context).go(_pathFor(i));
   }
@@ -174,12 +176,12 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
       backgroundColor: AppColors.bg,
       // Plain PageView — no per-frame Transform/Scale/Opacity wrappers.
       // The previous build re-evaluated those for every page on every
-      // scroll tick (Opacity triggers `saveLayer`), which caused visible
-      // stutter on mid-range Android. Default page physics already give
-      // a buttery iOS-style swipe.
+      // scroll tick (Opacity triggers `saveLayer`), which was the source
+      // of the stutter. iOS-style bouncing physics gives a noticeably
+      // softer overshoot at the edges while still being silky to flick.
       body: PageView(
         controller: _pc,
-        physics: const PageScrollPhysics(parent: ClampingScrollPhysics()),
+        physics: const PageScrollPhysics(parent: BouncingScrollPhysics()),
         onPageChanged: _onPageChanged,
         children: _pages,
       ),
@@ -212,9 +214,15 @@ class _BmwNav extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
+    // AnimatedContainer so the cream→dark background lerps over the same
+    // window that the rest of the theme is animating in (see
+    // `themeAnimationDuration` in main.dart). Reads `AppColors.bg` rather
+    // than `card` so the footer joins the warm cream sweep in light mode.
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 360),
+      curve: Curves.easeInOut,
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: AppColors.bg,
         border: Border(
             top: BorderSide(color: AppColors.border, width: 0.5)),
         boxShadow: [

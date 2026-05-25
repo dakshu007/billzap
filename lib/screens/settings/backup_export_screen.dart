@@ -37,7 +37,7 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
-        backgroundColor: AppColors.card,
+        backgroundColor: AppColors.bg,
         iconTheme: IconThemeData(color: AppColors.t1),
         title: Text('Backup & Export',
           style: GoogleFonts.plusJakartaSans(

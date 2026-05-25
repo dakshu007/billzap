@@ -249,7 +249,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
-        backgroundColor: AppColors.card,
+        backgroundColor: AppColors.bg,
         leading: IconButton(
           icon: Container(
             width: 34, height: 34,
@@ -272,16 +272,18 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
         ],
       ),
       body: Column(children: [
-        // Top hint card
+        // Top hint card — gradient endpoint follows the theme so the
+        // 'Try: "For Ravi..."' tip is readable in dark mode.
         Container(
           margin: const EdgeInsets.fromLTRB(14, 14, 14, 0),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [AppColors.brandSoft, Colors.white],
+              colors: [AppColors.brandSoft, AppColors.card],
               begin: Alignment.topLeft, end: Alignment.bottomRight),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.brand.withOpacity(0.2)),
+            border: Border.all(color: AppColors.brand.withOpacity(
+              AppColors.isDark ? 0.4 : 0.2)),
           ),
           child: Row(children: [
             const Icon(Symbols.tips_and_updates, color: AppColors.brand, size: 22),
@@ -573,7 +575,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
   Widget _kvRow(IconData icon, String label, String value) => Container(
     padding: const EdgeInsets.all(10),
     decoration: BoxDecoration(
-      color: Colors.white, borderRadius: BorderRadius.circular(8)),
+      color: AppColors.card, borderRadius: BorderRadius.circular(8)),
     child: Row(children: [
       Icon(icon, size: 16, color: AppColors.t3),
       const Gap(8),

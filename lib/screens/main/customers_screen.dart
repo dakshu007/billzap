@@ -79,7 +79,7 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
-        backgroundColor: AppColors.card,
+        backgroundColor: AppColors.bg,
         leading: IconButton(
           icon: Icon(Symbols.arrow_back, color: AppColors.t1, size: 24),
           tooltip: trGlobal('common.cancel'),

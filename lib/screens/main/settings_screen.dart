@@ -30,7 +30,7 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: AppColors.card,
+        backgroundColor: AppColors.bg,
         title: Text(tr('set.title', ref), style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1))),
 
