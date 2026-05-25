@@ -115,7 +115,11 @@ class AppTheme {
           fontSize: 19, fontWeight: FontWeight.w900, color: t1),
         iconTheme: IconThemeData(color: t1),
       ),
-      cardTheme: CardThemeData(
+      // NOTE: Flutter 3.19 expects `CardTheme` here (renamed to
+      // `CardThemeData` only in 3.27+). Keep as CardTheme so the CI
+      // build (3.19.6) compiles.
+      // ignore: deprecated_member_use
+      cardTheme: CardTheme(
         color: card, elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
