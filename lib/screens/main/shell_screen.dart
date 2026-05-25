@@ -248,7 +248,7 @@ class _BmwNav extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.card,
-        border: const Border(
+        border: Border(
             top: BorderSide(color: AppColors.border, width: 0.5)),
         boxShadow: [
           BoxShadow(

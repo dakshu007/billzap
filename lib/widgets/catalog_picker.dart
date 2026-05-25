@@ -57,7 +57,7 @@ class CatalogPicker {
                 ),
               ),
               const Gap(10),
-              const Divider(height: 1, color: AppColors.border),
+              Divider(height: 1, color: AppColors.border),
               Expanded(
                 child: items.isEmpty
                     ? Center(
@@ -66,7 +66,7 @@ class CatalogPicker {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Symbols.inventory_2,
+                              Icon(Symbols.inventory_2,
                                   size: 48, color: AppColors.t4),
                               const Gap(10),
                               Text(trGlobal('cat.empty'),

@@ -287,7 +287,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         ],
                       ),
                     ),
-                    const Icon(Symbols.chevron_right,
+                    Icon(Symbols.chevron_right,
                         color: AppColors.t3, size: 22),
                   ]),
                 ),
@@ -359,7 +359,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               value: _state,
               isExpanded: true,
               underline: const SizedBox.shrink(),
-              icon: const Icon(Symbols.expand_more, color: AppColors.t3),
+              icon: Icon(Symbols.expand_more, color: AppColors.t3),
               style: GoogleFonts.plusJakartaSans(
                   fontSize: 14, color: AppColors.t1),
               items: _states
@@ -512,11 +512,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               fillColor: AppColors.card,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: AppColors.border),
+                borderSide: BorderSide(color: AppColors.border),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: AppColors.border),
+                borderSide: BorderSide(color: AppColors.border),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),

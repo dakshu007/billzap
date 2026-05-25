@@ -25,7 +25,7 @@ class ExpensesScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
-        iconTheme: const IconThemeData(color: AppColors.t1),
+        iconTheme: IconThemeData(color: AppColors.t1),
                 backgroundColor: AppColors.card,
         title: Text(tr('exp.title', ref), style: GoogleFonts.plusJakartaSans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
@@ -50,7 +50,7 @@ class ExpensesScreen extends ConsumerWidget {
         Expanded(
           child: expenses.isEmpty
             ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                const Icon(Symbols.payments, size: 48, color: AppColors.t4),
+                Icon(Symbols.payments, size: 48, color: AppColors.t4),
                 const Gap(10),
                 Text(tr('exp.no_expenses', ref), style: GoogleFonts.plusJakartaSans(
                   fontSize: 16, fontWeight: FontWeight.w800)),

@@ -250,6 +250,8 @@ const _en = <String, String>{
   'inv.try_diff_search': 'Try a different search',
   'inv.tap_plus_create': 'Tap + to create one',
   'inv.cancelled': 'Cancelled',
+  'inv.clear_filters': 'Clear',
+  'inv.swipe_delete_hint': 'Swipe left to delete',
   'set.change': 'Change',
   'set.about_billzap': 'About BillZap',
   'set.save_business': 'Save Business Profile',

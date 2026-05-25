@@ -105,7 +105,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         backgroundColor: AppColors.card,
-        iconTheme: const IconThemeData(color: AppColors.t1),
+        iconTheme: IconThemeData(color: AppColors.t1),
         title: Text('Day Close',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.t1)),
@@ -132,7 +132,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
           // ─── Date selector ───
           Row(children: [
             IconButton(
-              icon: const Icon(Symbols.chevron_left, color: AppColors.t2),
+              icon: Icon(Symbols.chevron_left, color: AppColors.t2),
               onPressed: () {
                 setState(() => _selectedDate = _selectedDate.subtract(const Duration(days: 1)));
               },
@@ -146,7 +146,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
                   fontSize: 11, color: AppColors.t3)),
             ]))),
             IconButton(
-              icon: const Icon(Symbols.chevron_right, color: AppColors.t2),
+              icon: Icon(Symbols.chevron_right, color: AppColors.t2),
               onPressed: isToday ? null : () {
                 setState(() => _selectedDate = _selectedDate.add(const Duration(days: 1)));
               },
@@ -198,7 +198,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
           if (paid.isEmpty && expenses.isEmpty) ...[
             const Gap(40),
             Center(child: Column(children: [
-              const Icon(Symbols.point_of_sale, size: 56, color: AppColors.t4),
+              Icon(Symbols.point_of_sale, size: 56, color: AppColors.t4),
               const Gap(12),
               Text('No transactions ${isToday ? "today" : "on this day"} yet',
                 style: GoogleFonts.plusJakartaSans(

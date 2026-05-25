@@ -38,7 +38,7 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         backgroundColor: AppColors.card,
-        iconTheme: const IconThemeData(color: AppColors.t1),
+        iconTheme: IconThemeData(color: AppColors.t1),
         title: Text('Backup & Export',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.t1)),

@@ -195,7 +195,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         backgroundColor: AppColors.card,
-        iconTheme: const IconThemeData(color: AppColors.t1),
+        iconTheme: IconThemeData(color: AppColors.t1),
         title: Row(children: [
           Text(festival.emoji, style: const TextStyle(fontSize: 22)),
           const Gap(8),
@@ -319,7 +319,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
           if (withPhone.isEmpty) ...[
             const Gap(20),
             Center(child: Column(children: [
-              const Icon(Symbols.person_off, size: 48, color: AppColors.t4),
+              Icon(Symbols.person_off, size: 48, color: AppColors.t4),
               const Gap(8),
               Text('No customers with phone numbers',
                 style: GoogleFonts.plusJakartaSans(
@@ -412,7 +412,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
               color: AppColors.bg,
               borderRadius: BorderRadius.circular(8)),
             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Icon(Symbols.info, size: 14, color: AppColors.t3),
+              Icon(Symbols.info, size: 14, color: AppColors.t3),
               const Gap(8),
               Expanded(child: Text(
                 'WhatsApp will open one customer at a time. Tap Send in WhatsApp, then return — the next will open automatically.',

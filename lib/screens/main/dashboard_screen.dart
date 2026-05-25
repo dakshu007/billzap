@@ -140,7 +140,10 @@ class DashboardScreen extends ConsumerWidget {
           GridView.count(
             crossAxisCount: 2, shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 1.55,
+            crossAxisSpacing: 10, mainAxisSpacing: 10,
+            // Slightly taller cards so values can wrap onto a 2nd line when
+            // the device is using large-font accessibility settings.
+            childAspectRatio: 1.38,
             children: [
               _StatCard(
                 tr('dash.revenue', ref),
@@ -325,15 +328,25 @@ class _StatCard extends StatelessWidget {
         decoration: BoxDecoration(color: soft, borderRadius: BorderRadius.circular(8)),
         child: Icon(icon, size: 17, color: color)),
       const Gap(6),
-      Text(label, style: GoogleFonts.plusJakartaSans(
-        fontSize: 10.5, color: AppColors.t3, fontWeight: FontWeight.w600)),
+      Text(label,
+        maxLines: 1, overflow: TextOverflow.ellipsis,
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 10.5, color: AppColors.t3, fontWeight: FontWeight.w600)),
       const Gap(1),
-      Text(value, style: GoogleFonts.plusJakartaSans(
-        fontSize: 17, fontWeight: FontWeight.w900, color: AppColors.t1),
-        maxLines: 1, overflow: TextOverflow.ellipsis),
-      Text(sub, style: GoogleFonts.plusJakartaSans(
-        fontSize: 10, color: AppColors.t3),
-        maxLines: 1, overflow: TextOverflow.ellipsis),
+      // Auto-shrink to fit large amounts (and stay readable when
+      // accessibility text scaling is on).
+      FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: Text(value,
+          maxLines: 1,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 17, fontWeight: FontWeight.w900, color: AppColors.t1)),
+      ),
+      Text(sub,
+        maxLines: 2, overflow: TextOverflow.ellipsis,
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 10, color: AppColors.t3, height: 1.2)),
     ]),
   );
 }
@@ -442,7 +455,7 @@ class _EmptyInvoice extends ConsumerWidget {
       borderRadius: BorderRadius.circular(14),
       border: Border.all(color: AppColors.border)),
     child: Column(children: [
-      const Icon(Symbols.receipt_long, size: 44, color: AppColors.t4),
+      Icon(Symbols.receipt_long, size: 44, color: AppColors.t4),
       const Gap(10),
       Text(tr('dash.no_invoices', ref), style: GoogleFonts.plusJakartaSans(
         fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1)),

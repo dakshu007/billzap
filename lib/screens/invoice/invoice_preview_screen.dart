@@ -62,7 +62,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           leading: IconButton(
             icon: Container(width: 34, height: 34,
               decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(10)),
-              child: const Icon(Symbols.arrow_back, size: 19, color: AppColors.t1)),
+              child: Icon(Symbols.arrow_back, size: 19, color: AppColors.t1)),
             onPressed: () => context.go('/invoices')),
           title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('Invoice Preview', style: GoogleFonts.plusJakartaSans(
@@ -75,7 +75,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                 icon: const Icon(Symbols.edit, color: AppColors.brand),
                 onPressed: () => _editInvoice(context, invoice)),
             IconButton(
-              icon: const Icon(Symbols.more_vert, color: AppColors.t1),
+              icon: Icon(Symbols.more_vert, color: AppColors.t1),
               onPressed: () => _moreOptions(invoice, biz)),
           ],
         ),
@@ -258,33 +258,63 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     );
   }
 
-  Widget _buildBottomBar(Invoice invoice, Business? biz) => Container(
-    padding: EdgeInsets.fromLTRB(14, 12, 14, MediaQuery.of(context).padding.bottom + 12),
-    decoration: const BoxDecoration(color: Colors.white,
-      border: Border(top: BorderSide(color: AppColors.border))),
-    child: Row(children: [
-      Expanded(flex: 2, child: ElevatedButton.icon(
-        onPressed: () => _sendWhatsApp(invoice, biz),
-        icon: const Icon(Symbols.chat, size: 18),
-        label: Text('WhatsApp', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 14)),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF25D366), foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))))),
-      const Gap(10),
-      Expanded(child: ElevatedButton.icon(
-        onPressed: _pdfLoading ? null : () => _downloadPdf(invoice, biz),
-        icon: _pdfLoading
-          ? const SizedBox(width: 16, height: 16,
-              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-          : const Icon(Symbols.picture_as_pdf, size: 18),
-        label: Text('PDF', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 14)),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.brand, foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))))),
-    ]),
-  );
+  Widget _buildBottomBar(Invoice invoice, Business? biz) {
+    final isPaid = invoice.status == InvoiceStatus.paid;
+    return Container(
+      padding: EdgeInsets.fromLTRB(14, 12, 14, MediaQuery.of(context).padding.bottom + 12),
+      decoration: BoxDecoration(color: Colors.white,
+        border: Border(top: BorderSide(color: AppColors.border))),
+      child: Row(children: [
+        // Mark Paid / Paid badge takes the prime spot when actionable
+        if (!isPaid)
+          Expanded(child: ElevatedButton.icon(
+            onPressed: () => _markPaid(invoice),
+            icon: const Icon(Symbols.check_circle, size: 18),
+            label: Text('Paid', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 14)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.green, foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)))))
+        else
+          Expanded(child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            decoration: BoxDecoration(
+              color: AppColors.greenSoft,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.green.withOpacity(0.3)),
+            ),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Icon(Symbols.check_circle, color: AppColors.green, size: 18),
+              const Gap(6),
+              Text('Paid',
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w800, fontSize: 14, color: AppColors.green)),
+            ]),
+          )),
+        const Gap(10),
+        Expanded(child: ElevatedButton.icon(
+          onPressed: () => _sendWhatsApp(invoice, biz),
+          icon: const Icon(Symbols.chat, size: 18),
+          label: Text('Share', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 14)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF25D366), foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))))),
+        const Gap(10),
+        Expanded(child: ElevatedButton.icon(
+          onPressed: _pdfLoading ? null : () => _downloadPdf(invoice, biz),
+          icon: _pdfLoading
+            ? const SizedBox(width: 16, height: 16,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+            : const Icon(Symbols.picture_as_pdf, size: 18),
+          label: Text('PDF', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 14)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.brand, foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))))),
+      ]),
+    );
+  }
 
   void _moreOptions(Invoice invoice, Business? biz) {
     final isPaid = invoice.status == InvoiceStatus.paid;
@@ -785,10 +815,10 @@ class _UpiPaymentCard extends ConsumerWidget {
               version: QrVersions.auto,
               size: 110,
               backgroundColor: Colors.white,
-              eyeStyle: const QrEyeStyle(
+              eyeStyle: QrEyeStyle(
                 eyeShape: QrEyeShape.square,
                 color: AppColors.t1),
-              dataModuleStyle: const QrDataModuleStyle(
+              dataModuleStyle: QrDataModuleStyle(
                 dataModuleShape: QrDataModuleShape.square,
                 color: AppColors.t1),
             ),
@@ -843,7 +873,7 @@ class _UpiPaymentCard extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              const Icon(Symbols.content_copy, size: 13, color: AppColors.t3),
+              Icon(Symbols.content_copy, size: 13, color: AppColors.t3),
               const Gap(6),
               Text('Copy UPI link',
                 style: GoogleFonts.plusJakartaSans(
@@ -1045,7 +1075,7 @@ class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
         decoration: BoxDecoration(border: Border.all(color: AppColors.border),
           borderRadius: BorderRadius.circular(10)),
         child: Row(children: [
-          const Icon(Symbols.calendar_today, size: 14, color: AppColors.t3),
+          Icon(Symbols.calendar_today, size: 14, color: AppColors.t3),
           const Gap(6),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.t3)),

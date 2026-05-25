@@ -101,7 +101,7 @@ class _ForgotPinState extends State<ForgotPinScreen> {
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         backgroundColor: AppColors.card,
-        iconTheme: const IconThemeData(color: AppColors.t1),
+        iconTheme: IconThemeData(color: AppColors.t1),
         title: Text('Reset PIN',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.t1)),
@@ -374,7 +374,7 @@ class _PadCompact extends StatelessWidget {
     width: 64, height: 64,
     child: Material(
       color: AppColors.card,
-      shape: const CircleBorder(side: BorderSide(color: AppColors.border)),
+      shape: CircleBorder(side: BorderSide(color: AppColors.border)),
       child: InkWell(
         onTap: () => onDigit(d),
         customBorder: const CircleBorder(),
@@ -393,7 +393,7 @@ class _PadCompact extends StatelessWidget {
       child: InkWell(
         onTap: onBack,
         customBorder: const CircleBorder(),
-        child: const Center(child: Icon(Symbols.backspace, size: 24, color: AppColors.t2)),
+        child: Center(child: Icon(Symbols.backspace, size: 24, color: AppColors.t2)),
       ),
     ),
   );

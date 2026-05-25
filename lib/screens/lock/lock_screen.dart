@@ -234,7 +234,7 @@ class _NumberPad extends StatelessWidget {
       width: 70, height: 70,
       child: Material(
         color: AppColors.card,
-        shape: const CircleBorder(side: BorderSide(color: AppColors.border)),
+        shape: CircleBorder(side: BorderSide(color: AppColors.border)),
         elevation: 0,
         child: InkWell(
           onTap: () => onDigit(d),
@@ -257,7 +257,7 @@ class _NumberPad extends StatelessWidget {
         child: InkWell(
           onTap: onBackspace,
           customBorder: const CircleBorder(),
-          child: const Center(child: Icon(Symbols.backspace,
+          child: Center(child: Icon(Symbols.backspace,
             size: 26, color: AppColors.t2)),
         ),
       ),

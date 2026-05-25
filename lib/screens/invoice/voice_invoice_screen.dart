@@ -25,6 +25,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
   bool _speechAvailable = false;
   bool _listening = false;
   String _transcript = '';
+  String? _speechError;
   ParsedInvoice? _parsed;
   late final AnimationController _pulseCtrl;
   String _selectedLocaleId = 'en_IN';
@@ -76,7 +77,10 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
       _speechAvailable = await _speech.initialize(
         onError: (e) {
           if (mounted) {
-            setState(() => _listening = false);
+            setState(() {
+              _listening = false;
+              _speechError = e.errorMsg;
+            });
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Speech error: ${e.errorMsg}'),
@@ -142,6 +146,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
         _transcript = '';
         _parsed = null;
         _listening = true;
+        _speechError = null;
       });
       await _speech.listen(
         onResult: (result) {
@@ -250,7 +255,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
             width: 34, height: 34,
             decoration: BoxDecoration(
               color: AppColors.bg, borderRadius: BorderRadius.circular(10)),
-            child: const Icon(Symbols.close, size: 19, color: AppColors.t1)),
+            child: Icon(Symbols.close, size: 19, color: AppColors.t1)),
           onPressed: () => context.go('/home')),
         title: Text('Voice Invoice',
           style: GoogleFonts.plusJakartaSans(
@@ -287,6 +292,50 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                 fontSize: 12.5, color: AppColors.t2, height: 1.4))),
           ]),
         ),
+
+        // Inline error card (visible until user retries)
+        if (_speechError != null && !_listening)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.redSoft,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.red.withOpacity(0.3)),
+              ),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Icon(Symbols.error, size: 20, color: AppColors.red),
+                const Gap(10),
+                Expanded(child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text("Couldn't capture audio",
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13.5, fontWeight: FontWeight.w800,
+                        color: AppColors.t1)),
+                    const Gap(2),
+                    Text(_speechError!,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5, color: AppColors.t3)),
+                ])),
+                TextButton.icon(
+                  onPressed: () {
+                    setState(() => _speechError = null);
+                    _toggleListening();
+                  },
+                  icon: const Icon(Symbols.refresh, size: 16),
+                  label: Text('Retry',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12, fontWeight: FontWeight.w800)),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.red,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: const Size(0, 32),
+                  ),
+                ),
+              ]),
+            ),
+          ),
 
         // Main content
         Expanded(
@@ -366,7 +415,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                   ),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Row(children: [
-                      const Icon(Symbols.hearing, size: 16, color: AppColors.t3),
+                      Icon(Symbols.hearing, size: 16, color: AppColors.t3),
                       const Gap(6),
                       Text('I heard:',
                         style: GoogleFonts.plusJakartaSans(
@@ -463,7 +512,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.t2,
                       padding: const EdgeInsets.symmetric(vertical: 13),
-                      side: const BorderSide(color: AppColors.border),
+                      side: BorderSide(color: AppColors.border),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11))),
                   )),
                   const Gap(10),
@@ -513,7 +562,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
   Widget _tip(String text) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 4),
     child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Padding(
+      Padding(
         padding: EdgeInsets.only(top: 5),
         child: Icon(Symbols.fiber_manual_record, size: 6, color: AppColors.t3)),
       const Gap(8),

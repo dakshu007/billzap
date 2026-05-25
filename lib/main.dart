@@ -7,6 +7,7 @@ import 'services/local_storage.dart';
 import 'services/app_lock_service.dart';
 import 'widgets/app_lock_gate.dart';
 import 'theme/app_theme.dart';
+import 'providers/theme_provider.dart';
 import 'router/app_router.dart';
 import 'i18n/translations.dart';
 
@@ -16,13 +17,11 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.dark,
-  ));
   await Hive.initFlutter();
   await LocalStorage.instance.init();
   await AppLockService.instance.init();
+  // Pre-open settings box so theme + language can read synchronously.
+  try { await Hive.openBox('settings'); } catch (_) {}
   // Initialize multilang cache
   try { initGlobalLanguage(); } catch (_) {}
 
@@ -31,12 +30,32 @@ void main() async {
 
 class BillZapApp extends ConsumerWidget {
   const BillZapApp({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+    final platform  = MediaQuery.platformBrightnessOf(context);
+    final brightness = brightnessFor(themeMode, platform);
+    // Make sure the static AppColors palette matches the theme that
+    // MaterialApp is about to paint. Custom widgets read these tokens
+    // directly, so they need to be in sync with `themeMode`.
+    syncAppColors(brightness);
+
+    final isDark = brightness == Brightness.dark;
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      systemNavigationBarColor: AppColors.bg,
+      systemNavigationBarIconBrightness:
+        isDark ? Brightness.light : Brightness.dark,
+    ));
+
     return MaterialApp.router(
       title: 'BillZap',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: themeMode,
       routerConfig: ref.watch(routerProvider),
       builder: (context, child) => MediaQuery(
         data: MediaQuery.of(context).copyWith(

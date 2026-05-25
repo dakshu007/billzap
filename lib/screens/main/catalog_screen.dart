@@ -95,7 +95,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.card,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.t1),
+        iconTheme: IconThemeData(color: AppColors.t1),
         title: Text(trGlobal('cat.title'),
             style: GoogleFonts.plusJakartaSans(
                 fontSize: 19,
@@ -185,7 +185,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   Widget _empty() {
     return Center(
       child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const Icon(Symbols.inventory_2, size: 56, color: AppColors.t4),
+        Icon(Symbols.inventory_2, size: 56, color: AppColors.t4),
         const Gap(12),
         Text(trGlobal('cat.empty'),
             style: GoogleFonts.plusJakartaSans(

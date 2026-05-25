@@ -264,7 +264,7 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
               const Spacer(),
               IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Symbols.close, color: AppColors.t2)),
+                icon: Icon(Symbols.close, color: AppColors.t2)),
             ]),
           ),
           const Divider(height: 1),
@@ -474,7 +474,7 @@ class _ReportRow extends StatelessWidget {
                 fontSize: 12.5, fontWeight: FontWeight.w800, color: AppColors.brand)),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 9),
-              side: const BorderSide(color: AppColors.border),
+              side: BorderSide(color: AppColors.border),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
           )),
           const Gap(8),
@@ -486,7 +486,7 @@ class _ReportRow extends StatelessWidget {
                 fontSize: 12.5, fontWeight: FontWeight.w800, color: AppColors.green)),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 9),
-              side: const BorderSide(color: AppColors.border),
+              side: BorderSide(color: AppColors.border),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
           )),
         ]),

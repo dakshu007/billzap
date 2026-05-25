@@ -12,7 +12,9 @@ import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../i18n/translations.dart';
+import '../../utils/validators.dart';
 import '../../widgets/language_picker.dart';
+import '../../providers/theme_provider.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -61,7 +63,7 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
                   fontSize: 11.5,
                   color: AppLockService.instance.isEnabled ? AppColors.green : AppColors.t3,
                   fontWeight: AppLockService.instance.isEnabled ? FontWeight.w700 : FontWeight.w500)),
-              trailing: const Icon(Symbols.chevron_right, color: AppColors.t3),
+              trailing: Icon(Symbols.chevron_right, color: AppColors.t3),
               onTap: () async {
                 HapticFeedback.lightImpact();
                 if (AppLockService.instance.isEnabled) {
@@ -156,6 +158,7 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
   late final TextEditingController _name, _gstin, _phone, _email, _addr, _city, _pin;
   String _state = 'Tamil Nadu';
   bool _saving = false;
+  String? _gstinErr, _phoneErr, _emailErr, _pinErr;
 
   @override
   void initState() {
@@ -169,6 +172,10 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
     _city  = TextEditingController(text: b?.city ?? '');
     _pin   = TextEditingController(text: b?.pincode ?? '');
     _state = b?.state ?? 'Tamil Nadu';
+    _gstinErr = Validators.gstin(_gstin.text);
+    _phoneErr = Validators.phone(_phone.text);
+    _emailErr = Validators.email(_email.text);
+    _pinErr   = Validators.pincode(_pin.text);
   }
 
   @override
@@ -211,20 +218,29 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
         children: [
           _Sec(tr('set.business_profile', ref)),
           _F(tr('set.business_name', ref) + ' *', _name, hint: 'e.g. Ravi Electronics'),
-          _F(tr('cust.gstin', ref), _gstin, hint: '33RAAAA1234B1Z5', caps: true),
+          _F(tr('cust.gstin', ref), _gstin,
+            hint: '33RAAAA1234B1Z5', caps: true,
+            errorText: _gstinErr,
+            onChanged: (v) => setState(() => _gstinErr = Validators.gstin(v))),
           Row(children: [
             Expanded(child: _F(tr('cust.phone', ref), _phone,
-              hint: '+91 98765 43210', type: TextInputType.phone)),
+              hint: '+91 98765 43210', type: TextInputType.phone,
+              errorText: _phoneErr,
+              onChanged: (v) => setState(() => _phoneErr = Validators.phone(v)))),
             const Gap(10),
             Expanded(child: _F(tr('cust.email', ref), _email,
-              hint: 'you@email.com', type: TextInputType.emailAddress)),
+              hint: 'you@email.com', type: TextInputType.emailAddress,
+              errorText: _emailErr,
+              onChanged: (v) => setState(() => _emailErr = Validators.email(v)))),
           ]),
           _F(tr('cust.address', ref), _addr, hint: 'Street, Area'),
           Row(children: [
             Expanded(child: _F(tr('set.city', ref), _city, hint: 'Coimbatore')),
             const Gap(10),
             Expanded(child: _F(tr('set.pincode', ref), _pin,
-              hint: '641001', type: TextInputType.number, max: 6)),
+              hint: '641001', type: TextInputType.number, max: 6,
+              errorText: _pinErr,
+              onChanged: (v) => setState(() => _pinErr = Validators.pincode(v)))),
           ]),
           _Label(tr('set.state', ref)),
           DropdownButtonFormField<String>(
@@ -234,7 +250,7 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
                 borderRadius: BorderRadius.circular(10)),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: AppColors.border)),
+                borderSide: BorderSide(color: AppColors.border)),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 14, vertical: 13)),
             items: dropdownItems,
@@ -253,6 +269,13 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
         backgroundColor: AppColors.red));
       return;
     }
+    if (_gstinErr != null || _phoneErr != null ||
+        _emailErr != null || _pinErr != null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Fix the highlighted fields first'),
+        backgroundColor: AppColors.red));
+      return;
+    }
     setState(() => _saving = true);
     try {
       final b = (ref.read(businessProvider) ?? Business()).copyWith(
@@ -263,6 +286,7 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
         pincode: _pin.text.trim());
       await ref.read(businessProvider.notifier).save(b);
       if (!mounted) return;
+      HapticFeedback.lightImpact();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(trGlobal('common.saved')),
         backgroundColor: AppColors.green));
@@ -285,6 +309,7 @@ class _BankPanel extends ConsumerStatefulWidget {
 class _BankPanelState extends ConsumerState<_BankPanel> {
   late final TextEditingController _bank, _acc, _ifsc, _upi;
   bool _saving = false;
+  String? _ifscErr, _upiErr;
 
   @override
   void initState() {
@@ -294,6 +319,8 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
     _acc  = TextEditingController(text: b?.accountNumber ?? '');
     _ifsc = TextEditingController(text: b?.ifscCode ?? '');
     _upi  = TextEditingController(text: b?.upiId ?? '');
+    _ifscErr = Validators.ifsc(_ifsc.text);
+    _upiErr  = Validators.upi(_upi.text);
   }
 
   @override
@@ -310,10 +337,14 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
         _Sec(tr('set.bank_details', ref)),
         _F(tr('set.bank_name', ref), _bank, hint: 'State Bank of India'),
         _F(tr('set.account_number', ref), _acc, hint: '1234567890', type: TextInputType.number),
-        _F(tr('set.ifsc', ref), _ifsc, hint: 'SBIN0001234', caps: true),
+        _F(tr('set.ifsc', ref), _ifsc, hint: 'SBIN0001234', caps: true,
+          errorText: _ifscErr,
+          onChanged: (v) => setState(() => _ifscErr = Validators.ifsc(v))),
         const Gap(8),
         _Sec('UPI'),
-        _F(tr('set.upi_id', ref), _upi, hint: 'business@upi'),
+        _F(tr('set.upi_id', ref), _upi, hint: 'business@upi',
+          errorText: _upiErr,
+          onChanged: (v) => setState(() => _upiErr = Validators.upi(v))),
         const Gap(20),
         SizedBox(
           width: double.infinity,
@@ -331,6 +362,12 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
   }
 
   Future<void> _save() async {
+    if (_ifscErr != null || _upiErr != null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Fix the highlighted fields first'),
+        backgroundColor: AppColors.red));
+      return;
+    }
     setState(() => _saving = true);
     try {
       final b = (ref.read(businessProvider) ?? Business()).copyWith(
@@ -338,6 +375,7 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
         ifscCode: _ifsc.text.trim().toUpperCase(), upiId: _upi.text.trim());
       await ref.read(businessProvider.notifier).save(b);
       if (!mounted) return;
+      HapticFeedback.lightImpact();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(trGlobal('common.saved')),
         backgroundColor: AppColors.green));
@@ -390,7 +428,7 @@ class _InvoicePanelState extends ConsumerState<_InvoicePanel> {
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.border)),
+              borderSide: BorderSide(color: AppColors.border)),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: const BorderSide(color: AppColors.brand, width: 1.5)),
@@ -502,13 +540,18 @@ class _AboutPanel extends ConsumerWidget {
                         fontWeight: FontWeight.w700,
                         color: AppColors.brand))),
                   const Gap(4),
-                  const Icon(Symbols.chevron_right,
+                  Icon(Symbols.chevron_right,
                     color: AppColors.t3, size: 22),
                 ]),
               ),
             ),
           ),
         ),
+
+        // ═════════════════════════════════════════════════
+        // THEME TILE — light / dark / system
+        // ═════════════════════════════════════════════════
+        _ThemeTile(),
 
         // ═════════════════════════════════════════════════
         // BACKUP & EXPORT TILE
@@ -555,7 +598,7 @@ class _AboutPanel extends ConsumerWidget {
                           fontSize: 12,
                           color: AppColors.t3)),
                     ])),
-                  const Icon(Symbols.chevron_right,
+                  Icon(Symbols.chevron_right,
                     color: AppColors.t3, size: 22),
                 ]),
               ),
@@ -590,6 +633,154 @@ class _AboutPanel extends ConsumerWidget {
               style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t4)),
           ])),
       ]));
+  }
+}
+
+class _ThemeTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mode = ref.watch(themeModeProvider);
+    String label;
+    IconData icon;
+    switch (mode) {
+      case ThemeMode.dark:
+        label = 'Dark';
+        icon = Symbols.dark_mode;
+        break;
+      case ThemeMode.light:
+        label = 'Light';
+        icon = Symbols.light_mode;
+        break;
+      case ThemeMode.system:
+        label = 'System default';
+        icon = Symbols.brightness_auto;
+        break;
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border)),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: () => _pickMode(context, ref, mode),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            child: Row(children: [
+              Container(
+                width: 42, height: 42,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF334155), Color(0xFF0F172A)],
+                    begin: Alignment.topLeft, end: Alignment.bottomRight),
+                  borderRadius: BorderRadius.circular(11)),
+                child: Icon(icon, color: Colors.white, size: 22),
+              ),
+              const Gap(12),
+              Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('Theme',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14.5, fontWeight: FontWeight.w800,
+                      color: AppColors.t1)),
+                  const Gap(2),
+                  Text(label,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12, color: AppColors.t3)),
+                ])),
+              Icon(Symbols.chevron_right, color: AppColors.t3, size: 22),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _pickMode(BuildContext context, WidgetRef ref, ThemeMode current) {
+    HapticFeedback.lightImpact();
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(width: 36, height: 4,
+            decoration: BoxDecoration(
+              color: AppColors.border,
+              borderRadius: BorderRadius.circular(99))),
+          const Gap(14),
+          Text('Choose theme',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 16, fontWeight: FontWeight.w800,
+              color: AppColors.t1)),
+          const Gap(8),
+          _ThemeOption(
+            icon: Symbols.brightness_auto, label: 'System default',
+            sub: 'Match phone setting',
+            selected: current == ThemeMode.system,
+            onTap: () { ref.read(themeModeProvider.notifier).set(ThemeMode.system); Navigator.pop(ctx); }),
+          _ThemeOption(
+            icon: Symbols.light_mode, label: 'Light',
+            sub: 'Always bright',
+            selected: current == ThemeMode.light,
+            onTap: () { ref.read(themeModeProvider.notifier).set(ThemeMode.light); Navigator.pop(ctx); }),
+          _ThemeOption(
+            icon: Symbols.dark_mode, label: 'Dark',
+            sub: 'Easy on the eyes • saves battery',
+            selected: current == ThemeMode.dark,
+            onTap: () { ref.read(themeModeProvider.notifier).set(ThemeMode.dark); Navigator.pop(ctx); }),
+        ]),
+      ),
+    );
+  }
+}
+
+class _ThemeOption extends StatelessWidget {
+  final IconData icon;
+  final String label, sub;
+  final bool selected;
+  final VoidCallback onTap;
+  const _ThemeOption({
+    required this.icon, required this.label, required this.sub,
+    required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+        child: Row(children: [
+          Container(
+            width: 36, height: 36,
+            decoration: BoxDecoration(
+              color: selected ? AppColors.brandSoft : AppColors.bg,
+              borderRadius: BorderRadius.circular(9)),
+            child: Icon(icon, size: 20,
+              color: selected ? AppColors.brand : AppColors.t3),
+          ),
+          const Gap(12),
+          Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(label, style: GoogleFonts.plusJakartaSans(
+                fontSize: 14, fontWeight: FontWeight.w700,
+                color: AppColors.t1)),
+              Text(sub, style: GoogleFonts.plusJakartaSans(
+                fontSize: 11.5, color: AppColors.t3)),
+            ])),
+          if (selected)
+            const Icon(Symbols.check_circle, color: AppColors.brand, size: 20),
+        ]),
+      ),
+    );
   }
 }
 
@@ -629,7 +820,8 @@ Widget _Label(String t) {
 }
 
 Widget _F(String label, TextEditingController ctrl,
-    {String? hint, TextInputType? type, bool caps = false, int? max}) {
+    {String? hint, TextInputType? type, bool caps = false, int? max,
+    String? errorText, ValueChanged<String>? onChanged}) {
   return Padding(
     padding: const EdgeInsets.only(bottom: 12),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -638,16 +830,18 @@ Widget _F(String label, TextEditingController ctrl,
         controller: ctrl,
         keyboardType: type,
         maxLength: max,
+        onChanged: onChanged,
         textCapitalization: caps
           ? TextCapitalization.characters
           : TextCapitalization.sentences,
         decoration: InputDecoration(
           hintText: hint,
           counterText: '',
+          errorText: errorText,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: AppColors.border)),
+            borderSide: BorderSide(color: AppColors.border)),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(color: AppColors.brand, width: 1.5)),

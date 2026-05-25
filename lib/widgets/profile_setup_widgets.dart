@@ -252,7 +252,7 @@ class ProfileIncompleteBanner extends ConsumerWidget {
             ),
           ])),
           const Gap(8),
-          const Icon(Symbols.chevron_right, color: AppColors.t3, size: 22),
+          Icon(Symbols.chevron_right, color: AppColors.t3, size: 22),
         ]),
       ),
     );
