@@ -199,10 +199,10 @@ class DashboardScreen extends ConsumerWidget {
                 const Gap(13),
                 Expanded(child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('Day Close',
+                    Text(tr('dash.day_close', ref),
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
-                    Text('Today\'s collections by Cash, UPI, Bank',
+                    Text(tr('dash.day_close_sub', ref),
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11.5, color: Colors.white.withOpacity(0.85))),
                   ]),
@@ -239,11 +239,11 @@ class DashboardScreen extends ConsumerWidget {
                 Expanded(child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Voice Bill',
+                    Text(tr('dash.voice_bill', ref),
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 16, fontWeight: FontWeight.w900,
                         color: Colors.white)),
-                    Text('Speak to create invoices in your language',
+                    Text(tr('dash.voice_bill_sub', ref),
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11.5, color: Colors.white.withOpacity(0.85))),
                   ]),

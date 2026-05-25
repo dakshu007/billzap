@@ -66,14 +66,16 @@ class AppColors {
 
   // Light defaults (also used as fallback). Light bg is a warm cream so
   // the white card surfaces pop against it (#F6F2E9 — requested tone).
+  // Text tokens were deepened from the previous cool-slate values so they
+  // contrast properly on the cream bg (the old t3/t4 looked washed out).
   static const _lightBg         = Color(0xFFF6F2E9);
   static const _lightCard       = Color(0xFFFFFFFF);
-  static const _lightT1         = Color(0xFF0F172A);
-  static const _lightT2         = Color(0xFF334155);
-  static const _lightT3         = Color(0xFF64748B);
-  static const _lightT4         = Color(0xFFCBD5E1);
-  static const _lightBorder     = Color(0xFFE2E8F5);
-  static const _lightBorderDark = Color(0xFFCBD5E1);
+  static const _lightT1         = Color(0xFF0A1426); // near-black navy
+  static const _lightT2         = Color(0xFF253349); // deep slate (was 0xFF334155)
+  static const _lightT3         = Color(0xFF4A5773); // muted slate (was 0xFF64748B — too light)
+  static const _lightT4         = Color(0xFF8290AC); // disabled / hint (was 0xFFCBD5E1 — invisible on cream)
+  static const _lightBorder     = Color(0xFFE0DBCD); // warm border that fits cream bg
+  static const _lightBorderDark = Color(0xFFC2BBA5);
 
   // Dark equivalents (tuned for AMOLED-friendly low-glare contrast)
   static const _darkBg         = Color(0xFF0A1118);

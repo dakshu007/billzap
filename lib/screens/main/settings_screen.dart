@@ -2,6 +2,7 @@
 // Fully translated + Language picker tile in About panel
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../services/app_lock_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,70 +37,8 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
 
 
       body: Column(children: [
-
-          // 🔒 App Lock
-          Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.border)),
-            child: ListTile(
-              leading: Container(
-                width: 38, height: 38,
-                decoration: BoxDecoration(
-                  color: AppColors.brandSoft,
-                  borderRadius: BorderRadius.circular(10)),
-                child: const Icon(Symbols.lock, color: AppColors.brand, size: 20),
-              ),
-              title: Text('App Lock',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14.5, fontWeight: FontWeight.w800, color: AppColors.t1)),
-              subtitle: Text(
-                AppLockService.instance.isEnabled
-                  ? 'Enabled${AppLockService.instance.isBiometricEnabled ? " — PIN + Fingerprint" : " — PIN only"}'
-                  : 'Lock app with PIN or fingerprint',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11.5,
-                  color: AppLockService.instance.isEnabled ? AppColors.green : AppColors.t3,
-                  fontWeight: AppLockService.instance.isEnabled ? FontWeight.w700 : FontWeight.w500)),
-              trailing: Icon(Symbols.chevron_right, color: AppColors.t3),
-              onTap: () async {
-                HapticFeedback.lightImpact();
-                if (AppLockService.instance.isEnabled) {
-                  final confirm = await showDialog<bool>(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: Text('Disable App Lock?',
-                        style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w900)),
-                      content: const Text(
-                        'Your data will no longer require a PIN to access.'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx, false),
-                          child: const Text('Cancel')),
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx, true),
-                          child: const Text('Disable',
-                            style: TextStyle(color: AppColors.red))),
-                      ],
-                    ),
-                  );
-                  if (confirm == true) {
-                    await AppLockService.instance.disableLock();
-                    if (context.mounted) {
-                      setState(() {});
-                    }
-                  }
-                } else {
-                  final result = await context.push('/lock-setup');
-                  if (result == true && context.mounted) {
-                    setState(() {});
-                  }
-                }
-              },
-            ),
-          ),
+        // (App Lock moved into the About tab — keeps the Me header clean
+        //  and groups it with the rest of the security/info settings.)
         Container(
           color: AppColors.card,
           padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
@@ -471,11 +410,61 @@ class _InvoicePanelState extends ConsumerState<_InvoicePanel> {
   }
 }
 
-// ─── About panel — has the LANGUAGE TILE at the top! ───
-class _AboutPanel extends ConsumerWidget {
+// ─── About panel — language + theme + backup + app-lock + website ───
+// Stateful so the App Lock tile can refresh after the user enables /
+// disables the lock from inside this same panel.
+class _AboutPanel extends ConsumerStatefulWidget {
   const _AboutPanel();
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_AboutPanel> createState() => _AboutPanelState();
+}
+
+class _AboutPanelState extends ConsumerState<_AboutPanel> {
+  static const _siteUrl = 'https://billzap.netlify.app/';
+
+  Future<void> _openSite() async {
+    HapticFeedback.lightImpact();
+    final uri = Uri.parse(_siteUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open browser')));
+    }
+  }
+
+  Future<void> _toggleAppLock() async {
+    HapticFeedback.lightImpact();
+    if (AppLockService.instance.isEnabled) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(tr('set.lock_disable_title', ref),
+            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w900)),
+          content: Text(tr('set.lock_disable_msg', ref)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(tr('common.cancel', ref))),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(tr('set.lock_disable_btn', ref),
+                style: const TextStyle(color: AppColors.red))),
+          ],
+        ),
+      );
+      if (confirm == true) {
+        await AppLockService.instance.disableLock();
+        if (mounted) setState(() {});
+      }
+    } else {
+      final result = await context.push('/lock-setup');
+      if (result == true && mounted) setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final lang = currentLanguage(ref.watch(languageProvider));
 
     return SingleChildScrollView(
@@ -554,56 +543,43 @@ class _AboutPanel extends ConsumerWidget {
         _ThemeTile(),
 
         // ═════════════════════════════════════════════════
+        // APP LOCK TILE (moved from header)
+        // ═════════════════════════════════════════════════
+        _SettingsTile(
+          icon: Symbols.lock,
+          gradient: const [Color(0xFFEF4444), Color(0xFFF87171)],
+          title: tr('set.app_lock', ref),
+          subtitle: AppLockService.instance.isEnabled
+            ? '${tr('set.lock_enabled', ref)}'
+              ' — ${AppLockService.instance.isBiometricEnabled
+                ? tr('set.lock_pin_fp', ref)
+                : tr('set.lock_pin_only', ref)}'
+            : tr('set.lock_hint', ref),
+          subtitleColor: AppLockService.instance.isEnabled
+              ? AppColors.green : AppColors.t3,
+          onTap: _toggleAppLock,
+        ),
+
+        // ═════════════════════════════════════════════════
         // BACKUP & EXPORT TILE
         // ═════════════════════════════════════════════════
-        Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          decoration: BoxDecoration(
-            color: AppColors.card,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.border)),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: () {
-                HapticFeedback.lightImpact();
-                context.push('/backup');
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                child: Row(children: [
-                  Container(
-                    width: 42, height: 42,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF2E7D32), Color(0xFF66BB6A)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight),
-                      borderRadius: BorderRadius.circular(11)),
-                    child: const Icon(Symbols.shield,
-                      color: Colors.white, size: 22)),
-                  const Gap(12),
-                  Expanded(child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Backup & Export',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.t1)),
-                      const Gap(2),
-                      Text('Save your data • Export CSVs for accountant',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          color: AppColors.t3)),
-                    ])),
-                  Icon(Symbols.chevron_right,
-                    color: AppColors.t3, size: 22),
-                ]),
-              ),
-            ),
-          ),
+        _SettingsTile(
+          icon: Symbols.shield,
+          gradient: const [Color(0xFF2E7D32), Color(0xFF66BB6A)],
+          title: tr('set.backup_export', ref),
+          subtitle: tr('set.backup_export_sub', ref),
+          onTap: () { HapticFeedback.lightImpact(); context.push('/backup'); },
+        ),
+
+        // ═════════════════════════════════════════════════
+        // VISIT WEBSITE TILE — landing page for support
+        // ═════════════════════════════════════════════════
+        _SettingsTile(
+          icon: Symbols.public,
+          gradient: const [Color(0xFF1557FF), Color(0xFF4070FF)],
+          title: tr('set.visit_website', ref),
+          subtitle: tr('set.visit_website_sub', ref),
+          onTap: _openSite,
         ),
 
         // ─── About BillZap card ───
@@ -628,11 +604,100 @@ class _AboutPanel extends ConsumerWidget {
             _InfoRow(Symbols.check_circle, tr('set.version', ref), '1.0.0', AppColors.green),
             _InfoRow(Symbols.wifi_off, tr('set.offline', ref), tr('set.no_internet', ref), AppColors.brand),
             _InfoRow(Symbols.lock, tr('set.privacy', ref), tr('set.data_on_device', ref), AppColors.purple),
-            const Gap(16),
-            Text('© 2026 BillZap Technologies',
-              style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t4)),
+            const Gap(18),
+            // Replaces the old "© 2026 BillZap Technologies" line — a
+            // clear CTA to the landing page where customers can find
+            // support and learn more.
+            SizedBox(width: double.infinity, child: OutlinedButton.icon(
+              onPressed: _openSite,
+              icon: const Icon(Symbols.open_in_new, size: 16),
+              label: Text(tr('set.visit_site_btn', ref),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13, fontWeight: FontWeight.w700)),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.brand,
+                side: BorderSide(color: AppColors.brand.withOpacity(0.4)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(11))),
+            )),
+            const Gap(6),
+            Text('billzap.netlify.app',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11, color: AppColors.t4)),
           ])),
       ]));
+  }
+}
+
+// Generic reusable tile used by the About panel (App Lock, Backup,
+// Visit Website). Keeps the three look identical and easy to extend.
+class _SettingsTile extends StatelessWidget {
+  final IconData icon;
+  final List<Color> gradient;
+  final String title;
+  final String subtitle;
+  final Color? subtitleColor;
+  final VoidCallback onTap;
+  const _SettingsTile({
+    required this.icon,
+    required this.gradient,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.subtitleColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border)),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(14),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            child: Row(children: [
+              Container(
+                width: 42, height: 42,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: gradient,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight),
+                  borderRadius: BorderRadius.circular(11)),
+                child: Icon(icon, color: Colors.white, size: 22)),
+              const Gap(12),
+              Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.t1)),
+                  const Gap(2),
+                  Text(subtitle,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      color: subtitleColor ?? AppColors.t3,
+                      fontWeight: subtitleColor == AppColors.green
+                          ? FontWeight.w700
+                          : FontWeight.w500)),
+                ])),
+              Icon(Symbols.chevron_right,
+                color: AppColors.t3, size: 22),
+            ]),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -644,15 +709,15 @@ class _ThemeTile extends ConsumerWidget {
     IconData icon;
     switch (mode) {
       case ThemeMode.dark:
-        label = 'Dark';
+        label = tr('set.theme_dark', ref);
         icon = Symbols.dark_mode;
         break;
       case ThemeMode.light:
-        label = 'Light';
+        label = tr('set.theme_light', ref);
         icon = Symbols.light_mode;
         break;
       case ThemeMode.system:
-        label = 'System default';
+        label = tr('set.theme_system', ref);
         icon = Symbols.brightness_auto;
         break;
     }
@@ -683,7 +748,7 @@ class _ThemeTile extends ConsumerWidget {
               const Gap(12),
               Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('Theme',
+                  Text(tr('set.theme', ref),
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 14.5, fontWeight: FontWeight.w800,
                       color: AppColors.t1)),
@@ -716,24 +781,24 @@ class _ThemeTile extends ConsumerWidget {
               color: AppColors.border,
               borderRadius: BorderRadius.circular(99))),
           const Gap(14),
-          Text('Choose theme',
+          Text(tr('set.theme_choose', ref),
             style: GoogleFonts.plusJakartaSans(
               fontSize: 16, fontWeight: FontWeight.w800,
               color: AppColors.t1)),
           const Gap(8),
           _ThemeOption(
-            icon: Symbols.brightness_auto, label: 'System default',
-            sub: 'Match phone setting',
+            icon: Symbols.brightness_auto, label: tr('set.theme_system', ref),
+            sub: tr('set.theme_system_sub', ref),
             selected: current == ThemeMode.system,
             onTap: () { ref.read(themeModeProvider.notifier).set(ThemeMode.system); Navigator.pop(ctx); }),
           _ThemeOption(
-            icon: Symbols.light_mode, label: 'Light',
-            sub: 'Always bright',
+            icon: Symbols.light_mode, label: tr('set.theme_light', ref),
+            sub: tr('set.theme_light_sub', ref),
             selected: current == ThemeMode.light,
             onTap: () { ref.read(themeModeProvider.notifier).set(ThemeMode.light); Navigator.pop(ctx); }),
           _ThemeOption(
-            icon: Symbols.dark_mode, label: 'Dark',
-            sub: 'Easy on the eyes • saves battery',
+            icon: Symbols.dark_mode, label: tr('set.theme_dark', ref),
+            sub: tr('set.theme_dark_sub', ref),
             selected: current == ThemeMode.dark,
             onTap: () { ref.read(themeModeProvider.notifier).set(ThemeMode.dark); Navigator.pop(ctx); }),
         ]),

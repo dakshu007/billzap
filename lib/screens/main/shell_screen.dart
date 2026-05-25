@@ -311,13 +311,19 @@ class _NavItem extends StatelessWidget {
         splashColor: AppColors.brand.withOpacity(0.10),
         highlightColor: AppColors.brand.withOpacity(0.05),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          // Active pill — a translucent brand wash sits proud of the
+          // warm cream footer in light mode (the previous `brandSoft`
+          // tint was too pale to read), and stays subtle in dark mode.
           AnimatedContainer(
             duration: const Duration(milliseconds: 240),
             curve: Curves.easeOutCubic,
             padding: EdgeInsets.symmetric(
                 horizontal: on ? 16 : 0, vertical: on ? 5 : 0),
             decoration: BoxDecoration(
-              color: on ? AppColors.brandSoft : Colors.transparent,
+              color: on
+                  ? AppColors.brand.withOpacity(
+                      AppColors.isDark ? 0.18 : 0.14)
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(22),
             ),
             child: Icon(icon,
