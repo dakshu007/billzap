@@ -1,0 +1,204 @@
+name: Release (Android + macOS + Windows)
+
+# One workflow → one public GitHub Release holding every platform's
+# installer, with direct download links (no GitHub login, no double-zip).
+#
+# Trigger it two ways:
+#   * Actions tab → "Release (Android + macOS + Windows)" → Run workflow
+#   * push a tag:  git tag v1.0.1 && git push origin v1.0.1
+#
+# It does NOT run on every push to main — the per-platform CI workflows
+# (build.yml / macos-build.yml / windows-build.yml) already do that.
+# This one is for cutting a shareable release on demand.
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  # ─── Resolve version + release tag once, share with all jobs ──────
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      name: ${{ steps.v.outputs.name }}
+      build: ${{ steps.v.outputs.build }}
+      tag: ${{ steps.v.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compute version + tag
+        id: v
+        run: |
+          version=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          name=$(echo "$version" | cut -d+ -f1)
+          build=$(echo "$version" | cut -d+ -f2)
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            tag="${{ github.ref_name }}"
+          else
+            tag="v${name}-r${{ github.run_number }}"
+          fi
+          echo "name=${name}"   >> $GITHUB_OUTPUT
+          echo "build=${build}" >> $GITHUB_OUTPUT
+          echo "tag=${tag}"     >> $GITHUB_OUTPUT
+          echo "Release ${tag} (app v${name}, build ${build})"
+
+  # ─── Android — APK (+ AAB) ────────────────────────────────────────
+  android:
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: 'zulu', java-version: '17' }
+      - uses: subosito/flutter-action@v2
+        with: { flutter-version: '3.19.6', channel: 'stable', cache: true }
+      - run: flutter pub get
+
+      - name: Decode keystore (if configured)
+        id: keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+            echo "configured=true" >> $GITHUB_OUTPUT
+          else
+            echo "configured=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create key.properties (if configured)
+        if: steps.keystore.outputs.configured == 'true'
+        run: |
+          cat > android/key.properties << EOF
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=upload-keystore.jks
+          EOF
+
+      - run: flutter build apk --release
+      - run: flutter build appbundle --release
+
+      - name: Stage Android files
+        run: |
+          mkdir -p out
+          cp build/app/outputs/flutter-apk/app-release.apk \
+             "out/BillZap-${{ needs.version.outputs.name }}.apk"
+          cp build/app/outputs/bundle/release/app-release.aab \
+             "out/BillZap-${{ needs.version.outputs.name }}.aab"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-android
+          path: out/*
+
+  # ─── macOS — .dmg ─────────────────────────────────────────────────
+  macos:
+    needs: version
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { flutter-version: '3.19.6', channel: 'stable', cache: true }
+      - run: flutter config --enable-macos-desktop
+      - run: flutter pub get
+      - name: pod install
+        working-directory: macos
+        run: pod install --repo-update
+      - run: flutter build macos --release
+      - name: Package .dmg
+        run: |
+          brew install create-dmg
+          mkdir -p out
+          create-dmg \
+            --volname "BillZap ${{ needs.version.outputs.name }}" \
+            --window-pos 200 120 --window-size 600 360 --icon-size 120 \
+            --icon "BillZap.app" 160 180 --hide-extension "BillZap.app" \
+            --app-drop-link 440 180 --no-internet-enable \
+            "out/BillZap-${{ needs.version.outputs.name }}.dmg" \
+            "build/macos/Build/Products/Release/BillZap.app" || true
+          ls out/*.dmg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-macos
+          path: out/*.dmg
+
+  # ─── Windows — installer .exe ─────────────────────────────────────
+  windows:
+    needs: version
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { flutter-version: '3.19.6', channel: 'stable', cache: true }
+      - run: flutter config --enable-windows-desktop
+      - run: flutter pub get
+      - run: flutter build windows --release
+      - name: Locate Release folder
+        id: rel
+        shell: bash
+        run: |
+          if [ -d "build/windows/x64/runner/Release" ]; then
+            echo "dir=build/windows/x64/runner/Release" >> $GITHUB_OUTPUT
+          else
+            echo "dir=build/windows/runner/Release" >> $GITHUB_OUTPUT
+          fi
+      - name: Build installer
+        shell: pwsh
+        run: |
+          choco install innosetup --no-progress -y
+          $src = Resolve-Path "${{ steps.rel.outputs.dir }}"
+          New-Item -ItemType Directory -Force -Path out | Out-Null
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" `
+            "/DSourceDir=$src" `
+            "/DAppVersion=${{ needs.version.outputs.name }}" `
+            "/Oout" `
+            "windows\installer\billzap.iss"
+          Rename-Item "out\BillZap-Setup.exe" "BillZap-${{ needs.version.outputs.name }}-Setup.exe"
+          Get-ChildItem out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          path: out/*.exe
+
+  # ─── Publish the GitHub Release with all platform binaries ────────
+  release:
+    needs: [version, android, macos, windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all platform artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+      - name: Flatten into one folder
+        run: |
+          mkdir -p release
+          find dist -type f \( -name "*.apk" -o -name "*.aab" -o -name "*.dmg" -o -name "*.exe" \) \
+            -exec cp {} release/ \;
+          echo "Files to publish:"
+          ls -lah release/
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.version.outputs.tag }}
+          name: BillZap ${{ needs.version.outputs.name }} (build ${{ needs.version.outputs.build }})
+          body: |
+            ## BillZap ${{ needs.version.outputs.name }} — build ${{ needs.version.outputs.build }}
+
+            One release, every platform. Direct downloads below — no login, no unzip needed.
+
+            | Platform | File | Notes |
+            |---|---|---|
+            | 🤖 Android | `BillZap-${{ needs.version.outputs.name }}.apk` | Sideload-ready. Tap to install (allow "unknown sources"). |
+            | 🤖 Android | `BillZap-${{ needs.version.outputs.name }}.aab` | For Play Store upload. |
+            | 🍎 macOS | `BillZap-${{ needs.version.outputs.name }}.dmg` | Drag to Applications. First launch: right-click → Open (unsigned). |
+            | 🪟 Windows | `BillZap-${{ needs.version.outputs.name }}-Setup.exe` | Run the installer. SmartScreen → More info → Run anyway (unsigned). |
+
+            Built from the same Flutter codebase. 100% offline, no sign-up, free forever.
+          files: release/*
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: true
