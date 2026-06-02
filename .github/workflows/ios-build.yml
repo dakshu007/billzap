@@ -49,10 +49,6 @@ jobs:
       - name: Install Flutter dependencies
         run: flutter pub get
 
-      - name: Pod install
-        working-directory: ios
-        run: pod install --repo-update
-
       - name: Read version
         id: version
         run: |
@@ -62,24 +58,50 @@ jobs:
           echo "name=${name}" >> $GITHUB_OUTPUT
           echo "build=${build}" >> $GITHUB_OUTPUT
 
-      - name: Build iOS (release, no codesign)
-        # --no-codesign skips signing. Produces Runner.app in the
-        # build/ios/iphoneos folder. Valid for verifying the build +
-        # packaging an unsigned .ipa to sign yourself later.
-        run: flutter build ios --release --no-codesign
+      - name: Generate Xcode config (no build)
+        # --config-only writes Flutter/Generated.xcconfig + runs pub get
+        # without invoking xcodebuild. This is what `pod install` reads.
+        # We avoid `flutter build ios` itself because, even with
+        # --no-codesign, Flutter 3.19's post-build gate insists on a
+        # Development Team for a *device* release. Driving xcodebuild
+        # directly with signing disabled sidesteps that.
+        run: flutter build ios --release --no-codesign --config-only
+
+      - name: Pod install
+        working-directory: ios
+        run: pod install --repo-update
+
+      - name: Build unsigned device .app via xcodebuild
+        run: |
+          xcodebuild \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build/ios_dd \
+            build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            DEVELOPMENT_TEAM="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            -quiet
+          # Gate on the artifact existing rather than xcodebuild's exit
+          # code (quiet mode can still warn non-fatally).
+          APP_PATH="build/ios_dd/Build/Products/Release-iphoneos/Runner.app"
+          if [ ! -d "$APP_PATH" ]; then
+            echo "::error::Runner.app not produced at $APP_PATH"
+            find build/ios_dd -name "*.app" -maxdepth 6 2>/dev/null || true
+            exit 1
+          fi
+          echo "Built: $APP_PATH"
 
       - name: Package unsigned .ipa
         # An .ipa is just a zip with a top-level Payload/ folder holding
-        # the .app. We assemble it by hand since there's no signing /
-        # export step.
+        # the .app. We assemble it by hand since signing is disabled.
         run: |
           set -e
-          APP_PATH="build/ios/iphoneos/Runner.app"
-          if [ ! -d "$APP_PATH" ]; then
-            echo "::error::Runner.app not found at $APP_PATH"
-            ls -lah build/ios/iphoneos/ || true
-            exit 1
-          fi
+          APP_PATH="build/ios_dd/Build/Products/Release-iphoneos/Runner.app"
           mkdir -p build/ipa/Payload
           cp -R "$APP_PATH" build/ipa/Payload/
           cd build/ipa
