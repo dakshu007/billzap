@@ -1,0 +1,97 @@
+name: Build iOS (unsigned .ipa)
+
+# When to run
+# ─────────────────────────────────────────────────────────────────
+# * Manual trigger from the Actions tab.
+# * On push to main when something affecting the iOS build changes.
+#
+# IMPORTANT — about installing on a real iPhone:
+# This produces an UNSIGNED .ipa. Apple does not allow unsigned apps to
+# run on a device (unlike macOS/Windows). To install on your iPhone you
+# must sign it with YOUR Apple account, one of:
+#   (a) Free Apple ID + Xcode + USB cable  → 7-day expiry, reinstall weekly
+#   (b) Apple Developer Program ($99/yr)   → TestFlight, no expiry
+# The unsigned artifact here proves the app compiles for iOS and gives
+# you the bundle to sign. See README-ios.md for the exact steps.
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'lib/**'
+      - 'ios/**'
+      - 'assets/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.github/workflows/ios-build.yml'
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter 3.19.6
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6'
+          channel: 'stable'
+          cache: true
+
+      - name: Show toolchain
+        run: |
+          flutter --version
+          xcodebuild -version
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Pod install
+        working-directory: ios
+        run: pod install --repo-update
+
+      - name: Read version
+        id: version
+        run: |
+          version=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          name=$(echo "$version" | cut -d+ -f1)
+          build=$(echo "$version" | cut -d+ -f2)
+          echo "name=${name}" >> $GITHUB_OUTPUT
+          echo "build=${build}" >> $GITHUB_OUTPUT
+
+      - name: Build iOS (release, no codesign)
+        # --no-codesign skips signing. Produces Runner.app in the
+        # build/ios/iphoneos folder. Valid for verifying the build +
+        # packaging an unsigned .ipa to sign yourself later.
+        run: flutter build ios --release --no-codesign
+
+      - name: Package unsigned .ipa
+        # An .ipa is just a zip with a top-level Payload/ folder holding
+        # the .app. We assemble it by hand since there's no signing /
+        # export step.
+        run: |
+          set -e
+          APP_PATH="build/ios/iphoneos/Runner.app"
+          if [ ! -d "$APP_PATH" ]; then
+            echo "::error::Runner.app not found at $APP_PATH"
+            ls -lah build/ios/iphoneos/ || true
+            exit 1
+          fi
+          mkdir -p build/ipa/Payload
+          cp -R "$APP_PATH" build/ipa/Payload/
+          cd build/ipa
+          zip -qry "BillZap-${{ steps.version.outputs.name }}-unsigned.ipa" Payload
+          cd ../..
+          mkdir -p artifacts
+          mv "build/ipa/BillZap-${{ steps.version.outputs.name }}-unsigned.ipa" artifacts/
+          ls -lah artifacts/
+
+      - name: Upload unsigned .ipa
+        uses: actions/upload-artifact@v4
+        with:
+          name: BillZap-ios-build${{ steps.version.outputs.build }}-unsigned-ipa
+          path: artifacts/*.ipa
+          retention-days: 30

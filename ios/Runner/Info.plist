@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Billzap</string>
+	<string>BillZap</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -65,6 +65,29 @@
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<!-- Privacy usage strings — iOS rejects the app at launch if a
+	     feature touches one of these APIs without a description.
+	     * Microphone + Speech → Voice Bill (speech_to_text).
+	     * Face ID → App Lock biometric unlock (local_auth).
+	     * Photo library → saving / sharing invoice PDFs.   -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>BillZap uses the microphone for Voice Bill — speak your invoice in your language and BillZap turns it into a GST bill.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>BillZap uses speech recognition to convert your spoken invoice into line items for Voice Bill.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>BillZap uses Face ID to unlock the app, keeping your business data private.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>BillZap can save invoice PDFs and reports to your photo library for easy sharing.</string>
+	<!-- Allow opening WhatsApp + UPI apps via url_launcher. -->
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>whatsapp</string>
+		<string>upi</string>
+		<string>tez</string>
+		<string>phonepe</string>
+		<string>paytmmp</string>
+		<string>gpay</string>
 	</array>
 </dict>
 </plist>

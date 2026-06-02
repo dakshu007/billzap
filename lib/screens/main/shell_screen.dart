@@ -15,6 +15,7 @@ import '../../theme/app_theme.dart';
 import '../../i18n/translations.dart';
 import '../../providers/providers.dart';
 import '../../utils/platform.dart';
+import '../../widgets/liquid_glass_nav.dart';
 import 'dashboard_screen.dart';
 import 'invoices_screen.dart';
 import 'reports_screen.dart';
@@ -221,7 +222,40 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
       );
     }
 
-    // Mobile / tablet portrait — unchanged.
+    // iOS — floating Liquid Glass bar overlaid on the content via a
+    // Stack (so the frosted bar blurs the page scrolling behind it).
+    // The pages already reserve ~100px bottom padding, so the floating
+    // bar never covers the last row.
+    if (AppPlatform.isIOS) {
+      return Scaffold(
+        backgroundColor: AppColors.bg,
+        // Let the body extend under the floating bar.
+        body: Stack(children: [
+          PageView(
+            controller: _pc,
+            physics: const PageScrollPhysics(parent: BouncingScrollPhysics()),
+            onPageChanged: _onPageChanged,
+            children: _pages,
+          ),
+          Positioned(
+            left: 0, right: 0, bottom: 0,
+            child: LiquidGlassNav(
+              idx: _idx,
+              onHome: () => _tapTab(0),
+              onInvoices: () => _tapTab(1),
+              onCreate: () {
+                HapticFeedback.mediumImpact();
+                context.push('/create');
+              },
+              onReports: () => _tapTab(2),
+              onMe: () => _tapTab(3),
+            ),
+          ),
+        ]),
+      );
+    }
+
+    // Android / other mobile — docked cream nav, unchanged.
     return Scaffold(
       backgroundColor: AppColors.bg,
       body: PageView(

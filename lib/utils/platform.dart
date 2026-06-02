@@ -26,6 +26,12 @@ class AppPlatform {
     return Platform.isMacOS;
   }
 
+  /// True on iPhone / iPad. Drives the floating Liquid-Glass bottom nav.
+  static bool get isIOS {
+    if (kIsWeb) return false;
+    return Platform.isIOS;
+  }
+
   /// True when voice billing is supported on the current platform. The
   /// `speech_to_text` plugin only ships iOS / Android / Web today, so we
   /// hide the Voice Bill entry on desktop builds rather than launching a
