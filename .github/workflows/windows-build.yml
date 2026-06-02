@@ -1,0 +1,133 @@
+name: Build Windows (.exe installer)
+
+# When to run
+# ─────────────────────────────────────────────────────────────────
+# * Manual trigger from the Actions tab.
+# * On push to main when something affecting the Windows build changes.
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'lib/**'
+      - 'windows/**'
+      - 'assets/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.github/workflows/windows-build.yml'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter 3.19.6
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6'
+          channel: 'stable'
+          cache: true
+
+      - name: Show toolchain versions
+        run: |
+          flutter --version
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Read current version
+        id: version
+        shell: bash
+        run: |
+          version=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          name=$(echo "$version" | cut -d+ -f1)
+          build=$(echo "$version" | cut -d+ -f2)
+          echo "name=${name}" >> $GITHUB_OUTPUT
+          echo "build=${build}" >> $GITHUB_OUTPUT
+          echo "Building BillZap Windows v${name} (build ${build})"
+
+      - name: Build Windows app (release)
+        run: flutter build windows --release
+
+      - name: Locate Release folder
+        id: release
+        shell: bash
+        run: |
+          # Flutter 3.13+ nests under x64/; fall back to the older path.
+          if [ -d "build/windows/x64/runner/Release" ]; then
+            dir="build/windows/x64/runner/Release"
+          elif [ -d "build/windows/runner/Release" ]; then
+            dir="build/windows/runner/Release"
+          else
+            echo "::error::Could not find the Windows Release output folder"
+            find build/windows -name "billzap.exe" || true
+            exit 1
+          fi
+          echo "dir=${dir}" >> $GITHUB_OUTPUT
+          echo "Release dir: ${dir}"
+          ls -lah "${dir}"
+          if [ ! -f "${dir}/billzap.exe" ]; then
+            echo "::error::billzap.exe not found in ${dir}"
+            exit 1
+          fi
+
+      - name: Package portable ZIP
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          $rel = "${{ steps.release.outputs.dir }}"
+          Compress-Archive -Path "$rel\*" -DestinationPath "artifacts\BillZap-windows-portable.zip" -Force
+          Get-ChildItem artifacts
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Build installer (.exe)
+        shell: pwsh
+        run: |
+          # Resolve an absolute source dir for the Inno script.
+          $src = Resolve-Path "${{ steps.release.outputs.dir }}"
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" `
+            "/DSourceDir=$src" `
+            "/DAppVersion=${{ steps.version.outputs.name }}" `
+            "/Oartifacts" `
+            "windows\installer\billzap.iss"
+          Get-ChildItem artifacts
+
+      - name: Verify installer exists
+        shell: bash
+        run: |
+          if [ ! -f "artifacts/BillZap-Setup.exe" ]; then
+            echo "::error::Installer BillZap-Setup.exe was not produced"
+            ls -lah artifacts || true
+            exit 1
+          fi
+          echo "Installer ready:"
+          ls -lah artifacts/BillZap-Setup.exe
+
+      - name: Rename installer with build number
+        shell: pwsh
+        run: |
+          Move-Item "artifacts\BillZap-Setup.exe" `
+            "artifacts\BillZap-Setup-build${{ steps.version.outputs.build }}.exe" -Force
+
+      - name: Upload installer (.exe)
+        uses: actions/upload-artifact@v4
+        with:
+          name: BillZap-windows-build${{ steps.version.outputs.build }}-installer
+          path: artifacts/BillZap-Setup-build${{ steps.version.outputs.build }}.exe
+          retention-days: 30
+
+      - name: Upload portable ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: BillZap-windows-build${{ steps.version.outputs.build }}-portable
+          path: artifacts/BillZap-windows-portable.zip
+          retention-days: 30

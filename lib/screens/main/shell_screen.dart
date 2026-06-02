@@ -14,6 +14,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../theme/app_theme.dart';
 import '../../i18n/translations.dart';
 import '../../providers/providers.dart';
+import '../../utils/platform.dart';
 import 'dashboard_screen.dart';
 import 'invoices_screen.dart';
 import 'reports_screen.dart';
@@ -186,14 +187,16 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
       // the right. PageView still owns the page state so swipe physics
       // continue to work if the window gets narrowed back down.
       //
-      // The outer Scaffold is transparent on macOS so the native
-      // NSVisualEffectView (configured in MainFlutterWindow.swift)
-      // shines through behind the BackdropFilter sidebar. The inner
-      // page Scaffolds keep their cream backgrounds so content stays
-      // grounded — Apple's standard "vibrant sidebar + solid content"
-      // composition (Settings.app, Mail.app, Reminders.app).
+      // The outer Scaffold is transparent ONLY on macOS, where the native
+      // NSVisualEffectView (configured in MainFlutterWindow.swift) shines
+      // the desktop wallpaper through behind the BackdropFilter sidebar.
+      // On Windows/Linux there's no native vibrancy layer, so we paint the
+      // cream background — the sidebar's blur then frosts the cream + a
+      // sliver of content, which still reads as glass without leaving a
+      // bare window-colour bar behind the sidebar.
       return Scaffold(
-        backgroundColor: Colors.transparent,
+        backgroundColor:
+            AppPlatform.isMacOS ? Colors.transparent : AppColors.bg,
         body: Row(children: [
           _GlassSidebar(
             idx: _idx,

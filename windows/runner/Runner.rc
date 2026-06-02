@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.billzap" "\0"
-            VALUE "FileDescription", "billzap" "\0"
+            VALUE "CompanyName", "BillZap" "\0"
+            VALUE "FileDescription", "BillZap — Free GST Billing for India" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "billzap" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.billzap. All rights reserved." "\0"
+            VALUE "InternalName", "BillZap" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 BillZap. Free GST billing for India." "\0"
             VALUE "OriginalFilename", "billzap.exe" "\0"
-            VALUE "ProductName", "billzap" "\0"
+            VALUE "ProductName", "BillZap" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
