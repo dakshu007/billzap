@@ -1,4 +1,4 @@
-name: Release (Android + macOS + Windows)
+name: Release (Android + Windows + iPhone + Mac)
 
 # One workflow → one public GitHub Release holding every platform's
 # installer, with direct download links (no GitHub login, no double-zip).
