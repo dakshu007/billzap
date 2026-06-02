@@ -161,9 +161,47 @@ jobs:
           name: release-windows
           path: out/*.exe
 
+  # ─── iOS — unsigned .ipa ──────────────────────────────────────────
+  ios:
+    needs: version
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { flutter-version: '3.19.6', channel: 'stable', cache: true }
+      - run: flutter pub get
+      - name: Generate Xcode config (no build)
+        run: flutter build ios --release --no-codesign --config-only
+      - name: pod install
+        working-directory: ios
+        run: pod install --repo-update
+      - name: Build unsigned device .app
+        run: |
+          xcodebuild \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner -configuration Release -sdk iphoneos \
+            -derivedDataPath build/ios_dd build \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO DEVELOPMENT_TEAM="" \
+            PROVISIONING_PROFILE_SPECIFIER="" -quiet
+          APP="build/ios_dd/Build/Products/Release-iphoneos/Runner.app"
+          [ -d "$APP" ] || { echo "::error::Runner.app missing"; exit 1; }
+      - name: Pack unsigned .ipa
+        run: |
+          APP="build/ios_dd/Build/Products/Release-iphoneos/Runner.app"
+          mkdir -p build/ipa/Payload out
+          cp -R "$APP" build/ipa/Payload/
+          ( cd build/ipa && zip -qry "BillZap-${{ needs.version.outputs.name }}-unsigned.ipa" Payload )
+          mv "build/ipa/BillZap-${{ needs.version.outputs.name }}-unsigned.ipa" out/
+          ls out/*.ipa
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-ios
+          path: out/*.ipa
+
   # ─── Publish the GitHub Release with all platform binaries ────────
   release:
-    needs: [version, android, macos, windows]
+    needs: [version, android, macos, windows, ios]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -175,7 +213,7 @@ jobs:
       - name: Flatten into one folder
         run: |
           mkdir -p release
-          find dist -type f \( -name "*.apk" -o -name "*.aab" -o -name "*.dmg" -o -name "*.exe" \) \
+          find dist -type f \( -name "*.apk" -o -name "*.aab" -o -name "*.dmg" -o -name "*.exe" -o -name "*.ipa" \) \
             -exec cp {} release/ \;
           echo "Files to publish:"
           ls -lah release/
@@ -194,8 +232,9 @@ jobs:
             |---|---|---|
             | 🤖 Android | `BillZap-${{ needs.version.outputs.name }}.apk` | Sideload-ready. Tap to install (allow "unknown sources"). |
             | 🤖 Android | `BillZap-${{ needs.version.outputs.name }}.aab` | For Play Store upload. |
-            | 🍎 macOS | `BillZap-${{ needs.version.outputs.name }}.dmg` | Drag to Applications. First launch: right-click → Open (unsigned). |
             | 🪟 Windows | `BillZap-${{ needs.version.outputs.name }}-Setup.exe` | Run the installer. SmartScreen → More info → Run anyway (unsigned). |
+            | 🍎 macOS | `BillZap-${{ needs.version.outputs.name }}.dmg` | Drag to Applications. First launch: right-click → Open (unsigned). |
+            | 📱 iPhone | `BillZap-${{ needs.version.outputs.name }}-unsigned.ipa` | **Unsigned** — must be signed with your Apple ID to install (Xcode + USB, or Sideloadly/AltStore). See `ios/README-ios.md`. iPhone gets the Liquid Glass floating menu. |
 
             Built from the same Flutter codebase. 100% offline, no sign-up, free forever.
           files: release/*
