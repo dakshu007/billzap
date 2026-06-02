@@ -104,17 +104,25 @@ class Customer {
   String city;
   String state;
   final DateTime createdAt;
+  // Sync foundation — stamped on every save. Combined with the UUID `id`,
+  // makes last-write-wins sync trivial later.
+  DateTime updatedAt;
 
   Customer({
     String? id, required this.name, this.phone = '', this.email = '',
     this.address = '', this.gstin = '', this.city = '', this.state = '',
-    DateTime? createdAt,
-  }) : id = id ?? genId(), createdAt = createdAt ?? DateTime.now();
+    DateTime? createdAt, DateTime? updatedAt,
+  })  : id = id ?? genId(),
+        createdAt = createdAt ?? DateTime.now(),
+        updatedAt = updatedAt ?? DateTime.now();
+
+  void touch() => updatedAt = DateTime.now();
 
   Map<String, dynamic> toMap() => {
     'id': id, 'name': name, 'phone': phone, 'email': email,
     'address': address, 'gstin': gstin, 'city': city, 'state': state,
     'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
   };
 
   factory Customer.fromMap(Map<String, dynamic> m) => Customer(
@@ -122,6 +130,8 @@ class Customer {
     email: m['email'] ?? '', address: m['address'] ?? '',
     gstin: m['gstin'] ?? '', city: m['city'] ?? '', state: m['state'] ?? '',
     createdAt: DateTime.tryParse(m['createdAt'] ?? '') ?? DateTime.now(),
+    updatedAt: DateTime.tryParse(m['updatedAt'] ?? '') ??
+        DateTime.tryParse(m['createdAt'] ?? '') ?? DateTime.now(),
   );
 }
 
@@ -147,13 +157,19 @@ class Product {
   double lowStockAt;
   // ─────────────────────────────────────────────────────────
   final DateTime createdAt;
+  // Sync foundation — bumped on every save (see ProductNotifier).
+  DateTime updatedAt;
 
   Product({
     String? id, required this.name, this.hsnCode = '', this.unit = 'Nos',
     required this.price, this.gstRate = 18, this.isService = false,
     this.cost = 0, this.stock = -1, this.lowStockAt = 0,
-    DateTime? createdAt,
-  }) : id = id ?? genId(), createdAt = createdAt ?? DateTime.now();
+    DateTime? createdAt, DateTime? updatedAt,
+  })  : id = id ?? genId(),
+        createdAt = createdAt ?? DateTime.now(),
+        updatedAt = updatedAt ?? DateTime.now();
+
+  void touch() => updatedAt = DateTime.now();
 
   /// % profit margin on the sell price. Returns null when cost is 0/empty
   /// so callers can render "—" instead of a misleading 100%.
@@ -178,6 +194,7 @@ class Product {
     'price': price, 'gstRate': gstRate, 'isService': isService,
     'cost': cost, 'stock': stock, 'lowStockAt': lowStockAt,
     'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
   };
 
   factory Product.fromMap(Map<String, dynamic> m) => Product(
@@ -192,6 +209,8 @@ class Product {
     stock: (m['stock'] as num?)?.toDouble() ?? -1,
     lowStockAt: (m['lowStockAt'] as num?)?.toDouble() ?? 0,
     createdAt: DateTime.tryParse(m['createdAt'] ?? '') ?? DateTime.now(),
+    updatedAt: DateTime.tryParse(m['updatedAt'] ?? '') ??
+        DateTime.tryParse(m['createdAt'] ?? '') ?? DateTime.now(),
   );
 }
 
@@ -252,6 +271,8 @@ class Invoice {
   final DateTime createdAt;
   DateTime? paidAt;
   String placeOfSupply;
+  // Sync foundation — refreshed on every save / status change.
+  DateTime updatedAt;
 
   Invoice({
     String? id, required this.invoiceNumber, this.customerId = '',
@@ -263,7 +284,12 @@ class Invoice {
     this.notes = '', this.terms = 'Payment due within 30 days.',
     this.status = InvoiceStatus.sent, DateTime? createdAt,
     this.paidAt, this.placeOfSupply = 'Tamil Nadu (33)',
-  }) : id = id ?? genId(), createdAt = createdAt ?? DateTime.now();
+    DateTime? updatedAt,
+  })  : id = id ?? genId(),
+        createdAt = createdAt ?? DateTime.now(),
+        updatedAt = updatedAt ?? DateTime.now();
+
+  void touch() => updatedAt = DateTime.now();
 
   double get subtotal => lineItems.fold(0, (s, i) => s + i.taxable);
   double get totalTax => lineItems.fold(0, (s, i) => s + i.gstAmount);
@@ -289,6 +315,7 @@ class Invoice {
     'flatDiscount': flatDiscount, 'notes': notes, 'terms': terms,
     'status': status.name, 'createdAt': createdAt.toIso8601String(),
     'paidAt': paidAt?.toIso8601String(), 'placeOfSupply': placeOfSupply,
+    'updatedAt': updatedAt.toIso8601String(),
   };
 
   factory Invoice.fromMap(Map<String, dynamic> m) => Invoice(
@@ -313,6 +340,8 @@ class Invoice {
     createdAt: DateTime.tryParse(m['createdAt'] ?? '') ?? DateTime.now(),
     paidAt: m['paidAt'] != null ? DateTime.tryParse(m['paidAt']) : null,
     placeOfSupply: m['placeOfSupply'] ?? 'Tamil Nadu (33)',
+    updatedAt: DateTime.tryParse(m['updatedAt'] ?? '') ??
+        DateTime.tryParse(m['createdAt'] ?? '') ?? DateTime.now(),
   );
 }
 
@@ -326,17 +355,24 @@ class Expense {
   DateTime date;
   String paymentMode;
   final DateTime createdAt;
+  // Sync foundation.
+  DateTime updatedAt;
 
   Expense({
     String? id, required this.category, required this.title,
     required this.amount, required this.date, this.paymentMode = 'UPI',
-    DateTime? createdAt,
-  }) : id = id ?? genId(), createdAt = createdAt ?? DateTime.now();
+    DateTime? createdAt, DateTime? updatedAt,
+  })  : id = id ?? genId(),
+        createdAt = createdAt ?? DateTime.now(),
+        updatedAt = updatedAt ?? DateTime.now();
+
+  void touch() => updatedAt = DateTime.now();
 
   Map<String, dynamic> toMap() => {
     'id': id, 'category': category, 'title': title, 'amount': amount,
     'date': date.toIso8601String(), 'paymentMode': paymentMode,
     'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
   };
 
   factory Expense.fromMap(Map<String, dynamic> m) => Expense(
@@ -346,6 +382,8 @@ class Expense {
     date: DateTime.tryParse(m['date'] ?? '') ?? DateTime.now(),
     paymentMode: m['paymentMode'] ?? 'UPI',
     createdAt: DateTime.tryParse(m['createdAt'] ?? '') ?? DateTime.now(),
+    updatedAt: DateTime.tryParse(m['updatedAt'] ?? '') ??
+        DateTime.tryParse(m['createdAt'] ?? '') ?? DateTime.now(),
   );
 }
 

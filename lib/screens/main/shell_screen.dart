@@ -3,6 +3,8 @@
 // ✅ Flutter decides: pop sub-route OR snap to home OR show toast OR exit
 // ✅ Direct tab jump on tap, parallax swipe between pages
 
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +13,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../theme/app_theme.dart';
 import '../../i18n/translations.dart';
+import '../../providers/providers.dart';
 import 'dashboard_screen.dart';
 import 'invoices_screen.dart';
 import 'reports_screen.dart';
@@ -172,13 +175,52 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Responsive: anything wider than 900 logical pixels gets the
+    // desktop sidebar layout. macOS / Windows / Linux start above this
+    // threshold by default; a phone in portrait stays well under.
+    final width = MediaQuery.of(context).size.width;
+    final wide = width >= 900;
+
+    if (wide) {
+      // Desktop layout — frosted glass sidebar on the left, content on
+      // the right. PageView still owns the page state so swipe physics
+      // continue to work if the window gets narrowed back down.
+      //
+      // The outer Scaffold is transparent on macOS so the native
+      // NSVisualEffectView (configured in MainFlutterWindow.swift)
+      // shines through behind the BackdropFilter sidebar. The inner
+      // page Scaffolds keep their cream backgrounds so content stays
+      // grounded — Apple's standard "vibrant sidebar + solid content"
+      // composition (Settings.app, Mail.app, Reminders.app).
+      return Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Row(children: [
+          _GlassSidebar(
+            idx: _idx,
+            onHome: () => _tapTab(0),
+            onInvoices: () => _tapTab(1),
+            onCreate: () {
+              HapticFeedback.mediumImpact();
+              context.push('/create');
+            },
+            onReports: () => _tapTab(2),
+            onMe: () => _tapTab(3),
+          ),
+          Expanded(child: PageView(
+            controller: _pc,
+            // Disable swipe on desktop — nav is via the sidebar, swipe
+            // gestures collide with desktop scroll wheels and trackpads.
+            physics: const NeverScrollableScrollPhysics(),
+            onPageChanged: _onPageChanged,
+            children: _pages,
+          )),
+        ]),
+      );
+    }
+
+    // Mobile / tablet portrait — unchanged.
     return Scaffold(
       backgroundColor: AppColors.bg,
-      // Plain PageView — no per-frame Transform/Scale/Opacity wrappers.
-      // The previous build re-evaluated those for every page on every
-      // scroll tick (Opacity triggers `saveLayer`), which was the source
-      // of the stutter. iOS-style bouncing physics gives a noticeably
-      // softer overshoot at the edges while still being silky to flick.
       body: PageView(
         controller: _pc,
         physics: const PageScrollPhysics(parent: BouncingScrollPhysics()),
@@ -341,6 +383,222 @@ class _NavItem extends StatelessWidget {
           ),
           const SizedBox(height: 2),
         ]),
+      ),
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// LIQUID GLASS SIDEBAR — shown on desktop / wide windows (≥ 900 px)
+// ════════════════════════════════════════════════════════════════════
+//
+// A frosted column on the left, with the logo at the top, four nav
+// items, and a prominent "New invoice" CTA. Uses BackdropFilter to
+// blur whatever's behind the sidebar — combined with the translucent
+// NSWindow material on macOS (configured in MainFlutterWindow.swift),
+// the desktop wallpaper shows through subtly.
+
+class _GlassSidebar extends ConsumerWidget {
+  final int idx;
+  final VoidCallback onHome, onInvoices, onCreate, onReports, onMe;
+  const _GlassSidebar({
+    required this.idx,
+    required this.onHome,
+    required this.onInvoices,
+    required this.onCreate,
+    required this.onReports,
+    required this.onMe,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final biz = ref.watch(businessProvider);
+    final bizName = biz?.name.isNotEmpty == true ? biz!.name : 'BillZap';
+    final initial = bizName[0].toUpperCase();
+
+    return ClipRRect(
+      // The whole sidebar is one big blurred surface, edge-to-edge.
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        child: Container(
+          width: 248,
+          decoration: BoxDecoration(
+            color: AppColors.card.withOpacity(AppColors.isDark ? 0.55 : 0.62),
+            border: Border(
+              right: BorderSide(
+                color: Colors.white.withOpacity(AppColors.isDark ? 0.06 : 0.5),
+                width: 1)),
+          ),
+          child: SafeArea(
+            child: Column(children: [
+              // ─── Brand header ─────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
+                child: Row(children: [
+                  Container(
+                    width: 36, height: 36,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.brand, Color(0xFF4070FF)],
+                        begin: Alignment.topLeft, end: Alignment.bottomRight),
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [BoxShadow(
+                        color: AppColors.brand.withOpacity(0.32),
+                        blurRadius: 14, offset: const Offset(0, 6))]),
+                    child: const Icon(Symbols.bolt, color: Colors.white, size: 22),
+                  ),
+                  const SizedBox(width: 11),
+                  Text('BillZap',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 19, fontWeight: FontWeight.w900,
+                      color: AppColors.t1,
+                      letterSpacing: -0.02)),
+                ]),
+              ),
+              // ─── Primary CTA — New Invoice ────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: onCreate,
+                    icon: const Icon(Symbols.add, size: 20),
+                    label: Text(tr('dash.new_invoice', ref),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13.5, fontWeight: FontWeight.w800)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.brand,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(11)),
+                      elevation: 0,
+                    ),
+                  ),
+                ),
+              ),
+              // ─── Nav items ────────────────────────────────────────
+              _SideItem(
+                icon: Symbols.home, label: tr('nav.home', ref),
+                on: idx == 0, onTap: onHome),
+              _SideItem(
+                icon: Symbols.receipt_long, label: tr('nav.invoices', ref),
+                on: idx == 1, onTap: onInvoices),
+              _SideItem(
+                icon: Symbols.bar_chart, label: tr('nav.reports', ref),
+                on: idx == 2, onTap: onReports),
+              _SideItem(
+                icon: Symbols.person, label: tr('nav.me', ref),
+                on: idx == 3, onTap: onMe),
+              const Spacer(),
+              // ─── Business footer ──────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 18),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(AppColors.isDark ? 0.04 : 0.5),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(AppColors.isDark ? 0.06 : 0.6),
+                      width: 0.5),
+                  ),
+                  child: Row(children: [
+                    Container(
+                      width: 32, height: 32,
+                      decoration: BoxDecoration(
+                        color: AppColors.brand,
+                        borderRadius: BorderRadius.circular(8)),
+                      child: Center(child: Text(initial,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14, fontWeight: FontWeight.w900,
+                          color: Colors.white))),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(bizName,
+                          maxLines: 1, overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.5, fontWeight: FontWeight.w800,
+                            color: AppColors.t1)),
+                        Text(biz?.gstin.isNotEmpty == true
+                            ? biz!.gstin
+                            : 'No GSTIN',
+                          maxLines: 1, overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10.5, color: AppColors.t3)),
+                      ])),
+                  ]),
+                ),
+              ),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SideItem extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final bool on;
+  final VoidCallback onTap;
+  const _SideItem({
+    required this.icon, required this.label,
+    required this.on, required this.onTap});
+
+  @override
+  State<_SideItem> createState() => _SideItemState();
+}
+
+class _SideItemState extends State<_SideItem> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final on = widget.on;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 1, 12, 1),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            curve: Curves.easeOutCubic,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: on
+                ? AppColors.brand.withOpacity(AppColors.isDark ? 0.18 : 0.14)
+                : _hover
+                  ? Colors.white.withOpacity(AppColors.isDark ? 0.04 : 0.5)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: on
+                  ? AppColors.brand.withOpacity(0.22)
+                  : Colors.transparent,
+                width: 0.6),
+            ),
+            child: Row(children: [
+              Icon(widget.icon,
+                size: 19,
+                color: on ? AppColors.brand : AppColors.t2),
+              const SizedBox(width: 11),
+              Text(widget.label,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13.5,
+                  fontWeight: on ? FontWeight.w800 : FontWeight.w600,
+                  color: on ? AppColors.brand : AppColors.t1)),
+            ]),
+          ),
+        ),
       ),
     );
   }

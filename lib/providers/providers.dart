@@ -28,6 +28,7 @@ class InvoiceNotifier extends StateNotifier<List<Invoice>> {
   InvoiceNotifier(this._db) : super(_db.getInvoices());
 
   Future<void> add(Invoice inv) async {
+    inv.touch(); // sync foundation: bump updatedAt
     await _db.saveInvoice(inv);
     // Auto-decrement stock for each line item that matches a tracked
     // product by name (case-insensitive). Best-effort — if the name
@@ -39,6 +40,7 @@ class InvoiceNotifier extends StateNotifier<List<Invoice>> {
   }
 
   Future<void> update(Invoice inv) async {
+    inv.touch();
     await _db.saveInvoice(inv);
     state = _db.getInvoices();
   }
@@ -78,6 +80,7 @@ class InvoiceNotifier extends StateNotifier<List<Invoice>> {
       // Allow stock to go negative — gives shopkeepers a chance to
       // notice an oversell without blocking the invoice save.
       p.stock = p.stock - li.quantity;
+      p.touch();
       _db.saveProduct(p);
     }
   }
@@ -94,6 +97,7 @@ class CustomerNotifier extends StateNotifier<List<Customer>> {
   CustomerNotifier(this._db) : super(_db.getCustomers());
 
   Future<void> add(Customer c) async {
+    c.touch();
     await _db.saveCustomer(c);
     state = _db.getCustomers();
   }
@@ -115,6 +119,7 @@ class ProductNotifier extends StateNotifier<List<Product>> {
   ProductNotifier(this._db) : super(_db.getProducts());
 
   Future<void> add(Product p) async {
+    p.touch();
     await _db.saveProduct(p);
     state = _db.getProducts();
   }
@@ -122,6 +127,7 @@ class ProductNotifier extends StateNotifier<List<Product>> {
   /// Upsert — used for editing cost / stock / threshold after creation.
   /// (saveProduct already does an upsert, so this is a semantic alias.)
   Future<void> update(Product p) async {
+    p.touch();
     await _db.saveProduct(p);
     state = _db.getProducts();
   }
@@ -135,6 +141,7 @@ class ProductNotifier extends StateNotifier<List<Product>> {
     final p = list[i];
     if (!p.tracksStock) return;
     p.stock = p.stock + delta;
+    p.touch();
     await _db.saveProduct(p);
     state = _db.getProducts();
   }
@@ -156,6 +163,7 @@ class ExpenseNotifier extends StateNotifier<List<Expense>> {
   ExpenseNotifier(this._db) : super(_db.getExpenses());
 
   Future<void> add(Expense e) async {
+    e.touch();
     await _db.saveExpense(e);
     state = _db.getExpenses();
   }

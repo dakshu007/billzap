@@ -4,5 +4,19 @@
 <dict>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
+	<!-- Network client — url_launcher (WhatsApp, UPI app links, browser).
+	     Server is for the planned LAN-sync with the mobile app. -->
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<key>com.apple.security.network.server</key>
+	<true/>
+	<!-- File access — share_plus, file_picker, PDF/CSV export to Downloads. -->
+	<key>com.apple.security.files.user-selected.read-write</key>
+	<true/>
+	<key>com.apple.security.files.downloads.read-write</key>
+	<true/>
+	<!-- Printing — for the `printing` plugin (invoices + receipts). -->
+	<key>com.apple.security.print</key>
+	<true/>
 </dict>
 </plist>

@@ -1,0 +1,132 @@
+name: Build macOS (.dmg)
+
+# When to run
+# ─────────────────────────────────────────────────────────────────
+# * Manual trigger so you can fire one off any time from the GitHub
+#   Actions tab.
+# * On push to main when something that actually affects the macOS
+#   build changes. We skip docs / Android-only paths to save runner
+#   minutes on the free tier (macOS runners cost 10× Linux minutes).
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'lib/**'
+      - 'macos/**'
+      - 'assets/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.github/workflows/macos-build.yml'
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter 3.19.6
+        # Keep the same Flutter version as the Android build so any code
+        # that compiles for one compiles for the other.
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6'
+          channel: 'stable'
+          cache: true
+
+      - name: Show toolchain versions
+        run: |
+          flutter --version
+          xcodebuild -version
+          swift --version
+
+      - name: Enable macOS desktop
+        run: flutter config --enable-macos-desktop
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Install CocoaPods
+        # CocoaPods is preinstalled on macos-latest runners, but the
+        # macos/ project must have `pod install` run to wire plugins
+        # into the Xcode workspace.
+        working-directory: macos
+        run: pod install --repo-update
+
+      - name: Read current version
+        id: version
+        run: |
+          version=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          name=$(echo "$version" | cut -d+ -f1)
+          build=$(echo "$version" | cut -d+ -f2)
+          echo "name=${name}" >> $GITHUB_OUTPUT
+          echo "build=${build}" >> $GITHUB_OUTPUT
+          echo "Building BillZap macOS v${name} (build ${build})"
+
+      - name: Build macOS app (release, unsigned)
+        # No --no-codesign flag exists; we just don't supply a signing
+        # team. Xcode falls back to ad-hoc signing, which works for
+        # local + unsigned-distribution use. To distribute via App
+        # Store / Notarisation later, add Developer ID secrets and a
+        # signing step here.
+        run: flutter build macos --release
+
+      - name: Verify build output
+        run: |
+          ls -lah build/macos/Build/Products/Release/
+          if [ ! -d "build/macos/Build/Products/Release/BillZap.app" ]; then
+            echo "::error::BillZap.app not found in expected path"
+            exit 1
+          fi
+
+      - name: Install create-dmg
+        # Homebrew on macos-latest is preinstalled; create-dmg is the
+        # de-facto packager for unsigned .dmg files.
+        run: |
+          brew install create-dmg
+
+      - name: Package .dmg
+        run: |
+          mkdir -p artifacts
+          create-dmg \
+            --volname "BillZap ${{ steps.version.outputs.name }}" \
+            --window-pos 200 120 \
+            --window-size 600 360 \
+            --icon-size 120 \
+            --icon "BillZap.app" 160 180 \
+            --hide-extension "BillZap.app" \
+            --app-drop-link 440 180 \
+            --no-internet-enable \
+            "artifacts/BillZap-${{ steps.version.outputs.name }}-build${{ steps.version.outputs.build }}.dmg" \
+            "build/macos/Build/Products/Release/BillZap.app" \
+            || true
+          # `create-dmg` exits non-zero when it can't notarize, even on
+          # success. Check the file exists instead.
+          ls -lah artifacts/
+          if ! ls artifacts/*.dmg 1> /dev/null 2>&1; then
+            echo "::error::No .dmg was produced"
+            exit 1
+          fi
+
+      - name: Upload .dmg artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BillZap-macos-build${{ steps.version.outputs.build }}-dmg
+          path: artifacts/*.dmg
+          retention-days: 30
+
+      - name: Upload raw .app bundle (zipped)
+        # Fallback in case .dmg packaging hiccups; the raw .app can be
+        # double-clicked just as easily.
+        run: |
+          cd build/macos/Build/Products/Release
+          zip -r BillZap-app.zip BillZap.app
+          mv BillZap-app.zip ../../../../../artifacts/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BillZap-macos-build${{ steps.version.outputs.build }}-app
+          path: artifacts/BillZap-app.zip
+          retention-days: 30

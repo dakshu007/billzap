@@ -18,6 +18,7 @@ import '../../widgets/festival_banner.dart';
 import '../../widgets/profile_setup_widgets.dart';
 import '../../models/models.dart';
 import '../../i18n/translations.dart';
+import '../../utils/platform.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -218,7 +219,10 @@ class DashboardScreen extends ConsumerWidget {
             ),
           ),
 
-          // ✨ Voice Bill — featured banner
+          // ✨ Voice Bill — featured banner. Hidden on desktop because the
+          //    speech_to_text plugin doesn't ship a macOS/Windows binding.
+          //    The screen itself stays reachable via /voice for future use.
+          if (AppPlatform.supportsVoiceBilling)
           GestureDetector(
             onTap: () { HapticFeedback.mediumImpact(); context.push('/voice'); },
             child: Container(

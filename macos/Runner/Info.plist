@@ -28,5 +28,20 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<!-- Privacy strings shown only if the user triggers a feature that
+	     uses each API. local_auth/biometric is currently hidden on macOS;
+	     printing prompts use the system sheet which already explains itself. -->
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>BillZap may use the local network to sync with the BillZap mobile app on this Wi-Fi (planned). It does not contact any server outside your network.</string>
+	<key>NSDownloadsFolderUsageDescription</key>
+	<string>BillZap saves invoice PDFs and CSV exports to your Downloads folder.</string>
+	<!-- App-level metadata that helps the system surface the right window
+	     style, app category in About panel etc. -->
+	<key>NSSupportsAutomaticTermination</key>
+	<true/>
+	<key>NSSupportsSuddenTermination</key>
+	<true/>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.business</string>
 </dict>
 </plist>
