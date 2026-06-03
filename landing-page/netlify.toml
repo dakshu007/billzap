@@ -1,0 +1,24 @@
+# Netlify config for the BillZap landing page.
+# Point Netlify's "publish directory" at this folder (landing-page/).
+
+[build]
+  publish = "."
+
+# Long-cache the immutable bits; the HTML stays fresh.
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/sitemap.xml"
+  [headers.values]
+    Content-Type = "application/xml"
+
+# Pretty alias: /download → the devices section.
+[[redirects]]
+  from = "/download"
+  to = "/#devices"
+  status = 302

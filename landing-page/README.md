@@ -1,4 +1,35 @@
-# BillZap landing page — case study
+# BillZap landing page
+
+Two pages, both single-file, light-mode, cream `#F6F2E9` app theme,
+fully responsive, SEO-ready, zero trackers.
+
+- **`index.html`** — the main marketing landing page (1.1.1.1-inspired):
+  bright, storytelling, GSAP scroll reveals + Lenis smooth scroll,
+  Material Symbols icons (hidden until the font loads so the ligature
+  shortcode never flashes), OS-aware "Download" button, and direct
+  download buttons for Android / iPhone / Windows / macOS that point at
+  the GitHub Releases **stable** filenames (`/releases/latest/download/
+  BillZap-Android.apk`, etc.) so links never break across versions.
+  Interlinks the dashboard at https://billzap-dashboard.netlify.app/.
+- **`case-study.html`** — the original competitor case-study page.
+- **`sitemap.xml`**, **`robots.txt`**, **`netlify.toml`** — SEO + hosting.
+
+## Deploy (Netlify)
+Point the site's publish directory at `landing-page/`:
+```bash
+netlify deploy --dir=landing-page --prod
+```
+`netlify.toml` already sets caching headers + a `/download` redirect.
+
+## SEO baked in
+- `<title>` + meta description tuned for "best gst billing app" et al.
+- 10 focus keywords, Open Graph + Twitter cards, canonical.
+- Schema.org JSON-LD: Organization + SoftwareApplication + FAQPage.
+- sitemap.xml + robots.txt.
+
+---
+
+## (original notes — case study)
 
 A single-file, story-driven case study for BillZap. Light mode, cream
 `#F6F2E9` theme matching the app, Google Sans + Poppins, fully responsive

@@ -210,11 +210,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: dist
-      - name: Flatten into one folder
+      - name: Flatten + give every asset a STABLE name
+        # Stable, version-less filenames so the landing page can link to
+        # github.com/.../releases/latest/download/<name> and never break
+        # when the app version bumps.
         run: |
           mkdir -p release
-          find dist -type f \( -name "*.apk" -o -name "*.aab" -o -name "*.dmg" -o -name "*.exe" -o -name "*.ipa" \) \
-            -exec cp {} release/ \;
+          find dist -name "*.apk" -exec cp {} release/BillZap-Android.apk \;
+          find dist -name "*.aab" -exec cp {} release/BillZap-Android-PlayStore.aab \;
+          find dist -name "*Setup*.exe" -exec cp {} release/BillZap-Windows-Setup.exe \;
+          find dist -name "*.dmg" -exec cp {} release/BillZap-macOS.dmg \;
+          find dist -name "*.ipa" -exec cp {} release/BillZap-iPhone.ipa \;
           echo "Files to publish:"
           ls -lah release/
 
@@ -230,12 +236,13 @@ jobs:
 
             | Platform | File | Notes |
             |---|---|---|
-            | 🤖 Android | `BillZap-${{ needs.version.outputs.name }}.apk` | Sideload-ready. Tap to install (allow "unknown sources"). |
-            | 🤖 Android | `BillZap-${{ needs.version.outputs.name }}.aab` | For Play Store upload. |
-            | 🪟 Windows | `BillZap-${{ needs.version.outputs.name }}-Setup.exe` | Run the installer. SmartScreen → More info → Run anyway (unsigned). |
-            | 🍎 macOS | `BillZap-${{ needs.version.outputs.name }}.dmg` | Drag to Applications. First launch: right-click → Open (unsigned). |
-            | 📱 iPhone | `BillZap-${{ needs.version.outputs.name }}-unsigned.ipa` | **Unsigned** — must be signed with your Apple ID to install (Xcode + USB, or Sideloadly/AltStore). See `ios/README-ios.md`. iPhone gets the Liquid Glass floating menu. |
+            | Android | `BillZap-Android.apk` | Sideload-ready. Tap to install (allow "unknown sources"). |
+            | Android | `BillZap-Android-PlayStore.aab` | For Play Store upload. |
+            | Windows | `BillZap-Windows-Setup.exe` | Run the installer. SmartScreen → More info → Run anyway (unsigned). |
+            | macOS | `BillZap-macOS.dmg` | Drag to Applications. First launch: right-click → Open (unsigned). |
+            | iPhone | `BillZap-iPhone.ipa` | **Unsigned** — sign with your Apple ID to install (Xcode + USB, or Sideloadly/AltStore). See `ios/README-ios.md`. iPhone gets the Liquid Glass floating menu. |
 
+            Filenames are stable across releases so download links never break.
             Built from the same Flutter codebase. 100% offline, no sign-up, free forever.
           files: release/*
           draft: false
