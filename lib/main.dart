@@ -10,6 +10,7 @@ import 'theme/app_theme.dart';
 import 'providers/theme_provider.dart';
 import 'router/app_router.dart';
 import 'i18n/translations.dart';
+import 'utils/platform.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,13 +65,18 @@ class BillZapApp extends ConsumerWidget {
       themeAnimationDuration: const Duration(milliseconds: 360),
       themeAnimationCurve: Curves.easeInOut,
       routerConfig: ref.watch(routerProvider),
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(
-          textScaler: TextScaler.linear(
-            MediaQuery.of(context).textScaler.scale(1.0).clamp(0.85, 1.15)),
-        ),
-        child: AppLockGate(child: child!),
-      ),
+      builder: (context, child) {
+        final mq = MediaQuery.of(context);
+        // Desktop windows sit further from the eyes and have lots of
+        // room, so nudge text ~12% larger for readability. Phones keep
+        // the device's own scale (clamped to a sane range).
+        final base = mq.textScaler.scale(1.0).clamp(0.85, 1.15);
+        final scale = AppPlatform.isDesktop ? base * 1.12 : base;
+        return MediaQuery(
+          data: mq.copyWith(textScaler: TextScaler.linear(scale)),
+          child: AppLockGate(child: child!),
+        );
+      },
     );
   }
 }

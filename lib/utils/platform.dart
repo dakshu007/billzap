@@ -6,6 +6,7 @@
 // than scattering `Platform.isMacOS` checks throughout the UI.
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'dart:io' show Platform;
 
 class AppPlatform {
@@ -46,5 +47,28 @@ class AppPlatform {
   static bool get supportsBiometric {
     if (kIsWeb) return false;
     return Platform.isAndroid || Platform.isIOS || Platform.isMacOS;
+  }
+}
+
+/// Centres page content and caps its width on wide desktop windows so
+/// the mobile-first layouts don't stretch edge-to-edge across a 1900px
+/// monitor. On phones it's a transparent pass-through.
+///
+/// Usage: wrap a screen's scrolling body — `DesktopMaxWidth(child: ListView(...))`.
+class DesktopMaxWidth extends StatelessWidget {
+  final Widget child;
+  final double maxWidth;
+  const DesktopMaxWidth({super.key, required this.child, this.maxWidth = 1080});
+
+  @override
+  Widget build(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    if (w < 900) return child; // phone / narrow → no constraint
+    return Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: child,
+      ),
+    );
   }
 }

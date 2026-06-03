@@ -9,6 +9,7 @@ import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../i18n/translations.dart';
+import '../../utils/platform.dart';
 import '../reports/export_reports_sheet.dart';
 
 class ReportsScreen extends ConsumerWidget {
@@ -70,7 +71,7 @@ class ReportsScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: ListView(
+      body: DesktopMaxWidth(child: ListView(
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 100),
         children: [
           // Revenue chart
@@ -208,7 +209,7 @@ class ReportsScreen extends ConsumerWidget {
                 ]))).toList());
             })),
         ],
-      ),
+      )),
     );
   }
 }

@@ -64,6 +64,7 @@ class DashboardScreen extends ConsumerWidget {
       .fold<double>(0, (s, i) => s + i.totalTax);
 
     final bizName = biz?.name.isNotEmpty == true ? biz!.name : null;
+    final desktop = MediaQuery.of(context).size.width >= 900;
 
     return Scaffold(
       backgroundColor: AppColors.bg,
@@ -94,7 +95,7 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: ListView(
+      body: DesktopMaxWidth(child: ListView(
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 100),
         children: [
           // Auto-shows welcome modal on first home visit if profile is empty
@@ -143,14 +144,16 @@ class DashboardScreen extends ConsumerWidget {
           const FestivalBanner(),
           // ✨ Daily insight banner
           const InsightCard(),
-          // Stat cards
+          // Stat cards — 2-up on phone, 4-up + compact on desktop so they
+          // don't balloon across a wide window.
           GridView.count(
-            crossAxisCount: 2, shrinkWrap: true,
+            crossAxisCount: desktop ? 4 : 2, shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 10, mainAxisSpacing: 10,
-            // Slightly taller cards so values can wrap onto a 2nd line when
-            // the device is using large-font accessibility settings.
-            childAspectRatio: 1.38,
+            crossAxisSpacing: desktop ? 14 : 10,
+            mainAxisSpacing: desktop ? 14 : 10,
+            // Phone keeps taller cards for large-font wrapping; desktop
+            // uses shorter, neater cards.
+            childAspectRatio: desktop ? 1.45 : 1.38,
             children: [
               _StatCard(
                 tr('dash.revenue', ref),
@@ -316,7 +319,7 @@ class DashboardScreen extends ConsumerWidget {
               context.push('/preview');
             })),
         ],
-      ),
+      )),
     );
   }
 }
@@ -328,37 +331,64 @@ class _StatCard extends StatelessWidget {
   const _StatCard(this.label, this.value, this.icon, this.color, this.soft, this.sub);
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(13),
-    decoration: BoxDecoration(color: AppColors.card,
-      borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: AppColors.border)),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Container(width: 32, height: 32,
-        decoration: BoxDecoration(color: soft, borderRadius: BorderRadius.circular(8)),
-        child: Icon(icon, size: 17, color: color)),
-      const Gap(6),
-      Text(label,
-        maxLines: 1, overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.plusJakartaSans(
-          fontSize: 10.5, color: AppColors.t3, fontWeight: FontWeight.w600)),
-      const Gap(1),
-      // Auto-shrink to fit large amounts (and stay readable when
-      // accessibility text scaling is on).
-      FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: Alignment.centerLeft,
-        child: Text(value,
-          maxLines: 1,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 17, fontWeight: FontWeight.w900, color: AppColors.t1)),
+  Widget build(BuildContext context) {
+    final desktop = MediaQuery.of(context).size.width >= 900;
+    return Container(
+      padding: EdgeInsets.all(desktop ? 16 : 13),
+      decoration: BoxDecoration(
+        // Liquid-glass tint: a soft top-down sheen over the card colour
+        // + a faint coloured wash from the metric's accent, with a 1px
+        // light border. Reads as frosted glass without a perf cost.
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.card,
+            Color.alphaBlend(soft.withOpacity(AppColors.isDark ? 0.10 : 0.45),
+                AppColors.card),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.isDark
+              ? Colors.white.withOpacity(0.06)
+              : Colors.white.withOpacity(0.7),
+          width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(AppColors.isDark ? 0.10 : 0.07),
+            blurRadius: 16, spreadRadius: -4, offset: const Offset(0, 6)),
+        ],
       ),
-      Text(sub,
-        maxLines: 2, overflow: TextOverflow.ellipsis,
-        style: GoogleFonts.plusJakartaSans(
-          fontSize: 10, color: AppColors.t3, height: 1.2)),
-    ]),
-  );
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(
+          width: desktop ? 40 : 32, height: desktop ? 40 : 32,
+          decoration: BoxDecoration(
+            color: soft, borderRadius: BorderRadius.circular(desktop ? 11 : 8)),
+          child: Icon(icon, size: desktop ? 22 : 17, color: color)),
+        Gap(desktop ? 10 : 6),
+        Text(label,
+          maxLines: 1, overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: desktop ? 13 : 10.5, color: AppColors.t3,
+            fontWeight: FontWeight.w600)),
+        const Gap(2),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(value,
+            maxLines: 1,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: desktop ? 24 : 17, fontWeight: FontWeight.w900,
+              color: AppColors.t1)),
+        ),
+        Text(sub,
+          maxLines: 2, overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: desktop ? 11.5 : 10, color: AppColors.t3, height: 1.2)),
+      ]),
+    );
+  }
 }
 
 class _QuickBtn extends StatelessWidget {

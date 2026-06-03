@@ -456,14 +456,20 @@ class _GlassSidebar extends ConsumerWidget {
     return ClipRRect(
       // The whole sidebar is one big blurred surface, edge-to-edge.
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
         child: Container(
-          width: 248,
+          width: 256,
           decoration: BoxDecoration(
-            color: AppColors.card.withOpacity(AppColors.isDark ? 0.55 : 0.62),
+            // Clean frosted white — high opacity so it reads as a crisp
+            // white panel (not grey), while the blur keeps a subtle
+            // glassy depth. Dark mode stays a deep frosted slate.
+            color: (AppColors.isDark ? const Color(0xFF141B2A) : Colors.white)
+                .withOpacity(AppColors.isDark ? 0.72 : 0.86),
             border: Border(
               right: BorderSide(
-                color: Colors.white.withOpacity(AppColors.isDark ? 0.06 : 0.5),
+                color: AppColors.isDark
+                    ? Colors.white.withOpacity(0.07)
+                    : const Color(0xFFE6E1D4),
                 width: 1)),
           ),
           child: SafeArea(
@@ -609,14 +615,16 @@ class _SideItemState extends State<_SideItem> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 160),
             curve: Curves.easeOutCubic,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
             decoration: BoxDecoration(
               color: on
-                ? AppColors.brand.withOpacity(AppColors.isDark ? 0.18 : 0.14)
+                ? AppColors.brand.withOpacity(AppColors.isDark ? 0.18 : 0.12)
                 : _hover
-                  ? Colors.white.withOpacity(AppColors.isDark ? 0.04 : 0.5)
+                  ? (AppColors.isDark
+                      ? Colors.white.withOpacity(0.05)
+                      : const Color(0xFFF1ECE0))
                   : Colors.transparent,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: on
                   ? AppColors.brand.withOpacity(0.22)
@@ -625,12 +633,13 @@ class _SideItemState extends State<_SideItem> {
             ),
             child: Row(children: [
               Icon(widget.icon,
-                size: 19,
-                color: on ? AppColors.brand : AppColors.t2),
-              const SizedBox(width: 11),
+                size: 21,
+                color: on ? AppColors.brand : AppColors.t2,
+                fill: on ? 1 : 0),
+              const SizedBox(width: 12),
               Text(widget.label,
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13.5,
+                  fontSize: 14.5,
                   fontWeight: on ? FontWeight.w800 : FontWeight.w600,
                   color: on ? AppColors.brand : AppColors.t1)),
             ]),

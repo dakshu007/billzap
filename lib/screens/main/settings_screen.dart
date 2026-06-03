@@ -15,6 +15,7 @@ import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../i18n/translations.dart';
 import '../../utils/validators.dart';
+import '../../utils/platform.dart';
 import '../../widgets/language_picker.dart';
 import '../../providers/theme_provider.dart';
 
@@ -37,7 +38,7 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1))),
 
 
-      body: Column(children: [
+      body: DesktopMaxWidth(maxWidth: 820, child: Column(children: [
         // (App Lock moved into the About tab — keeps the Me header clean
         //  and groups it with the rest of the security/info settings.)
         Container(
@@ -59,7 +60,7 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
             _InvoicePanel(),
             _AboutPanel(),
           ])),
-      ]),
+      ])),
     );
   }
 }

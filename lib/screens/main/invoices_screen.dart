@@ -15,6 +15,7 @@ import '../../theme/app_spacing.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../i18n/translations.dart';
+import '../../utils/platform.dart';
 import '../../widgets/skeleton.dart';
 
 class InvoicesScreen extends ConsumerStatefulWidget {
@@ -200,7 +201,7 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
           ),
         ),
       ),
-      body: Column(children: [
+      body: DesktopMaxWidth(child: Column(children: [
         // Filter chips
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -306,7 +307,7 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
                       ),
           ),
         ),
-      ]),
+      ])),
     );
   }
 }
