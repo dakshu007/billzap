@@ -69,8 +69,23 @@ android {
         }
         release {
             signingConfig keyPropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
-            minifyEnabled false
+
+            // R8 shrinks + obfuscates the thin Java/Kotlin embedding layer and
+            // emits a mapping.txt, which Flutter auto-bundles into the AAB.
+            // → clears Play's "no deobfuscation file" warning (readable crash/
+            //   ANR stack traces) and trims app size. Keep rules: proguard-rules.pro.
+            // Resource shrinking left off for now — marginal size win, more risk.
+            minifyEnabled true
             shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+            // Bundle native debug symbols (libapp.so / libflutter.so) into the
+            // AAB so Play can symbolicate native crashes & ANRs.
+            // → clears Play's "no debug symbols" warning. Symbols are stripped
+            //   from the APKs delivered to users, so this adds no download size.
+            ndk {
+                debugSymbolLevel 'SYMBOL_TABLE'
+            }
         }
     }
 }
