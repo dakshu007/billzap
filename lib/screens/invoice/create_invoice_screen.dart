@@ -10,6 +10,9 @@ import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
+import '../../design/components.dart';
+import '../../design/money.dart';
+import '../../design/tokens.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../services/gst_classifier.dart';
@@ -33,7 +36,8 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
   DateTime _date = DateTime.now();
   DateTime _due  = DateTime.now().add(const Duration(days: 30));
   GstType  _gstType = GstType.cgstSgst;
-  String   _place = kStates.first;
+  // Defaulted from the business profile in initState — see _defaultPlace.
+  String _place = kStates.first;
 
   bool _applyGst      = true;
   bool _applyDiscount = false;
@@ -51,6 +55,8 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
   @override
   void initState() {
     super.initState();
+    _defaultPlaceOfSupply();
+
     // Prefill from voice if present
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final extra = GoRouterState.of(context).extra;
@@ -58,6 +64,26 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
     });
 
     _custName.addListener(_onNameChanged);
+  }
+
+  /// Seed place of supply from the seller's own state.
+  ///
+  /// It used to default to `kStates.first` (Andhra Pradesh), which is
+  /// wrong for every shop outside that state — and place of supply is
+  /// what decides CGST/SGST against IGST, so the wrong default silently
+  /// produced the wrong tax split on the first bill of every session.
+  void _defaultPlaceOfSupply() {
+    final biz = ref.read(businessProvider);
+    final code = biz?.stateCode.trim() ?? '';
+    final name = biz?.state.trim() ?? '';
+
+    final match = kStates.firstWhere(
+      (s) =>
+          (code.isNotEmpty && s.endsWith('($code)')) ||
+          (name.isNotEmpty && s.startsWith(name)),
+      orElse: () => '',
+    );
+    if (match.isNotEmpty) _place = match;
   }
 
   @override
@@ -122,27 +148,28 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         backgroundColor: AppColors.bg,
-        leading: IconButton(
-          icon: Container(width: 34, height: 34,
-            decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(14)),
-            child: Icon(Symbols.close, size: 19, color: AppColors.t1)),
-          onPressed: () => context.go('/home')),
+        leadingWidth: 62,
+        leading: Center(
+          child: AppIconButton(
+              icon: Symbols.close,
+              size: 40,
+              onTap: () => context.go('/home')),
+        ),
         title: Text(tr('create.title', ref), style: AppFont.sans(
           fontSize: 21, fontWeight: FontWeight.w700,
           letterSpacing: -0.5, color: AppColors.t1)),
-        actions: [
-          Padding(padding: const EdgeInsets.only(right: 12),
-            child: ElevatedButton(
-              onPressed: _saving ? null : _save,
-              style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 9)),
-              child: _saving
-                ? const SizedBox(width: 16, height: 16,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : Text(tr('common.save', ref), style: AppFont.sans(fontWeight: FontWeight.w700, fontSize: 13.5)))),
-        ],
+      ),
+      bottomNavigationBar: _TotalBar(
+        total: _grand,
+        itemCount: _lines.where((l) => l.name.trim().isNotEmpty).length,
+        saving: _saving,
+        label: tr('create.grand_total', ref),
+        saveLabel: tr('common.save', ref),
+        onSave: _saving ? null : _save,
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(14, 14, 14, 120),
+        padding: const EdgeInsets.fromLTRB(
+            AppSpace.gutter, AppSpace.md, AppSpace.gutter, AppSpace.xl),
         children: [
           // Customer
           _Section(tr('cust.title', ref), children: [
@@ -194,7 +221,17 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13)),
               items: kStates.map((s) => DropdownMenuItem(value: s,
                 child: Text(s, style: AppFont.sans(fontSize: 13)))).toList(),
-              onChanged: (v) => setState(() => _place = v ?? _place)),
+              onChanged: (v) => setState(() {
+                    _place = v ?? _place;
+                    // Intra-state -> CGST+SGST, inter-state -> IGST.
+                    final biz = ref.read(businessProvider);
+                    final code = biz?.stateCode.trim() ?? '';
+                    if (code.isNotEmpty) {
+                      _gstType = _place.endsWith('(\$code)')
+                          ? GstType.cgstSgst
+                          : GstType.igst;
+                    }
+                  })),
           ]),
 
           // Line items
@@ -272,10 +309,13 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
             if (_applyDiscount && _discount > 0) _SRow(tr('create.discount', ref), -_discount),
             const Divider(height: 18),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text(tr('create.grand_total', ref), style: AppFont.sans(
-                fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.t1)),
-              Text(formatCurrency(_grand), style: AppFont.sans(
-                fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.brand)),
+              Text(tr('create.grand_total', ref),
+                  style: AppFont.style(AppType.titleS,
+                      color: AppColor.textPrimary)),
+              Money(_grand,
+                  style: AppType.amountL,
+                  compact: false,
+                  color: AppColor.paid),
             ]),
           ]),
 
@@ -558,20 +598,28 @@ class _Section extends StatelessWidget {
   final String title; final Widget? trailing; final List<Widget> children;
   const _Section(this.title, {this.trailing, required this.children});
   @override
-  Widget build(BuildContext context) => Container(
-    margin: const EdgeInsets.only(bottom: 12),
-    decoration: BoxDecoration(color: AppColors.card,
-      borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.border)),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Padding(padding: const EdgeInsets.fromLTRB(14, 14, 10, 10),
-        child: Row(children: [
-          Text(title, style: AppFont.sans(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.t1)),
-          if (trailing != null) ...[const Spacer(), trailing!],
-        ])),
-      const Divider(height: 1),
-      Padding(padding: const EdgeInsets.all(14),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children)),
-    ]));
+  Widget build(BuildContext context) => AppSurface(
+        margin: const EdgeInsets.only(bottom: AppSpace.md),
+        padding: EdgeInsets.zero,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+                AppSpace.lg, AppSpace.lg, AppSpace.md, AppSpace.md),
+            child: Row(children: [
+              Text(title,
+                  style: AppFont.style(AppType.titleS,
+                      color: AppColor.textPrimary)),
+              if (trailing != null) ...[const Spacer(), trailing!],
+            ]),
+          ),
+          Divider(height: 1, color: AppColor.hairline),
+          Padding(
+            padding: const EdgeInsets.all(AppSpace.lg),
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: children),
+          ),
+        ]));
 }
 
 Widget _LF(String t) => Padding(
@@ -655,9 +703,79 @@ Widget _TypeBtn(String label, bool selected, VoidCallback onTap) =>
           color: selected ? AppColors.onBrand : AppColors.t2)))));
 
 Widget _SRow(String label, double amount) => Padding(
-  padding: const EdgeInsets.symmetric(vertical: 3),
-  child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-    Text(label, style: AppFont.sans(fontSize: 13, color: AppColors.t2)),
-    Text(formatCurrency(amount), style: AppFont.sans(fontSize: 13, fontWeight: FontWeight.w600,
-      color: amount < 0 ? AppColors.green : AppColors.t1)),
-  ]));
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Text(label,
+            style: AppFont.style(AppType.bodyM, color: AppColor.textSecondary)),
+        Money(amount,
+            style: AppType.amountS,
+            compact: false,
+            color: amount < 0 ? AppColor.paid : AppColor.textPrimary),
+      ]));
+
+
+/// Persistent total + save bar.
+///
+/// The running total stays on screen for the whole of the form because
+/// that is the number the shopkeeper and the customer at the counter are
+/// both watching. It tweens rather than cutting, so adding a line reads
+/// as the total climbing.
+class _TotalBar extends StatelessWidget {
+  final double total;
+  final int itemCount;
+  final bool saving;
+  final String label, saveLabel;
+  final VoidCallback? onSave;
+
+  const _TotalBar({
+    required this.total,
+    required this.itemCount,
+    required this.saving,
+    required this.label,
+    required this.saveLabel,
+    required this.onSave,
+  });
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: EdgeInsets.fromLTRB(
+          AppSpace.gutter,
+          AppSpace.lg,
+          AppSpace.gutter,
+          MediaQuery.of(context).padding.bottom + AppSpace.lg,
+        ),
+        decoration: BoxDecoration(
+          color: AppColor.surface,
+          border: Border(top: BorderSide(color: AppColor.hairline)),
+          boxShadow: AppElevation.lifted,
+        ),
+        child: Row(children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '${label.toUpperCase()} · $itemCount ${itemCount == 1 ? "item" : "items"}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppFont.style(AppType.overline,
+                      color: AppColor.textTertiary),
+                ),
+                const Gap(4),
+                Money(total,
+                    style: AppType.amountL, compact: false, animate: true),
+              ],
+            ),
+          ),
+          const Gap(AppSpace.lg),
+          AppButton(
+            label: saveLabel,
+            icon: Symbols.check,
+            expand: false,
+            busy: saving,
+            onPressed: onSave,
+          ),
+        ]),
+      );
+}

@@ -188,7 +188,12 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
   AppNavDock _dock(WidgetRef ref) => AppNavDock(
         index: _idx,
         onSelect: _tapTab,
-        onCreate: _create,
+        // The create button rides only on Home. Anywhere else it floated
+        // over dense figures — it covered the Net Profit line in Reports
+        // and a cell of the quick-action grid — and Invoices already
+        // carries its own "+" in the header. Reports and Settings are
+        // read/configure surfaces; creating a bill is not their job.
+        onCreate: _idx == 0 ? _create : null,
         createLabel: tr('dash.new_invoice', ref),
         createIcon: Symbols.add,
         destinations: [
