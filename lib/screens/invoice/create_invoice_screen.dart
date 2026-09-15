@@ -550,8 +550,8 @@ Widget _QtyBtn(String label, VoidCallback onTap) => GestureDetector(
   onTap: onTap,
   child: Container(width: 28, height: 28,
     decoration: BoxDecoration(color: AppColors.brand, borderRadius: BorderRadius.circular(7)),
-    child: Center(child: Text(label, style: const TextStyle(
-      color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)))));
+    child: Center(child: Text(label, style: TextStyle(
+      color: AppColors.onBrand, fontSize: 16, fontWeight: FontWeight.bold)))));
 
 // ── Shared helpers ──────────────────────────────────────────────────────────
 class _Section extends StatelessWidget {
@@ -652,7 +652,7 @@ Widget _TypeBtn(String label, bool selected, VoidCallback onTap) =>
         border: Border.all(color: selected ? AppColors.brand : AppColors.border)),
       child: Text(label, textAlign: TextAlign.center,
         style: AppFont.sans(fontSize: 12, fontWeight: FontWeight.w700,
-          color: selected ? Colors.white : AppColors.t2)))));
+          color: selected ? AppColors.onBrand : AppColors.t2)))));
 
 Widget _SRow(String label, double amount) => Padding(
   padding: const EdgeInsets.symmetric(vertical: 3),

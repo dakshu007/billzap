@@ -321,7 +321,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
             : const Icon(Symbols.picture_as_pdf, size: 18),
           label: Text('PDF', style: AppFont.sans(fontWeight: FontWeight.w600, fontSize: 14)),
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.brand, foregroundColor: Colors.white,
+            backgroundColor: AppColors.brand, foregroundColor: AppColors.onBrand,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))))),
       ]),
@@ -863,7 +863,7 @@ class _UpiPaymentCard extends ConsumerWidget {
                   fontSize: 12.5, fontWeight: FontWeight.w600)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.brand,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.onBrand,
                 padding: const EdgeInsets.symmetric(vertical: 9),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),

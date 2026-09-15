@@ -170,7 +170,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       : (_step == 2 ? _finish : _nextStep),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.brand,
-                    foregroundColor: Colors.white,
+                    foregroundColor: AppColors.onBrand,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 32, vertical: 14),
                     shape: RoundedRectangleBorder(
@@ -220,8 +220,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 ),
               ],
             ),
-            child: const Icon(Symbols.bolt,
-                color: Colors.white, size: 40, weight: 700),
+            child: Icon(Symbols.bolt,
+                color: AppColors.onBrand, size: 40, weight: 700),
           ),
           const Gap(28),
           Text(trGlobal('onboard.welcome'),

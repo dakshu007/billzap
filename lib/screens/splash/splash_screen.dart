@@ -62,7 +62,7 @@ class _SplashState extends State<SplashScreen>
               style: AppFont.sans(
                   fontSize: 38,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  color: AppColors.onBrand,
                   letterSpacing: -1.2),
             ),
             const SizedBox(height: 6),
@@ -70,15 +70,16 @@ class _SplashState extends State<SplashScreen>
               'GST Billing Made Simple',
               style: AppFont.sans(
                   fontSize: 14,
-                  color: Colors.white70,
+                  color: AppColors.onBrand.withOpacity(0.7),
                   fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 56),
-            const SizedBox(
+            SizedBox(
               width: 22,
               height: 22,
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation(Colors.white54),
+                valueColor:
+                    AlwaysStoppedAnimation(AppColors.onBrand.withOpacity(0.55)),
                 strokeWidth: 2,
               ),
             ),

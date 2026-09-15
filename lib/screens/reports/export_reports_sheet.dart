@@ -446,7 +446,7 @@ class _PeriodChip extends StatelessWidget {
         child: Text(label,
           style: AppFont.sans(
             fontSize: 12, fontWeight: FontWeight.w700,
-            color: selected ? Colors.white : AppColors.t2)),
+            color: selected ? AppColors.onBrand : AppColors.t2)),
       ),
     );
   }

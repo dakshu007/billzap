@@ -269,7 +269,7 @@ class _StepWarning extends StatelessWidget {
           onPressed: onContinue,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.brand,
-            foregroundColor: Colors.white,
+            foregroundColor: AppColors.onBrand,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18)),
@@ -396,7 +396,7 @@ class _StepBackupShare extends StatelessWidget {
           onPressed: onContinue,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.brand,
-            foregroundColor: Colors.white,
+            foregroundColor: AppColors.onBrand,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18)),
@@ -539,7 +539,7 @@ class _StepBiometric extends StatelessWidget {
               fontSize: 14.5, fontWeight: FontWeight.w600)),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.brand,
-            foregroundColor: Colors.white,
+            foregroundColor: AppColors.onBrand,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18)),
@@ -598,7 +598,7 @@ class _StepDone extends StatelessWidget {
           onPressed: onClose,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.brand,
-            foregroundColor: Colors.white,
+            foregroundColor: AppColors.onBrand,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18)),

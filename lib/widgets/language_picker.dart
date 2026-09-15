@@ -47,8 +47,8 @@ class LanguagePickerScreen extends ConsumerWidget {
                       blurRadius: 20, offset: const Offset(0, 8)),
                   ],
                 ),
-                child: const Icon(Symbols.bolt,
-                    color: Colors.white, size: 36, weight: 700),
+                child: Icon(Symbols.bolt,
+                    color: AppColors.onBrand, size: 36, weight: 700),
               ),
               const Gap(20),
               Text('BillZap',
@@ -101,7 +101,7 @@ class LanguagePickerScreen extends ConsumerWidget {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.brand,
-                      foregroundColor: Colors.white,
+                      foregroundColor: AppColors.onBrand,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20)),
@@ -221,8 +221,8 @@ class _LangTile extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                   child: selected
-                    ? const Icon(Symbols.check,
-                        color: Colors.white, size: 16, weight: 800)
+                    ? Icon(Symbols.check,
+                        color: AppColors.onBrand, size: 16, weight: 800)
                     : null,
                 ),
               ],

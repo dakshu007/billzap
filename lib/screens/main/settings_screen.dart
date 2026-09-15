@@ -311,8 +311,9 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 15)),
             child: _saving
-              ? const SizedBox(width: 20, height: 20,
-                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+              ? SizedBox(width: 20, height: 20,
+                  child: CircularProgressIndicator(
+                    color: AppColors.onBrand, strokeWidth: 2))
               : Text(tr('set.save_bank', ref),
                   style: AppFont.sans(
                     fontSize: 14, fontWeight: FontWeight.w700)))),

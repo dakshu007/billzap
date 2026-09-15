@@ -502,7 +502,7 @@ class _DateChip extends StatelessWidget {
         child: Text(label,
           style: AppFont.sans(
             fontSize: 11.5, fontWeight: FontWeight.w700,
-            color: selected ? Colors.white : AppColors.t2)),
+            color: selected ? AppColors.onBrand : AppColors.t2)),
       ),
     );
   }

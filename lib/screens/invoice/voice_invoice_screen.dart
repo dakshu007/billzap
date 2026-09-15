@@ -519,7 +519,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                       style: AppFont.sans(fontWeight: FontWeight.w600, fontSize: 13.5)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.brand,
-                      foregroundColor: Colors.white,
+                      foregroundColor: AppColors.onBrand,
                       padding: const EdgeInsets.symmetric(vertical: 13),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
                   )),

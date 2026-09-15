@@ -212,7 +212,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
           label: Text(trGlobal('cat.add_first')),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.brand,
-            foregroundColor: Colors.white,
+            foregroundColor: AppColors.onBrand,
           ),
         ),
       ]),
@@ -376,15 +376,15 @@ class _CatalogScreenState extends State<CatalogScreen> {
                           },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.brand,
-                      foregroundColor: Colors.white,
+                      foregroundColor: AppColors.onBrand,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                     child: saving
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2))
+                                color: AppColors.onBrand, strokeWidth: 2))
                         : Text(trGlobal('cat.save')),
                   ),
                 ),

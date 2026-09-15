@@ -133,7 +133,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.brand, foregroundColor: Colors.white),
+              backgroundColor: AppColors.brand, foregroundColor: AppColors.onBrand),
             child: Text('Start (${selectedCustomers.length})')),
         ],
       ),

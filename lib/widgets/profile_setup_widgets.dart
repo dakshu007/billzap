@@ -126,7 +126,7 @@ void _showWelcomeModal(BuildContext context) {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.brand,
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.onBrand,
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(18)),
