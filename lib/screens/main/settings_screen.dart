@@ -11,7 +11,8 @@ import 'package:gap/gap.dart';
 import 'package:billzap/theme/app_icons.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/app_spacing.dart';
-import '../../widgets/ui_kit.dart';
+import '../../design/components.dart';
+import '../../design/tokens.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../i18n/translations.dart';
@@ -32,27 +33,24 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bg,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: AppColors.bg,
-        toolbarHeight: 66,
-        titleSpacing: AppSpacing.screenH,
-        title: Text(tr('set.title', ref), style: AppFont.sans(
-          fontSize: 24, fontWeight: FontWeight.w700,
-          letterSpacing: -0.6, color: AppColors.t1))),
-
-
-      body: DesktopMaxWidth(maxWidth: 820, child: Column(children: [
-        // (App Lock moved into the About tab — keeps the Me header clean
-        //  and groups it with the rest of the security/info settings.)
+      body: DesktopMaxWidth(maxWidth: 820, child: SafeArea(
+        bottom: false,
+        child: Column(children: [
+        ScreenTitle(
+          tr('set.title', ref),
+          padding: const EdgeInsets.fromLTRB(
+              AppSpace.gutter, AppSpace.lg, AppSpace.gutter, AppSpace.lg),
+        ),
+        // (App Lock lives in the About tab — it groups with the rest of
+        //  the security/info settings and keeps this header clean.)
         Padding(
           padding: const EdgeInsets.fromLTRB(
-            AppSpacing.screenH, 2, AppSpacing.screenH, 14),
+            AppSpace.gutter, 0, AppSpace.gutter, AppSpace.lg),
           child: Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: AppColors.inset,
-              borderRadius: BorderRadius.circular(AppRadius.pill)),
+              color: AppColor.sunken,
+              borderRadius: AppRadius.all(AppRadius.pill)),
             child: Row(children: [
               _TabBtn(tr('set.business', ref), 0, _tab, (i) => setState(() => _tab = i)),
               _TabBtn(tr('set.bank', ref), 1, _tab, (i) => setState(() => _tab = i)),
@@ -66,7 +64,7 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
             _InvoicePanel(),
             _AboutPanel(),
           ])),
-      ])),
+      ]))),
     );
   }
 }
@@ -91,8 +89,8 @@ class _TabBtn extends StatelessWidget {
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: on ? AppColors.card : Colors.transparent,
-            borderRadius: BorderRadius.circular(AppRadius.pill),
+            color: on ? AppColor.surface : Colors.transparent,
+            borderRadius: AppRadius.all(AppRadius.pill),
             boxShadow: on ? AppShadow.card : null),
           child: Text(label,
             textAlign: TextAlign.center,
@@ -707,12 +705,12 @@ class _SettingsTile extends StatelessWidget {
     // `gradient` survives as the tile's accent source — the redesign uses
     // its first stop as a flat tint instead of painting a gradient.
     final accent = gradient.isEmpty ? AppColors.t2 : gradient.first;
-    return AppCard(
+    return AppSurface(
       onTap: onTap,
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       child: Row(children: [
-        AppBadge(icon: icon, tone: accent, size: 44),
+        AppAvatar(icon: icon, tone: accent, size: 44),
         const Gap(13),
         Expanded(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -758,12 +756,12 @@ class _ThemeTile extends ConsumerWidget {
         break;
     }
 
-    return AppCard(
+    return AppSurface(
       onTap: () => _pickMode(context, ref, mode),
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       child: Row(children: [
-        AppBadge(icon: icon, size: 44),
+        AppAvatar(icon: icon, size: 44),
         const Gap(13),
         Expanded(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start, children: [

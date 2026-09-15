@@ -5,7 +5,6 @@
 // To add a new key: add it to ALL maps with the appropriate translation
 // To use in a screen: import this file and call tr('key_name', context)
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 

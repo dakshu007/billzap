@@ -16,8 +16,8 @@ import '../../theme/app_theme.dart';
 import '../../i18n/translations.dart';
 import '../../providers/providers.dart';
 import '../../utils/platform.dart';
-import '../../widgets/app_nav_dock.dart';
-import '../../widgets/ui_kit.dart';
+import '../../design/nav_dock.dart';
+import '../../design/components.dart';
 import 'dashboard_screen.dart';
 import 'invoices_screen.dart';
 import 'reports_screen.dart';
@@ -185,24 +185,20 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
     context.push('/create');
   }
 
-  AppNavDock _dock(WidgetRef ref, {required bool floating}) => AppNavDock(
-        idx: _idx,
-        floating: floating,
-        onHome: () => _tapTab(0),
-        onInvoices: () => _tapTab(1),
+  AppNavDock _dock(WidgetRef ref) => AppNavDock(
+        index: _idx,
+        onSelect: _tapTab,
         onCreate: _create,
-        onReports: () => _tapTab(2),
-        onMe: () => _tapTab(3),
-        homeIcon: Symbols.home,
-        invoicesIcon: Symbols.receipt_long,
-        createIcon: Symbols.add,
-        reportsIcon: Symbols.bar_chart,
-        meIcon: Symbols.person,
-        homeLabel: tr('nav.home', ref),
-        invoicesLabel: tr('nav.invoices', ref),
         createLabel: tr('dash.new_invoice', ref),
-        reportsLabel: tr('nav.reports', ref),
-        meLabel: tr('nav.me', ref),
+        createIcon: Symbols.add,
+        destinations: [
+          NavDestination(icon: Symbols.home, label: tr('nav.home', ref)),
+          NavDestination(
+              icon: Symbols.receipt_long, label: tr('nav.invoices', ref)),
+          NavDestination(
+              icon: Symbols.bar_chart, label: tr('nav.reports', ref)),
+          NavDestination(icon: Symbols.person, label: tr('nav.me', ref)),
+        ],
       );
 
   @override
@@ -258,7 +254,7 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
         Positioned(
           left: 0, right: 0, bottom: 0,
           child: Consumer(
-            builder: (_, ref, __) => _dock(ref, floating: true)),
+            builder: (_, ref, __) => _dock(ref)),
         ),
       ]),
     );
@@ -320,7 +316,7 @@ class _Sidebar extends ConsumerWidget {
           // ─── Primary CTA — New Invoice ────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-            child: AppInkButton(
+            child: AppButton(
               label: tr('dash.new_invoice', ref),
               icon: Symbols.add,
               onPressed: onCreate),
@@ -349,7 +345,7 @@ class _Sidebar extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: Row(children: [
-                AppBadge(initial: bizName, size: 34),
+                AppAvatar(label: bizName, size: 34),
                 const SizedBox(width: 11),
                 Expanded(child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

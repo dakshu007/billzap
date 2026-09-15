@@ -10,7 +10,6 @@
 // Dates verified from timeanddate.com, drikpanchang.com, India Government calendar
 // for 2026. 2027 dates are best-estimates that should be re-verified before that year.
 
-import 'package:intl/intl.dart';
 
 class Festival {
   final String id;            // 'diwali', 'holi', etc.

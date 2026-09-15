@@ -649,7 +649,10 @@ class AppListRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (amount != null) Money(amount!, style: AppType.amountS),
+                if (amount != null)
+                  // Ledger column: always two decimals so the tabular
+                  // figures align down the list.
+                  Money(amount!, style: AppType.amountS, compact: false),
                 if (badge != null) ...[
                   const SizedBox(height: 5),
                   badge!,
@@ -833,7 +836,7 @@ class StatTile extends StatelessWidget {
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
               child: amount != null
-                  ? Money(amount!, style: AppType.amountM)
+                  ? Money(amount!, style: AppType.amountM, round: true)
                   : Text(value ?? '—',
                       style: AppFont.style(AppType.amountM,
                           color: AppColor.textPrimary)),
@@ -847,6 +850,26 @@ class StatTile extends StatelessWidget {
                       color: AppColor.textQuiet)),
             ],
           ],
+        ),
+      );
+}
+
+/// Circular back affordance for pushed screens. Falls back to a caller
+/// supplied route when there is nothing on the stack to pop (deep links,
+/// restored sessions).
+class AppBackButton extends StatelessWidget {
+  final VoidCallback? onTap;
+  final String? tooltip;
+
+  const AppBackButton({super.key, this.onTap, this.tooltip});
+
+  @override
+  Widget build(BuildContext context) => Center(
+        child: AppIconButton(
+          icon: Icons.arrow_back_rounded,
+          size: 40,
+          tooltip: tooltip,
+          onTap: onTap ?? () => Navigator.of(context).maybePop(),
         ),
       );
 }

@@ -1,225 +1,288 @@
 // lib/screens/main/reports_screen.dart
 //
-// Reports. Same figures as before — six-month revenue, GST split, P&L,
-// invoice status mix and top customers — redrawn in the clean language:
-// white panels, ink bars, inset tracks, no coloured backgrounds except
-// where a number's meaning depends on it.
+// Reports.
+//
+// A shop owner reads reports to answer three questions, so the screen is
+// three blocks in that order: am I growing (revenue trend), what do I owe
+// the government (GST), and did I actually make money (P&L). Customer and
+// status breakdowns come after, because they are diagnostics rather than
+// headlines.
+//
+// The revenue chart is deliberately bars, not a line: monthly totals are
+// discrete buckets, and a line implies a continuous series between them.
+
 import 'package:flutter/material.dart';
 import 'package:billzap/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gap/gap.dart';
-import '../../theme/app_theme.dart';
-import '../../theme/app_spacing.dart';
-import '../../providers/providers.dart';
-import '../../models/models.dart';
+
+import '../../design/components.dart';
+import '../../design/money.dart';
+import '../../design/motion.dart';
+import '../../design/theme.dart';
+import '../../design/tokens.dart';
 import '../../i18n/translations.dart';
+import '../../models/models.dart';
+import '../../providers/providers.dart';
 import '../../utils/platform.dart';
-import '../../widgets/ui_kit.dart';
 import '../reports/export_reports_sheet.dart';
 
 class ReportsScreen extends ConsumerWidget {
   const ReportsScreen({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final invs = ref.watch(invoiceProvider);
-    final exps = ref.watch(expenseProvider);
-    final now  = DateTime.now();
-    final months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    final invoices = ref.watch(invoiceProvider);
+    final expenses = ref.watch(expenseProvider);
+    final now = DateTime.now();
 
-    final last6months = List.generate(6, (i) {
+    const monthNames = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+
+    final months = List.generate(6, (i) {
       final d = DateTime(now.year, now.month - 5 + i);
-      return [d.month, d.year, months[d.month - 1]];
+      return (month: d.month, year: d.year, label: monthNames[d.month - 1]);
     });
 
-    final vals = last6months.map((l) => invs
-      .where((i) => i.status == InvoiceStatus.paid &&
-        i.invoiceDate.month == (l[0] as int) && i.invoiceDate.year == (l[1] as int))
-      .fold<double>(0, (s, i) => s + i.grandTotal)).toList();
+    final paid = invoices.where((i) => i.status == InvoiceStatus.paid);
 
-    final maxV = vals.isEmpty ? 1.0 : vals.reduce((a, b) => a > b ? a : b).clamp(1.0, double.infinity);
+    final series = months
+        .map((m) => paid
+            .where((i) =>
+                i.invoiceDate.month == m.month && i.invoiceDate.year == m.year)
+            .fold<double>(0, (s, i) => s + i.grandTotal))
+        .toList();
+    final peak = series.isEmpty
+        ? 1.0
+        : series.reduce((a, b) => a > b ? a : b).clamp(1.0, double.infinity);
 
-    final paidInvs = invs.where((i) => i.status == InvoiceStatus.paid);
-    final cgst = paidInvs.fold<double>(0, (s, i) => s + i.totalCgst);
-    final sgst = paidInvs.fold<double>(0, (s, i) => s + i.totalSgst);
-    final igst = paidInvs.fold<double>(0, (s, i) => s + i.totalIgst);
-    final rev  = paidInvs.fold<double>(0, (s, i) => s + i.grandTotal);
-    final expTot = exps.fold<double>(0, (s, e) => s + e.amount);
+    final cgst = paid.fold<double>(0, (s, i) => s + i.totalCgst);
+    final sgst = paid.fold<double>(0, (s, i) => s + i.totalSgst);
+    final igst = paid.fold<double>(0, (s, i) => s + i.totalIgst);
+    final revenue = paid.fold<double>(0, (s, i) => s + i.grandTotal);
+    final spend = expenses.fold<double>(0, (s, e) => s + e.amount);
+    final profit = revenue - spend;
 
-    // Top customers
-    final custMap = <String, double>{};
-    for (final i in paidInvs) {
-      custMap[i.customerName] = (custMap[i.customerName] ?? 0) + i.grandTotal;
+    // Month-on-month movement, so the trend has a number attached to it
+    // rather than only a shape.
+    final thisMonth = series.isNotEmpty ? series.last : 0.0;
+    final lastMonth = series.length > 1 ? series[series.length - 2] : 0.0;
+    final delta = lastMonth > 0
+        ? ((thisMonth - lastMonth) / lastMonth) * 100
+        : (thisMonth > 0 ? 100.0 : 0.0);
+
+    final byCustomer = <String, double>{};
+    for (final i in paid) {
+      byCustomer[i.customerName] =
+          (byCustomer[i.customerName] ?? 0) + i.grandTotal;
     }
-    final topCusts = custMap.entries.toList()
+    final top = byCustomer.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: AppColors.bg,
-        toolbarHeight: 66,
-        titleSpacing: AppSpacing.screenH,
-        title: Text(tr('rep.title', ref), style: AppFont.sans(
-          fontSize: 24, fontWeight: FontWeight.w700,
-          letterSpacing: -0.6, color: AppColors.t1)),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.screenH),
-            child: AppPill('Export',
-              icon: Symbols.download,
-              selected: true,
-              onTap: () => ExportReportsSheet.show(context)),
-          ),
-        ],
-      ),
-      body: DesktopMaxWidth(child: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.screenH, 6, AppSpacing.screenH, AppSpacing.bottomNavSafe),
-        children: [
-          // ─── Revenue chart ──────────────────────────────────────────
-          _Panel(tr('rep.monthly_revenue', ref), child: SizedBox(
-            height: 150,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: List.generate(6, (i) {
-                final current = i == 5;
-                return Expanded(child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
+      backgroundColor: AppColor.canvas,
+      body: DesktopMaxWidth(
+        child: SafeArea(
+          bottom: false,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(AppSpace.gutter, 0,
+                AppSpace.gutter, AppSpace.navClearance),
+            children: [
+              ScreenTitle(
+                tr('rep.title', ref),
+                eyebrow: 'Last 6 months',
+                padding: const EdgeInsets.fromLTRB(
+                    0, AppSpace.lg, 0, AppSpace.lg),
+                trailing: AppButton.outline(
+                  label: 'Export',
+                  icon: Symbols.download,
+                  compact: true,
+                  expand: false,
+                  onPressed: () => ExportReportsSheet.show(context),
+                ),
+              ),
+
+              Entrance(
+                index: 0,
+                child: _Panel(
+                  title: tr('rep.monthly_revenue', ref),
+                  trailing: _Delta(delta),
+                  child: _RevenueChart(
+                      series: series,
+                      peak: peak,
+                      labels: [for (final m in months) m.label]),
+                ),
+              ),
+              const SizedBox(height: AppSpace.md),
+
+              Entrance(
+                index: 1,
+                child: _Panel(
+                  title: tr('rep.gst_summary', ref),
+                  child: Column(children: [
+                    Row(children: [
+                      Expanded(child: _GstCell('CGST', cgst)),
+                      const SizedBox(width: AppSpace.sm),
+                      Expanded(child: _GstCell('SGST', sgst)),
+                      const SizedBox(width: AppSpace.sm),
+                      Expanded(child: _GstCell('IGST', igst)),
+                    ]),
+                    const SizedBox(height: AppSpace.lg),
+                    // The number that actually has to be paid, given the
+                    // weight it deserves.
                     Container(
-                      height: (vals[i] / maxV * 116).clamp(6.0, 116.0),
-                      margin: const EdgeInsets.symmetric(horizontal: 5),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpace.lg, vertical: AppSpace.lg),
                       decoration: BoxDecoration(
-                        color: current ? AppColors.brand : AppColors.inset,
-                        borderRadius: BorderRadius.circular(AppRadius.xs),
+                        color: AppColor.wash(AppColor.info),
+                        borderRadius: AppRadius.all(AppRadius.md),
                       ),
+                      child: Row(children: [
+                        Expanded(
+                          child: Text(tr('rep.total_gst_payable', ref),
+                              style: AppFont.style(AppType.labelM,
+                                  color: AppColor.textSecondary)),
+                        ),
+                        Money(cgst + sgst + igst,
+                            style: AppType.amountL,
+                            color: AppColor.info,
+                            round: true),
+                      ]),
                     ),
-                    const Gap(8),
-                    Text(
-                      last6months[i][2] as String,
-                      style: AppFont.sans(
-                        fontSize: 11,
-                        fontWeight: current ? FontWeight.w600 : FontWeight.w500,
-                        color: current ? AppColors.t1 : AppColors.t3,
+                  ]),
+                ),
+              ),
+              const SizedBox(height: AppSpace.md),
+
+              Entrance(
+                index: 2,
+                child: _Panel(
+                  title: tr('rep.profit_loss', ref),
+                  child: Column(children: [
+                    _Line(tr('rep.total_revenue', ref), revenue,
+                        AppColor.paid),
+                    _Line(tr('rep.total_expenses', ref), spend,
+                        AppColor.overdue),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: AppSpace.md),
+                      child: Divider(height: 1, color: AppColor.hairline),
+                    ),
+                    Row(children: [
+                      Expanded(
+                        child: Text(tr('rep.net_profit', ref),
+                            style: AppFont.style(AppType.titleS,
+                                color: AppColor.textPrimary)),
                       ),
-                    ),
-                  ],
-                ));
-              }),
-            ),
-          )),
-          const Gap(AppSpacing.cardGap),
+                      Money(profit,
+                          round: true,
+                          style: AppType.amountL,
+                          color: profit >= 0
+                              ? AppColor.paid
+                              : AppColor.overdue),
+                    ]),
+                  ]),
+                ),
+              ),
+              const SizedBox(height: AppSpace.md),
 
-          // ─── GST summary ────────────────────────────────────────────
-          _Panel(tr('rep.gst_summary', ref), child: Column(children: [
-            Row(children: [
-              _GBox('CGST', cgst, AppColors.t2),
-              const Gap(9),
-              _GBox('SGST', sgst, AppColors.t2),
-              const Gap(9),
-              _GBox('IGST', igst, AppColors.t2),
-            ]),
-            const Gap(14),
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-              decoration: BoxDecoration(
-                color: AppColors.brand,
-                borderRadius: BorderRadius.circular(AppRadius.md)),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(child: Text(tr('rep.total_gst_payable', ref),
-                    style: AppFont.sans(
-                      fontSize: 13.5, fontWeight: FontWeight.w500,
-                      color: AppColors.onBrand.withOpacity(0.7)))),
-                  const Gap(10),
-                  Text(formatCurrency(cgst + sgst + igst),
-                    style: AppFont.sans(
-                      fontSize: 19, fontWeight: FontWeight.w700,
-                      letterSpacing: -0.5, color: AppColors.onBrand)),
-                ])),
-          ])),
-          const Gap(AppSpacing.cardGap),
+              Entrance(
+                index: 3,
+                child: _Panel(
+                  title: tr('rep.invoice_status', ref),
+                  child: Column(children: [
+                    _StatusBar(
+                        label: tr('inv.paid', ref),
+                        tone: AppColor.paid,
+                        count: invoices
+                            .where((i) =>
+                                i.status == InvoiceStatus.paid && !i.isOverdue)
+                            .length,
+                        total: invoices.length),
+                    _StatusBar(
+                        label: tr('inv.sent', ref),
+                        tone: AppColor.info,
+                        count: invoices
+                            .where((i) =>
+                                i.status == InvoiceStatus.sent && !i.isOverdue)
+                            .length,
+                        total: invoices.length),
+                    _StatusBar(
+                        label: tr('inv.pending', ref),
+                        tone: AppColor.pending,
+                        count: invoices
+                            .where((i) =>
+                                i.status == InvoiceStatus.pending &&
+                                !i.isOverdue)
+                            .length,
+                        total: invoices.length),
+                    _StatusBar(
+                        label: tr('inv.overdue', ref),
+                        tone: AppColor.overdue,
+                        count: invoices.where((i) => i.isOverdue).length,
+                        total: invoices.length,
+                        last: true),
+                  ]),
+                ),
+              ),
 
-          // ─── P&L ────────────────────────────────────────────────────
-          _Panel(tr('rep.profit_loss', ref), child: Column(children: [
-            _PLRow(tr('rep.total_revenue', ref), rev, AppColors.green),
-            _PLRow(tr('rep.total_expenses', ref), expTot, AppColors.red),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Divider(height: 1, color: AppColors.border)),
-            _PLRow(tr('rep.net_profit', ref), rev - expTot,
-              rev - expTot >= 0 ? AppColors.green : AppColors.red, bold: true),
-          ])),
-          const Gap(AppSpacing.cardGap),
-
-          // ─── Invoice status mix ─────────────────────────────────────
-          _Panel(tr('rep.invoice_status', ref), child: Column(children: [
-            _StatusRow(
-              label: tr('inv.paid', ref), color: AppColors.green,
-              count: invs.where((i) =>
-                i.status == InvoiceStatus.paid && !i.isOverdue).length,
-              total: invs.length),
-            _StatusRow(
-              label: tr('inv.sent', ref), color: AppColors.blue,
-              count: invs.where((i) =>
-                i.status == InvoiceStatus.sent && !i.isOverdue).length,
-              total: invs.length),
-            _StatusRow(
-              label: tr('inv.pending', ref), color: AppColors.yellow,
-              count: invs.where((i) =>
-                i.status == InvoiceStatus.pending && !i.isOverdue).length,
-              total: invs.length),
-            _StatusRow(
-              label: tr('inv.overdue', ref), color: AppColors.red,
-              count: invs.where((i) => i.isOverdue).length,
-              total: invs.length, last: true),
-          ])),
-          const Gap(AppSpacing.cardGap),
-
-          // ─── Top customers ──────────────────────────────────────────
-          if (topCusts.isNotEmpty)
-            _Panel(tr('rep.top_customers', ref), child: Builder(builder: (_) {
-              final maxVal = topCusts.first.value;
-              final rows = topCusts.take(5).toList();
-              return Column(children: [
-                for (var i = 0; i < rows.length; i++)
-                  Padding(
-                    padding: EdgeInsets.only(
-                      bottom: i == rows.length - 1 ? 0 : 16),
-                    child: Row(children: [
-                      AppBadge(initial: rows[i].key, size: 38),
-                      const Gap(12),
-                      Expanded(child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(rows[i].key,
-                            maxLines: 1, overflow: TextOverflow.ellipsis,
-                            style: AppFont.sans(
-                              fontSize: 13.5, fontWeight: FontWeight.w600,
-                              color: AppColors.t1)),
-                          const Gap(6),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(AppRadius.pill),
-                            child: LinearProgressIndicator(
-                              value: maxVal > 0
-                                ? (rows[i].value / maxVal).clamp(0.0, 1.0) : 0,
-                              backgroundColor: AppColors.inset, minHeight: 6,
-                              valueColor:
-                                AlwaysStoppedAnimation(AppColors.brand))),
-                        ])),
-                      const Gap(12),
-                      Text(formatCurrency(rows[i].value),
-                        style: AppFont.sans(
-                          fontSize: 13.5, fontWeight: FontWeight.w600,
-                          letterSpacing: -0.2, color: AppColors.t1)),
+              if (top.isNotEmpty) ...[
+                const SizedBox(height: AppSpace.md),
+                Entrance(
+                  index: 4,
+                  child: _Panel(
+                    title: tr('rep.top_customers', ref),
+                    child: Column(children: [
+                      for (var i = 0; i < top.take(5).length; i++)
+                        Padding(
+                          padding: EdgeInsets.only(
+                              bottom: i == top.take(5).length - 1
+                                  ? 0
+                                  : AppSpace.lg),
+                          child: Row(children: [
+                            AppAvatar(label: top[i].key, size: 38),
+                            const SizedBox(width: AppSpace.md),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(top[i].key,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: AppFont.style(AppType.labelM,
+                                          color: AppColor.textPrimary)),
+                                  const SizedBox(height: 6),
+                                  ClipRRect(
+                                    borderRadius:
+                                        AppRadius.all(AppRadius.pill),
+                                    child: LinearProgressIndicator(
+                                      value: top.first.value > 0
+                                          ? (top[i].value / top.first.value)
+                                              .clamp(0.0, 1.0)
+                                          : 0,
+                                      minHeight: 6,
+                                      backgroundColor: AppColor.sunken,
+                                      valueColor: AlwaysStoppedAnimation(
+                                          AppColor.primary),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: AppSpace.md),
+                            Money(top[i].value,
+                                style: AppType.amountS, round: true),
+                          ]),
+                        ),
                     ]),
                   ),
-              ]);
-            })),
-        ],
-      )),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -229,59 +292,186 @@ class ReportsScreen extends ConsumerWidget {
 class _Panel extends StatelessWidget {
   final String title;
   final Widget child;
-  const _Panel(this.title, {required this.child});
+  final Widget? trailing;
+  const _Panel({required this.title, required this.child, this.trailing});
 
   @override
-  Widget build(BuildContext context) => AppCard(
-        padding: const EdgeInsets.all(18),
+  Widget build(BuildContext context) => AppSurface(
+        padding: const EdgeInsets.all(AppSpace.xl),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title,
-            style: AppFont.sans(
-              fontSize: 15.5, fontWeight: FontWeight.w600,
-              letterSpacing: -0.3, color: AppColors.t1)),
-          const Gap(16),
+          Row(children: [
+            Expanded(
+              child: Text(title,
+                  style: AppFont.style(AppType.titleS,
+                      color: AppColor.textPrimary)),
+            ),
+            if (trailing != null) trailing!,
+          ]),
+          const SizedBox(height: AppSpace.xl),
           child,
         ]),
       );
 }
 
-class _GBox extends StatelessWidget {
+/// Month-on-month change, tinted by direction.
+class _Delta extends StatelessWidget {
+  final double percent;
+  const _Delta(this.percent);
+
+  @override
+  Widget build(BuildContext context) {
+    if (percent == 0) return const SizedBox.shrink();
+    final up = percent > 0;
+    final tone = up ? AppColor.paid : AppColor.overdue;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColor.wash(tone),
+        borderRadius: AppRadius.all(AppRadius.pill),
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(up ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+            size: 13, color: tone),
+        const SizedBox(width: 4),
+        Text('${percent.abs().toStringAsFixed(0)}%',
+            style: AppFont.style(AppType.labelS, color: tone)),
+      ]),
+    );
+  }
+}
+
+/// Six monthly bars. The current month is jade; earlier months recede to
+/// the sunken tone so the eye lands on "now" first. Each bar carries its
+/// own short value so the chart can be read without a y-axis.
+class _RevenueChart extends StatelessWidget {
+  final List<double> series;
+  final List<String> labels;
+  final double peak;
+
+  const _RevenueChart({
+    required this.series,
+    required this.labels,
+    required this.peak,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const maxBar = 118.0;
+    return SizedBox(
+      height: 168,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: List.generate(series.length, (i) {
+          final current = i == series.length - 1;
+          final value = series[i];
+          return Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Text(
+                  value > 0 ? formatMoneyShort(value) : '',
+                  maxLines: 1,
+                  style: AppFont.style(
+                    AppType.labelS,
+                    color: current
+                        ? AppColor.textPrimary
+                        : AppColor.textQuiet,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                // Grows on first paint so the chart assembles rather than
+                // appearing fully formed.
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: (value / peak).clamp(0.0, 1.0)),
+                  duration: Duration(milliseconds: 520 + i * 60),
+                  curve: AppMotion.enter,
+                  builder: (_, t, __) => Container(
+                    height: (maxBar * t).clamp(4.0, maxBar),
+                    margin: const EdgeInsets.symmetric(horizontal: 5),
+                    decoration: BoxDecoration(
+                      color:
+                          current ? AppColor.primary : AppColor.sunken,
+                      borderRadius: AppRadius.all(AppRadius.xs),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpace.sm),
+                Text(
+                  labels[i],
+                  style: AppFont.style(
+                    AppType.labelS,
+                    color: current
+                        ? AppColor.textPrimary
+                        : AppColor.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ),
+    );
+  }
+}
+
+class _GstCell extends StatelessWidget {
+  final String label;
+  final double value;
+  const _GstCell(this.label, this.value);
+
+  @override
+  Widget build(BuildContext context) => AppWell(
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpace.sm, vertical: AppSpace.md),
+        radius: AppRadius.sm,
+        child: Column(children: [
+          Text(label,
+              style: AppFont.style(AppType.overline,
+                  color: AppColor.textTertiary)),
+          const SizedBox(height: 6),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Money(value,
+                style: AppType.amountS, showSymbol: false, round: true),
+          ),
+        ]),
+      );
+}
+
+class _Line extends StatelessWidget {
   final String label;
   final double value;
   final Color tone;
-  const _GBox(this.label, this.value, this.tone);
+  const _Line(this.label, this.value, this.tone);
 
   @override
-  Widget build(BuildContext context) => Expanded(child: Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
-    decoration: BoxDecoration(
-      color: AppColors.inset,
-      borderRadius: BorderRadius.circular(AppRadius.sm)),
-    child: Column(children: [
-      Text(label,
-        style: AppFont.sans(
-          fontSize: 10.5, fontWeight: FontWeight.w600,
-          letterSpacing: 0.3, color: AppColors.t3)),
-      const Gap(6),
-      FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Text(formatCurrency(value),
-          maxLines: 1,
-          style: AppFont.sans(
-            fontSize: 14, fontWeight: FontWeight.w600,
-            letterSpacing: -0.3, color: AppColors.t1)),
-      ),
-    ])));
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Row(children: [
+          Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(color: tone, shape: BoxShape.circle)),
+          const SizedBox(width: AppSpace.sm),
+          Expanded(
+            child: Text(label,
+                style: AppFont.style(AppType.bodyM,
+                    color: AppColor.textSecondary)),
+          ),
+          Money(value, style: AppType.amountS, round: true),
+        ]),
+      );
 }
 
-class _StatusRow extends StatelessWidget {
+class _StatusBar extends StatelessWidget {
   final String label;
-  final Color color;
+  final Color tone;
   final int count, total;
   final bool last;
-  const _StatusRow({
+
+  const _StatusBar({
     required this.label,
-    required this.color,
+    required this.tone,
     required this.count,
     required this.total,
     this.last = false,
@@ -289,44 +479,35 @@ class _StatusRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: EdgeInsets.only(bottom: last ? 0 : 14),
-    child: Row(children: [
-      SizedBox(
-        width: 78,
-        child: AppPill(label, dense: true, tone: color)),
-      const Gap(12),
-      Expanded(child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppRadius.pill),
-        child: LinearProgressIndicator(
-          value: total == 0 ? 0 : count / total,
-          backgroundColor: AppColors.inset, minHeight: 7,
-          valueColor: AlwaysStoppedAnimation(color)))),
-      const Gap(12),
-      SizedBox(width: 26, child: Text('$count',
-        style: AppFont.sans(
-          fontSize: 15, fontWeight: FontWeight.w600,
-          letterSpacing: -0.3, color: AppColors.t1),
-        textAlign: TextAlign.right)),
-    ]));
-}
-
-class _PLRow extends StatelessWidget {
-  final String label;
-  final double value;
-  final Color color;
-  final bool bold;
-  const _PLRow(this.label, this.value, this.color, {this.bold = false});
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 5),
-    child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      Text(label, style: AppFont.sans(
-        fontSize: 13.5,
-        fontWeight: bold ? FontWeight.w600 : FontWeight.w500,
-        color: bold ? AppColors.t1 : AppColors.t3)),
-      Text(formatCurrency(value), style: AppFont.sans(
-        fontSize: bold ? 19 : 14.5, fontWeight: FontWeight.w600,
-        letterSpacing: -0.4, color: color)),
-    ]));
+        padding: EdgeInsets.only(bottom: last ? 0 : AppSpace.lg),
+        child: Row(children: [
+          SizedBox(width: 86, child: StatusPill(label, tone: tone)),
+          const SizedBox(width: AppSpace.md),
+          Expanded(
+            child: ClipRRect(
+              borderRadius: AppRadius.all(AppRadius.pill),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(
+                    begin: 0, end: total == 0 ? 0 : count / total),
+                duration: AppMotion.slow,
+                curve: AppMotion.enter,
+                builder: (_, v, __) => LinearProgressIndicator(
+                  value: v,
+                  minHeight: 7,
+                  backgroundColor: AppColor.sunken,
+                  valueColor: AlwaysStoppedAnimation(tone),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpace.md),
+          SizedBox(
+            width: 26,
+            child: Text('$count',
+                textAlign: TextAlign.right,
+                style: AppFont.style(AppType.amountS,
+                    color: AppColor.textPrimary)),
+          ),
+        ]),
+      );
 }

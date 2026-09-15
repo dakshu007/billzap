@@ -100,6 +100,12 @@ class AppFont {
         color: color,
       );
 
+  /// The design system's entry point, re-exposed here so screens that
+  /// already import this bridge can use the type ramp from
+  /// `design/tokens.dart` without a second, clashing import.
+  static TextStyle style(TextStyle base, {Color? color}) =>
+      ds.AppFont.style(base, color: color);
+
   static TextTheme theme(TextTheme base) =>
       ds.AppFont.textTheme(base.bodyMedium?.color == null
           ? Brightness.light

@@ -16,10 +16,12 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:barcode/barcode.dart' as bc;
 import 'dart:io';
 import '../../theme/app_theme.dart';
+import '../../design/components.dart';
+import '../../design/money.dart';
+import '../../design/tokens.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../utils/upi_helper.dart';
-import '../../i18n/translations.dart';
 
 class InvoicePreviewScreen extends ConsumerStatefulWidget {
   const InvoicePreviewScreen({super.key});
@@ -43,8 +45,11 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     }
 
     final isPaid = invoice.status == InvoiceStatus.paid;
-    final c = isPaid ? AppColors.green
-        : invoice.isOverdue ? AppColors.red : AppColors.yellow;
+    final c = isPaid
+        ? AppColor.paid
+        : invoice.isOverdue
+            ? AppColor.overdue
+            : AppColor.pending;
 
     return PopScope(
       canPop: false,
@@ -57,48 +62,50 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
       child: Scaffold(
         backgroundColor: AppColors.bg,
         appBar: AppBar(
-          // Inherits appBarTheme.backgroundColor (now `bg` cream/dark) so
-          // the header joins the seamless scaffold tone.
-          leading: IconButton(
-            icon: Container(width: 34, height: 34,
-              // Tiny inverse chip — uses the card surface so it stands
-              // proud of the bg-toned appbar.
-              decoration: BoxDecoration(color: AppColors.card,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.border)),
-              child: Icon(Symbols.arrow_back, size: 19, color: AppColors.t1)),
-            onPressed: () => context.go('/invoices')),
-          title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Invoice Preview', style: AppFont.sans(
-              fontSize: 21, fontWeight: FontWeight.w700,
-          letterSpacing: -0.5, color: AppColors.t1)),
-            Text(invoice.invoiceNumber, style: AppFont.sans(fontSize: 11, color: AppColors.t3)),
-          ]),
+          leadingWidth: 62,
+          leading: Center(
+            child: AppIconButton(
+                icon: Symbols.arrow_back,
+                size: 40,
+                onTap: () => context.go('/invoices')),
+          ),
+          title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Invoice',
+                    style: AppFont.style(AppType.titleM,
+                        color: AppColor.textPrimary)),
+                Text(invoice.invoiceNumber,
+                    style: AppFont.style(AppType.bodyS,
+                        color: AppColor.textTertiary)),
+              ]),
           actions: [
             if (!isPaid)
-              IconButton(
-                icon: Icon(Symbols.edit, color: AppColors.brand),
-                onPressed: () => _editInvoice(context, invoice)),
-            IconButton(
-              icon: Icon(Symbols.more_vert, color: AppColors.t1),
-              onPressed: () => _moreOptions(invoice, biz)),
+              AppIconButton(
+                  icon: Symbols.edit,
+                  size: 40,
+                  onTap: () => _editInvoice(context, invoice)),
+            const Gap(AppSpace.sm),
+            AppIconButton(
+                icon: Symbols.more_vert,
+                size: 40,
+                onTap: () => _moreOptions(invoice, biz)),
+            const Gap(AppSpace.gutter),
           ],
         ),
         body: ListView(
-          padding: const EdgeInsets.fromLTRB(14, 10, 14, 110),
+          padding: const EdgeInsets.fromLTRB(
+              AppSpace.gutter, AppSpace.sm, AppSpace.gutter, 128),
           children: [
             Row(children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                decoration: BoxDecoration(
-                  color: c.withOpacity(0.12), borderRadius: BorderRadius.circular(99),
-                  border: Border.all(color: c.withOpacity(0.3))),
-                child: Text(invoice.isOverdue ? 'OVERDUE' : invoice.status.name.toUpperCase(),
-                  style: AppFont.sans(fontSize: 12, fontWeight: FontWeight.w600, color: c))),
+              StatusPill(
+                  invoice.isOverdue ? 'Overdue' : invoice.status.name,
+                  tone: c),
             ]),
-            const Gap(12),
+            const Gap(AppSpace.md),
             _buildDoc(invoice, biz),
-            const Gap(12),
+            const Gap(AppSpace.md),
 
             // ═══════════════════════════════════════════════
             // ✨ NEW: UPI Payment QR card (only shown if not paid)
@@ -146,124 +153,269 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
       builder: (_) => _EditInvoiceSheet(invoice: invoice));
   }
 
+  /// The invoice document.
+  ///
+  /// This is the one surface in the app rendered on PAPER rather than on
+  /// chrome: a warm off-white, its own ink, and a perforated tear edge at
+  /// the foot. That is deliberate — the bill is the artefact the
+  /// shopkeeper hands to their customer, and making it read as a physical
+  /// receipt rather than another card is what makes a one-person shop
+  /// look like a real business.
   Widget _buildDoc(Invoice invoice, Business? biz) {
+    final ink = AppColor.docSurface == AppColor.paper
+        ? AppColor.paperInk
+        : AppColor.textPrimary;
+    final inkSoft = ink.withValues(alpha: 0.58);
+    final inkFaint = ink.withValues(alpha: 0.38);
+    final rule = AppColor.docEdge;
+
+    TextStyle doc(TextStyle base, {Color? color}) =>
+        AppFont.style(base, color: color ?? ink);
+
     return Container(
-      decoration: BoxDecoration(color: AppColors.card,
-        borderRadius: BorderRadius.circular(22), border: Border.all(color: AppColors.border),
-        boxShadow: [BoxShadow(color: AppColors.brand.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]),
+      decoration: BoxDecoration(
+        color: AppColor.docSurface,
+        borderRadius: AppRadius.all(AppRadius.lg),
+        border: Border.all(color: rule),
+        boxShadow: AppElevation.lifted,
+      ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(color: AppColors.brand,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(15))),
-          child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(biz?.name ?? 'Your Business', style: AppFont.sans(
-                color: AppColors.onBrand, fontSize: 18,
-                fontWeight: FontWeight.w700, letterSpacing: -0.4)),
-              if (biz?.gstin.isNotEmpty == true)
-                Text('GSTIN: ${biz!.gstin}', style: AppFont.sans(
-                  color: AppColors.onBrand.withOpacity(0.7), fontSize: 11)),
-              if (biz?.address.isNotEmpty == true)
-                Text('${biz!.address}${biz.city.isNotEmpty ? ", ${biz.city}" : ""}',
-                  style: AppFont.sans(
-                    color: AppColors.onBrand.withOpacity(0.55), fontSize: 10)),
-            ])),
+        // ── Letterhead ────────────────────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+              AppSpace.xl, AppSpace.xl, AppSpace.xl, AppSpace.lg),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(biz?.name ?? 'Your Business',
+                      style: doc(AppType.titleM)),
+                  if (biz?.gstin.isNotEmpty == true) ...[
+                    const Gap(3),
+                    Text('GSTIN ${biz!.gstin}',
+                        style: doc(AppType.bodyS, color: inkSoft)),
+                  ],
+                  if (biz?.address.isNotEmpty == true)
+                    Text(
+                      '${biz!.address}${biz.city.isNotEmpty ? ", ${biz.city}" : ""}',
+                      style: doc(AppType.bodyS, color: inkFaint),
+                    ),
+                ],
+              ),
+            ),
+            const Gap(AppSpace.md),
             Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              Text('TAX INVOICE', style: AppFont.sans(
-                color: AppColors.onBrand, fontSize: 11,
-                fontWeight: FontWeight.w600, letterSpacing: 1)),
-              const Gap(2),
-              Text(invoice.invoiceNumber, style: AppFont.sans(
-                color: AppColors.onBrand.withOpacity(0.7), fontSize: 12,
-                fontWeight: FontWeight.w600)),
-            ]),
-          ])),
-        Padding(padding: const EdgeInsets.all(16), child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('BILL TO', style: AppFont.sans(
-                fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.t3, letterSpacing: 0.8)),
+              Text('TAX INVOICE',
+                  style: doc(AppType.overline, color: inkSoft)),
               const Gap(4),
-              Text(invoice.customerName, style: AppFont.sans(
-                fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.t1)),
-              if (invoice.customerPhone.isNotEmpty)
-                Text(invoice.customerPhone, style: AppFont.sans(fontSize: 12, color: AppColors.t2)),
-              if (invoice.customerGstin.isNotEmpty)
-                Text('GSTIN: ${invoice.customerGstin}',
-                  style: AppFont.sans(fontSize: 11, color: AppColors.t3)),
-            ])),
-            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              _IRow('Date', DateFormat('dd MMM yyyy').format(invoice.invoiceDate)),
-              _IRow('Due', DateFormat('dd MMM yyyy').format(invoice.dueDate)),
+              Text(invoice.invoiceNumber, style: doc(AppType.labelM)),
             ]),
           ]),
-          const Gap(14),
-          const Divider(height: 1),
-          const Gap(12),
-          Row(children: [
-            Expanded(flex: 3, child: _TH('ITEM')),
-            Expanded(child: _TH('QTY', right: true)),
-            Expanded(child: _TH('RATE', right: true)),
-            Expanded(child: _TH('AMT', right: true)),
+        ),
+        Divider(height: 1, color: rule),
+
+        // ── Parties and dates ─────────────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+              AppSpace.xl, AppSpace.lg, AppSpace.xl, AppSpace.lg),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('BILLED TO',
+                      style: doc(AppType.overline, color: inkFaint)),
+                  const Gap(6),
+                  Text(invoice.customerName, style: doc(AppType.titleS)),
+                  if (invoice.customerPhone.isNotEmpty)
+                    Text(invoice.customerPhone,
+                        style: doc(AppType.bodyS, color: inkSoft)),
+                  if (invoice.customerGstin.isNotEmpty)
+                    Text('GSTIN ${invoice.customerGstin}',
+                        style: doc(AppType.bodyS, color: inkFaint)),
+                ],
+              ),
+            ),
+            const Gap(AppSpace.md),
+            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              Text('ISSUED', style: doc(AppType.overline, color: inkFaint)),
+              const Gap(6),
+              Text(DateFormat('d MMM yyyy').format(invoice.invoiceDate),
+                  style: doc(AppType.labelM)),
+              const Gap(8),
+              Text('DUE', style: doc(AppType.overline, color: inkFaint)),
+              const Gap(6),
+              Text(DateFormat('d MMM yyyy').format(invoice.dueDate),
+                  style: doc(AppType.labelM,
+                      color: invoice.isOverdue ? AppColor.overdue : ink)),
+            ]),
           ]),
-          const Gap(6),
-          ...invoice.lineItems.map((item) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 5),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Expanded(flex: 3, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(item.name, style: AppFont.sans(
-                  fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.t1)),
-                if (item.hsnCode.isNotEmpty)
-                  Text('HSN: ${item.hsnCode}', style: AppFont.sans(fontSize: 10, color: AppColors.t3)),
-              ])),
-              Expanded(child: Text('${item.quantity.toInt()}',
-                style: AppFont.sans(fontSize: 13, color: AppColors.t2), textAlign: TextAlign.right)),
-              Expanded(child: Text(formatCurrency(item.rate),
-                style: AppFont.sans(fontSize: 13, color: AppColors.t2), textAlign: TextAlign.right)),
-              Expanded(child: Text(formatCurrency(item.taxable), textAlign: TextAlign.right,
-                style: AppFont.sans(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.t1))),
-            ])),
+        ),
+
+        // ── Line items ────────────────────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpace.xl),
+          child: Column(children: [
+            Row(children: [
+              Expanded(
+                  flex: 5,
+                  child: Text('ITEM',
+                      style: doc(AppType.overline, color: inkFaint))),
+              Expanded(
+                  child: Text('QTY',
+                      textAlign: TextAlign.right,
+                      style: doc(AppType.overline, color: inkFaint))),
+              Expanded(
+                  flex: 2,
+                  child: Text('RATE',
+                      textAlign: TextAlign.right,
+                      style: doc(AppType.overline, color: inkFaint))),
+              Expanded(
+                  flex: 2,
+                  child: Text('AMOUNT',
+                      textAlign: TextAlign.right,
+                      style: doc(AppType.overline, color: inkFaint))),
+            ]),
+            const Gap(AppSpace.sm),
+            Divider(height: 1, color: rule),
+            ...invoice.lineItems.map((item) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpace.md),
+                  child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 5,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(item.name, style: doc(AppType.labelM)),
+                              if (item.hsnCode.isNotEmpty)
+                                Text('HSN ${item.hsnCode}',
+                                    style:
+                                        doc(AppType.bodyS, color: inkFaint)),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            formatIndianDigits(item.quantity,
+                                decimals:
+                                    item.quantity == item.quantity.roundToDouble()
+                                        ? 0
+                                        : 2),
+                            textAlign: TextAlign.right,
+                            style: doc(AppType.numeric, color: inkSoft),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Money(item.rate,
+                              style: AppType.numeric,
+                              color: inkSoft,
+                              showSymbol: false,
+                              compact: false,
+                              textAlign: TextAlign.right),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Money(item.taxable,
+                              style: AppType.amountS,
+                              color: ink,
+                              showSymbol: false,
+                              compact: false,
+                              textAlign: TextAlign.right),
+                        ),
+                      ]),
+                )),
+            Divider(height: 1, color: rule),
+            const Gap(AppSpace.md),
+          ]),
+        ),
+
+        // ── Totals ────────────────────────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpace.xl),
+          child: Column(children: [
+            _DocTotal('Subtotal', invoice.subtotal, ink, inkSoft),
+            if (invoice.totalCgst > 0)
+              _DocTotal('CGST ${invoice.gstRateForDisplay / 2}%',
+                  invoice.totalCgst, ink, inkSoft),
+            if (invoice.totalSgst > 0)
+              _DocTotal('SGST ${invoice.gstRateForDisplay / 2}%',
+                  invoice.totalSgst, ink, inkSoft),
+            if (invoice.totalIgst > 0)
+              _DocTotal('IGST ${invoice.gstRateForDisplay}%',
+                  invoice.totalIgst, ink, inkSoft),
+            if (invoice.shippingCharge > 0)
+              _DocTotal('Shipping', invoice.shippingCharge, ink, inkSoft),
+            if (invoice.flatDiscount > 0)
+              _DocTotal('Discount', -invoice.flatDiscount, ink, inkSoft),
+          ]),
+        ),
+        const Gap(AppSpace.md),
+
+        // ── Grand total. The one figure the customer looks for. ───────
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: AppSpace.xl),
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpace.lg, vertical: AppSpace.lg),
+          decoration: BoxDecoration(
+            color: AppColor.wash(AppColor.primary),
+            borderRadius: AppRadius.all(AppRadius.md),
           ),
-          const Gap(10),
-          const Divider(height: 1),
-          const Gap(8),
-          _TotRow('Subtotal', invoice.subtotal),
-          if (invoice.totalCgst > 0) _TotRow('CGST (${invoice.gstRateForDisplay/2}%)', invoice.totalCgst),
-          if (invoice.totalSgst > 0) _TotRow('SGST (${invoice.gstRateForDisplay/2}%)', invoice.totalSgst),
-          if (invoice.totalIgst > 0) _TotRow('IGST (${invoice.gstRateForDisplay}%)', invoice.totalIgst),
-          if (invoice.shippingCharge > 0) _TotRow('Shipping', invoice.shippingCharge),
-          if (invoice.flatDiscount > 0) _TotRow('Discount', invoice.flatDiscount, neg: true),
-          const Gap(6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-            decoration: BoxDecoration(color: AppColors.brandSoft, borderRadius: BorderRadius.circular(14)),
-            child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text('GRAND TOTAL', style: AppFont.sans(
-                fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.brand)),
-              Text(formatCurrency(invoice.grandTotal), style: AppFont.sans(
-                fontWeight: FontWeight.w700, fontSize: 19, color: AppColors.brand)),
-            ])),
-          if (biz != null && (biz.bankName.isNotEmpty || biz.upiId.isNotEmpty)) ...[
-            const Gap(14), const Divider(height: 1), const Gap(8),
-            Text('PAYMENT DETAILS', style: AppFont.sans(
-              fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.t3, letterSpacing: 0.8)),
-            const Gap(4),
-            if (biz.bankName.isNotEmpty)
-              Text('${biz.bankName}  ·  A/C: ${biz.accountNumber}  ·  IFSC: ${biz.ifscCode}',
-                style: AppFont.sans(fontSize: 11, color: AppColors.t2)),
-            if (biz.upiId.isNotEmpty)
-              Text('UPI: ${biz.upiId}', style: AppFont.sans(fontSize: 11, color: AppColors.t2)),
-          ],
-          if (invoice.notes.isNotEmpty) ...[
-            const Gap(10),
-            Text('Note: ${invoice.notes}', style: AppFont.sans(fontSize: 12, color: AppColors.t2)),
-          ],
-          const Gap(10),
-          Center(child: Text('Generated by BillZap ⚡',
-            style: AppFont.sans(fontSize: 10, color: AppColors.t4))),
-        ])),
+          child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text('TOTAL DUE',
+                    style: doc(AppType.overline, color: inkSoft)),
+                MoneyCounter(invoice.grandTotal,
+                    style: AppType.amountL, color: AppColor.paid),
+              ]),
+        ),
+
+        if (biz != null && (biz.bankName.isNotEmpty || biz.upiId.isNotEmpty)) ...[
+          const Gap(AppSpace.lg),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpace.xl),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('PAY TO', style: doc(AppType.overline, color: inkFaint)),
+                const Gap(5),
+                if (biz.bankName.isNotEmpty)
+                  Text(
+                      '${biz.bankName} · A/C ${biz.accountNumber} · IFSC ${biz.ifscCode}',
+                      style: doc(AppType.bodyS, color: inkSoft)),
+                if (biz.upiId.isNotEmpty)
+                  Text('UPI ${biz.upiId}',
+                      style: doc(AppType.bodyS, color: inkSoft)),
+              ],
+            ),
+          ),
+        ],
+
+        if (invoice.notes.isNotEmpty) ...[
+          const Gap(AppSpace.md),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpace.xl),
+            child: Text(invoice.notes,
+                style: doc(AppType.bodyS, color: inkSoft)),
+          ),
+        ],
+
+        const Gap(AppSpace.xl),
+        // ── Tear edge ─────────────────────────────────────────────────
+        _PerforatedEdge(color: rule),
+        Padding(
+          padding: const EdgeInsets.only(
+              top: AppSpace.md, bottom: AppSpace.lg),
+          child: Center(
+            child: Text('Generated with BillZap',
+                style: doc(AppType.labelS, color: inkFaint)),
+          ),
+        ),
       ]),
     );
   }
@@ -1206,4 +1358,60 @@ class _OptTile extends StatelessWidget {
     title: Text(label, style: AppFont.sans(
       fontWeight: FontWeight.w700, color: AppColors.t1)),
     onTap: onTap);
+}
+
+
+/// A totals line inside the invoice document.
+class _DocTotal extends StatelessWidget {
+  final String label;
+  final double amount;
+  final Color ink, inkSoft;
+  const _DocTotal(this.label, this.amount, this.ink, this.inkSoft);
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Text(label, style: AppFont.style(AppType.bodyM, color: inkSoft)),
+          Money(amount,
+              style: AppType.amountS,
+              color: ink,
+              showSymbol: false,
+              compact: false),
+        ]),
+      );
+}
+
+/// The torn-off edge at the foot of the bill. Drawn as notches punched out
+/// of the paper rather than dots printed on it, so it reads as a physical
+/// perforation.
+class _PerforatedEdge extends StatelessWidget {
+  final Color color;
+  const _PerforatedEdge({required this.color});
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+        height: 12,
+        child: LayoutBuilder(
+          builder: (_, c) {
+            const notch = 10.0;
+            final count = (c.maxWidth / notch).floor().clamp(1, 200);
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: List.generate(
+                count,
+                (_) => Container(
+                  width: notch * 0.5,
+                  height: notch * 0.5,
+                  decoration: BoxDecoration(
+                    color: AppColor.canvas,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: color, width: 0.5),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      );
 }

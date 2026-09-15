@@ -12,7 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:billzap/theme/app_icons.dart';
 import '../theme/app_theme.dart';
-import 'ui_kit.dart';
+import '../design/components.dart';
 import '../providers/providers.dart';
 import '../utils/profile_completeness.dart';
 
@@ -222,7 +222,7 @@ class ProfileIncompleteBanner extends ConsumerWidget {
           border: AppColors.isDark ? Border.all(color: AppColors.border) : null,
         ),
         child: Row(children: [
-          AppBadge(icon: Symbols.warning, tone: AppColors.orange, size: 42),
+          AppAvatar(icon: Symbols.warning, tone: AppColors.orange, size: 42),
           const Gap(13),
           Expanded(child: Column(
             crossAxisAlignment: CrossAxisAlignment.start, children: [

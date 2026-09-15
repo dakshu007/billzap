@@ -1,12 +1,11 @@
 // lib/screens/main/expenses_screen.dart
 import 'package:flutter/material.dart';
-import '../../utils/smart_amount.dart';
 import 'package:billzap/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/ui_kit.dart';
+import '../../design/components.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../i18n/translations.dart';

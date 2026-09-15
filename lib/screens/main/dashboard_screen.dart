@@ -1,36 +1,43 @@
 // lib/screens/main/dashboard_screen.dart
 //
-// Home. Same data and the same entry points as before the redesign —
-// revenue / pending / GST / customers, day-close, voice billing, the
-// quick actions and recent invoices — re-laid out in the clean language:
-// one headline balance card, flat stat tiles, pill quick-actions, and
-// borderless list rows. No gradients, no coloured panels; colour appears
-// only where it carries meaning.
+// Home.
+//
+// The question this screen answers, in order, is what a shop owner
+// actually asks when they open a billing app:
+//
+//   1. How much money came in?                -> the hero balance
+//   2. How much is still owed to me?          -> outstanding, and how bad
+//   3. Is anything on fire?                   -> alerts, only when real
+//   4. Let me do the thing I came to do.      -> actions
+//   5. What happened recently?                -> the last few bills
+//
+// Everything is ordered by that, not by what is easiest to render.
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:billzap/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
-import '../../theme/app_theme.dart';
-import '../../theme/app_spacing.dart';
-import '../../providers/providers.dart';
-import '../../widgets/insight_card.dart';
-import '../../widgets/festival_banner.dart';
-import '../../widgets/profile_setup_widgets.dart';
-import '../../widgets/ui_kit.dart';
-import '../../models/models.dart';
+
+import '../../design/components.dart';
+import '../../design/money.dart';
+import '../../design/motion.dart';
+import '../../design/theme.dart';
+import '../../design/tokens.dart';
 import '../../i18n/translations.dart';
+import '../../models/models.dart';
+import '../../providers/providers.dart';
 import '../../utils/platform.dart';
+import '../../widgets/festival_banner.dart';
+import '../../widgets/insight_card.dart';
+import '../../widgets/profile_setup_widgets.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   String _greetingKey() {
     final h = DateTime.now().hour;
-    if (h >= 5 && h < 12)  return 'dash.greeting_morning';
+    if (h >= 5 && h < 12) return 'dash.greeting_morning';
     if (h >= 12 && h < 17) return 'dash.greeting_afternoon';
     if (h >= 17 && h < 21) return 'dash.greeting_evening';
     return 'dash.greeting_night';
@@ -38,453 +45,547 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final biz       = ref.watch(businessProvider);
-    final invoices  = ref.watch(invoiceProvider);
+    final biz = ref.watch(businessProvider);
+    final invoices = ref.watch(invoiceProvider);
     final customers = ref.watch(customerProvider);
-    final products  = ref.watch(productProvider);
-    final lowStock  = products.where((p) => p.tracksStock &&
-        (p.isOutOfStock || p.isLowStock)).toList();
-    final now       = DateTime.now();
-    final greet     = tr(_greetingKey(), ref);
+    final products = ref.watch(productProvider);
+    final now = DateTime.now();
 
-    final thisMo = invoices.where((i) =>
-      i.invoiceDate.month == now.month && i.invoiceDate.year == now.year).toList();
-    final revenue = invoices
-      .where((i) => i.status == InvoiceStatus.paid)
-      .fold<double>(0, (s, i) => s + i.grandTotal);
-    final pendAmt = invoices
-      .where((i) => i.status == InvoiceStatus.sent || i.status == InvoiceStatus.pending)
-      .fold<double>(0, (s, i) => s + i.grandTotal);
-    final gstCollected = invoices
-      .where((i) => i.status == InvoiceStatus.paid)
-      .fold<double>(0, (s, i) => s + i.totalTax);
-    final pendingCount = invoices.where((i) =>
-        i.status == InvoiceStatus.sent || i.status == InvoiceStatus.pending).length;
-    final overdueCount = invoices.where((i) => i.isOverdue).length;
+    final lowStock = products
+        .where((p) => p.tracksStock && (p.isOutOfStock || p.isLowStock))
+        .toList();
 
-    final bizName = biz?.name.isNotEmpty == true ? biz!.name : null;
-    final desktop = MediaQuery.of(context).size.width >= 900;
+    final paid = invoices.where((i) => i.status == InvoiceStatus.paid);
+    final unpaid = invoices.where((i) =>
+        i.status == InvoiceStatus.sent || i.status == InvoiceStatus.pending);
+    final overdue = invoices.where((i) => i.isOverdue).toList();
+
+    final revenue = paid.fold<double>(0, (s, i) => s + i.grandTotal);
+    final outstanding = unpaid.fold<double>(0, (s, i) => s + i.grandTotal);
+    final overdueAmount = overdue.fold<double>(0, (s, i) => s + i.grandTotal);
+    final gst = paid.fold<double>(0, (s, i) => s + i.totalTax);
+
+    final thisMonth = invoices
+        .where((i) =>
+            i.invoiceDate.month == now.month && i.invoiceDate.year == now.year)
+        .toList();
+    final thisMonthRevenue = thisMonth
+        .where((i) => i.status == InvoiceStatus.paid)
+        .fold<double>(0, (s, i) => s + i.grandTotal);
+
+    final bizName = biz?.name.trim().isNotEmpty == true ? biz!.name : null;
+    final wide = MediaQuery.of(context).size.width >= 900;
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: AppColors.bg,
-        toolbarHeight: 72,
-        titleSpacing: AppSpacing.screenH,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(greet,
-              style: AppFont.sans(
-                fontSize: 21, fontWeight: FontWeight.w700,
-                letterSpacing: -0.5, color: AppColors.t1)),
-            const Gap(2),
-            Text(bizName ?? tr('dash.setup_profile', ref),
-              maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: AppFont.sans(fontSize: 12.5, color: AppColors.t3)),
-          ]),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.screenH),
-            child: GestureDetector(
-              onTap: () => context.go('/settings'),
-              child: Container(
-                width: 42, height: 42,
-                decoration: BoxDecoration(
-                  color: AppColors.brand,
-                  shape: BoxShape.circle),
-                alignment: Alignment.center,
-                child: Text(
-                  (bizName?.isNotEmpty == true ? bizName![0] : 'B').toUpperCase(),
-                  style: AppFont.sans(
-                    fontSize: 16, fontWeight: FontWeight.w600,
-                    color: AppColors.onBrand)),
+      backgroundColor: AppColor.canvas,
+      body: DesktopMaxWidth(
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: SafeArea(
+                bottom: false,
+                child: _Header(
+                  greeting: tr(_greetingKey(), ref),
+                  business: bizName,
+                  onProfile: () => context.go('/settings'),
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-      body: DesktopMaxWidth(child: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.screenH, 6, AppSpacing.screenH, AppSpacing.bottomNavSafe),
-        children: [
-          // Auto-shows welcome modal on first home visit if profile is empty
-          const WelcomeProfileModalTrigger(),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(AppSpace.gutter, 0,
+                  AppSpace.gutter, AppSpace.navClearance),
+              sliver: SliverList.list(children: [
+                const WelcomeProfileModalTrigger(),
 
-          // ─── Headline balance ──────────────────────────────────────
-          _BalanceCard(
-            revenue: revenue,
-            label: tr('dash.total_revenue', ref),
-            footnote: '${thisMo.length} ${tr('dash.this_month_label', ref)}',
-            gstin: biz?.gstin.isNotEmpty == true ? biz!.gstin : null,
-            onTap: () => context.go('/reports'),
-          ),
-          const Gap(AppSpacing.cardGap),
+                // 1 — the number the owner came to see
+                Entrance(
+                  index: 0,
+                  child: _EarningsCard(
+                    revenue: revenue,
+                    label: tr('dash.total_revenue', ref),
+                    monthLabel: tr('dash.this_month_label', ref),
+                    monthRevenue: thisMonthRevenue,
+                    billCount: thisMonth.length,
+                    onTap: () => context.go('/reports'),
+                  ),
+                ),
+                const SizedBox(height: AppSpace.md),
 
-          // ⚠️ Profile incomplete banner (shown if <80% complete)
-          const ProfileIncompleteBanner(),
-          // 📦 Low-stock / out-of-stock alert
-          if (lowStock.isNotEmpty) _LowStockBanner(items: lowStock),
-          // 🎆 Festival banner (only on festival day or 1 day before)
-          const FestivalBanner(),
-          // ✨ Daily insight banner
-          const InsightCard(),
+                // 2 — what is still owed, and how much of it is late
+                Entrance(
+                  index: 1,
+                  child: _OutstandingCard(
+                    outstanding: outstanding,
+                    unpaidCount: unpaid.length,
+                    overdueAmount: overdueAmount,
+                    overdueCount: overdue.length,
+                    label: tr('dash.pending', ref),
+                    overdueLabel: tr('inv.overdue', ref),
+                    onTap: () => context.go('/invoices'),
+                  ),
+                ),
+                const SizedBox(height: AppSpace.md),
 
-          // ─── Stat tiles ────────────────────────────────────────────
-          GridView.count(
-            crossAxisCount: desktop ? 3 : 3, shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: desktop ? 1.25 : 0.92,
-            children: [
-              _StatTile(
-                label: tr('dash.pending', ref),
-                value: formatCurrency(pendAmt),
-                icon: Symbols.schedule,
-                tone: AppColors.yellow,
-                sub: '$pendingCount ${tr('inv.title', ref).toLowerCase()}'),
-              _StatTile(
-                label: tr('dash.gst_collected', ref),
-                value: formatCurrency(gstCollected),
-                icon: Symbols.calculate,
-                tone: AppColors.green,
-                sub: tr('dash.auto_calc', ref)),
-              _StatTile(
-                label: tr('cust.title', ref),
-                value: '${customers.length}',
-                icon: Symbols.group,
-                tone: overdueCount > 0 ? AppColors.red : AppColors.t2,
-                sub: '$overdueCount ${tr('inv.overdue', ref).toLowerCase()}'),
-            ],
-          ),
-          const Gap(AppSpacing.section),
+                // 3 — alerts. Each renders only when it has something to say.
+                const ProfileIncompleteBanner(),
+                if (lowStock.isNotEmpty)
+                  Entrance(index: 2, child: _StockAlert(items: lowStock)),
+                const FestivalBanner(),
+                const InsightCard(),
 
-          // ─── Quick actions ─────────────────────────────────────────
-          AppSectionHeader(tr('dash.quick_actions', ref)),
-          SizedBox(
-            height: 40,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.zero,
-              children: [
-                AppPill(tr('dash.new_invoice', ref),
-                  icon: Symbols.receipt_long, selected: true,
-                  onTap: () => context.push('/create')),
-                const Gap(8),
-                AppPill(tr('cust.title', ref),
-                  icon: Symbols.group,
-                  onTap: () => context.push('/customers')),
-                const Gap(8),
-                AppPill(tr('prod.title', ref),
-                  icon: Symbols.shopping_basket,
-                  onTap: () => context.push('/products')),
-                const Gap(8),
-                AppPill(tr('cat.title', ref),
-                  icon: Symbols.inventory_2,
-                  onTap: () => context.push('/catalog')),
-                const Gap(8),
-                AppPill(tr('exp.title', ref),
-                  icon: Symbols.payments,
-                  onTap: () => context.push('/expenses')),
-                const Gap(8),
-                AppPill(tr('rep.title', ref),
-                  icon: Symbols.bar_chart,
-                  onTap: () => context.go('/reports')),
-              ],
-            ),
-          ),
-          const Gap(AppSpacing.section),
+                // Secondary figures, deliberately smaller than the two above
+                Entrance(
+                  index: 3,
+                  child: Row(children: [
+                    Expanded(
+                      child: StatTile(
+                        label: tr('dash.gst_collected', ref),
+                        amount: gst,
+                        icon: Symbols.calculate,
+                        tone: AppColor.info,
+                        caption: tr('dash.auto_calc', ref),
+                        onTap: () => context.go('/reports'),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpace.sm),
+                    Expanded(
+                      child: StatTile(
+                        label: tr('cust.title', ref),
+                        value: '${customers.length}',
+                        icon: Symbols.group,
+                        tone: AppColor.pending,
+                        caption: '${products.length} ${tr('prod.title', ref).toLowerCase()}',
+                        onTap: () => context.push('/customers'),
+                      ),
+                    ),
+                  ]),
+                ),
+                const SizedBox(height: AppSpace.xxl),
 
-          // ─── Feature cards ─────────────────────────────────────────
-          _FeatureCard(
-            icon: Symbols.point_of_sale,
-            title: tr('dash.day_close', ref),
-            subtitle: tr('dash.day_close_sub', ref),
-            onTap: () { HapticFeedback.lightImpact(); context.push('/day-close'); },
-          ),
-          // Voice billing is hidden on desktop — the speech_to_text plugin
-          // ships no macOS/Windows binding. /voice stays routable.
-          if (AppPlatform.supportsVoiceBilling) ...[
-            const Gap(AppSpacing.cardGap),
-            _FeatureCard(
-              icon: Symbols.mic,
-              title: tr('dash.voice_bill', ref),
-              subtitle: tr('dash.voice_bill_sub', ref),
-              onTap: () { HapticFeedback.mediumImpact(); context.push('/voice'); },
+                // 4 — the things the owner does
+                Entrance(index: 4, child: SectionHeader(tr('dash.quick_actions', ref))),
+                Entrance(
+                  index: 5,
+                  child: _ActionGrid(
+                    wide: wide,
+                    actions: [
+                      _Action(Symbols.point_of_sale, tr('dash.day_close', ref),
+                          AppColor.paid, () => context.push('/day-close')),
+                      if (AppPlatform.supportsVoiceBilling)
+                        _Action(Symbols.mic, tr('dash.voice_bill', ref),
+                            AppColor.info, () => context.push('/voice')),
+                      _Action(Symbols.group, tr('cust.title', ref),
+                          AppColor.pending, () => context.push('/customers')),
+                      _Action(Symbols.shopping_basket, tr('prod.title', ref),
+                          AppColor.info, () => context.push('/products')),
+                      _Action(Symbols.inventory_2, tr('cat.title', ref),
+                          AppColor.paid, () => context.push('/catalog')),
+                      _Action(Symbols.payments, tr('exp.title', ref),
+                          AppColor.overdue, () => context.push('/expenses')),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpace.xxl),
+
+                // 5 — recent activity
+                Entrance(
+                  index: 6,
+                  child: SectionHeader(
+                    tr('dash.recent_invoices', ref),
+                    action: invoices.isEmpty ? null : tr('dash.see_all', ref),
+                    onAction:
+                        invoices.isEmpty ? null : () => context.go('/invoices'),
+                  ),
+                ),
+                if (invoices.isEmpty)
+                  Entrance(
+                    index: 7,
+                    child: AppSurface(
+                      padding: EdgeInsets.zero,
+                      child: AppEmptyState(
+                        icon: Symbols.receipt_long,
+                        title: tr('dash.no_invoices', ref),
+                        message: tr('dash.create_first', ref),
+                        tone: AppColor.primary,
+                        actionLabel: tr('dash.new_invoice', ref),
+                        onAction: () => context.push('/create'),
+                      ),
+                    ),
+                  )
+                else
+                  ...invoices.take(5).toList().asMap().entries.map(
+                        (e) => Entrance(
+                          index: 7 + e.key,
+                          child: _RecentInvoiceRow(
+                            invoice: e.value,
+                            onTap: () {
+                              ref
+                                  .read(selectedInvoiceProvider.notifier)
+                                  .select(e.value);
+                              context.push('/preview');
+                            },
+                          ),
+                        ),
+                      ),
+              ]),
             ),
           ],
-          const Gap(AppSpacing.section),
-
-          // ─── Recent invoices ───────────────────────────────────────
-          AppSectionHeader(
-            tr('dash.recent_invoices', ref),
-            actionLabel: invoices.isEmpty ? null : tr('dash.see_all', ref),
-            onAction: invoices.isEmpty ? null : () => context.go('/invoices'),
-          ),
-          if (invoices.isEmpty)
-            AppCard(
-              padding: EdgeInsets.zero,
-              child: AppEmptyState(
-                icon: Symbols.receipt_long,
-                title: tr('dash.no_invoices', ref),
-                message: tr('dash.create_first', ref),
-                actionLabel: tr('dash.new_invoice', ref),
-                onAction: () => context.push('/create'),
-              ),
-            )
-          else
-            ...invoices.take(6).map((inv) => _InvoiceRow(inv: inv, onTap: () {
-              ref.read(selectedInvoiceProvider.notifier).select(inv);
-              context.push('/preview');
-            })),
-        ],
-      )),
+        ),
+      ),
     );
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// Headline balance — the one large, quiet statement on the screen.
-// ─────────────────────────────────────────────────────────────────────
-class _BalanceCard extends StatelessWidget {
-  final double revenue;
-  final String label, footnote;
-  final String? gstin;
-  final VoidCallback onTap;
 
-  const _BalanceCard({
-    required this.revenue,
-    required this.label,
-    required this.footnote,
-    required this.gstin,
-    required this.onTap,
+class _Header extends StatelessWidget {
+  final String greeting;
+  final String? business;
+  final VoidCallback onProfile;
+
+  const _Header({
+    required this.greeting,
+    required this.business,
+    required this.onProfile,
   });
 
   @override
-  Widget build(BuildContext context) => AppCard(
-        onTap: onTap,
-        radius: AppRadius.xl,
-        padding: const EdgeInsets.fromLTRB(22, 22, 22, 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(children: [
-              Text(label,
-                style: AppFont.sans(
-                  fontSize: 13, fontWeight: FontWeight.w500,
-                  color: AppColors.t3)),
-              const Spacer(),
-              Icon(Symbols.arrow_forward, size: 17, color: AppColors.t3),
-            ]),
-            const Gap(10),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(formatCurrency(revenue),
-                maxLines: 1,
-                style: AppFont.sans(
-                  fontSize: 38, fontWeight: FontWeight.w700,
-                  letterSpacing: -1.4, height: 1.05,
-                  color: AppColors.t1)),
-            ),
-            const Gap(14),
-            Row(children: [
-              AppPill(footnote, icon: Symbols.trending_up, dense: true,
-                tone: AppColors.green),
-              if (gstin != null) ...[
-                const Gap(7),
-                Flexible(
-                  child: AppPill('GSTIN $gstin', dense: true),
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(
+            AppSpace.gutter, AppSpace.lg, AppSpace.gutter, AppSpace.xl),
+        child: Row(children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(greeting,
+                    style: AppFont.style(AppType.bodyM,
+                        color: AppColor.textTertiary)),
+                const SizedBox(height: 2),
+                Text(
+                  business ?? 'BillZap',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppFont.style(AppType.titleL,
+                      color: AppColor.textPrimary),
                 ),
               ],
-            ]),
-          ],
-        ),
-      );
-}
-
-// ─────────────────────────────────────────────────────────────────────
-// Stat tile — thin icon, muted label, tight numeral.
-// ─────────────────────────────────────────────────────────────────────
-class _StatTile extends StatelessWidget {
-  final String label, value, sub;
-  final IconData icon;
-  final Color tone;
-
-  const _StatTile({
-    required this.label,
-    required this.value,
-    required this.sub,
-    required this.icon,
-    required this.tone,
-  });
-
-  @override
-  Widget build(BuildContext context) => AppCard(
-        padding: const EdgeInsets.all(13),
-        radius: AppRadius.lg,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Icon(icon, size: 19, color: tone),
-            const Spacer(),
-            Text(label,
-              maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: AppFont.sans(
-                fontSize: 11, fontWeight: FontWeight.w500,
-                color: AppColors.t3)),
-            const Gap(3),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(value,
-                maxLines: 1,
-                style: AppFont.sans(
-                  fontSize: 18, fontWeight: FontWeight.w700,
-                  letterSpacing: -0.5, color: AppColors.t1)),
             ),
-            const Gap(2),
-            Text(sub,
-              maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: AppFont.sans(fontSize: 10.5, color: AppColors.t4)),
-          ],
-        ),
-      );
-}
-
-// ─────────────────────────────────────────────────────────────────────
-// Feature card — day close, voice billing.
-// ─────────────────────────────────────────────────────────────────────
-class _FeatureCard extends StatelessWidget {
-  final IconData icon;
-  final String title, subtitle;
-  final VoidCallback onTap;
-
-  const _FeatureCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) => AppCard(
-        onTap: onTap,
-        padding: const EdgeInsets.all(15),
-        child: Row(children: [
-          Container(
-            width: 46, height: 46,
-            decoration: BoxDecoration(
-              color: AppColors.brand,
-              shape: BoxShape.circle),
-            child: Icon(icon, color: AppColors.onBrand, size: 21),
           ),
-          const Gap(14),
-          Expanded(child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title,
-                style: AppFont.sans(
-                  fontSize: 15, fontWeight: FontWeight.w600,
-                  letterSpacing: -0.3, color: AppColors.t1)),
-              const Gap(3),
-              Text(subtitle,
-                maxLines: 2, overflow: TextOverflow.ellipsis,
-                style: AppFont.sans(
-                  fontSize: 12.5, color: AppColors.t3, height: 1.3)),
-            ])),
-          const Gap(8),
-          Icon(Symbols.chevron_right, color: AppColors.t4, size: 20),
+          const SizedBox(width: AppSpace.md),
+          PressScale(
+            onTap: onProfile,
+            scale: 0.9,
+            child: AppAvatar(label: business ?? 'B', size: 46, solid: false),
+          ),
         ]),
       );
 }
 
-// ─────────────────────────────────────────────────────────────────────
-// Recent invoice row
-// ─────────────────────────────────────────────────────────────────────
-class _InvoiceRow extends ConsumerWidget {
-  final Invoice inv;
+/// The hero. One number, large, with the month's contribution underneath.
+/// The counter animation is reserved for this card and the invoice total —
+/// used anywhere else it would be noise.
+class _EarningsCard extends StatelessWidget {
+  final double revenue, monthRevenue;
+  final String label, monthLabel;
+  final int billCount;
   final VoidCallback onTap;
-  const _InvoiceRow({required this.inv, required this.onTap});
 
-  String _statusLabel(WidgetRef ref) {
-    if (inv.isOverdue) return tr('inv.overdue', ref).toUpperCase();
-    switch (inv.status) {
-      case InvoiceStatus.paid:    return tr('inv.paid', ref).toUpperCase();
-      case InvoiceStatus.sent:    return tr('inv.sent', ref).toUpperCase();
-      case InvoiceStatus.pending: return tr('inv.pending', ref).toUpperCase();
-      case InvoiceStatus.draft:   return tr('inv.draft', ref).toUpperCase();
-      case InvoiceStatus.cancelled: return tr('inv.cancelled', ref).toUpperCase();
-    }
+  const _EarningsCard({
+    required this.revenue,
+    required this.label,
+    required this.monthLabel,
+    required this.monthRevenue,
+    required this.billCount,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) => AppSurface(
+        onTap: onTap,
+        radius: AppRadius.xl,
+        padding: const EdgeInsets.all(AppSpace.xl),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Text(label.toUpperCase(),
+                  style: AppFont.style(AppType.overline,
+                      color: AppColor.textTertiary)),
+              const Spacer(),
+              Icon(Icons.north_east_rounded,
+                  size: 16, color: AppColor.textTertiary),
+            ]),
+            const SizedBox(height: AppSpace.md),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: MoneyCounter(revenue, style: AppType.amountHero),
+            ),
+            const SizedBox(height: AppSpace.lg),
+            Row(children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                decoration: BoxDecoration(
+                  color: AppColor.wash(AppColor.paid),
+                  borderRadius: AppRadius.all(AppRadius.pill),
+                ),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(Icons.trending_up_rounded,
+                      size: 13, color: AppColor.paid),
+                  const SizedBox(width: 5),
+                  Money(monthRevenue,
+                      style: AppType.labelS,
+                      color: AppColor.paid,
+                      round: true),
+                ]),
+              ),
+              const SizedBox(width: AppSpace.sm),
+              Flexible(
+                child: Text(
+                  '$monthLabel · $billCount ${billCount == 1 ? "bill" : "bills"}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppFont.style(AppType.bodyS,
+                      color: AppColor.textTertiary),
+                ),
+              ),
+            ]),
+          ],
+        ),
+      );
+}
+
+/// Outstanding money. The overdue portion is broken out as its own line
+/// because "₹40,000 owed" and "₹40,000 owed, ₹31,000 of it late" are very
+/// different situations and the owner needs to see which one they are in.
+class _OutstandingCard extends StatelessWidget {
+  final double outstanding, overdueAmount;
+  final int unpaidCount, overdueCount;
+  final String label, overdueLabel;
+  final VoidCallback onTap;
+
+  const _OutstandingCard({
+    required this.outstanding,
+    required this.unpaidCount,
+    required this.overdueAmount,
+    required this.overdueCount,
+    required this.label,
+    required this.overdueLabel,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasOverdue = overdueCount > 0;
+    final ratio = outstanding > 0
+        ? (overdueAmount / outstanding).clamp(0.0, 1.0)
+        : 0.0;
+
+    return AppSurface(
+      onTap: onTap,
+      padding: const EdgeInsets.all(AppSpace.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(label.toUpperCase(),
+                      style: AppFont.style(AppType.overline,
+                          color: AppColor.textTertiary)),
+                  const SizedBox(height: AppSpace.sm),
+                  Money(outstanding, style: AppType.amountL, round: true),
+                  const SizedBox(height: 3),
+                  Text('$unpaidCount unpaid',
+                      style: AppFont.style(AppType.bodyS,
+                          color: AppColor.textTertiary)),
+                ],
+              ),
+            ),
+            if (hasOverdue)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  StatusPill(overdueLabel, tone: AppColor.overdue),
+                  const SizedBox(height: AppSpace.sm),
+                  Money(overdueAmount,
+                      style: AppType.amountS,
+                      color: AppColor.overdue,
+                      round: true),
+                  const SizedBox(height: 3),
+                  Text('$overdueCount ${overdueCount == 1 ? "bill" : "bills"}',
+                      style: AppFont.style(AppType.bodyS,
+                          color: AppColor.textQuiet)),
+                ],
+              ),
+          ]),
+          if (hasOverdue) ...[
+            const SizedBox(height: AppSpace.lg),
+            // How much of what is owed has gone late, at a glance.
+            ClipRRect(
+              borderRadius: AppRadius.all(AppRadius.pill),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: ratio),
+                duration: AppMotion.slow,
+                curve: AppMotion.enter,
+                builder: (_, v, __) => LinearProgressIndicator(
+                  value: v,
+                  minHeight: 7,
+                  backgroundColor: AppColor.sunken,
+                  valueColor: AlwaysStoppedAnimation(AppColor.overdue),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
+}
+
+class _Action {
+  final IconData icon;
+  final String label;
+  final Color tone;
+  final VoidCallback onTap;
+  const _Action(this.icon, this.label, this.tone, this.onTap);
+}
+
+class _ActionGrid extends StatelessWidget {
+  final List<_Action> actions;
+  final bool wide;
+  const _ActionGrid({required this.actions, required this.wide});
+
+  @override
+  Widget build(BuildContext context) => GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        padding: EdgeInsets.zero,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: wide ? 6 : 3,
+          crossAxisSpacing: AppSpace.sm,
+          mainAxisSpacing: AppSpace.sm,
+          childAspectRatio: 0.98,
+        ),
+        itemCount: actions.length,
+        itemBuilder: (_, i) {
+          final a = actions[i];
+          return AppSurface(
+            onTap: a.onTap,
+            radius: AppRadius.md,
+            padding: const EdgeInsets.all(AppSpace.md),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: AppColor.wash(a.tone),
+                    borderRadius: AppRadius.all(AppRadius.sm),
+                  ),
+                  child: Icon(a.icon, size: 19, color: a.tone),
+                ),
+                const SizedBox(height: AppSpace.sm),
+                Text(
+                  a.label,
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppFont.style(AppType.labelS,
+                      color: AppColor.textSecondary),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+}
+
+class _RecentInvoiceRow extends ConsumerWidget {
+  final Invoice invoice;
+  final VoidCallback onTap;
+  const _RecentInvoiceRow({required this.invoice, required this.onTap});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = inv.status == InvoiceStatus.paid ? AppColors.green
-        : inv.isOverdue ? AppColors.red : AppColors.yellow;
+    final (label, tone) = statusOf(invoice, ref);
     return AppListRow(
       onTap: onTap,
-      leading: AppBadge(initial: inv.customerName, size: 44),
-      title: inv.customerName,
-      subtitle: '${inv.invoiceNumber} · '
-          '${DateFormat('dd MMM').format(inv.invoiceDate)}',
-      trailing: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(formatCurrency(inv.grandTotal),
-            style: AppFont.sans(
-              fontSize: 14.5, fontWeight: FontWeight.w600,
-              letterSpacing: -0.3, color: AppColors.t1)),
-          const Gap(5),
-          AppPill(_statusLabel(ref), dense: true, tone: c),
-        ]),
+      leading: AppAvatar(label: invoice.customerName, tone: tone),
+      title: invoice.customerName,
+      subtitle: '${invoice.invoiceNumber} · '
+          '${DateFormat('d MMM').format(invoice.invoiceDate)}',
+      amount: invoice.grandTotal,
+      badge: StatusPill(label, tone: tone),
     );
   }
 }
 
-// ─── Low-stock banner ─────────────────────────────────────────────────
-// Tapping it jumps to Products so the owner can re-order or adjust stock.
-// Deliberately one compact row so it doesn't dominate the dashboard.
-class _LowStockBanner extends ConsumerWidget {
+/// Shared status resolution so a bill reads identically everywhere.
+(String, Color) statusOf(Invoice inv, WidgetRef ref) {
+  if (inv.isOverdue) return (tr('inv.overdue', ref), AppColor.overdue);
+  switch (inv.status) {
+    case InvoiceStatus.paid:
+      return (tr('inv.paid', ref), AppColor.paid);
+    case InvoiceStatus.sent:
+      return (tr('inv.sent', ref), AppColor.info);
+    case InvoiceStatus.pending:
+      return (tr('inv.pending', ref), AppColor.pending);
+    case InvoiceStatus.draft:
+      return (tr('inv.draft', ref), AppColor.draft);
+    case InvoiceStatus.cancelled:
+      return (tr('inv.cancelled', ref), AppColor.draft);
+  }
+}
+
+class _StockAlert extends ConsumerWidget {
   final List<Product> items;
-  const _LowStockBanner({required this.items});
+  const _StockAlert({required this.items});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final out = items.where((p) => p.isOutOfStock).length;
     final low = items.length - out;
-    return AppCard(
-      margin: const EdgeInsets.only(bottom: AppSpacing.cardGap),
-      padding: const EdgeInsets.all(14),
-      onTap: () {
-        HapticFeedback.lightImpact();
-        context.push('/products');
-      },
-      child: Row(children: [
-        AppBadge(icon: Symbols.inventory_2, tone: AppColors.orange, size: 42),
-        const Gap(13),
-        Expanded(child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(tr('dash.stock_alert', ref),
-              style: AppFont.sans(
-                fontSize: 14, fontWeight: FontWeight.w600,
-                letterSpacing: -0.2, color: AppColors.t1)),
-            const Gap(2),
-            Text(
-              out > 0 && low > 0
-                ? '$out out of stock • $low running low'
-                : out > 0
-                  ? '$out item${out == 1 ? "" : "s"} out of stock'
-                  : '$low item${low == 1 ? "" : "s"} running low',
-              style: AppFont.sans(fontSize: 12.5, color: AppColors.t3)),
-          ])),
-        Icon(Symbols.chevron_right, color: AppColors.t4, size: 20),
-      ]),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpace.md),
+      child: AppSurface(
+        onTap: () => context.push('/products'),
+        padding: const EdgeInsets.all(AppSpace.md),
+        child: Row(children: [
+          AppAvatar(icon: Symbols.inventory_2, tone: AppColor.pending),
+          const SizedBox(width: AppSpace.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(tr('dash.stock_alert', ref),
+                    style: AppFont.style(AppType.labelL,
+                        color: AppColor.textPrimary)),
+                const SizedBox(height: 2),
+                Text(
+                  out > 0 && low > 0
+                      ? '$out out of stock · $low running low'
+                      : out > 0
+                          ? '$out ${out == 1 ? "item" : "items"} out of stock'
+                          : '$low ${low == 1 ? "item" : "items"} running low',
+                  style: AppFont.style(AppType.bodyS,
+                      color: AppColor.textTertiary),
+                ),
+              ],
+            ),
+          ),
+          Icon(Icons.chevron_right_rounded,
+              size: 20, color: AppColor.textQuiet),
+        ]),
+      ),
     );
   }
 }

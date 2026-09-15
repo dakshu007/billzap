@@ -256,7 +256,9 @@ class AppSpace {
   static const double gutter = 20;
 
   /// Clearance so a scroll tail never hides under the floating nav.
-  static const double navClearance = 122;
+  /// Sized for the dock (66) plus the create button above it (~52) plus
+  /// both margins — measured against the rendered layout, not guessed.
+  static const double navClearance = 178;
 }
 
 class AppRadius {

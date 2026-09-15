@@ -93,6 +93,11 @@ class Money extends StatelessWidget {
   /// Drop `.00` on whole rupee values.
   final bool compact;
 
+  /// Round to whole rupees. Headline and summary figures use this —
+  /// paise on a dashboard total is width without information. Line items
+  /// and tax rows keep their decimals.
+  final bool round;
+
   /// Tween to the new value instead of cutting to it.
   final bool animate;
 
@@ -108,6 +113,7 @@ class Money extends StatelessWidget {
     this.color,
     this.showSymbol = true,
     this.compact = true,
+    this.round = false,
     this.animate = false,
     this.signed = false,
     this.textAlign,
@@ -136,7 +142,9 @@ class Money extends StatelessWidget {
   }
 
   Widget _render(num v, Color fg) {
-    final body = compact ? formatMoneyCompact(v) : formatIndianDigits(v);
+    final shown = round ? v.roundToDouble() : v;
+    final body =
+        compact ? formatMoneyCompact(shown) : formatIndianDigits(shown);
     final base = AppFont.style(style, color: fg);
 
     if (!showSymbol) {
@@ -154,8 +162,12 @@ class Money extends StatelessWidget {
             letterSpacing: 0,
           ),
         ),
-        // A hair of space — a literal space character is too wide here.
-        TextSpan(text: ' ', style: base),
+        // A hair of space, scaled to the SYMBOL rather than the amount —
+        // tying it to the amount made the gap balloon on the hero figure.
+        TextSpan(
+          text: ' ',
+          style: base.copyWith(fontSize: (base.fontSize ?? 16) * 0.45),
+        ),
         TextSpan(text: body, style: base),
       ]),
       style: base,
@@ -174,6 +186,7 @@ class MoneyCounter extends StatefulWidget {
   final TextStyle style;
   final Color? color;
   final bool compact;
+  final bool round;
   final Duration duration;
 
   const MoneyCounter(
@@ -182,6 +195,7 @@ class MoneyCounter extends StatefulWidget {
     this.style = AppType.amountHero,
     this.color,
     this.compact = true,
+    this.round = true,
     this.duration = const Duration(milliseconds: 900),
   });
 
@@ -210,6 +224,7 @@ class _MoneyCounterState extends State<MoneyCounter> {
         style: widget.style,
         color: widget.color,
         compact: widget.compact,
+        round: widget.round,
       ),
     );
   }

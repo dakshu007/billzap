@@ -8,7 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/ui_kit.dart';
+import '../../design/components.dart';
 import '../../theme/app_spacing.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';

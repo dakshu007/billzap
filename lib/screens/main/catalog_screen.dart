@@ -6,7 +6,7 @@ import 'package:billzap/theme/app_icons.dart';
 import 'package:gap/gap.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/ui_kit.dart';
+import '../../design/components.dart';
 import '../../services/gst_classifier.dart';
 import '../../i18n/translations.dart';
 
