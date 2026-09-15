@@ -5,9 +5,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
 import '../../services/app_lock_service.dart';
@@ -103,7 +102,7 @@ class _LockScreenState extends State<LockScreen> {
               Container(
                 width: 76, height: 76,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     colors: [AppColors.brand, Color(0xFF4070FF)],
                     begin: Alignment.topLeft, end: Alignment.bottomRight),
                   borderRadius: BorderRadius.circular(20),
@@ -115,13 +114,13 @@ class _LockScreenState extends State<LockScreen> {
               ),
               const Gap(18),
               Text('BillZap',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 22, fontWeight: FontWeight.w900,
                   color: AppColors.t1, letterSpacing: -0.5)),
               const Gap(4),
               Text(
                 _error ? 'Wrong PIN. Try again.' : 'Enter your 4-digit PIN',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 13,
                   color: _error ? AppColors.red : AppColors.t3,
                   fontWeight: _error ? FontWeight.w700 : FontWeight.w500),
@@ -153,10 +152,10 @@ class _LockScreenState extends State<LockScreen> {
               if (AppLockService.instance.isBiometricEnabled)
                 TextButton.icon(
                   onPressed: _tryBiometric,
-                  icon: const Icon(Symbols.fingerprint,
+                  icon: Icon(Symbols.fingerprint,
                     size: 22, color: AppColors.brand),
                   label: Text('Use fingerprint',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFont.sans(
                       fontSize: 13, fontWeight: FontWeight.w800,
                       color: AppColors.brand)),
                 ),
@@ -177,7 +176,7 @@ class _LockScreenState extends State<LockScreen> {
                   context.push('/forgot-pin');
                 },
                 child: Text('Forgot PIN?',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFont.sans(
                     fontSize: 13, fontWeight: FontWeight.w700,
                     color: AppColors.t3,
                     decoration: TextDecoration.underline)),
@@ -240,7 +239,7 @@ class _NumberPad extends StatelessWidget {
           onTap: () => onDigit(d),
           customBorder: const CircleBorder(),
           child: Center(child: Text(d,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
               fontSize: 26, fontWeight: FontWeight.w700,
               color: AppColors.t1))),
         ),

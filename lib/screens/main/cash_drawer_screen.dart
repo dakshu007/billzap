@@ -6,9 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
@@ -107,7 +106,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
         backgroundColor: AppColors.bg,
         iconTheme: IconThemeData(color: AppColors.t1),
         title: Text('Day Close',
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
           if (paid.isNotEmpty)
@@ -118,9 +117,9 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
                   paid, expenses, biz,
                   cashTotal, upiTotal, bankTotal, otherTotal, unknownTotal,
                   expenseTotal, netTotal),
-                icon: const Icon(Symbols.share, size: 18, color: AppColors.brand),
+                icon: Icon(Symbols.share, size: 18, color: AppColors.brand),
                 label: Text('Share',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFont.sans(
                     fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.brand)),
               ),
             ),
@@ -139,10 +138,10 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
             ),
             Expanded(child: Center(child: Column(children: [
               Text(dateLabel,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.t1)),
               Text(DateFormat('d MMMM yyyy').format(_selectedDate),
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 11, color: AppColors.t3)),
             ]))),
             IconButton(
@@ -180,17 +179,17 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
             ),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('TOTAL COLLECTIONS',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 11, fontWeight: FontWeight.w800,
                   color: Colors.white60, letterSpacing: 0.8)),
               const Gap(6),
               Text(_inrFmt(grossTotal),
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 32, fontWeight: FontWeight.w900, color: Colors.white)),
               const Gap(4),
               Text('${paid.length} ${paid.length == 1 ? "invoice" : "invoices"} • '
                    '${expenses.length} ${expenses.length == 1 ? "expense" : "expenses"}',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 12, color: Colors.white70)),
             ]),
           ),
@@ -201,18 +200,18 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
               Icon(Symbols.point_of_sale, size: 56, color: AppColors.t4),
               const Gap(12),
               Text('No transactions ${isToday ? "today" : "on this day"} yet',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.t3)),
               const Gap(4),
               Text('Mark invoices as paid to see them here',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 12, color: AppColors.t4)),
             ])),
           ] else ...[
             const Gap(20),
             // ─── Payment modes breakdown ───
             Text('PAYMENT MODES',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                 fontSize: 11, fontWeight: FontWeight.w800,
                 color: AppColors.t3, letterSpacing: 0.8)),
             const Gap(10),
@@ -269,7 +268,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
             if (expenses.isNotEmpty) ...[
               const Gap(20),
               Text('EXPENSES TODAY',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 11, fontWeight: FontWeight.w800,
                   color: AppColors.t3, letterSpacing: 0.8)),
               const Gap(10),
@@ -291,14 +290,14 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(expenses[i].title,
-                              style: GoogleFonts.plusJakartaSans(
+                              style: AppFont.sans(
                                 fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.t1)),
                             Text(expenses[i].category,
-                              style: GoogleFonts.plusJakartaSans(
+                              style: AppFont.sans(
                                 fontSize: 11, color: AppColors.t3)),
                           ])),
                         Text('-${_inrFmt(expenses[i].amount)}',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppFont.sans(
                             fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.red)),
                       ]),
                     ),
@@ -319,17 +318,17 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
               child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text('NET FOR DAY',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFont.sans(
                       fontSize: 10, fontWeight: FontWeight.w800,
                       color: netTotal >= 0 ? AppColors.green : AppColors.red,
                       letterSpacing: 0.8)),
                   const Gap(2),
                   Text('Collections − Expenses',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFont.sans(
                       fontSize: 11, color: AppColors.t3)),
                 ]),
                 Text(_inrFmt(netTotal),
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFont.sans(
                     fontSize: 22, fontWeight: FontWeight.w900,
                     color: netTotal >= 0 ? AppColors.green : AppColors.red)),
               ]),
@@ -339,7 +338,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
             if (paid.isNotEmpty) ...[
               const Gap(20),
               Text('PAID INVOICES',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 11, fontWeight: FontWeight.w800,
                   color: AppColors.t3, letterSpacing: 0.8)),
               const Gap(10),
@@ -367,14 +366,14 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(paid[i].customerName,
-                              style: GoogleFonts.plusJakartaSans(
+                              style: AppFont.sans(
                                 fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.t1)),
                             Text(paid[i].invoiceNumber,
-                              style: GoogleFonts.plusJakartaSans(
+                              style: AppFont.sans(
                                 fontSize: 11, color: AppColors.t3)),
                           ])),
                         Text(_inrFmt(paid[i].grandTotal),
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppFont.sans(
                             fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.t1)),
                       ]),
                     ),
@@ -502,7 +501,7 @@ class _DateChip extends StatelessWidget {
           border: Border.all(
             color: selected ? AppColors.brand : AppColors.border)),
         child: Text(label,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 11.5, fontWeight: FontWeight.w700,
             color: selected ? Colors.white : AppColors.t2)),
       ),
@@ -547,14 +546,14 @@ class _ModeRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(label,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.t1)),
               Text('$count ${count == 1 ? "transaction" : "transactions"}',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 11, color: AppColors.t3)),
             ])),
           Text(fmt,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
               fontSize: 15, fontWeight: FontWeight.w900, color: iconColor)),
         ]),
         if (percent > 0) ...[

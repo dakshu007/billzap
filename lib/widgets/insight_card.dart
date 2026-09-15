@@ -6,9 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
 import '../providers/providers.dart';
@@ -70,7 +69,7 @@ class _InsightContainer extends StatelessWidget {
               ),
               child: Text(
                 insight.title,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 9.5,
                   fontWeight: FontWeight.w900,
                   color: colors.tagText,
@@ -83,7 +82,7 @@ class _InsightContainer extends StatelessWidget {
           // Main message
           Text(
             insight.message,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
               fontSize: 13.5,
               fontWeight: FontWeight.w600,
               color: AppColors.t1,
@@ -105,7 +104,7 @@ class _InsightContainer extends StatelessWidget {
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     Text(
                       insight.actionLabel!,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFont.sans(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                         color: colors.btnText,

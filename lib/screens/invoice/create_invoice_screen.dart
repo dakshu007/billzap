@@ -4,10 +4,9 @@
 // ✅ GST auto-classify on item name change
 import 'package:flutter/material.dart';
 import '../../utils/smart_amount.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
@@ -128,7 +127,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
             decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(10)),
             child: Icon(Symbols.close, size: 19, color: AppColors.t1)),
           onPressed: () => context.go('/home')),
-        title: Text(tr('create.title', ref), style: GoogleFonts.plusJakartaSans(
+        title: Text(tr('create.title', ref), style: AppFont.sans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
           Padding(padding: const EdgeInsets.only(right: 12),
@@ -138,7 +137,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
               child: _saving
                 ? const SizedBox(width: 16, height: 16,
                     child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : Text(tr('common.save', ref), style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13.5)))),
+                : Text(tr('common.save', ref), style: AppFont.sans(fontWeight: FontWeight.w700, fontSize: 13.5)))),
         ],
       ),
       body: ListView(
@@ -155,8 +154,8 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                   shrinkWrap: true, padding: EdgeInsets.zero,
                   children: _acSugg.map((cust) => ListTile(
                     dense: true,
-                    title: Text(cust.name, style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, fontSize: 13)),
-                    subtitle: cust.phone.isNotEmpty ? Text(cust.phone, style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.t3)) : null,
+                    title: Text(cust.name, style: AppFont.sans(fontWeight: FontWeight.w600, fontSize: 13)),
+                    subtitle: cust.phone.isNotEmpty ? Text(cust.phone, style: AppFont.sans(fontSize: 11, color: AppColors.t3)) : null,
                     onTap: () => _fillCust(cust),
                   )).toList(),
                 ),
@@ -193,7 +192,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                   borderSide: BorderSide(color: AppColors.border)),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13)),
               items: kStates.map((s) => DropdownMenuItem(value: s,
-                child: Text(s, style: GoogleFonts.plusJakartaSans(fontSize: 13)))).toList(),
+                child: Text(s, style: AppFont.sans(fontSize: 13)))).toList(),
               onChanged: (v) => setState(() => _place = v ?? _place)),
           ]),
 
@@ -202,7 +201,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
             trailing: TextButton.icon(
               onPressed: _showCatalogPicker,
               icon: const Icon(Symbols.add, size: 16),
-              label: Text(tr('cat.from_catalog', ref), style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600))),
+              label: Text(tr('cat.from_catalog', ref), style: AppFont.sans(fontSize: 12, fontWeight: FontWeight.w600))),
             children: [
               ..._lines.asMap().entries.map((e) => _LineRow(
               item: e.value, index: e.key,
@@ -212,7 +211,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
               OutlinedButton.icon(
                 onPressed: () => setState(() => _lines.add(_LineItem())),
                 icon: const Icon(Symbols.add, size: 16),
-                label: Text(tr('create.add_line_item', ref), style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600))),
+                label: Text(tr('create.add_line_item', ref), style: AppFont.sans(fontSize: 13, fontWeight: FontWeight.w600))),
             ]),
 
           // Tax
@@ -243,7 +242,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                   enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide(color: AppColors.border)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13)),
-                style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
+                style: AppFont.sans(fontSize: 13.5)),
             ],
             const Divider(height: 20),
             _TogRow(tr('create.add_shipping', ref), tr('create.delivery_charges', ref), _applyShipping,
@@ -258,7 +257,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                   enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide(color: AppColors.border)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13)),
-                style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
+                style: AppFont.sans(fontSize: 13.5)),
             ],
           ]),
 
@@ -272,9 +271,9 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
             if (_applyDiscount && _discount > 0) _SRow(tr('create.discount', ref), -_discount),
             const Divider(height: 18),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text(tr('create.grand_total', ref), style: GoogleFonts.plusJakartaSans(
+              Text(tr('create.grand_total', ref), style: AppFont.sans(
                 fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.t1)),
-              Text(formatCurrency(_grand), style: GoogleFonts.plusJakartaSans(
+              Text(formatCurrency(_grand), style: AppFont.sans(
                 fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.brand)),
             ]),
           ]),
@@ -283,12 +282,12 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
           _Section(tr('create.notes', ref), children: [
             TextField(controller: _notes, maxLines: 3,
               decoration: InputDecoration(hintText: tr('create.notes_hint', ref),
-                hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t4),
+                hintStyle: AppFont.sans(fontSize: 13, color: AppColors.t4),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                 enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide(color: AppColors.border)),
                 contentPadding: const EdgeInsets.all(13)),
-              style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
+              style: AppFont.sans(fontSize: 13.5)),
           ]),
         ],
       ),
@@ -318,7 +317,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
           child: Column(children: [
             Container(width: 36, height: 4, margin: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(99))),
-            Text(trGlobal('cat.from_catalog'), style: GoogleFonts.plusJakartaSans(fontSize: 17, fontWeight: FontWeight.w800)),
+            Text(trGlobal('cat.from_catalog'), style: AppFont.sans(fontSize: 17, fontWeight: FontWeight.w800)),
             const Gap(10),
             Expanded(child: ListView.builder(
               controller: ctrl, itemCount: items.length,
@@ -339,18 +338,18 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                       Container(width: 40, height: 40,
                         decoration: BoxDecoration(color: AppColors.brandSoft,
                           borderRadius: BorderRadius.circular(10)),
-                        child: const Icon(Symbols.shopping_basket, color: AppColors.brand, size: 20)),
+                        child: Icon(Symbols.shopping_basket, color: AppColors.brand, size: 20)),
                       const Gap(12),
                       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(p.name, style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w700)),
+                        Text(p.name, style: AppFont.sans(fontSize: 13.5, fontWeight: FontWeight.w700)),
                         if (p.hsnCode.isNotEmpty)
                           Text('HSN: ${p.hsnCode} \u00b7 ${p.unit}',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.t3)),
+                            style: AppFont.sans(fontSize: 11, color: AppColors.t3)),
                       ])),
                       Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                        Text(formatCurrency(p.price), style: GoogleFonts.plusJakartaSans(
+                        Text(formatCurrency(p.price), style: AppFont.sans(
                           fontSize: 15, fontWeight: FontWeight.w900, color: AppColors.brand)),
-                        Text('GST ${p.gstRate}%', style: GoogleFonts.plusJakartaSans(
+                        Text('GST ${p.gstRate}%', style: AppFont.sans(
                           fontSize: 11, color: AppColors.green, fontWeight: FontWeight.w600)),
                       ]),
                     ]),
@@ -471,12 +470,12 @@ class _LineRowState extends State<_LineRow> {
       Row(children: [
         Expanded(child: TextField(controller: _name,
           decoration: InputDecoration(hintText: 'Product / service name',
-            hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t4), isDense: true,
+            hintStyle: AppFont.sans(fontSize: 13, color: AppColors.t4), isDense: true,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(9)),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(9),
               borderSide: BorderSide(color: AppColors.border)),
             contentPadding: const EdgeInsets.symmetric(horizontal: 11, vertical: 11)),
-          style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
+          style: AppFont.sans(fontSize: 13.5))),
         if (widget.onRemove != null) ...[
           const Gap(8),
           GestureDetector(onTap: widget.onRemove,
@@ -489,40 +488,40 @@ class _LineRowState extends State<_LineRow> {
       Row(children: [
         Expanded(child: TextField(controller: _hsn,
           decoration: InputDecoration(hintText: 'HSN/SAC',
-            hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t4), isDense: true,
+            hintStyle: AppFont.sans(fontSize: 12, color: AppColors.t4), isDense: true,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(9)),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(9),
               borderSide: BorderSide(color: AppColors.border)),
             contentPadding: const EdgeInsets.symmetric(horizontal: 11, vertical: 10)),
-          style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.t3))),
+          style: AppFont.sans(fontSize: 12.5, color: AppColors.t3))),
         const Gap(8),
         // Qty stepper
         _QtyBtn('\u2212', () { if (widget.item.qty > 1) { setState(() => widget.item.qty--); widget.onChange(); } }),
         Padding(padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Text('${widget.item.qty.toInt()}',
-            style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w900))),
+            style: AppFont.sans(fontSize: 16, fontWeight: FontWeight.w900))),
         _QtyBtn('+', () { setState(() => widget.item.qty++); widget.onChange(); }),
         const Gap(8),
         SizedBox(width: 90, child: TextField(controller: _rate,
           keyboardType: TextInputType.number,
               inputFormatters: [SmartAmountFormatter()], textAlign: TextAlign.right,
           decoration: InputDecoration(hintText: 'Rate \u20b9',
-            hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t4), isDense: true,
+            hintStyle: AppFont.sans(fontSize: 12, color: AppColors.t4), isDense: true,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(9)),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(9),
               borderSide: BorderSide(color: AppColors.border)),
             contentPadding: const EdgeInsets.symmetric(horizontal: 11, vertical: 10)),
-          style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
+          style: AppFont.sans(fontSize: 13.5))),
       ]),
       const Gap(8),
       Row(children: [
-        Text('GST: ', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t3)),
+        Text('GST: ', style: AppFont.sans(fontSize: 12, color: AppColors.t3)),
         Expanded(child: DropdownButton<double>(
           value: [0, 0.25, 5, 12, 18, 28, 40].map((e) => e.toDouble()).contains(widget.item.gstRate)
             ? widget.item.gstRate : 18.0,
           isExpanded: true,
           underline: const SizedBox(),
-          style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.brand, fontWeight: FontWeight.w700),
+          style: AppFont.sans(fontSize: 12, color: AppColors.brand, fontWeight: FontWeight.w700),
           items: [
             (r: 0.0,   l: '0% — Exempt'),
             (r: 0.25,  l: '0.25% — Stones'),
@@ -533,13 +532,13 @@ class _LineRowState extends State<_LineRow> {
             (r: 40.0,  l: '40% — Sin tax'),
           ].map((g) => DropdownMenuItem(
             value: g.r,
-            child: Text(g.l, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.t1)))).toList(),
+            child: Text(g.l, style: AppFont.sans(fontSize: 12, color: AppColors.t1)))).toList(),
           onChanged: (v) {
             if (v != null) { setState(() => widget.item.gstRate = v); widget.onChange(); }
           },
         )),
         const Gap(8),
-        Text(formatCurrency(widget.item.qty * widget.item.rate), style: GoogleFonts.plusJakartaSans(
+        Text(formatCurrency(widget.item.qty * widget.item.rate), style: AppFont.sans(
           fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.brand)),
       ]),
     ]),
@@ -565,7 +564,7 @@ class _Section extends StatelessWidget {
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Padding(padding: const EdgeInsets.fromLTRB(14, 14, 10, 10),
         child: Row(children: [
-          Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.t1)),
+          Text(title, style: AppFont.sans(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.t1)),
           if (trailing != null) ...[const Spacer(), trailing!],
         ])),
       const Divider(height: 1),
@@ -576,21 +575,21 @@ class _Section extends StatelessWidget {
 
 Widget _LF(String t) => Padding(
   padding: const EdgeInsets.only(bottom: 5),
-  child: Text(t, style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.t3)));
+  child: Text(t, style: AppFont.sans(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.t3)));
 
 Widget _TextField(TextEditingController ctrl, String hint,
     {TextInputType? type, bool caps = false}) =>
   TextField(controller: ctrl, keyboardType: type,
     textCapitalization: caps ? TextCapitalization.characters : TextCapitalization.sentences,
     decoration: InputDecoration(hintText: hint,
-      hintStyle: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t4),
+      hintStyle: AppFont.sans(fontSize: 13, color: AppColors.t4),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
       enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(color: AppColors.border)),
       focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
-        borderSide: const BorderSide(color: AppColors.brand, width: 1.5)),
+        borderSide: BorderSide(color: AppColors.brand, width: 1.5)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13)),
-    style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.t1));
+    style: AppFont.sans(fontSize: 13.5, color: AppColors.t1));
 
 Widget _DateBtn(DateTime date, ValueChanged<DateTime> onPick) =>
   Builder(builder: (ctx) => GestureDetector(
@@ -609,7 +608,7 @@ Widget _DateBtn(DateTime date, ValueChanged<DateTime> onPick) =>
         Icon(Symbols.calendar_today, size: 15, color: AppColors.t3),
         const Gap(7),
         Text(DateFormat('dd MMM yyyy').format(date),
-          style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.t1)),
+          style: AppFont.sans(fontSize: 13.5, color: AppColors.t1)),
       ]))));
 
 Widget _TogRow(String label, String sub, bool value, ValueChanged<bool> onChange) =>
@@ -617,8 +616,8 @@ Widget _TogRow(String label, String sub, bool value, ValueChanged<bool> onChange
     onTap: () => onChange(!value),
     child: Row(children: [
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.t1)),
-        Text(sub, style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.t3)),
+        Text(label, style: AppFont.sans(fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.t1)),
+        Text(sub, style: AppFont.sans(fontSize: 11, color: AppColors.t3)),
       ])),
       AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -651,13 +650,13 @@ Widget _TypeBtn(String label, bool selected, VoidCallback onTap) =>
         borderRadius: BorderRadius.circular(9),
         border: Border.all(color: selected ? AppColors.brand : AppColors.border)),
       child: Text(label, textAlign: TextAlign.center,
-        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700,
+        style: AppFont.sans(fontSize: 12, fontWeight: FontWeight.w700,
           color: selected ? Colors.white : AppColors.t2)))));
 
 Widget _SRow(String label, double amount) => Padding(
   padding: const EdgeInsets.symmetric(vertical: 3),
   child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-    Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t2)),
-    Text(formatCurrency(amount), style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600,
+    Text(label, style: AppFont.sans(fontSize: 13, color: AppColors.t2)),
+    Text(formatCurrency(amount), style: AppFont.sans(fontSize: 13, fontWeight: FontWeight.w600,
       color: amount < 0 ? AppColors.green : AppColors.t1)),
   ]));

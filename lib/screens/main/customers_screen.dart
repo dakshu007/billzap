@@ -3,10 +3,9 @@
 // success snackbar + haptics, GSTIN validation in add sheet.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/app_spacing.dart';
@@ -91,11 +90,11 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
             }
           },
         ),
-        title: Text(tr('cust.title', ref), style: GoogleFonts.plusJakartaSans(
+        title: Text(tr('cust.title', ref), style: AppFont.sans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
           IconButton(
-            icon: const Icon(Symbols.person_add, color: AppColors.brand),
+            icon: Icon(Symbols.person_add, color: AppColors.brand),
             onPressed: () => _addSheet(context, ref)),
         ],
       ),
@@ -112,10 +111,10 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
                   Column(mainAxisSize: MainAxisSize.min, children: [
                     Icon(Symbols.group, size: 48, color: AppColors.t4),
                     const Gap(10),
-                    Text(tr('cust.no_customers', ref), style: GoogleFonts.plusJakartaSans(
+                    Text(tr('cust.no_customers', ref), style: AppFont.sans(
                       fontSize: 16, fontWeight: FontWeight.w800)),
                     const Gap(6),
-                    Text(tr('cust.tap_add', ref), style: GoogleFonts.plusJakartaSans(
+                    Text(tr('cust.tap_add', ref), style: AppFont.sans(
                       fontSize: 13, color: AppColors.t3)),
                     const Gap(16),
                     ElevatedButton.icon(
@@ -151,7 +150,7 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
                             borderRadius: BorderRadius.circular(11)),
                           child: Center(child: Text(
                             c.name.isNotEmpty ? c.name[0].toUpperCase() : '?',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: AppFont.sans(
                               fontSize: 17, fontWeight: FontWeight.w900,
                               color: AppColors.brand)))),
                         const Gap(12),
@@ -159,23 +158,23 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
                           Text(c.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: AppFont.sans(
                               fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.t1)),
                           if (c.phone.isNotEmpty)
-                            Text(c.phone, style: GoogleFonts.plusJakartaSans(
+                            Text(c.phone, style: AppFont.sans(
                               fontSize: 12, color: AppColors.t3)),
                           if (c.gstin.isNotEmpty)
                             Text('GSTIN: ${c.gstin}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.plusJakartaSans(
+                              style: AppFont.sans(
                                 fontSize: 10.5, color: AppColors.t4)),
                         ])),
                         Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                          Text(formatCurrency(tot), style: GoogleFonts.plusJakartaSans(
+                          Text(formatCurrency(tot), style: AppFont.sans(
                             fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.t1)),
                           Text('${ci.length} ${tr('cust.inv_short', ref)}',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: AppFont.sans(
                               fontSize: 10.5, color: AppColors.t3)),
                           const Gap(4),
                           IconButton(
@@ -253,14 +252,14 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
                       color: AppColors.border,
                       borderRadius: BorderRadius.circular(99)))),
                   const Gap(16),
-                  Text(trGlobal('cust.add_new'), style: GoogleFonts.plusJakartaSans(
+                  Text(trGlobal('cust.add_new'), style: AppFont.sans(
                     fontSize: 18, fontWeight: FontWeight.w800)),
                   const Gap(16),
                   TextField(controller: name,
                     decoration: InputDecoration(labelText: trGlobal('cust.name'),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
+                    style: AppFont.sans(fontSize: 13.5)),
                   const Gap(10),
                   TextField(controller: phone,
                     keyboardType: TextInputType.phone,
@@ -270,7 +269,7 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
                       errorText: phoneErr,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
+                    style: AppFont.sans(fontSize: 13.5)),
                   const Gap(10),
                   Row(children: [
                     Expanded(child: TextField(controller: gstin,
@@ -281,13 +280,13 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
                         errorText: gstinErr,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10))),
-                      style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
+                      style: AppFont.sans(fontSize: 13.5))),
                     const Gap(10),
                     Expanded(child: TextField(controller: addr,
                       decoration: InputDecoration(labelText: trGlobal('set.city'),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10))),
-                      style: GoogleFonts.plusJakartaSans(fontSize: 13.5))),
+                      style: AppFont.sans(fontSize: 13.5))),
                   ]),
                   const Gap(20),
                   SizedBox(

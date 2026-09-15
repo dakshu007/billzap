@@ -5,9 +5,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -40,7 +39,7 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
         backgroundColor: AppColors.bg,
         iconTheme: IconThemeData(color: AppColors.t1),
         title: Text('Backup & Export',
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.t1)),
       ),
       body: ListView(
@@ -85,7 +84,7 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
               const Gap(8),
               Expanded(child: Text(
                 'Backup files are PIN-protected. Send them to yourself via WhatsApp / Email / Drive for safekeeping.',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 11.5, color: AppColors.t2, height: 1.5))),
             ]),
           ),
@@ -377,13 +376,13 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
       builder: (ctx) => StatefulBuilder(builder: (ctx, ss) {
         return AlertDialog(
           title: Text(title,
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800)),
+            style: AppFont.sans(fontWeight: FontWeight.w800)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(message,
-                style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.t2)),
+                style: AppFont.sans(fontSize: 13, color: AppColors.t2)),
               const Gap(16),
               TextField(
                 controller: pin1Ctrl,
@@ -397,7 +396,7 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   counterText: '',
                 ),
-                style: GoogleFonts.plusJakartaSans(fontSize: 18, letterSpacing: 6),
+                style: AppFont.sans(fontSize: 18, letterSpacing: 6),
               ),
               if (requireConfirm) ...[
                 const Gap(10),
@@ -412,13 +411,13 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                     counterText: '',
                   ),
-                  style: GoogleFonts.plusJakartaSans(fontSize: 18, letterSpacing: 6),
+                  style: AppFont.sans(fontSize: 18, letterSpacing: 6),
                 ),
               ],
               if (error != null) ...[
                 const Gap(8),
                 Text(error!,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFont.sans(
                     fontSize: 12, color: AppColors.red, fontWeight: FontWeight.w600)),
               ],
             ],
@@ -471,7 +470,7 @@ class _SectionHeader extends StatelessWidget {
       Icon(icon, size: 14, color: AppColors.t3),
       const Gap(6),
       Text(label,
-        style: GoogleFonts.plusJakartaSans(
+        style: AppFont.sans(
           fontSize: 11, fontWeight: FontWeight.w800,
           color: AppColors.t3, letterSpacing: 0.8)),
     ]);
@@ -513,11 +512,11 @@ class _BigCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(title,
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                 fontSize: 14.5, fontWeight: FontWeight.w800, color: AppColors.t1)),
             const Gap(2),
             Text(subtitle,
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                 fontSize: 11.5, color: AppColors.t3)),
             const Gap(8),
             ElevatedButton(
@@ -534,7 +533,7 @@ class _BigCard extends StatelessWidget {
                     width: 14, height: 14,
                     child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                 : Text(buttonLabel,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFont.sans(
                       fontSize: 12, fontWeight: FontWeight.w700)),
             ),
           ])),
@@ -580,11 +579,11 @@ class _ExportTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(title,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 13.5, fontWeight: FontWeight.w700,
                   color: disabled ? AppColors.t4 : AppColors.t1)),
               Text(subtitle,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 11, color: AppColors.t3)),
             ])),
           Icon(Symbols.share,

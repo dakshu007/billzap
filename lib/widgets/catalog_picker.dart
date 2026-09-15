@@ -1,8 +1,7 @@
 // lib/widgets/catalog_picker.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import 'package:gap/gap.dart';
 import '../theme/app_theme.dart';
 import '../screens/main/catalog_screen.dart';
@@ -48,10 +47,10 @@ class CatalogPicker {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(trGlobal('cat.from_catalog'),
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFont.sans(
                             fontSize: 18, fontWeight: FontWeight.w800)),
                     Text('${items.length}',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFont.sans(
                             fontSize: 12, color: AppColors.t3)),
                   ],
                 ),
@@ -70,14 +69,14 @@ class CatalogPicker {
                                   size: 48, color: AppColors.t4),
                               const Gap(10),
                               Text(trGlobal('cat.empty'),
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: AppFont.sans(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700)),
                               const Gap(6),
                               Text(
                                 trGlobal('cat.empty_hint'),
                                 textAlign: TextAlign.center,
-                                style: GoogleFonts.plusJakartaSans(
+                                style: AppFont.sans(
                                     fontSize: 12, color: AppColors.t3),
                               ),
                             ],
@@ -114,7 +113,7 @@ class CatalogPicker {
                                       color: AppColors.brandSoft,
                                       borderRadius: BorderRadius.circular(10),
                                     ),
-                                    child: const Center(
+                                    child: Center(
                                       child: Icon(Symbols.shopping_basket,
                                           size: 20, color: AppColors.brand),
                                     ),
@@ -127,7 +126,7 @@ class CatalogPicker {
                                       children: [
                                         Text(item.name,
                                             style:
-                                                GoogleFonts.plusJakartaSans(
+                                                AppFont.sans(
                                                     fontSize: 14,
                                                     fontWeight:
                                                         FontWeight.w700,
@@ -135,13 +134,13 @@ class CatalogPicker {
                                         Text(
                                             '₹${item.price.toStringAsFixed(0)} · ${item.gstRate}% GST',
                                             style:
-                                                GoogleFonts.plusJakartaSans(
+                                                AppFont.sans(
                                                     fontSize: 12,
                                                     color: AppColors.t3)),
                                       ],
                                     ),
                                   ),
-                                  const Icon(Symbols.add_circle,
+                                  Icon(Symbols.add_circle,
                                       size: 22, color: AppColors.brand),
                                 ]),
                               ),

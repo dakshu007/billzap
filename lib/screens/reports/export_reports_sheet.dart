@@ -5,9 +5,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
@@ -288,10 +287,10 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             child: Row(children: [
-              const Icon(Symbols.download, color: AppColors.brand, size: 22),
+              Icon(Symbols.download, color: AppColors.brand, size: 22),
               const Gap(10),
               Text('Export Reports',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.t1)),
               const Spacer(),
               IconButton(
@@ -308,7 +307,7 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
               children: [
                 // ──────── Date range section ────────
                 Text('PERIOD',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFont.sans(
                     fontSize: 11, fontWeight: FontWeight.w800,
                     color: AppColors.t3, letterSpacing: 0.8)),
                 const Gap(8),
@@ -336,12 +335,12 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
                     color: AppColors.brandSoft,
                     borderRadius: BorderRadius.circular(8)),
                   child: Row(children: [
-                    const Icon(Symbols.event, size: 16, color: AppColors.brand),
+                    Icon(Symbols.event, size: 16, color: AppColors.brand),
                     const Gap(8),
                     Text(
                       '${DateFormat('dd MMM yyyy').format(_from)} → '
                       '${_preset == _PeriodPreset.allTime ? "Present" : DateFormat('dd MMM yyyy').format(_to)}',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFont.sans(
                         fontSize: 12.5, fontWeight: FontWeight.w700,
                         color: AppColors.brand)),
                   ]),
@@ -350,7 +349,7 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
 
                 // ──────── Reports ────────
                 Text('REPORTS',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFont.sans(
                     fontSize: 11, fontWeight: FontWeight.w800,
                     color: AppColors.t3, letterSpacing: 0.8)),
                 const Gap(8),
@@ -411,7 +410,7 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
                     const Gap(8),
                     Expanded(child: Text(
                       'PDFs are great for sharing and printing. CSVs work in Excel for further analysis.',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFont.sans(
                         fontSize: 11.5, color: AppColors.t2, height: 1.4))),
                   ]),
                 ),
@@ -445,7 +444,7 @@ class _PeriodChip extends StatelessWidget {
           border: Border.all(
             color: selected ? AppColors.brand : AppColors.border)),
         child: Text(label,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 12, fontWeight: FontWeight.w700,
             color: selected ? Colors.white : AppColors.t2)),
       ),
@@ -499,10 +498,10 @@ class _ReportRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(title,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.t1)),
               Text(subtitle,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 11.5, color: AppColors.t3, height: 1.3)),
             ])),
         ]),
@@ -510,9 +509,9 @@ class _ReportRow extends StatelessWidget {
         Row(children: [
           Expanded(child: OutlinedButton.icon(
             onPressed: busy ? null : onPdf,
-            icon: const Icon(Symbols.picture_as_pdf, size: 16, color: AppColors.brand),
+            icon: Icon(Symbols.picture_as_pdf, size: 16, color: AppColors.brand),
             label: Text('PDF',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                 fontSize: 12.5, fontWeight: FontWeight.w800, color: AppColors.brand)),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 9),
@@ -524,7 +523,7 @@ class _ReportRow extends StatelessWidget {
             onPressed: busy ? null : onCsv,
             icon: const Icon(Symbols.table_view, size: 16, color: AppColors.green),
             label: Text('CSV',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                 fontSize: 12.5, fontWeight: FontWeight.w800, color: AppColors.green)),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 9),
@@ -539,7 +538,7 @@ class _ReportRow extends StatelessWidget {
             onPressed: busy ? null : onJson,
             icon: const Icon(Symbols.data_object, size: 16, color: AppColors.purple),
             label: Text(jsonLabel ?? 'JSON',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                 fontSize: 12.5, fontWeight: FontWeight.w800, color: AppColors.purple)),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 9),

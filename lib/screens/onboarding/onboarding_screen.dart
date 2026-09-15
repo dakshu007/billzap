@@ -6,8 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import 'package:gap/gap.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../theme/app_theme.dart';
@@ -130,7 +129,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   TextButton(
                     onPressed: _skip,
                     child: Text(trGlobal('onboard.skip'),
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFont.sans(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: AppColors.t3)),
@@ -161,7 +160,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   TextButton(
                     onPressed: _prevStep,
                     child: Text(trGlobal('common.back'),
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFont.sans(
                             fontSize: 14, fontWeight: FontWeight.w600)),
                   ),
                 const Spacer(),
@@ -211,7 +210,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 colors: [AppColors.brand, Color(0xFF4070FF)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -230,14 +229,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ),
           const Gap(28),
           Text(trGlobal('onboard.welcome'),
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                   fontSize: 28,
                   fontWeight: FontWeight.w900,
                   color: AppColors.t1,
                   height: 1.2)),
           const Gap(8),
           Text(trGlobal('onboard.welcome_sub'),
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                   fontSize: 15, color: AppColors.t3, height: 1.5)),
           const Gap(28),
           // Language picker mini-section
@@ -267,7 +266,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         color: AppColors.brandSoft,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(Symbols.translate,
+                      child: Icon(Symbols.translate,
                           color: AppColors.brand, size: 20),
                     ),
                     const Gap(12),
@@ -276,12 +275,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(trGlobal('set.language'),
-                              style: GoogleFonts.plusJakartaSans(
+                              style: AppFont.sans(
                                   fontSize: 14, fontWeight: FontWeight.w700)),
                           const Gap(2),
                           Text(
                             currentLanguage(ref.watch(languageProvider)).name,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: AppFont.sans(
                                 fontSize: 12, color: AppColors.t3),
                           ),
                         ],
@@ -316,13 +315,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         children: [
           const Gap(16),
           Text(trGlobal('onboard.profile_title'),
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                   fontSize: 24,
                   fontWeight: FontWeight.w900,
                   color: AppColors.t1)),
           const Gap(6),
           Text(trGlobal('onboard.profile_sub'),
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                   fontSize: 13, color: AppColors.t3, height: 1.5)),
           const Gap(20),
           _field(trGlobal('onboard.business_name'), _nameCtl,
@@ -343,7 +342,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               icon: Symbols.location_city),
           const Gap(8),
           Text(trGlobal('onboard.state'),
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: AppColors.t2)),
@@ -360,7 +359,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               isExpanded: true,
               underline: const SizedBox.shrink(),
               icon: Icon(Symbols.expand_more, color: AppColors.t3),
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                   fontSize: 14, color: AppColors.t1),
               items: _states
                   .map((s) => DropdownMenuItem(value: s, child: Text(s)))
@@ -379,11 +378,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               border: Border.all(color: AppColors.brand.withOpacity(0.2)),
             ),
             child: Row(children: [
-              const Icon(Symbols.info, color: AppColors.brand, size: 18),
+              Icon(Symbols.info, color: AppColors.brand, size: 18),
               const Gap(10),
               Expanded(
                 child: Text(trGlobal('onboard.edit_later_hint'),
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFont.sans(
                         fontSize: 12,
                         color: AppColors.brand,
                         fontWeight: FontWeight.w600)),
@@ -413,7 +412,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ),
           const Gap(28),
           Text(trGlobal('onboard.done_title'),
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                   fontSize: 26,
                   fontWeight: FontWeight.w900,
                   color: AppColors.t1,
@@ -421,7 +420,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               textAlign: TextAlign.center),
           const Gap(10),
           Text(trGlobal('onboard.done_sub'),
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                   fontSize: 14, color: AppColors.t3, height: 1.5),
               textAlign: TextAlign.center),
           const Gap(28),
@@ -467,10 +466,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(title,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFont.sans(
                       fontSize: 14, fontWeight: FontWeight.w700)),
               Text(sub,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFont.sans(
                       fontSize: 12, color: AppColors.t3)),
             ],
           ),
@@ -493,7 +492,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label,
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: AppColors.t2)),
@@ -521,12 +520,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
                 borderSide:
-                    const BorderSide(color: AppColors.brand, width: 1.5),
+                    BorderSide(color: AppColors.brand, width: 1.5),
               ),
               contentPadding: const EdgeInsets.symmetric(
                   horizontal: 12, vertical: 14),
             ),
-            style: GoogleFonts.plusJakartaSans(fontSize: 14),
+            style: AppFont.sans(fontSize: 14),
           ),
         ],
       ),
@@ -541,7 +540,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         const Gap(10),
         Expanded(
           child: Text(text,
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                   fontSize: 13, fontWeight: FontWeight.w600)),
         ),
       ]),

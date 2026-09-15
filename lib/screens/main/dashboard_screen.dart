@@ -1,21 +1,26 @@
 // lib/screens/main/dashboard_screen.dart
-// ✅ Fully translated
-// ✅ Catalog quick action added
-// ✅ Products quick action added
-// ✅ Live business name from provider
+//
+// Home. Same data and the same entry points as before the redesign —
+// revenue / pending / GST / customers, day-close, voice billing, the
+// quick actions and recent invoices — re-laid out in the clean language:
+// one headline balance card, flat stat tiles, pill quick-actions, and
+// borderless list rows. No gradients, no coloured panels; colour appears
+// only where it carries meaning.
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/app_spacing.dart';
 import '../../providers/providers.dart';
 import '../../widgets/insight_card.dart';
 import '../../widgets/festival_banner.dart';
 import '../../widgets/profile_setup_widgets.dart';
+import '../../widgets/ui_kit.dart';
 import '../../models/models.dart';
 import '../../i18n/translations.dart';
 import '../../utils/platform.dart';
@@ -31,14 +36,6 @@ class DashboardScreen extends ConsumerWidget {
     return 'dash.greeting_night';
   }
 
-  String _greetingEmoji() {
-    final h = DateTime.now().hour;
-    if (h >= 5 && h < 12)  return '☀️';
-    if (h >= 12 && h < 17) return '🌤️';
-    if (h >= 17 && h < 21) return '🌆';
-    return '🌙';
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final biz       = ref.watch(businessProvider);
@@ -49,7 +46,6 @@ class DashboardScreen extends ConsumerWidget {
         (p.isOutOfStock || p.isLowStock)).toList();
     final now       = DateTime.now();
     final greet     = tr(_greetingKey(), ref);
-    final emoji     = _greetingEmoji();
 
     final thisMo = invoices.where((i) =>
       i.invoiceDate.month == now.month && i.invoiceDate.year == now.year).toList();
@@ -62,6 +58,9 @@ class DashboardScreen extends ConsumerWidget {
     final gstCollected = invoices
       .where((i) => i.status == InvoiceStatus.paid)
       .fold<double>(0, (s, i) => s + i.totalTax);
+    final pendingCount = invoices.where((i) =>
+        i.status == InvoiceStatus.sent || i.status == InvoiceStatus.pending).length;
+    final overdueCount = invoices.where((i) => i.isOverdue).length;
 
     final bizName = biz?.name.isNotEmpty == true ? biz!.name : null;
     final desktop = MediaQuery.of(context).size.width >= 900;
@@ -71,248 +70,171 @@ class DashboardScreen extends ConsumerWidget {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: AppColors.bg,
-        title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(tr('nav.home', ref), style: GoogleFonts.plusJakartaSans(
-            fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
-          Text('$greet $emoji', style: GoogleFonts.plusJakartaSans(
-            fontSize: 12, color: AppColors.t3)),
-        ]),
+        toolbarHeight: 72,
+        titleSpacing: AppSpacing.screenH,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(greet,
+              style: AppFont.sans(
+                fontSize: 21, fontWeight: FontWeight.w700,
+                letterSpacing: -0.5, color: AppColors.t1)),
+            const Gap(2),
+            Text(bizName ?? tr('dash.setup_profile', ref),
+              maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: AppFont.sans(fontSize: 12.5, color: AppColors.t3)),
+          ]),
         actions: [
-          GestureDetector(
-            onTap: () => context.go('/settings'),
-            child: Container(
-              margin: const EdgeInsets.only(right: 14),
-              width: 36, height: 36,
-              decoration: BoxDecoration(
-                color: AppColors.brand,
-                borderRadius: BorderRadius.circular(10)),
-              child: Center(child: Text(
-                (bizName?.isNotEmpty == true ? bizName![0] : 'B').toUpperCase(),
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 15, fontWeight: FontWeight.w900,
-                  color: Colors.white))),
+          Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.screenH),
+            child: GestureDetector(
+              onTap: () => context.go('/settings'),
+              child: Container(
+                width: 42, height: 42,
+                decoration: BoxDecoration(
+                  color: AppColors.brand,
+                  shape: BoxShape.circle),
+                alignment: Alignment.center,
+                child: Text(
+                  (bizName?.isNotEmpty == true ? bizName![0] : 'B').toUpperCase(),
+                  style: AppFont.sans(
+                    fontSize: 16, fontWeight: FontWeight.w600,
+                    color: AppColors.onBrand)),
+              ),
             ),
           ),
         ],
       ),
       body: DesktopMaxWidth(child: ListView(
-        padding: const EdgeInsets.fromLTRB(14, 14, 14, 100),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.screenH, 6, AppSpacing.screenH, AppSpacing.bottomNavSafe),
         children: [
           // Auto-shows welcome modal on first home visit if profile is empty
           const WelcomeProfileModalTrigger(),
-          // Hero banner
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF0A1E5E), Color(0xFF1557FF)],
-                begin: Alignment.topLeft, end: Alignment.bottomRight),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Row(children: [
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('$greet $emoji', style: GoogleFonts.plusJakartaSans(
-                  color: Colors.white, fontSize: 17, fontWeight: FontWeight.w800)),
-                const Gap(3),
-                Text(bizName ?? tr('dash.setup_profile', ref),
-                  style: GoogleFonts.plusJakartaSans(
-                    color: Colors.white60, fontSize: 12)),
-                if (biz?.gstin.isNotEmpty == true) ...[
-                  const Gap(2),
-                  Text('GSTIN: ${biz!.gstin}',
-                    style: GoogleFonts.plusJakartaSans(
-                      color: Colors.white38, fontSize: 10.5)),
-                ],
-              ])),
-              Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                Text(formatCurrency(revenue), style: GoogleFonts.plusJakartaSans(
-                  color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
-                Text(tr('dash.total_revenue', ref),
-                  style: GoogleFonts.plusJakartaSans(
-                    color: Colors.white54, fontSize: 10)),
-              ]),
-            ]),
+
+          // ─── Headline balance ──────────────────────────────────────
+          _BalanceCard(
+            revenue: revenue,
+            label: tr('dash.total_revenue', ref),
+            footnote: '${thisMo.length} ${tr('dash.this_month_label', ref)}',
+            gstin: biz?.gstin.isNotEmpty == true ? biz!.gstin : null,
+            onTap: () => context.go('/reports'),
           ),
-          const Gap(14),
+          const Gap(AppSpacing.cardGap),
 
           // ⚠️ Profile incomplete banner (shown if <80% complete)
           const ProfileIncompleteBanner(),
-          // 📦 Low-stock / out-of-stock alert (only when at least one
-          //    tracked product hit its threshold).
+          // 📦 Low-stock / out-of-stock alert
           if (lowStock.isNotEmpty) _LowStockBanner(items: lowStock),
-          // 🎆 Festival banner (only shows on festival day or 1 day before)
+          // 🎆 Festival banner (only on festival day or 1 day before)
           const FestivalBanner(),
           // ✨ Daily insight banner
           const InsightCard(),
-          // Stat cards — 2-up on phone, 4-up + compact on desktop so they
-          // don't balloon across a wide window.
+
+          // ─── Stat tiles ────────────────────────────────────────────
           GridView.count(
-            crossAxisCount: desktop ? 4 : 2, shrinkWrap: true,
+            crossAxisCount: desktop ? 3 : 3, shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: desktop ? 14 : 10,
-            mainAxisSpacing: desktop ? 14 : 10,
-            // Phone keeps taller cards for large-font wrapping; desktop
-            // uses shorter, neater cards.
-            childAspectRatio: desktop ? 1.45 : 1.38,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+            childAspectRatio: desktop ? 1.25 : 0.92,
             children: [
-              _StatCard(
-                tr('dash.revenue', ref),
-                formatCurrency(revenue),
-                Symbols.trending_up,
-                AppColors.brand, AppColors.brandSoft,
-                '${thisMo.length} ${tr('dash.this_month_label', ref)}'),
-              _StatCard(
-                tr('dash.pending', ref),
-                formatCurrency(pendAmt),
-                Symbols.schedule,
-                AppColors.yellow, AppColors.yellowSoft,
-                '${invoices.where((i) => i.status == InvoiceStatus.sent || i.status == InvoiceStatus.pending).length} ${tr('inv.title', ref).toLowerCase()}'),
-              _StatCard(
-                tr('dash.gst_collected', ref),
-                formatCurrency(gstCollected),
-                Symbols.calculate,
-                AppColors.green, AppColors.greenSoft,
-                tr('dash.auto_calc', ref)),
-              _StatCard(
-                tr('cust.title', ref),
-                '${customers.length}',
-                Symbols.group,
-                AppColors.purple, AppColors.purpleSoft,
-                '${invoices.where((i) => i.isOverdue).length} ${tr('inv.overdue', ref).toLowerCase()}'),
+              _StatTile(
+                label: tr('dash.pending', ref),
+                value: formatCurrency(pendAmt),
+                icon: Symbols.schedule,
+                tone: AppColors.yellow,
+                sub: '$pendingCount ${tr('inv.title', ref).toLowerCase()}'),
+              _StatTile(
+                label: tr('dash.gst_collected', ref),
+                value: formatCurrency(gstCollected),
+                icon: Symbols.calculate,
+                tone: AppColors.green,
+                sub: tr('dash.auto_calc', ref)),
+              _StatTile(
+                label: tr('cust.title', ref),
+                value: '${customers.length}',
+                icon: Symbols.group,
+                tone: overdueCount > 0 ? AppColors.red : AppColors.t2,
+                sub: '$overdueCount ${tr('inv.overdue', ref).toLowerCase()}'),
             ],
           ),
-          const Gap(16),
+          const Gap(AppSpacing.section),
 
-          // 💰 Day Close — daily collections summary
-          GestureDetector(
+          // ─── Quick actions ─────────────────────────────────────────
+          AppSectionHeader(tr('dash.quick_actions', ref)),
+          SizedBox(
+            height: 40,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.zero,
+              children: [
+                AppPill(tr('dash.new_invoice', ref),
+                  icon: Symbols.receipt_long, selected: true,
+                  onTap: () => context.push('/create')),
+                const Gap(8),
+                AppPill(tr('cust.title', ref),
+                  icon: Symbols.group,
+                  onTap: () => context.push('/customers')),
+                const Gap(8),
+                AppPill(tr('prod.title', ref),
+                  icon: Symbols.shopping_basket,
+                  onTap: () => context.push('/products')),
+                const Gap(8),
+                AppPill(tr('cat.title', ref),
+                  icon: Symbols.inventory_2,
+                  onTap: () => context.push('/catalog')),
+                const Gap(8),
+                AppPill(tr('exp.title', ref),
+                  icon: Symbols.payments,
+                  onTap: () => context.push('/expenses')),
+                const Gap(8),
+                AppPill(tr('rep.title', ref),
+                  icon: Symbols.bar_chart,
+                  onTap: () => context.go('/reports')),
+              ],
+            ),
+          ),
+          const Gap(AppSpacing.section),
+
+          // ─── Feature cards ─────────────────────────────────────────
+          _FeatureCard(
+            icon: Symbols.point_of_sale,
+            title: tr('dash.day_close', ref),
+            subtitle: tr('dash.day_close_sub', ref),
             onTap: () { HapticFeedback.lightImpact(); context.push('/day-close'); },
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF2E7D32), Color(0xFF66BB6A)],
-                  begin: Alignment.topLeft, end: Alignment.bottomRight),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [BoxShadow(
-                  color: const Color(0xFF2E7D32).withOpacity(0.3),
-                  blurRadius: 12, offset: const Offset(0, 5))],
-              ),
-              child: Row(children: [
-                Container(
-                  width: 44, height: 44,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.22),
-                    borderRadius: BorderRadius.circular(11)),
-                  child: const Icon(Symbols.point_of_sale, color: Colors.white, size: 24),
-                ),
-                const Gap(13),
-                Expanded(child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(tr('dash.day_close', ref),
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
-                    Text(tr('dash.day_close_sub', ref),
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11.5, color: Colors.white.withOpacity(0.85))),
-                  ]),
-                ),
-                const Icon(Symbols.arrow_forward, color: Colors.white, size: 20),
-              ]),
-            ),
           ),
-
-          // ✨ Voice Bill — featured banner. Hidden on desktop because the
-          //    speech_to_text plugin doesn't ship a macOS/Windows binding.
-          //    The screen itself stays reachable via /voice for future use.
-          if (AppPlatform.supportsVoiceBilling)
-          GestureDetector(
-            onTap: () { HapticFeedback.mediumImpact(); context.push('/voice'); },
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFE53E3E), Color(0xFFFF6B6B)],
-                  begin: Alignment.topLeft, end: Alignment.bottomRight),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [BoxShadow(
-                  color: const Color(0xFFE53E3E).withOpacity(0.35),
-                  blurRadius: 14, offset: const Offset(0, 6))],
-              ),
-              child: Row(children: [
-                Container(
-                  width: 46, height: 46,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.22),
-                    borderRadius: BorderRadius.circular(12)),
-                  child: const Icon(Symbols.mic, color: Colors.white, size: 26),
-                ),
-                const Gap(14),
-                Expanded(child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(tr('dash.voice_bill', ref),
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 16, fontWeight: FontWeight.w900,
-                        color: Colors.white)),
-                    Text(tr('dash.voice_bill_sub', ref),
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11.5, color: Colors.white.withOpacity(0.85))),
-                  ]),
-                ),
-                const Icon(Symbols.arrow_forward, color: Colors.white, size: 20),
-              ]),
+          // Voice billing is hidden on desktop — the speech_to_text plugin
+          // ships no macOS/Windows binding. /voice stays routable.
+          if (AppPlatform.supportsVoiceBilling) ...[
+            const Gap(AppSpacing.cardGap),
+            _FeatureCard(
+              icon: Symbols.mic,
+              title: tr('dash.voice_bill', ref),
+              subtitle: tr('dash.voice_bill_sub', ref),
+              onTap: () { HapticFeedback.mediumImpact(); context.push('/voice'); },
             ),
+          ],
+          const Gap(AppSpacing.section),
+
+          // ─── Recent invoices ───────────────────────────────────────
+          AppSectionHeader(
+            tr('dash.recent_invoices', ref),
+            actionLabel: invoices.isEmpty ? null : tr('dash.see_all', ref),
+            onAction: invoices.isEmpty ? null : () => context.go('/invoices'),
           ),
-
-          // Quick actions row 1
-          Row(children: [
-            _QuickBtn(Symbols.receipt_long, tr('dash.new_invoice', ref),
-              AppColors.brand, AppColors.brandSoft,
-              () => context.push('/create')),
-            const Gap(8),
-            _QuickBtn(Symbols.group, tr('cust.title', ref),
-              AppColors.green, AppColors.greenSoft,
-              () => context.push('/customers')),
-            const Gap(8),
-            _QuickBtn(Symbols.bar_chart, tr('rep.title', ref),
-              AppColors.purple, AppColors.purpleSoft,
-              () => context.go('/reports')),
-          ]),
-          const Gap(8),
-          // Quick actions row 2 — products & catalog
-          Row(children: [
-            _QuickBtn(Symbols.shopping_basket, tr('prod.title', ref),
-              AppColors.brand, AppColors.brandSoft,
-              () => context.push('/products')),
-            const Gap(8),
-            _QuickBtn(Symbols.inventory_2, tr('cat.title', ref),
-              AppColors.purple, AppColors.purpleSoft,
-              () => context.push('/catalog')),
-            const Gap(8),
-            _QuickBtn(Symbols.payments, tr('exp.title', ref),
-              AppColors.yellow, AppColors.yellowSoft,
-              () => context.push('/expenses')),
-          ]),
-          const Gap(20),
-
-          // Recent invoices header
-          Row(children: [
-            Text(tr('dash.recent_invoices', ref), style: GoogleFonts.plusJakartaSans(
-              fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1)),
-            const Spacer(),
-            TextButton(
-              onPressed: () => context.go('/invoices'),
-              child: Text(tr('dash.see_all', ref),
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12.5, fontWeight: FontWeight.w600,
-                  color: AppColors.brand))),
-          ]),
-          const Gap(6),
-
           if (invoices.isEmpty)
-            _EmptyInvoice(onTap: () => context.push('/create'))
+            AppCard(
+              padding: EdgeInsets.zero,
+              child: AppEmptyState(
+                icon: Symbols.receipt_long,
+                title: tr('dash.no_invoices', ref),
+                message: tr('dash.create_first', ref),
+                actionLabel: tr('dash.new_invoice', ref),
+                onAction: () => context.push('/create'),
+              ),
+            )
           else
             ...invoices.take(6).map((inv) => _InvoiceRow(inv: inv, onTap: () {
               ref.read(selectedInvoiceProvider.notifier).state = inv;
@@ -324,104 +246,166 @@ class DashboardScreen extends ConsumerWidget {
   }
 }
 
-class _StatCard extends StatelessWidget {
-  final String label, value, sub;
-  final IconData icon;
-  final Color color, soft;
-  const _StatCard(this.label, this.value, this.icon, this.color, this.soft, this.sub);
+// ─────────────────────────────────────────────────────────────────────
+// Headline balance — the one large, quiet statement on the screen.
+// ─────────────────────────────────────────────────────────────────────
+class _BalanceCard extends StatelessWidget {
+  final double revenue;
+  final String label, footnote;
+  final String? gstin;
+  final VoidCallback onTap;
+
+  const _BalanceCard({
+    required this.revenue,
+    required this.label,
+    required this.footnote,
+    required this.gstin,
+    required this.onTap,
+  });
 
   @override
-  Widget build(BuildContext context) {
-    final desktop = MediaQuery.of(context).size.width >= 900;
-    return Container(
-      padding: EdgeInsets.all(desktop ? 16 : 13),
-      decoration: BoxDecoration(
-        // Liquid-glass tint: a soft top-down sheen over the card colour
-        // + a faint coloured wash from the metric's accent, with a 1px
-        // light border. Reads as frosted glass without a perf cost.
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.card,
-            Color.alphaBlend(soft.withOpacity(AppColors.isDark ? 0.10 : 0.45),
-                AppColors.card),
+  Widget build(BuildContext context) => AppCard(
+        onTap: onTap,
+        radius: AppRadius.xl,
+        padding: const EdgeInsets.fromLTRB(22, 22, 22, 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Text(label,
+                style: AppFont.sans(
+                  fontSize: 13, fontWeight: FontWeight.w500,
+                  color: AppColors.t3)),
+              const Spacer(),
+              Icon(Symbols.arrow_forward, size: 17, color: AppColors.t3),
+            ]),
+            const Gap(10),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(formatCurrency(revenue),
+                maxLines: 1,
+                style: AppFont.sans(
+                  fontSize: 38, fontWeight: FontWeight.w700,
+                  letterSpacing: -1.4, height: 1.05,
+                  color: AppColors.t1)),
+            ),
+            const Gap(14),
+            Row(children: [
+              AppPill(footnote, icon: Symbols.trending_up, dense: true,
+                tone: AppColors.green),
+              if (gstin != null) ...[
+                const Gap(7),
+                Flexible(
+                  child: AppPill('GSTIN $gstin', dense: true),
+                ),
+              ],
+            ]),
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.isDark
-              ? Colors.white.withOpacity(0.06)
-              : Colors.white.withOpacity(0.7),
-          width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(AppColors.isDark ? 0.10 : 0.07),
-            blurRadius: 16, spreadRadius: -4, offset: const Offset(0, 6)),
-        ],
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Container(
-          width: desktop ? 40 : 32, height: desktop ? 40 : 32,
-          decoration: BoxDecoration(
-            color: soft, borderRadius: BorderRadius.circular(desktop ? 11 : 8)),
-          child: Icon(icon, size: desktop ? 22 : 17, color: color)),
-        Gap(desktop ? 10 : 6),
-        Text(label,
-          maxLines: 1, overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: desktop ? 13 : 10.5, color: AppColors.t3,
-            fontWeight: FontWeight.w600)),
-        const Gap(2),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Text(value,
-            maxLines: 1,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: desktop ? 24 : 17, fontWeight: FontWeight.w900,
-              color: AppColors.t1)),
-        ),
-        Text(sub,
-          maxLines: 2, overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: desktop ? 11.5 : 10, color: AppColors.t3, height: 1.2)),
-      ]),
-    );
-  }
+      );
 }
 
-class _QuickBtn extends StatelessWidget {
+// ─────────────────────────────────────────────────────────────────────
+// Stat tile — thin icon, muted label, tight numeral.
+// ─────────────────────────────────────────────────────────────────────
+class _StatTile extends StatelessWidget {
+  final String label, value, sub;
   final IconData icon;
-  final String label;
-  final Color color, soft;
-  final VoidCallback onTap;
-  const _QuickBtn(this.icon, this.label, this.color, this.soft, this.onTap);
+  final Color tone;
+
+  const _StatTile({
+    required this.label,
+    required this.value,
+    required this.sub,
+    required this.icon,
+    required this.tone,
+  });
 
   @override
-  Widget build(BuildContext context) => Expanded(
-    child: GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 13),
-        decoration: BoxDecoration(
-          color: soft,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.2)),
+  Widget build(BuildContext context) => AppCard(
+        padding: const EdgeInsets.all(13),
+        radius: AppRadius.lg,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Icon(icon, size: 19, color: tone),
+            const Spacer(),
+            Text(label,
+              maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: AppFont.sans(
+                fontSize: 11, fontWeight: FontWeight.w500,
+                color: AppColors.t3)),
+            const Gap(3),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(value,
+                maxLines: 1,
+                style: AppFont.sans(
+                  fontSize: 18, fontWeight: FontWeight.w700,
+                  letterSpacing: -0.5, color: AppColors.t1)),
+            ),
+            const Gap(2),
+            Text(sub,
+              maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: AppFont.sans(fontSize: 10.5, color: AppColors.t4)),
+          ],
         ),
-        child: Column(children: [
-          Icon(icon, size: 24, color: color),
-          const Gap(5),
-          Text(label,
-            maxLines: 1, overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 11, fontWeight: FontWeight.w700, color: color)),
-        ]),
-      ),
-    ),
-  );
+      );
 }
 
+// ─────────────────────────────────────────────────────────────────────
+// Feature card — day close, voice billing.
+// ─────────────────────────────────────────────────────────────────────
+class _FeatureCard extends StatelessWidget {
+  final IconData icon;
+  final String title, subtitle;
+  final VoidCallback onTap;
+
+  const _FeatureCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) => AppCard(
+        onTap: onTap,
+        padding: const EdgeInsets.all(15),
+        child: Row(children: [
+          Container(
+            width: 46, height: 46,
+            decoration: BoxDecoration(
+              color: AppColors.brand,
+              shape: BoxShape.circle),
+            child: Icon(icon, color: AppColors.onBrand, size: 21),
+          ),
+          const Gap(14),
+          Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title,
+                style: AppFont.sans(
+                  fontSize: 15, fontWeight: FontWeight.w600,
+                  letterSpacing: -0.3, color: AppColors.t1)),
+              const Gap(3),
+              Text(subtitle,
+                maxLines: 2, overflow: TextOverflow.ellipsis,
+                style: AppFont.sans(
+                  fontSize: 12.5, color: AppColors.t3, height: 1.3)),
+            ])),
+          const Gap(8),
+          Icon(Symbols.chevron_right, color: AppColors.t4, size: 20),
+        ]),
+      );
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Recent invoice row
+// ─────────────────────────────────────────────────────────────────────
 class _InvoiceRow extends ConsumerWidget {
   final Invoice inv;
   final VoidCallback onTap;
@@ -442,80 +426,30 @@ class _InvoiceRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = inv.status == InvoiceStatus.paid ? AppColors.green
         : inv.isOverdue ? AppColors.red : AppColors.yellow;
-    return GestureDetector(
+    return AppListRow(
       onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(13),
-        decoration: BoxDecoration(color: AppColors.card,
-          borderRadius: BorderRadius.circular(13),
-          border: Border.all(color: AppColors.border)),
-        child: Row(children: [
-          Container(width: 38, height: 38,
-            decoration: BoxDecoration(color: AppColors.brandSoft,
-              borderRadius: BorderRadius.circular(10)),
-            child: Center(child: Text(
-              inv.customerName.isNotEmpty ? inv.customerName[0].toUpperCase() : '?',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 15, fontWeight: FontWeight.w900,
-                color: AppColors.brand)))),
-          const Gap(11),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(inv.customerName, style: GoogleFonts.plusJakartaSans(
-              fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.t1)),
-            Text('${inv.invoiceNumber} · ${DateFormat('dd MMM').format(inv.invoiceDate)}',
-              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, color: AppColors.t3)),
-          ])),
-          Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Text(formatCurrency(inv.grandTotal), style: GoogleFonts.plusJakartaSans(
-              fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.t1)),
-            const Gap(3),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-              decoration: BoxDecoration(color: c.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(99)),
-              child: Text(_statusLabel(ref),
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 9.5, fontWeight: FontWeight.w800, color: c))),
-          ]),
+      leading: AppBadge(initial: inv.customerName, size: 44),
+      title: inv.customerName,
+      subtitle: '${inv.invoiceNumber} · '
+          '${DateFormat('dd MMM').format(inv.invoiceDate)}',
+      trailing: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(formatCurrency(inv.grandTotal),
+            style: AppFont.sans(
+              fontSize: 14.5, fontWeight: FontWeight.w600,
+              letterSpacing: -0.3, color: AppColors.t1)),
+          const Gap(5),
+          AppPill(_statusLabel(ref), dense: true, tone: c),
         ]),
-      ),
     );
   }
 }
 
-class _EmptyInvoice extends ConsumerWidget {
-  final VoidCallback onTap;
-  const _EmptyInvoice({required this.onTap});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) => Container(
-    padding: const EdgeInsets.all(24),
-    decoration: BoxDecoration(color: AppColors.card,
-      borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: AppColors.border)),
-    child: Column(children: [
-      Icon(Symbols.receipt_long, size: 44, color: AppColors.t4),
-      const Gap(10),
-      Text(tr('dash.no_invoices', ref), style: GoogleFonts.plusJakartaSans(
-        fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1)),
-      const Gap(4),
-      Text(tr('dash.create_first', ref), style: GoogleFonts.plusJakartaSans(
-        fontSize: 13, color: AppColors.t3)),
-      const Gap(16),
-      ElevatedButton.icon(
-        onPressed: onTap,
-        icon: const Icon(Symbols.add, size: 18),
-        label: Text(tr('dash.new_invoice', ref))),
-    ]),
-  );
-}
-
-
 // ─── Low-stock banner ─────────────────────────────────────────────────
-// Tapping it jumps to the Products screen so the owner can re-order or
-// adjust stock. We deliberately keep it compact (single row) so it
-// doesn't dominate the dashboard.
+// Tapping it jumps to Products so the owner can re-order or adjust stock.
+// Deliberately one compact row so it doesn't dominate the dashboard.
 class _LowStockBanner extends ConsumerWidget {
   final List<Product> items;
   const _LowStockBanner({required this.items});
@@ -524,50 +458,33 @@ class _LowStockBanner extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final out = items.where((p) => p.isOutOfStock).length;
     final low = items.length - out;
-    return GestureDetector(
+    return AppCard(
+      margin: const EdgeInsets.only(bottom: AppSpacing.cardGap),
+      padding: const EdgeInsets.all(14),
       onTap: () {
         HapticFeedback.lightImpact();
         context.push('/products');
       },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.orangeSoft,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: AppColors.orange.withOpacity(
-                AppColors.isDark ? 0.55 : 0.4)),
-        ),
-        child: Row(children: [
-          Container(
-            width: 42, height: 42,
-            decoration: BoxDecoration(
-              color: AppColors.orange.withOpacity(0.18),
-              borderRadius: BorderRadius.circular(11)),
-            child: const Icon(Symbols.inventory_2,
-                color: AppColors.orange, size: 22),
-          ),
-          const Gap(12),
-          Expanded(child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(tr('dash.stock_alert', ref),
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13.5, fontWeight: FontWeight.w800,
-                  color: AppColors.t1)),
-              const Gap(2),
-              Text(
-                out > 0 && low > 0
-                  ? '$out out of stock • $low running low'
-                  : out > 0
-                    ? '$out item${out == 1 ? "" : "s"} out of stock'
-                    : '$low item${low == 1 ? "" : "s"} running low',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11.5, color: AppColors.t2)),
-            ])),
-          Icon(Symbols.chevron_right, color: AppColors.t3, size: 22),
-        ]),
-      ),
+      child: Row(children: [
+        AppBadge(icon: Symbols.inventory_2, tone: AppColors.orange, size: 42),
+        const Gap(13),
+        Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(tr('dash.stock_alert', ref),
+              style: AppFont.sans(
+                fontSize: 14, fontWeight: FontWeight.w600,
+                letterSpacing: -0.2, color: AppColors.t1)),
+            const Gap(2),
+            Text(
+              out > 0 && low > 0
+                ? '$out out of stock • $low running low'
+                : out > 0
+                  ? '$out item${out == 1 ? "" : "s"} out of stock'
+                  : '$low item${low == 1 ? "" : "s"} running low',
+              style: AppFont.sans(fontSize: 12.5, color: AppColors.t3)),
+          ])),
+        Icon(Symbols.chevron_right, color: AppColors.t4, size: 20),
+      ]),
     );
   }
 }

@@ -1,21 +1,23 @@
 // lib/screens/main/shell_screen.dart
-// ✅ Native MainActivity forwards back press to Flutter via MethodChannel
-// ✅ Flutter decides: pop sub-route OR snap to home OR show toast OR exit
-// ✅ Direct tab jump on tap, parallax swipe between pages
-
-import 'dart:ui';
+//
+// The tab shell. Behaviour is unchanged from before the redesign:
+//   • Native MainActivity forwards the back press to Flutter over a
+//     MethodChannel, and Flutter decides pop / snap-to-home / exit.
+//   • Tapping a tab jumps straight to it; swiping pages between them.
+// What changed is the chrome: phones get the floating ink nav dock, and
+// wide windows get a flat, borderless sidebar instead of the frosted one.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import '../../theme/app_theme.dart';
 import '../../i18n/translations.dart';
 import '../../providers/providers.dart';
 import '../../utils/platform.dart';
-import '../../widgets/liquid_glass_nav.dart';
+import '../../widgets/app_nav_dock.dart';
+import '../../widgets/ui_kit.dart';
 import 'dashboard_screen.dart';
 import 'invoices_screen.dart';
 import 'reports_screen.dart';
@@ -117,18 +119,21 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Row(children: [
-          const Icon(Symbols.exit_to_app, color: Colors.white, size: 18),
+          Icon(Symbols.exit_to_app, color: AppColors.onBrand, size: 18),
           const SizedBox(width: 10),
           Text(trGlobal('toast.exit_again'),
-              style: GoogleFonts.plusJakartaSans(
-                  fontWeight: FontWeight.w600, fontSize: 13)),
+              style: AppFont.sans(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 13.5,
+                  color: AppColors.onBrand)),
         ]),
         duration: const Duration(milliseconds: 1900),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.t1,
+        backgroundColor: AppColors.brand,
+        elevation: 0,
         shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.fromLTRB(14, 0, 14, 20),
+            borderRadius: BorderRadius.circular(AppRadius.lg)),
+        margin: const EdgeInsets.fromLTRB(20, 0, 20, 96),
       ));
     }
   }
@@ -175,6 +180,31 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
     GoRouter.of(context).go(_pathFor(i));
   }
 
+  void _create() {
+    HapticFeedback.mediumImpact();
+    context.push('/create');
+  }
+
+  AppNavDock _dock(WidgetRef ref, {required bool floating}) => AppNavDock(
+        idx: _idx,
+        floating: floating,
+        onHome: () => _tapTab(0),
+        onInvoices: () => _tapTab(1),
+        onCreate: _create,
+        onReports: () => _tapTab(2),
+        onMe: () => _tapTab(3),
+        homeIcon: Symbols.home,
+        invoicesIcon: Symbols.receipt_long,
+        createIcon: Symbols.add,
+        reportsIcon: Symbols.bar_chart,
+        meIcon: Symbols.person,
+        homeLabel: tr('nav.home', ref),
+        invoicesLabel: tr('nav.invoices', ref),
+        createLabel: tr('dash.new_invoice', ref),
+        reportsLabel: tr('nav.reports', ref),
+        meLabel: tr('nav.me', ref),
+      );
+
   @override
   Widget build(BuildContext context) {
     // Responsive: anything wider than 900 logical pixels gets the
@@ -184,29 +214,17 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
     final wide = width >= 900;
 
     if (wide) {
-      // Desktop layout — frosted glass sidebar on the left, content on
-      // the right. PageView still owns the page state so swipe physics
-      // continue to work if the window gets narrowed back down.
-      //
-      // The outer Scaffold is transparent ONLY on macOS, where the native
-      // NSVisualEffectView (configured in MainFlutterWindow.swift) shines
-      // the desktop wallpaper through behind the BackdropFilter sidebar.
-      // On Windows/Linux there's no native vibrancy layer, so we paint the
-      // cream background — the sidebar's blur then frosts the cream + a
-      // sliver of content, which still reads as glass without leaving a
-      // bare window-colour bar behind the sidebar.
+      // Desktop layout — a flat sidebar on the left, content on the right.
+      // PageView still owns the page state so swipe physics continue to
+      // work if the window gets narrowed back down.
       return Scaffold(
-        backgroundColor:
-            AppPlatform.isMacOS ? Colors.transparent : AppColors.bg,
+        backgroundColor: AppColors.bg,
         body: Row(children: [
-          _GlassSidebar(
+          _Sidebar(
             idx: _idx,
             onHome: () => _tapTab(0),
             onInvoices: () => _tapTab(1),
-            onCreate: () {
-              HapticFeedback.mediumImpact();
-              context.push('/create');
-            },
+            onCreate: _create,
             onReports: () => _tapTab(2),
             onMe: () => _tapTab(3),
           ),
@@ -222,223 +240,43 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
       );
     }
 
-    // iOS — floating Liquid Glass bar overlaid on the content via a
-    // Stack (so the frosted bar blurs the page scrolling behind it).
-    // The pages already reserve ~100px bottom padding, so the floating
-    // bar never covers the last row.
-    if (AppPlatform.isIOS) {
-      return Scaffold(
-        backgroundColor: AppColors.bg,
-        // Let the body extend under the floating bar.
-        body: Stack(children: [
-          PageView(
-            controller: _pc,
-            physics: const PageScrollPhysics(parent: BouncingScrollPhysics()),
-            onPageChanged: _onPageChanged,
-            children: _pages,
-          ),
-          Positioned(
-            left: 0, right: 0, bottom: 0,
-            child: LiquidGlassNav(
-              idx: _idx,
-              onHome: () => _tapTab(0),
-              onInvoices: () => _tapTab(1),
-              onCreate: () {
-                HapticFeedback.mediumImpact();
-                context.push('/create');
-              },
-              onReports: () => _tapTab(2),
-              onMe: () => _tapTab(3),
-            ),
-          ),
-        ]),
-      );
-    }
-
-    // Android / other mobile — docked cream nav, unchanged.
+    // Phones (both platforms now) — the floating ink dock overlaid on the
+    // content via a Stack, so the page scrolls underneath it. Every page
+    // reserves `AppSpacing.bottomNavSafe` at its tail, so the dock never
+    // covers the last row.
     return Scaffold(
       backgroundColor: AppColors.bg,
-      body: PageView(
-        controller: _pc,
-        physics: const PageScrollPhysics(parent: BouncingScrollPhysics()),
-        onPageChanged: _onPageChanged,
-        children: _pages,
-      ),
-      bottomNavigationBar: _BmwNav(
-        idx: _idx,
-        onHome: () => _tapTab(0),
-        onInvoices: () => _tapTab(1),
-        onCreate: () {
-          HapticFeedback.mediumImpact();
-          context.push('/create');
-        },
-        onReports: () => _tapTab(2),
-        onMe: () => _tapTab(3),
-      ),
-    );
-  }
-}
-
-class _BmwNav extends ConsumerWidget {
-  final int idx;
-  final VoidCallback onHome, onInvoices, onCreate, onReports, onMe;
-  const _BmwNav({
-    required this.idx,
-    required this.onHome,
-    required this.onInvoices,
-    required this.onCreate,
-    required this.onReports,
-    required this.onMe,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // AnimatedContainer so the cream→dark background lerps over the same
-    // window that the rest of the theme is animating in (see
-    // `themeAnimationDuration` in main.dart). Reads `AppColors.bg` rather
-    // than `card` so the footer joins the warm cream sweep in light mode.
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 360),
-      curve: Curves.easeInOut,
-      decoration: BoxDecoration(
-        color: AppColors.bg,
-        border: Border(
-            top: BorderSide(color: AppColors.border, width: 0.5)),
-        boxShadow: [
-          BoxShadow(
-              color: AppColors.brand.withOpacity(0.06),
-              blurRadius: 24,
-              offset: const Offset(0, -4)),
-        ],
-      ),
-      child: SafeArea(
-        child: SizedBox(
-          height: 68,
-          child: Row(children: [
-            _NavItem(
-                icon: Symbols.home,
-                label: tr('nav.home', ref),
-                on: idx == 0,
-                onTap: onHome),
-            _NavItem(
-                icon: Symbols.receipt_long,
-                label: tr('nav.invoices', ref),
-                on: idx == 1,
-                onTap: onInvoices),
-            Expanded(
-              child: Center(
-                child: GestureDetector(
-                  onTap: onCreate,
-                  child: Container(
-                    width: 54,
-                    height: 54,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppColors.brand, Color(0xFF4070FF)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                            color: AppColors.brand.withOpacity(0.42),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6)),
-                      ],
-                    ),
-                    child: const Icon(Symbols.add,
-                        color: Colors.white, size: 28),
-                  ),
-                ),
-              ),
-            ),
-            _NavItem(
-                icon: Symbols.bar_chart,
-                label: tr('nav.reports', ref),
-                on: idx == 2,
-                onTap: onReports),
-            _NavItem(
-                icon: Symbols.person,
-                label: tr('nav.me', ref),
-                on: idx == 3,
-                onTap: onMe),
-          ]),
+      body: Stack(children: [
+        PageView(
+          controller: _pc,
+          physics: AppPlatform.isIOS
+              ? const PageScrollPhysics(parent: BouncingScrollPhysics())
+              : const PageScrollPhysics(parent: ClampingScrollPhysics()),
+          onPageChanged: _onPageChanged,
+          children: _pages,
         ),
-      ),
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool on;
-  final VoidCallback onTap;
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    required this.on,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        splashColor: AppColors.brand.withOpacity(0.10),
-        highlightColor: AppColors.brand.withOpacity(0.05),
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          // Active pill — a translucent brand wash sits proud of the
-          // warm cream footer in light mode (the previous `brandSoft`
-          // tint was too pale to read), and stays subtle in dark mode.
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 240),
-            curve: Curves.easeOutCubic,
-            padding: EdgeInsets.symmetric(
-                horizontal: on ? 16 : 0, vertical: on ? 5 : 0),
-            decoration: BoxDecoration(
-              color: on
-                  ? AppColors.brand.withOpacity(
-                      AppColors.isDark ? 0.18 : 0.14)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(22),
-            ),
-            child: Icon(icon,
-                size: 23, color: on ? AppColors.brand : AppColors.t3),
-          ),
-          const SizedBox(height: 3),
-          AnimatedDefaultTextStyle(
-            duration: const Duration(milliseconds: 200),
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 10,
-              fontWeight: on ? FontWeight.w700 : FontWeight.w500,
-              color: on ? AppColors.brand : AppColors.t3,
-            ),
-            child: Text(label),
-          ),
-          const SizedBox(height: 2),
-        ]),
-      ),
+        Positioned(
+          left: 0, right: 0, bottom: 0,
+          child: Consumer(
+            builder: (_, ref, __) => _dock(ref, floating: true)),
+        ),
+      ]),
     );
   }
 }
 
 // ════════════════════════════════════════════════════════════════════
-// LIQUID GLASS SIDEBAR — shown on desktop / wide windows (≥ 900 px)
+// SIDEBAR — shown on desktop / wide windows (≥ 900 px)
 // ════════════════════════════════════════════════════════════════════
 //
-// A frosted column on the left, with the logo at the top, four nav
-// items, and a prominent "New invoice" CTA. Uses BackdropFilter to
-// blur whatever's behind the sidebar — combined with the translucent
-// NSWindow material on macOS (configured in MainFlutterWindow.swift),
-// the desktop wallpaper shows through subtly.
+// Flat and borderless: the page tone on the left, card-white content on
+// the right, an ink CTA at the top and an ink pill marking the active
+// destination. No blur, no gradients — the same language as the phone.
 
-class _GlassSidebar extends ConsumerWidget {
+class _Sidebar extends ConsumerWidget {
   final int idx;
   final VoidCallback onHome, onInvoices, onCreate, onReports, onMe;
-  const _GlassSidebar({
+  const _Sidebar({
     required this.idx,
     required this.onHome,
     required this.onInvoices,
@@ -451,134 +289,87 @@ class _GlassSidebar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final biz = ref.watch(businessProvider);
     final bizName = biz?.name.isNotEmpty == true ? biz!.name : 'BillZap';
-    final initial = bizName[0].toUpperCase();
 
-    return ClipRRect(
-      // The whole sidebar is one big blurred surface, edge-to-edge.
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-        child: Container(
-          width: 256,
-          decoration: BoxDecoration(
-            // Clean frosted white — high opacity so it reads as a crisp
-            // white panel (not grey), while the blur keeps a subtle
-            // glassy depth. Dark mode stays a deep frosted slate.
-            color: (AppColors.isDark ? const Color(0xFF141B2A) : Colors.white)
-                .withOpacity(AppColors.isDark ? 0.72 : 0.86),
-            border: Border(
-              right: BorderSide(
-                color: AppColors.isDark
-                    ? Colors.white.withOpacity(0.07)
-                    : const Color(0xFFE6E1D4),
-                width: 1)),
-          ),
-          child: SafeArea(
-            child: Column(children: [
-              // ─── Brand header ─────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
-                child: Row(children: [
-                  Container(
-                    width: 36, height: 36,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppColors.brand, Color(0xFF4070FF)],
-                        begin: Alignment.topLeft, end: Alignment.bottomRight),
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [BoxShadow(
-                        color: AppColors.brand.withOpacity(0.32),
-                        blurRadius: 14, offset: const Offset(0, 6))]),
-                    child: const Icon(Symbols.bolt, color: Colors.white, size: 22),
-                  ),
-                  const SizedBox(width: 11),
-                  Text('BillZap',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 19, fontWeight: FontWeight.w900,
-                      color: AppColors.t1,
-                      letterSpacing: -0.02)),
-                ]),
+    return Container(
+      width: 268,
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        border: Border(right: BorderSide(color: AppColors.border)),
+      ),
+      child: SafeArea(
+        child: Column(children: [
+          // ─── Brand header ─────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 26, 22, 22),
+            child: Row(children: [
+              Container(
+                width: 34, height: 34,
+                decoration: BoxDecoration(
+                  color: AppColors.brand,
+                  borderRadius: BorderRadius.circular(11)),
+                child: Icon(Symbols.bolt, color: AppColors.onBrand, size: 19),
               ),
-              // ─── Primary CTA — New Invoice ────────────────────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: onCreate,
-                    icon: const Icon(Symbols.add, size: 20),
-                    label: Text(tr('dash.new_invoice', ref),
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13.5, fontWeight: FontWeight.w800)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.brand,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 13),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(11)),
-                      elevation: 0,
-                    ),
-                  ),
-                ),
-              ),
-              // ─── Nav items ────────────────────────────────────────
-              _SideItem(
-                icon: Symbols.home, label: tr('nav.home', ref),
-                on: idx == 0, onTap: onHome),
-              _SideItem(
-                icon: Symbols.receipt_long, label: tr('nav.invoices', ref),
-                on: idx == 1, onTap: onInvoices),
-              _SideItem(
-                icon: Symbols.bar_chart, label: tr('nav.reports', ref),
-                on: idx == 2, onTap: onReports),
-              _SideItem(
-                icon: Symbols.person, label: tr('nav.me', ref),
-                on: idx == 3, onTap: onMe),
-              const Spacer(),
-              // ─── Business footer ──────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 18),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(AppColors.isDark ? 0.04 : 0.5),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(AppColors.isDark ? 0.06 : 0.6),
-                      width: 0.5),
-                  ),
-                  child: Row(children: [
-                    Container(
-                      width: 32, height: 32,
-                      decoration: BoxDecoration(
-                        color: AppColors.brand,
-                        borderRadius: BorderRadius.circular(8)),
-                      child: Center(child: Text(initial,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14, fontWeight: FontWeight.w900,
-                          color: Colors.white))),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(bizName,
-                          maxLines: 1, overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12.5, fontWeight: FontWeight.w800,
-                            color: AppColors.t1)),
-                        Text(biz?.gstin.isNotEmpty == true
-                            ? biz!.gstin
-                            : 'No GSTIN',
-                          maxLines: 1, overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10.5, color: AppColors.t3)),
-                      ])),
-                  ]),
-                ),
-              ),
+              const SizedBox(width: 11),
+              Text('BillZap',
+                style: AppFont.sans(
+                  fontSize: 19, fontWeight: FontWeight.w700,
+                  color: AppColors.t1,
+                  letterSpacing: -0.5)),
             ]),
           ),
-        ),
+          // ─── Primary CTA — New Invoice ────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+            child: AppInkButton(
+              label: tr('dash.new_invoice', ref),
+              icon: Symbols.add,
+              onPressed: onCreate),
+          ),
+          // ─── Nav items ────────────────────────────────────────
+          _SideItem(
+            icon: Symbols.home, label: tr('nav.home', ref),
+            on: idx == 0, onTap: onHome),
+          _SideItem(
+            icon: Symbols.receipt_long, label: tr('nav.invoices', ref),
+            on: idx == 1, onTap: onInvoices),
+          _SideItem(
+            icon: Symbols.bar_chart, label: tr('nav.reports', ref),
+            on: idx == 2, onTap: onReports),
+          _SideItem(
+            icon: Symbols.person, label: tr('nav.me', ref),
+            on: idx == 3, onTap: onMe),
+          const Spacer(),
+          // ─── Business footer ──────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 18),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.inset,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
+              child: Row(children: [
+                AppBadge(initial: bizName, size: 34),
+                const SizedBox(width: 11),
+                Expanded(child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(bizName,
+                      maxLines: 1, overflow: TextOverflow.ellipsis,
+                      style: AppFont.sans(
+                        fontSize: 13, fontWeight: FontWeight.w600,
+                        color: AppColors.t1)),
+                    Text(biz?.gstin.isNotEmpty == true
+                        ? biz!.gstin
+                        : 'No GSTIN',
+                      maxLines: 1, overflow: TextOverflow.ellipsis,
+                      style: AppFont.sans(
+                        fontSize: 11, color: AppColors.t3)),
+                  ])),
+              ]),
+            ),
+          ),
+        ]),
       ),
     );
   }
@@ -611,37 +402,28 @@ class _SideItemState extends State<_SideItem> {
         behavior: HitTestBehavior.opaque,
         onTap: widget.onTap,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 1, 12, 1),
+          padding: const EdgeInsets.fromLTRB(14, 2, 14, 2),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 160),
             curve: Curves.easeOutCubic,
-            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
             decoration: BoxDecoration(
               color: on
-                ? AppColors.brand.withOpacity(AppColors.isDark ? 0.18 : 0.12)
-                : _hover
-                  ? (AppColors.isDark
-                      ? Colors.white.withOpacity(0.05)
-                      : const Color(0xFFF1ECE0))
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: on
-                  ? AppColors.brand.withOpacity(0.22)
-                  : Colors.transparent,
-                width: 0.6),
+                ? AppColors.brand
+                : _hover ? AppColors.inset : Colors.transparent,
+              borderRadius: BorderRadius.circular(AppRadius.pill),
             ),
             child: Row(children: [
               Icon(widget.icon,
-                size: 21,
-                color: on ? AppColors.brand : AppColors.t2,
-                fill: on ? 1 : 0),
-              const SizedBox(width: 12),
+                size: 20,
+                color: on ? AppColors.onBrand : AppColors.t2),
+              const SizedBox(width: 13),
               Text(widget.label,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 14.5,
-                  fontWeight: on ? FontWeight.w800 : FontWeight.w600,
-                  color: on ? AppColors.brand : AppColors.t1)),
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.2,
+                  color: on ? AppColors.onBrand : AppColors.t1)),
             ]),
           ),
         ),

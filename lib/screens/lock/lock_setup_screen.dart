@@ -10,9 +10,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../theme/app_theme.dart';
 import '../../services/app_lock_service.dart';
@@ -136,7 +135,7 @@ class _LockSetupState extends State<LockSetupScreen> {
         backgroundColor: AppColors.bg,
         iconTheme: IconThemeData(color: AppColors.t1),
         title: Text('Set up App Lock',
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.t1)),
       ),
       body: SafeArea(
@@ -230,7 +229,7 @@ class _StepWarning extends StatelessWidget {
         const Gap(20),
         Text('Set up App Lock',
           textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.t1)),
         const Gap(10),
         Text(
@@ -238,7 +237,7 @@ class _StepWarning extends StatelessWidget {
           'a backup of your data. Keep your PIN safe — and we\'ll show you '
           'how to back it up next.',
           textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 13.5, color: AppColors.t2, height: 1.55)),
         const Gap(20),
         Container(
@@ -253,14 +252,14 @@ class _StepWarning extends StatelessWidget {
             Expanded(child: Column(
               crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('IMPORTANT',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 11, fontWeight: FontWeight.w900,
                   color: AppColors.red, letterSpacing: 0.6)),
               const Gap(3),
               Text(
                 'If you forget your PIN AND lose your backup file, your data '
                 'cannot be recovered.',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 12, color: AppColors.t1, height: 1.5)),
             ])),
           ]),
@@ -276,7 +275,7 @@ class _StepWarning extends StatelessWidget {
               borderRadius: BorderRadius.circular(13)),
             elevation: 0),
           child: Text('I understand, continue',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
               fontSize: 14.5, fontWeight: FontWeight.w800)),
         ),
       ]),
@@ -298,18 +297,18 @@ class _StepCreatingBackup extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.brandSoft,
           borderRadius: BorderRadius.circular(20)),
-        child: const Center(child: SizedBox(
+        child: Center(child: SizedBox(
           width: 32, height: 32,
           child: CircularProgressIndicator(
             strokeWidth: 3, color: AppColors.brand))),
       ),
       const Gap(20),
       Text('Creating encrypted backup...',
-        style: GoogleFonts.plusJakartaSans(
+        style: AppFont.sans(
           fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1)),
       const Gap(6),
       Text('This will take a moment',
-        style: GoogleFonts.plusJakartaSans(
+        style: AppFont.sans(
           fontSize: 12, color: AppColors.t3)),
     ]));
   }
@@ -346,7 +345,7 @@ class _StepBackupShare extends StatelessWidget {
         const Gap(20),
         Text('Backup created \u2713',
           textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.t1)),
         const Gap(10),
         Container(
@@ -355,10 +354,10 @@ class _StepBackupShare extends StatelessWidget {
             color: AppColors.brandSoft,
             borderRadius: BorderRadius.circular(10)),
           child: Row(children: [
-            const Icon(Symbols.folder, size: 18, color: AppColors.brand),
+            Icon(Symbols.folder, size: 18, color: AppColors.brand),
             const Gap(8),
             Expanded(child: Text(filename,
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                 fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.brand),
               overflow: TextOverflow.ellipsis)),
           ]),
@@ -368,14 +367,14 @@ class _StepBackupShare extends StatelessWidget {
           'Send this backup to yourself on WhatsApp or email for extra '
           'safety. If you ever lose your phone, you can restore from it.',
           textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 13, color: AppColors.t2, height: 1.55)),
         const Gap(20),
         ElevatedButton.icon(
           onPressed: onShare,
           icon: const Icon(Symbols.share, size: 18),
           label: Text('Send via WhatsApp / Email',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
               fontSize: 14, fontWeight: FontWeight.w800)),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF25D366),
@@ -389,7 +388,7 @@ class _StepBackupShare extends StatelessWidget {
         TextButton(
           onPressed: onContinue,
           child: Text('Skip for now',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
               fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.t3)),
         ),
         const Gap(4),
@@ -403,7 +402,7 @@ class _StepBackupShare extends StatelessWidget {
               borderRadius: BorderRadius.circular(13)),
             elevation: 0),
           child: Text('Continue',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
               fontSize: 14.5, fontWeight: FontWeight.w800)),
         ),
       ]),
@@ -460,17 +459,17 @@ class _StepPinState extends State<_StepPin> {
           decoration: BoxDecoration(
             color: AppColors.brandSoft,
             borderRadius: BorderRadius.circular(16)),
-          child: const Icon(Symbols.pin, color: AppColors.brand, size: 32),
+          child: Icon(Symbols.pin, color: AppColors.brand, size: 32),
         ),
         const Gap(16),
         Text(widget.title,
           textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.t1)),
         const Gap(6),
         Text(widget.subtitle,
           textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 12.5, color: AppColors.t3)),
         const Gap(24),
         Row(mainAxisAlignment: MainAxisAlignment.center,
@@ -517,26 +516,26 @@ class _StepBiometric extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.brandSoft,
             borderRadius: BorderRadius.circular(20)),
-          child: const Icon(Symbols.fingerprint, color: AppColors.brand, size: 44),
+          child: Icon(Symbols.fingerprint, color: AppColors.brand, size: 44),
         )),
         const Gap(20),
         Text('Add Fingerprint?',
           textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.t1)),
         const Gap(10),
         Text(
           'Unlock BillZap with your fingerprint instead of typing your PIN '
           'every time. You can still use your PIN as backup.',
           textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 13, color: AppColors.t2, height: 1.55)),
         const Spacer(),
         ElevatedButton.icon(
           onPressed: onEnroll,
           icon: const Icon(Symbols.fingerprint, size: 20),
           label: Text('Enable Fingerprint',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
               fontSize: 14.5, fontWeight: FontWeight.w800)),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.brand,
@@ -550,7 +549,7 @@ class _StepBiometric extends StatelessWidget {
         TextButton(
           onPressed: onSkip,
           child: Text('Skip — PIN only',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
               fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.t3)),
         ),
       ]),
@@ -587,14 +586,14 @@ class _StepDone extends StatelessWidget {
         const Gap(22),
         Text('App Lock Enabled \ud83d\udd12',
           textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.t1)),
         const Gap(10),
         Text(
           'BillZap will lock when you switch apps and return after 1 minute. '
           'Make sure you remember your PIN!',
           textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 13.5, color: AppColors.t2, height: 1.6)),
         const Spacer(),
         SizedBox(width: double.infinity, child: ElevatedButton(
@@ -607,7 +606,7 @@ class _StepDone extends StatelessWidget {
               borderRadius: BorderRadius.circular(13)),
             elevation: 0),
           child: Text('Done',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
               fontSize: 14.5, fontWeight: FontWeight.w800)),
         )),
       ]),
@@ -654,7 +653,7 @@ class _NumberPadCompact extends StatelessWidget {
         onTap: () => onDigit(d),
         customBorder: const CircleBorder(),
         child: Center(child: Text(d,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.t1))),
       ),
     ),

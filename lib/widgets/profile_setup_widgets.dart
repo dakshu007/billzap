@@ -9,9 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import '../providers/providers.dart';
 import '../utils/profile_completeness.dart';
@@ -81,7 +80,7 @@ void _showWelcomeModal(BuildContext context) {
           Container(
             width: 76, height: 76,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 colors: [AppColors.brand, Color(0xFF4070FF)],
                 begin: Alignment.topLeft, end: Alignment.bottomRight),
               borderRadius: BorderRadius.circular(20),
@@ -94,12 +93,12 @@ void _showWelcomeModal(BuildContext context) {
           const Gap(20),
           Text('Welcome to BillZap! 👋',
             textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
               fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.t1)),
           const Gap(6),
           Text('Set up your business profile to create professional invoices',
             textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
               fontSize: 13, color: AppColors.t3, height: 1.4)),
           const Gap(20),
           // Feature checklist
@@ -135,7 +134,7 @@ void _showWelcomeModal(BuildContext context) {
               elevation: 0),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Text('Set up profile',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 15, fontWeight: FontWeight.w800)),
               const Gap(8),
               const Icon(Symbols.arrow_forward, size: 18),
@@ -149,13 +148,13 @@ void _showWelcomeModal(BuildContext context) {
               Navigator.pop(ctx);
             },
             child: Text('Maybe later',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                 fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.t3)),
           ),
           const Gap(4),
           Text('You can always set this up from Settings',
             textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
               fontSize: 10.5, color: AppColors.t4, fontStyle: FontStyle.italic)),
         ]),
       ),
@@ -175,7 +174,7 @@ class _Feature extends StatelessWidget {
         child: Text(emoji, style: const TextStyle(fontSize: 16))),
       const Gap(8),
       Expanded(child: Text(text,
-        style: GoogleFonts.plusJakartaSans(
+        style: AppFont.sans(
           fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.t1))),
     ]);
   }
@@ -226,7 +225,7 @@ class ProfileIncompleteBanner extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               Text('Profile incomplete',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.t1)),
               const Gap(8),
               Container(
@@ -235,13 +234,13 @@ class ProfileIncompleteBanner extends ConsumerWidget {
                   color: AppColors.orange,
                   borderRadius: BorderRadius.circular(99)),
                 child: Text('$score%',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFont.sans(
                     fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white)),
               ),
             ]),
             const Gap(2),
             Text(missingText,
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                 fontSize: 11.5, color: AppColors.t2)),
             const Gap(6),
             // Progress bar — track adapts so it doesn't flash bright white

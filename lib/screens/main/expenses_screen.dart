@@ -1,9 +1,8 @@
 // lib/screens/main/expenses_screen.dart
 import 'package:flutter/material.dart';
 import '../../utils/smart_amount.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
@@ -27,11 +26,11 @@ class ExpensesScreen extends ConsumerWidget {
       appBar: AppBar(
         iconTheme: IconThemeData(color: AppColors.t1),
                 backgroundColor: AppColors.bg,
-        title: Text(tr('exp.title', ref), style: GoogleFonts.plusJakartaSans(
+        title: Text(tr('exp.title', ref), style: AppFont.sans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
           IconButton(
-            icon: const Icon(Symbols.add, color: AppColors.brand, size: 26),
+            icon: Icon(Symbols.add, color: AppColors.brand, size: 26),
             onPressed: () => _addSheet(context, ref)),
         ],
       ),
@@ -52,10 +51,10 @@ class ExpensesScreen extends ConsumerWidget {
             ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
                 Icon(Symbols.payments, size: 48, color: AppColors.t4),
                 const Gap(10),
-                Text(tr('exp.no_expenses', ref), style: GoogleFonts.plusJakartaSans(
+                Text(tr('exp.no_expenses', ref), style: AppFont.sans(
                   fontSize: 16, fontWeight: FontWeight.w800)),
                 const Gap(6),
-                Text(tr('exp.no_expenses', ref), style: GoogleFonts.plusJakartaSans(
+                Text(tr('exp.no_expenses', ref), style: AppFont.sans(
                   fontSize: 13, color: AppColors.t3)),
                 const Gap(16),
                 ElevatedButton.icon(
@@ -87,15 +86,15 @@ class ExpensesScreen extends ConsumerWidget {
                       Expanded(child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(e.title, style: GoogleFonts.plusJakartaSans(
+                          Text(e.title, style: AppFont.sans(
                             fontSize: 14, fontWeight: FontWeight.w700,
                             color: AppColors.t1)),
                           Text('${e.category} · ${DateFormat("dd MMM yyyy").format(e.date)}',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: AppFont.sans(
                               fontSize: 12, color: AppColors.t3)),
                         ])),
                       Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                        Text(formatCurrency(e.amount), style: GoogleFonts.plusJakartaSans(
+                        Text(formatCurrency(e.amount), style: AppFont.sans(
                           fontSize: 14, fontWeight: FontWeight.w800,
                           color: AppColors.t1)),
                         const Gap(4),
@@ -145,21 +144,21 @@ class ExpensesScreen extends ConsumerWidget {
                       color: AppColors.border,
                       borderRadius: BorderRadius.circular(99)))),
                   const Gap(16),
-                  Text(trGlobal('exp.add_new'), style: GoogleFonts.plusJakartaSans(
+                  Text(trGlobal('exp.add_new'), style: AppFont.sans(
                     fontSize: 18, fontWeight: FontWeight.w800)),
                   const Gap(16),
                   TextField(controller: title,
                     decoration: InputDecoration(labelText: trGlobal('exp.expense_title'),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
+                    style: AppFont.sans(fontSize: 13.5)),
                   const Gap(10),
                   TextField(controller: amount,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(labelText: trGlobal('exp.amount'),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10))),
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13.5)),
+                    style: AppFont.sans(fontSize: 13.5)),
                   const Gap(10),
                   DropdownButtonFormField<String>(
                     value: category,
@@ -168,7 +167,7 @@ class ExpensesScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(10))),
                     items: cats.map((c) => DropdownMenuItem(
                       value: c,
-                      child: Text(c, style: GoogleFonts.plusJakartaSans(
+                      child: Text(c, style: AppFont.sans(
                         fontSize: 13.5)))).toList(),
                     onChanged: (v) => ss(() => category = v ?? category)),
                   const Gap(20),
@@ -218,10 +217,10 @@ class _SumCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withOpacity(0.2))),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(label, style: GoogleFonts.plusJakartaSans(
+        Text(label, style: AppFont.sans(
           fontSize: 10, color: color, fontWeight: FontWeight.w600)),
         const Gap(3),
-        Text(value, style: GoogleFonts.plusJakartaSans(
+        Text(value, style: AppFont.sans(
           fontSize: 13, fontWeight: FontWeight.w900, color: color),
           maxLines: 1, overflow: TextOverflow.ellipsis),
       ]),

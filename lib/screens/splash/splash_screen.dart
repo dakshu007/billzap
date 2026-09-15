@@ -1,7 +1,6 @@
 // lib/screens/splash/splash_screen.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_theme.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -60,7 +59,7 @@ class _SplashState extends State<SplashScreen>
             const SizedBox(height: 24),
             Text(
               'BillZap',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                   fontSize: 38,
                   fontWeight: FontWeight.w900,
                   color: Colors.white,
@@ -69,7 +68,7 @@ class _SplashState extends State<SplashScreen>
             const SizedBox(height: 6),
             Text(
               'GST Billing Made Simple',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                   fontSize: 14,
                   color: Colors.white70,
                   fontWeight: FontWeight.w500),

@@ -6,9 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import '../providers/providers.dart';
 import '../utils/festival_data.dart';
@@ -66,11 +65,11 @@ class FestivalBanner extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(prefix,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
               const Gap(2),
               Text('Send greetings to your customers in one tap',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 11.5, color: Colors.white.withOpacity(0.92))),
             ]),
           ),

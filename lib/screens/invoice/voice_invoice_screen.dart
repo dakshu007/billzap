@@ -5,9 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../theme/app_theme.dart';
 import '../../i18n/translations.dart';
@@ -207,7 +206,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                 borderRadius: BorderRadius.circular(99)))),
             const Gap(16),
             Text('Choose Language',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                 fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.t1)),
             const Gap(12),
             ConstrainedBox(
@@ -218,16 +217,16 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                   final isSelected = _selectedLocaleId == entry.key;
                   return ListTile(
                     title: Text(entry.value,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFont.sans(
                         fontSize: 14,
                         fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
                         color: available ? AppColors.t1 : AppColors.t4)),
                     subtitle: !available
                       ? Text('Not installed on this device',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11, color: AppColors.t4))
+                          style: AppFont.sans(fontSize: 11, color: AppColors.t4))
                       : null,
                     trailing: isSelected
-                      ? const Icon(Symbols.check, color: AppColors.brand)
+                      ? Icon(Symbols.check, color: AppColors.brand)
                       : null,
                     enabled: available,
                     onTap: available ? () {
@@ -258,15 +257,15 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
             child: Icon(Symbols.close, size: 19, color: AppColors.t1)),
           onPressed: () => context.go('/home')),
         title: Text('Voice Invoice',
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
           TextButton.icon(
             onPressed: _pickLocale,
-            icon: const Icon(Symbols.language, size: 18, color: AppColors.brand),
+            icon: Icon(Symbols.language, size: 18, color: AppColors.brand),
             label: Text(
               _localeDisplay[_selectedLocaleId]?.split(' ').first ?? 'EN',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                 fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.brand)),
           ),
         ],
@@ -286,11 +285,11 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
               AppColors.isDark ? 0.4 : 0.2)),
           ),
           child: Row(children: [
-            const Icon(Symbols.tips_and_updates, color: AppColors.brand, size: 22),
+            Icon(Symbols.tips_and_updates, color: AppColors.brand, size: 22),
             const Gap(10),
             Expanded(child: Text(
               'Try: "For Ravi 2 kg sugar 50 rupees and 1 kg salt 20 rupees"',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                 fontSize: 12.5, color: AppColors.t2, height: 1.4))),
           ]),
         ),
@@ -312,12 +311,12 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                 Expanded(child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text("Couldn't capture audio",
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFont.sans(
                         fontSize: 13.5, fontWeight: FontWeight.w800,
                         color: AppColors.t1)),
                     const Gap(2),
                     Text(_speechError!,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFont.sans(
                         fontSize: 11.5, color: AppColors.t3)),
                 ])),
                 TextButton.icon(
@@ -327,7 +326,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                   },
                   icon: const Icon(Symbols.refresh, size: 16),
                   label: Text('Retry',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFont.sans(
                       fontSize: 12, fontWeight: FontWeight.w800)),
                   style: TextButton.styleFrom(
                     foregroundColor: AppColors.red,
@@ -398,7 +397,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                     _listening
                       ? 'Listening...'
                       : (_transcript.isEmpty ? 'Tap mic and speak' : 'Tap mic to record again'),
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFont.sans(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: _listening ? AppColors.red : AppColors.t2),
@@ -420,13 +419,13 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                       Icon(Symbols.hearing, size: 16, color: AppColors.t3),
                       const Gap(6),
                       Text('I heard:',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFont.sans(
                           fontSize: 11, fontWeight: FontWeight.w700,
                           color: AppColors.t3, letterSpacing: 0.5)),
                     ]),
                     const Gap(8),
                     Text(_transcript,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFont.sans(
                         fontSize: 14.5, color: AppColors.t1, height: 1.5,
                         fontStyle: FontStyle.italic)),
                   ]),
@@ -448,7 +447,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                       const Icon(Symbols.auto_awesome, size: 18, color: AppColors.green),
                       const Gap(8),
                       Text('Extracted',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFont.sans(
                           fontSize: 13, fontWeight: FontWeight.w800,
                           color: AppColors.green, letterSpacing: 0.5)),
                     ]),
@@ -461,12 +460,12 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: Text('No items detected. Try speaking again with clearer pricing.',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppFont.sans(
                             fontSize: 12.5, color: AppColors.t3, fontStyle: FontStyle.italic)),
                       )
                     else ...[
                       Text('Items',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFont.sans(
                           fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.t3, letterSpacing: 0.5)),
                       const Gap(6),
                       ..._parsed!.items.map((item) => Padding(
@@ -481,20 +480,20 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                               width: 32, height: 32,
                               decoration: BoxDecoration(
                                 color: AppColors.brandSoft, borderRadius: BorderRadius.circular(7)),
-                              child: const Icon(Symbols.shopping_basket,
+                              child: Icon(Symbols.shopping_basket,
                                 size: 16, color: AppColors.brand)),
                             const Gap(10),
                             Expanded(child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start, children: [
                               Text(item.name,
-                                style: GoogleFonts.plusJakartaSans(
+                                style: AppFont.sans(
                                   fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.t1)),
                               Text('${item.qty.toStringAsFixed(item.qty.truncateToDouble() == item.qty ? 0 : 1)} ${item.unit}',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: AppFont.sans(
                                   fontSize: 11, color: AppColors.t3)),
                             ])),
                             Text('₹${item.price.toStringAsFixed(0)}',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: AppFont.sans(
                                 fontSize: 14, fontWeight: FontWeight.w900, color: AppColors.brand)),
                           ]),
                         ),
@@ -510,7 +509,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                     onPressed: _retry,
                     icon: const Icon(Symbols.refresh, size: 18),
                     label: Text('Try again',
-                      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 13)),
+                      style: AppFont.sans(fontWeight: FontWeight.w700, fontSize: 13)),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.t2,
                       padding: const EdgeInsets.symmetric(vertical: 13),
@@ -522,7 +521,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                     onPressed: _parsed!.items.isEmpty ? null : _proceedToCreate,
                     icon: const Icon(Symbols.arrow_forward, size: 18),
                     label: Text('Continue',
-                      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13.5)),
+                      style: AppFont.sans(fontWeight: FontWeight.w800, fontSize: 13.5)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.brand,
                       foregroundColor: Colors.white,
@@ -543,7 +542,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                     border: Border.all(color: AppColors.border)),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text('Voice Tips',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFont.sans(
                         fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.t1)),
                     const Gap(10),
                     _tip('Speak slowly and clearly'),
@@ -569,7 +568,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
         child: Icon(Symbols.fiber_manual_record, size: 6, color: AppColors.t3)),
       const Gap(8),
       Expanded(child: Text(text,
-        style: GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.t2, height: 1.4))),
+        style: AppFont.sans(fontSize: 12.5, color: AppColors.t2, height: 1.4))),
     ]));
 
   Widget _kvRow(IconData icon, String label, String value) => Container(
@@ -579,10 +578,10 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
     child: Row(children: [
       Icon(icon, size: 16, color: AppColors.t3),
       const Gap(8),
-      Text('$label:', style: GoogleFonts.plusJakartaSans(
+      Text('$label:', style: AppFont.sans(
         fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.t3)),
       const Gap(8),
-      Text(value, style: GoogleFonts.plusJakartaSans(
+      Text(value, style: AppFont.sans(
         fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.t1)),
     ]));
 }

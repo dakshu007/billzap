@@ -4,9 +4,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import '../i18n/translations.dart';
 import '../theme/app_theme.dart';
 
@@ -26,7 +25,7 @@ class LanguagePickerScreen extends ConsumerWidget {
         elevation: 0,
         title: Text(
           tr('set.language', ref),
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1),
         ),
       ),
@@ -39,7 +38,7 @@ class LanguagePickerScreen extends ConsumerWidget {
               Container(
                 width: 64, height: 64,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     colors: [AppColors.brand, Color(0xFF4070FF)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -56,13 +55,13 @@ class LanguagePickerScreen extends ConsumerWidget {
               ),
               const Gap(20),
               Text('BillZap',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 28, fontWeight: FontWeight.w900,
                   color: AppColors.t1, letterSpacing: -0.5)),
               const Gap(6),
               Text(
                 tr('set.choose_language', ref),
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 14, color: AppColors.t3),
               ),
               const Gap(28),
@@ -116,7 +115,7 @@ class LanguagePickerScreen extends ConsumerWidget {
                       children: [
                         Text(
                           tr('common.next', ref),
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppFont.sans(
                             fontSize: 15, fontWeight: FontWeight.w800)),
                         const Gap(6),
                         const Icon(Symbols.arrow_forward, size: 18),
@@ -170,7 +169,7 @@ class _LangTile extends StatelessWidget {
                   width: 44, height: 44,
                   decoration: BoxDecoration(
                     gradient: selected
-                      ? const LinearGradient(
+                      ? LinearGradient(
                           colors: [AppColors.brand, Color(0xFF4070FF)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight)
@@ -198,7 +197,7 @@ class _LangTile extends StatelessWidget {
                     children: [
                       Text(
                         lang.name,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFont.sans(
                           fontSize: 15.5,
                           fontWeight: FontWeight.w700,
                           color: selected ? AppColors.brand : AppColors.t1,
@@ -207,7 +206,7 @@ class _LangTile extends StatelessWidget {
                       const Gap(2),
                       Text(
                         lang.englishName,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFont.sans(
                           fontSize: 12,
                           color: selected
                             ? AppColors.brand.withOpacity(0.8)
@@ -271,12 +270,12 @@ class LanguagePill extends ConsumerWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Symbols.translate,
+            Icon(Symbols.translate,
                 size: 16, color: AppColors.brand),
             const Gap(6),
             Text(
               lang.name,
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
                 color: AppColors.brand,

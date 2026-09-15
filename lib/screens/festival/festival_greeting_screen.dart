@@ -7,9 +7,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
@@ -117,14 +116,14 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Send greetings?',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w900)),
+          style: AppFont.sans(fontWeight: FontWeight.w900)),
         content: Column(mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('This will open WhatsApp ${selectedCustomers.length} times.',
-            style: GoogleFonts.plusJakartaSans(fontSize: 13)),
+            style: AppFont.sans(fontSize: 13)),
           const Gap(8),
           Text('After each Send, return to this app — the next customer will open automatically.',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
               fontSize: 12.5, color: AppColors.t3)),
         ]),
         actions: [
@@ -200,7 +199,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
           Text(festival.emoji, style: const TextStyle(fontSize: 22)),
           const Gap(8),
           Text(festival.name,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
               fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.t1)),
         ]),
       ),
@@ -222,10 +221,10 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
               Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(festival.name,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFont.sans(
                     fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
                 Text(_formatDate(festival.date),
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFont.sans(
                     fontSize: 12, color: Colors.white.withOpacity(0.92))),
                 if (festival.isToday) ...[
                   const Gap(4),
@@ -235,7 +234,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
                       color: Colors.white.withOpacity(0.25),
                       borderRadius: BorderRadius.circular(99)),
                     child: Text('TODAY',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFont.sans(
                         fontSize: 9, fontWeight: FontWeight.w900,
                         color: Colors.white, letterSpacing: 0.7)),
                   ),
@@ -247,7 +246,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
 
           // ─── Message section ───
           Text('MESSAGE',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
               fontSize: 11, fontWeight: FontWeight.w800,
               color: AppColors.t3, letterSpacing: 0.8)),
           const Gap(8),
@@ -266,20 +265,20 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
                 contentPadding: EdgeInsets.zero,
                 hintText: 'Your message...',
               ),
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                 fontSize: 13.5, color: AppColors.t1, height: 1.5),
             ),
           ),
           const Gap(6),
           Text('You can edit this message before sending',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
               fontSize: 11, color: AppColors.t3, fontStyle: FontStyle.italic)),
           const Gap(20),
 
           // ─── Customer selection ───
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             Text('SEND TO',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                 fontSize: 11, fontWeight: FontWeight.w800,
                 color: AppColors.t3, letterSpacing: 0.8)),
             Row(children: [
@@ -291,13 +290,13 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
                   });
                 },
                 child: Text('Select all',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFont.sans(
                     fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.brand)),
               ),
               TextButton(
                 onPressed: () => setState(() => _selectedIds.clear()),
                 child: Text('Clear',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFont.sans(
                     fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.t3)),
               ),
             ]),
@@ -311,7 +310,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
             child: Text(
               '${_selectedIds.length} of ${withPhone.length} customers selected'
               '${withoutPhone > 0 ? " • $withoutPhone without phone skipped" : ""}',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                 fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.brand)),
           ),
           const Gap(10),
@@ -322,12 +321,12 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
               Icon(Symbols.person_off, size: 48, color: AppColors.t4),
               const Gap(8),
               Text('No customers with phone numbers',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.t3)),
               const Gap(4),
               Text('Add phone numbers to your customers to use this feature',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 11.5, color: AppColors.t4)),
             ])),
           ] else
@@ -352,10 +351,10 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
                     },
                     activeColor: AppColors.brand,
                     title: Text(withPhone[i].name,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFont.sans(
                         fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.t1)),
                     subtitle: Text(withPhone[i].phone,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFont.sans(
                         fontSize: 11.5, color: AppColors.t3)),
                     controlAffinity: ListTileControlAffinity.leading,
                     dense: true,
@@ -382,7 +381,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
                 const Gap(10),
                 Expanded(child: Text(
                   'Sending ${_currentSendIndex + 1} of ${_selectedIds.length}...',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFont.sans(
                     fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.t1))),
               ]),
             )
@@ -395,7 +394,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
                 _selectedIds.isEmpty
                   ? 'Select customers'
                   : 'Send to ${_selectedIds.length} customer${_selectedIds.length == 1 ? "" : "s"}',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 14, fontWeight: FontWeight.w800)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF25D366),
@@ -416,7 +415,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
               const Gap(8),
               Expanded(child: Text(
                 'WhatsApp will open one customer at a time. Tap Send in WhatsApp, then return — the next will open automatically.',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 11, color: AppColors.t3, height: 1.45))),
             ]),
           ),

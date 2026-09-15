@@ -1,13 +1,15 @@
 // lib/screens/main/invoices_screen.dart
-// Fully translated — every visible string uses tr() with i18n keys.
-// UX upgrades: pull-to-refresh, swipe-to-delete, clear-all-filters,
-// initial skeleton state, larger tap targets.
+//
+// The invoice list. Behaviour is unchanged — search, status filters,
+// pull-to-refresh, swipe-to-delete, the first-frame skeleton and the
+// clear-all-filters bar all work exactly as before. The presentation now
+// uses the shared kit: a rounded search well, ink filter pills, borderless
+// list rows and a centred empty state.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
@@ -17,6 +19,7 @@ import '../../models/models.dart';
 import '../../i18n/translations.dart';
 import '../../utils/platform.dart';
 import '../../widgets/skeleton.dart';
+import '../../widgets/ui_kit.dart';
 
 class InvoicesScreen extends ConsumerStatefulWidget {
   const InvoicesScreen({super.key});
@@ -139,7 +142,6 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('${inv.invoiceNumber} deleted'),
-      backgroundColor: AppColors.t1,
     ));
   }
 
@@ -148,143 +150,121 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
     final all = ref.watch(invoiceProvider);
     final list = _filtered(all);
     final hasActiveFilters = _filter != 'all' || _search.isNotEmpty;
+    const filters = ['all', 'paid', 'sent', 'pending', 'overdue', 'draft'];
 
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: AppColors.bg,
+        toolbarHeight: 66,
+        titleSpacing: AppSpacing.screenH,
         title: Text(tr('inv.title', ref),
-            style: GoogleFonts.plusJakartaSans(
-                fontSize: 19,
-                fontWeight: FontWeight.w900,
+            style: AppFont.sans(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.6,
                 color: AppColors.t1)),
         actions: [
-          IconButton(
-            icon: const Icon(Symbols.add, color: AppColors.brand, size: 26),
-            onPressed: () => context.push('/create'),
-          ),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-            child: TextField(
-              controller: _searchCtrl,
-              onChanged: (v) => setState(() => _search = v),
-              decoration: InputDecoration(
-                hintText: tr('inv.search', ref),
-                prefixIcon: Icon(Symbols.search,
-                    size: 18, color: AppColors.t3),
-                filled: true,
-                fillColor: AppColors.bg,
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 9),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: AppColors.border)),
-                enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: AppColors.border)),
-                suffixIcon: _search.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Symbols.close, size: 16),
-                        onPressed: () {
-                          _searchCtrl.clear();
-                          setState(() => _search = '');
-                        },
-                      )
-                    : null,
-              ),
-              style: GoogleFonts.plusJakartaSans(fontSize: 13),
+          Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.screenH),
+            child: AppIconButton(
+              icon: Symbols.add,
+              background: AppColors.brand,
+              foreground: AppColors.onBrand,
+              onTap: () => context.push('/create'),
             ),
           ),
-        ),
+        ],
       ),
       body: DesktopMaxWidth(child: Column(children: [
-        // Filter chips
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
-          child: Row(
-            children:
-                ['all', 'paid', 'sent', 'pending', 'overdue', 'draft'].map((f) {
-              final selected = _filter == f;
-              return Padding(
-                padding: const EdgeInsets.only(right: 7),
-                child: GestureDetector(
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    setState(() => _filter = f);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 7),
-                    decoration: BoxDecoration(
-                      color: selected ? AppColors.brand : AppColors.card,
-                      borderRadius: BorderRadius.circular(AppSpacing.pill),
-                      border: Border.all(
-                          color:
-                              selected ? AppColors.brand : AppColors.border),
-                    ),
-                    child: Text(
-                      _filterLabel(f),
-                      style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w600,
-                          color: selected ? Colors.white : AppColors.t2),
-                    ),
+        // ─── Search ──────────────────────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.screenH, 2, AppSpacing.screenH, 12),
+          child: AppSearchField(
+            controller: _searchCtrl,
+            hint: tr('inv.search', ref),
+            icon: Symbols.search,
+            onChanged: (v) => setState(() => _search = v),
+            trailing: _search.isEmpty
+                ? null
+                : GestureDetector(
+                    onTap: () {
+                      _searchCtrl.clear();
+                      setState(() => _search = '');
+                    },
+                    child: Icon(Symbols.close, size: 17, color: AppColors.t3),
                   ),
-                ),
-              );
-            }).toList(),
           ),
         ),
 
-        // Clear-all-filters bar (only when both search & filter are active)
+        // ─── Status filters ──────────────────────────────────────────
+        SizedBox(
+          height: 38,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenH),
+            itemCount: filters.length,
+            separatorBuilder: (_, __) => const Gap(8),
+            itemBuilder: (_, i) => AppPill(
+              _filterLabel(filters[i]),
+              selected: _filter == filters[i],
+              onTap: () => setState(() => _filter = filters[i]),
+            ),
+          ),
+        ),
+
+        // ─── Result count + clear ────────────────────────────────────
         if (hasActiveFilters)
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 2, 12, 2),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.screenH, 12, AppSpacing.screenH, 0),
             child: Row(children: [
               Expanded(
                 child: Text(
                   '${list.length} result${list.length == 1 ? '' : 's'}'
                   '${_search.isNotEmpty ? ' for "$_search"' : ''}',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11.5, color: AppColors.t3,
-                    fontWeight: FontWeight.w600),
+                  style: AppFont.sans(
+                    fontSize: 12.5, color: AppColors.t3,
+                    fontWeight: FontWeight.w500),
                 ),
               ),
-              TextButton.icon(
-                onPressed: _clearFilters,
-                icon: const Icon(Symbols.filter_alt_off, size: 15),
-                label: Text(tr('inv.clear_filters', ref),
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12, fontWeight: FontWeight.w700)),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.brand,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  minimumSize: const Size(0, 30),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              GestureDetector(
+                onTap: _clearFilters,
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Symbols.filter_alt_off, size: 15, color: AppColors.t2),
+                    const Gap(6),
+                    Text(tr('inv.clear_filters', ref),
+                      style: AppFont.sans(
+                        fontSize: 12.5, fontWeight: FontWeight.w600,
+                        color: AppColors.t2)),
+                  ]),
                 ),
               ),
             ]),
           ),
 
-        // List
+        // ─── List ────────────────────────────────────────────────────
         Expanded(
           child: RefreshIndicator(
-            color: AppColors.brand,
+            color: AppColors.t1,
+            backgroundColor: AppColors.card,
             onRefresh: _refresh,
             child: _firstFrame
                 ? const SkeletonList()
                 : list.isEmpty
-                    ? _EmptyState(
+                    ? _EmptyInvoices(
                         searching: _search.isNotEmpty,
                         onCreate: () => context.push('/create'),
                       )
                     : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(12, 4, 12, 100),
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.screenH, 14,
+                          AppSpacing.screenH, AppSpacing.bottomNavSafe),
                         physics: const AlwaysScrollableScrollPhysics(),
                         itemCount: list.length,
                         itemBuilder: (_, i) {
@@ -340,146 +320,78 @@ class _InvoiceRow extends StatelessWidget {
       background: _swipeBg(),
       confirmDismiss: (_) => confirmDismiss(inv),
       onDismissed: (_) => onDelete(),
-      child: GestureDetector(
+      child: AppListRow(
         onTap: onTap,
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(13),
-              border: Border.all(color: AppColors.border)),
-          child: Row(children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                  color: AppColors.brandSoft,
-                  borderRadius: BorderRadius.circular(10)),
-              child: Center(
-                child: Text(
-                  inv.customerName.isNotEmpty
-                      ? inv.customerName[0].toUpperCase()
-                      : '?',
-                  style: GoogleFonts.plusJakartaSans(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.brand),
-                ),
-              ),
-            ),
-            const Gap(12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(inv.customerName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.t1)),
-                  Text(
-                    '${inv.invoiceNumber} · ${DateFormat('dd MMM yyyy').format(inv.dueDate)}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11.5,
-                        color: AppColors.t3),
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(formatCurrency(inv.grandTotal),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.plusJakartaSans(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.t1)),
-                const Gap(3),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                      color: c.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(99)),
-                  child: Text(statusLabel,
-                      style: GoogleFonts.plusJakartaSans(
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w800,
-                          color: c)),
-                ),
-              ],
-            ),
-          ]),
+        leading: AppBadge(initial: inv.customerName, size: 46),
+        title: inv.customerName,
+        subtitle: '${inv.invoiceNumber} · '
+            '${DateFormat('dd MMM yyyy').format(inv.dueDate)}',
+        trailing: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(formatCurrency(inv.grandTotal),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppFont.sans(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.3,
+                    color: AppColors.t1)),
+            const Gap(5),
+            AppPill(statusLabel, dense: true, tone: c),
+          ],
         ),
       ),
     );
   }
 
   Widget _swipeBg() => Container(
-        margin: const EdgeInsets.only(bottom: 8),
+        margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
           color: AppColors.red,
-          borderRadius: BorderRadius.circular(13),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.symmetric(horizontal: 22),
-        child: const Row(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Symbols.delete, color: Colors.white, size: 20),
-            SizedBox(width: 6),
+            const Icon(Symbols.delete, color: Colors.white, size: 19),
+            const Gap(8),
             Text('Delete',
-                style: TextStyle(
+                style: AppFont.sans(
                     color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 13)),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13.5)),
           ],
         ),
       );
 }
 
-class _EmptyState extends ConsumerWidget {
+class _EmptyInvoices extends ConsumerWidget {
   final bool searching;
   final VoidCallback onCreate;
-  const _EmptyState({required this.searching, required this.onCreate});
+  const _EmptyInvoices({required this.searching, required this.onCreate});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Wrapped in scroll view so pull-to-refresh remains available when empty.
+    // Wrapped in a scroll view so pull-to-refresh stays available when empty.
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.only(top: 48, bottom: AppSpacing.bottomNavSafe),
       children: [
-        const SizedBox(height: 80),
-        Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(Symbols.receipt_long, size: 48, color: AppColors.t4),
-          const Gap(10),
-          Text(
-            searching ? tr('inv.no_results', ref) : tr('dash.no_invoices', ref),
-            style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: AppColors.t1),
-          ),
-          const Gap(6),
-          Text(
-            searching ? tr('inv.try_diff_search', ref) : tr('inv.tap_plus_create', ref),
-            style: GoogleFonts.plusJakartaSans(
-                fontSize: 13, color: AppColors.t3),
-          ),
-          const Gap(16),
-          if (!searching)
-            ElevatedButton.icon(
-              onPressed: onCreate,
-              icon: const Icon(Symbols.add, size: 18),
-              label: Text(tr('dash.new_invoice', ref))),
-        ]),
+        AppEmptyState(
+          icon: searching ? Symbols.search : Symbols.receipt_long,
+          title: searching
+              ? tr('inv.no_results', ref)
+              : tr('dash.no_invoices', ref),
+          message: searching
+              ? tr('inv.try_diff_search', ref)
+              : tr('inv.tap_plus_create', ref),
+          actionLabel: searching ? null : tr('dash.new_invoice', ref),
+          onAction: searching ? null : onCreate,
+        ),
       ],
     );
   }

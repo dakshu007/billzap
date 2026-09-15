@@ -2,8 +2,7 @@
 // User's catalog of saved items. Shown in Create Invoice via "From Catalog".
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import 'package:gap/gap.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../theme/app_theme.dart';
@@ -97,13 +96,13 @@ class _CatalogScreenState extends State<CatalogScreen> {
         elevation: 0,
         iconTheme: IconThemeData(color: AppColors.t1),
         title: Text(trGlobal('cat.title'),
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
                 fontSize: 19,
                 fontWeight: FontWeight.w900,
                 color: AppColors.t1)),
         actions: [
           IconButton(
-            icon: const Icon(Symbols.add, color: AppColors.brand, size: 26),
+            icon: Icon(Symbols.add, color: AppColors.brand, size: 26),
             onPressed: _addSheet,
           ),
         ],
@@ -133,7 +132,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                             color: AppColors.brandSoft,
                             borderRadius: BorderRadius.circular(11),
                           ),
-                          child: const Center(
+                          child: Center(
                               child: Icon(Symbols.shopping_basket,
                                   size: 22, color: AppColors.brand)),
                         ),
@@ -143,14 +142,14 @@ class _CatalogScreenState extends State<CatalogScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(item.name,
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: AppFont.sans(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
                                       color: AppColors.t1)),
                               const Gap(2),
                               Row(children: [
                                 Text('₹${item.price.toStringAsFixed(0)}',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: AppFont.sans(
                                         fontSize: 12, color: AppColors.t3)),
                                 const Gap(8),
                                 Container(
@@ -161,7 +160,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text('${item.gstRate}% GST',
-                                      style: GoogleFonts.plusJakartaSans(
+                                      style: AppFont.sans(
                                           fontSize: 10,
                                           fontWeight: FontWeight.w700,
                                           color: AppColors.brand)),
@@ -188,7 +187,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
         Icon(Symbols.inventory_2, size: 56, color: AppColors.t4),
         const Gap(12),
         Text(trGlobal('cat.empty'),
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
                 fontSize: 16, fontWeight: FontWeight.w800)),
         const Gap(6),
         Padding(
@@ -196,7 +195,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
           child: Text(
             trGlobal('cat.empty_hint'),
             textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
                 fontSize: 13, color: AppColors.t3, height: 1.4),
           ),
         ),
@@ -253,11 +252,11 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 )),
                 const Gap(16),
                 Text(trGlobal('cat.add_title'),
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFont.sans(
                         fontSize: 18, fontWeight: FontWeight.w800)),
                 const Gap(4),
                 Text(trGlobal('cat.gst_auto_hint'),
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFont.sans(
                         fontSize: 12, color: AppColors.t3)),
                 const Gap(16),
                 TextField(
@@ -273,7 +272,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                     final r = GstClassifier.classify(v);
                     if (r >= 0) ss(() => detectedGst = r);
                   },
-                  style: GoogleFonts.plusJakartaSans(fontSize: 13.5),
+                  style: AppFont.sans(fontSize: 13.5),
                 ),
                 const Gap(10),
                 if (name.text.isNotEmpty)
@@ -287,7 +286,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                           color: AppColors.brand.withOpacity(0.3)),
                     ),
                     child: Row(children: [
-                      const Icon(Symbols.auto_awesome,
+                      Icon(Symbols.auto_awesome,
                           size: 18, color: AppColors.brand),
                       const Gap(8),
                       Expanded(
@@ -295,12 +294,12 @@ class _CatalogScreenState extends State<CatalogScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('$detectedGst% GST',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: AppFont.sans(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w800,
                                     color: AppColors.brand)),
                             Text(GstClassifier.categoryFor(detectedGst),
-                                style: GoogleFonts.plusJakartaSans(
+                                style: AppFont.sans(
                                     fontSize: 11, color: AppColors.t3)),
                           ],
                         ),
@@ -318,7 +317,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10)),
                     ),
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13.5),
+                    style: AppFont.sans(fontSize: 13.5),
                   )),
                   const Gap(10),
                   Expanded(
@@ -329,7 +328,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10)),
                     ),
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13.5),
+                    style: AppFont.sans(fontSize: 13.5),
                   )),
                 ]),
                 const Gap(10),
@@ -341,7 +340,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10)),
                   ),
-                  style: GoogleFonts.plusJakartaSans(fontSize: 13.5),
+                  style: AppFont.sans(fontSize: 13.5),
                 ),
                 const Gap(20),
                 SizedBox(

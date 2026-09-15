@@ -12,9 +12,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
@@ -103,7 +102,7 @@ class _ForgotPinState extends State<ForgotPinScreen> {
         backgroundColor: AppColors.bg,
         iconTheme: IconThemeData(color: AppColors.t1),
         title: Text('Reset PIN',
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.t1)),
       ),
       body: SafeArea(
@@ -155,19 +154,19 @@ class _StepPickBackup extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.brandSoft,
             borderRadius: BorderRadius.circular(20)),
-          child: const Icon(Symbols.help, color: AppColors.brand, size: 44),
+          child: Icon(Symbols.help, color: AppColors.brand, size: 44),
         )),
         const Gap(20),
         Text('Forgot PIN?',
           textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.t1)),
         const Gap(10),
         Text(
           'No problem. To reset your PIN, you\'ll need your '
           'BillZap backup file (ends with .billzap).',
           textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 13.5, color: AppColors.t2, height: 1.55)),
         const Gap(18),
         Container(
@@ -177,7 +176,7 @@ class _StepPickBackup extends StatelessWidget {
             borderRadius: BorderRadius.circular(12)),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('Where to find it',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                 fontSize: 12, fontWeight: FontWeight.w900,
                 color: AppColors.brand, letterSpacing: 0.5)),
             const Gap(8),
@@ -196,7 +195,7 @@ class _StepPickBackup extends StatelessWidget {
                 child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
             : const Icon(Symbols.upload_file, size: 20),
           label: Text(busy ? 'Validating...' : 'Choose backup file',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
               fontSize: 14.5, fontWeight: FontWeight.w800)),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.brand,
@@ -215,7 +214,7 @@ class _StepPickBackup extends StatelessWidget {
       Icon(icon, size: 16, color: AppColors.brand),
       const Gap(8),
       Expanded(child: Text(text,
-        style: GoogleFonts.plusJakartaSans(
+        style: AppFont.sans(
           fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.t1))),
     ]);
   }
@@ -265,12 +264,12 @@ class _StepSetNewPinState extends State<_StepSetNewPin> {
         const Gap(16),
         Text('Backup verified ✓',
           textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.t1)),
         const Gap(4),
         Text('Set a new 4-digit PIN',
           textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 13, color: AppColors.t3)),
         const Gap(24),
         Row(mainAxisAlignment: MainAxisAlignment.center,
@@ -317,12 +316,12 @@ class _StepResetDone extends StatelessWidget {
         const Gap(20),
         Text('PIN reset successfully!',
           textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.t1)),
         const Gap(8),
         Text('You can now use your new PIN.',
           textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 13, color: AppColors.t2)),
         const Spacer(),
         SizedBox(width: double.infinity, child: ElevatedButton(
@@ -335,7 +334,7 @@ class _StepResetDone extends StatelessWidget {
               borderRadius: BorderRadius.circular(13)),
             elevation: 0),
           child: Text('Continue to BillZap',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
               fontSize: 14.5, fontWeight: FontWeight.w800)),
         )),
       ]),
@@ -379,7 +378,7 @@ class _PadCompact extends StatelessWidget {
         onTap: () => onDigit(d),
         customBorder: const CircleBorder(),
         child: Center(child: Text(d,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFont.sans(
             fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.t1))),
       ),
     ),

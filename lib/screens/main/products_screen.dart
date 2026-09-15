@@ -3,9 +3,8 @@
 // success haptics on add.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/app_spacing.dart';
@@ -78,11 +77,11 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
       appBar: AppBar(
         iconTheme: IconThemeData(color: AppColors.t1),
         backgroundColor: AppColors.bg,
-        title: Text(tr('prod.title', ref), style: GoogleFonts.plusJakartaSans(
+        title: Text(tr('prod.title', ref), style: AppFont.sans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
         actions: [
           IconButton(
-            icon: const Icon(Symbols.add_box, color: AppColors.brand),
+            icon: Icon(Symbols.add_box, color: AppColors.brand),
             onPressed: () => _addSheet(context, ref)),
         ],
       ),
@@ -99,10 +98,10 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                   Column(mainAxisSize: MainAxisSize.min, children: [
                     Icon(Symbols.inventory_2, size: 48, color: AppColors.t4),
                     const Gap(10),
-                    Text(tr('prod.no_products', ref), style: GoogleFonts.plusJakartaSans(
+                    Text(tr('prod.no_products', ref), style: AppFont.sans(
                       fontSize: 16, fontWeight: FontWeight.w800)),
                     const Gap(6),
-                    Text(tr('prod.no_products', ref), style: GoogleFonts.plusJakartaSans(
+                    Text(tr('prod.no_products', ref), style: AppFont.sans(
                       fontSize: 13, color: AppColors.t3)),
                     const Gap(16),
                     ElevatedButton.icon(
@@ -138,7 +137,7 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                             decoration: BoxDecoration(
                               color: AppColors.brandSoft,
                               borderRadius: BorderRadius.circular(11)),
-                            child: const Center(
+                            child: Center(
                               child: Icon(Symbols.inventory_2, size: 20, color: AppColors.brand))),
                           const Gap(12),
                           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -146,7 +145,7 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                               Expanded(child: Text(p.name,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.plusJakartaSans(
+                                style: AppFont.sans(
                                   fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.t1))),
                               // Stock badge — only shown when tracking is on.
                               if (p.tracksStock) _StockBadge(p: p),
@@ -154,7 +153,7 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                             const Gap(2),
                             Row(children: [
                               Text(formatCurrency(p.price),
-                                style: GoogleFonts.plusJakartaSans(
+                                style: AppFont.sans(
                                   fontSize: 12, fontWeight: FontWeight.w600,
                                   color: AppColors.t2)),
                               // Profit-margin chip — only when a cost is set.
@@ -164,7 +163,7 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                               ],
                             ]),
                             if (p.hsnCode.isNotEmpty)
-                              Text('HSN: ${p.hsnCode}', style: GoogleFonts.plusJakartaSans(
+                              Text('HSN: ${p.hsnCode}', style: AppFont.sans(
                                 fontSize: 10.5, color: AppColors.t4)),
                           ])),
                           IconButton(
@@ -268,7 +267,7 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                       borderRadius: BorderRadius.circular(99)))),
                   const Gap(16),
                   Text(isEdit ? 'Edit Product' : trGlobal('prod.add_new'),
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFont.sans(
                       fontSize: 18, fontWeight: FontWeight.w800,
                       color: AppColors.t1)),
                   const Gap(16),
@@ -292,7 +291,7 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                       const Icon(Symbols.trending_up, size: 16, color: AppColors.green),
                       const Gap(6),
                       Text('Margin: ${livePct.toStringAsFixed(1)}%',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFont.sans(
                           fontSize: 12.5, fontWeight: FontWeight.w700,
                           color: AppColors.green)),
                     ]),
@@ -312,7 +311,7 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                     Icon(Symbols.inventory, size: 18, color: AppColors.t2),
                     const Gap(8),
                     Text('Track stock',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFont.sans(
                         fontSize: 13, fontWeight: FontWeight.w700,
                         color: AppColors.t1)),
                     const Spacer(),
@@ -418,7 +417,7 @@ class _SheetField extends StatelessWidget {
     decoration: InputDecoration(
       labelText: label,
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
-    style: GoogleFonts.plusJakartaSans(fontSize: 13.5));
+    style: AppFont.sans(fontSize: 13.5));
 }
 
 class _MarginChip extends StatelessWidget {
@@ -435,7 +434,7 @@ class _MarginChip extends StatelessWidget {
         color: color.withOpacity(0.12),
         borderRadius: BorderRadius.circular(99)),
       child: Text('${margin.toStringAsFixed(0)}%',
-        style: GoogleFonts.plusJakartaSans(
+        style: AppFont.sans(
           fontSize: 10.5, fontWeight: FontWeight.w800, color: color)));
   }
 }
@@ -466,7 +465,7 @@ class _StockBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: bg, borderRadius: BorderRadius.circular(99)),
       child: Text(label,
-        style: GoogleFonts.plusJakartaSans(
+        style: AppFont.sans(
           fontSize: 10.5, fontWeight: FontWeight.w800, color: fg)));
   }
 }

@@ -7,9 +7,8 @@ import 'package:share_plus/share_plus.dart';
 import '../../services/app_lock_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:gap/gap.dart';
-import 'package:material_symbols_icons/symbols.dart';
+import 'package:billzap/theme/app_icons.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
@@ -34,7 +33,7 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: AppColors.bg,
-        title: Text(tr('set.title', ref), style: GoogleFonts.plusJakartaSans(
+        title: Text(tr('set.title', ref), style: AppFont.sans(
           fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1))),
 
 
@@ -83,7 +82,7 @@ class _TabBtn extends StatelessWidget {
               width: 2))),
           child: Text(label,
             textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
               fontSize: 12, fontWeight: FontWeight.w700,
               color: idx == cur ? AppColors.brand : AppColors.t3)))));
   }
@@ -134,7 +133,7 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
       final n = s.split(' (')[0];
       return DropdownMenuItem<String>(
         value: n,
-        child: Text(s, style: GoogleFonts.plusJakartaSans(fontSize: 13)));
+        child: Text(s, style: AppFont.sans(fontSize: 13)));
     }).toList();
 
     final saveBtn = SizedBox(
@@ -149,7 +148,7 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
               child: CircularProgressIndicator(
                 color: Colors.white, strokeWidth: 2))
           : Text(tr('set.save_business', ref),
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                 fontSize: 14, fontWeight: FontWeight.w700))));
 
     return SingleChildScrollView(
@@ -297,7 +296,7 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
               ? const SizedBox(width: 20, height: 20,
                   child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
               : Text(tr('set.save_bank', ref),
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFont.sans(
                     fontSize: 14, fontWeight: FontWeight.w700)))),
       ]));
   }
@@ -372,9 +371,9 @@ class _InvoicePanelState extends ConsumerState<_InvoicePanel> {
               borderSide: BorderSide(color: AppColors.border)),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.brand, width: 1.5)),
+              borderSide: BorderSide(color: AppColors.brand, width: 1.5)),
             contentPadding: const EdgeInsets.all(13)),
-          style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.t1)),
+          style: AppFont.sans(fontSize: 13.5, color: AppColors.t1)),
         const Gap(20),
         SizedBox(
           width: double.infinity,
@@ -386,7 +385,7 @@ class _InvoicePanelState extends ConsumerState<_InvoicePanel> {
               ? const SizedBox(width: 20, height: 20,
                   child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
               : Text(tr('set.save_settings', ref),
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFont.sans(
                     fontSize: 14, fontWeight: FontWeight.w700)))),
       ]));
   }
@@ -466,7 +465,7 @@ Download: $playStoreUrl
         context: context,
         builder: (ctx) => AlertDialog(
           title: Text(tr('set.lock_disable_title', ref),
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w900)),
+            style: AppFont.sans(fontWeight: FontWeight.w900)),
           content: Text(tr('set.lock_disable_msg', ref)),
           actions: [
             TextButton(
@@ -521,7 +520,7 @@ Download: $playStoreUrl
                   Container(
                     width: 42, height: 42,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
+                      gradient: LinearGradient(
                         colors: [AppColors.brand, Color(0xFF4070FF)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight),
@@ -533,13 +532,13 @@ Download: $playStoreUrl
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(tr('set.language', ref),
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFont.sans(
                           fontSize: 14.5,
                           fontWeight: FontWeight.w800,
                           color: AppColors.t1)),
                       const Gap(2),
                       Text('${lang.name} • ${lang.englishName}',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFont.sans(
                           fontSize: 12,
                           color: AppColors.t3)),
                     ])),
@@ -550,7 +549,7 @@ Download: $playStoreUrl
                       color: AppColors.brandSoft,
                       borderRadius: BorderRadius.circular(20)),
                     child: Text(tr('set.change', ref),
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFont.sans(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: AppColors.brand))),
@@ -628,12 +627,12 @@ Download: $playStoreUrl
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: AppColors.border)),
           child: Column(children: [
-            const Icon(Symbols.bolt, size: 48, color: AppColors.brand),
+            Icon(Symbols.bolt, size: 48, color: AppColors.brand),
             const Gap(8),
-            Text('BillZap', style: GoogleFonts.plusJakartaSans(
+            Text('BillZap', style: AppFont.sans(
               fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.t1)),
             Text(tr('splash.tagline', ref),
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                 fontSize: 13, color: AppColors.t3)),
             const Gap(16),
             const Divider(),
@@ -649,7 +648,7 @@ Download: $playStoreUrl
               onPressed: _openSite,
               icon: const Icon(Symbols.open_in_new, size: 16),
               label: Text(tr('set.visit_site_btn', ref),
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFont.sans(
                   fontSize: 13, fontWeight: FontWeight.w700)),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.brand,
@@ -660,7 +659,7 @@ Download: $playStoreUrl
             )),
             const Gap(6),
             Text('billzap.netlify.app',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFont.sans(
                 fontSize: 11, color: AppColors.t4)),
           ])),
       ]));
@@ -715,13 +714,13 @@ class _SettingsTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFont.sans(
                       fontSize: 14.5,
                       fontWeight: FontWeight.w800,
                       color: AppColors.t1)),
                   const Gap(2),
                   Text(subtitle,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFont.sans(
                       fontSize: 12,
                       color: subtitleColor ?? AppColors.t3,
                       fontWeight: subtitleColor == AppColors.green
@@ -786,12 +785,12 @@ class _ThemeTile extends ConsumerWidget {
               Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(tr('set.theme', ref),
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFont.sans(
                       fontSize: 14.5, fontWeight: FontWeight.w800,
                       color: AppColors.t1)),
                   const Gap(2),
                   Text(label,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFont.sans(
                       fontSize: 12, color: AppColors.t3)),
                 ])),
               Icon(Symbols.chevron_right, color: AppColors.t3, size: 22),
@@ -819,7 +818,7 @@ class _ThemeTile extends ConsumerWidget {
               borderRadius: BorderRadius.circular(99))),
           const Gap(14),
           Text(tr('set.theme_choose', ref),
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFont.sans(
               fontSize: 16, fontWeight: FontWeight.w800,
               color: AppColors.t1)),
           const Gap(8),
@@ -872,14 +871,14 @@ class _ThemeOption extends StatelessWidget {
           const Gap(12),
           Expanded(child: Column(
             crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(label, style: GoogleFonts.plusJakartaSans(
+              Text(label, style: AppFont.sans(
                 fontSize: 14, fontWeight: FontWeight.w700,
                 color: AppColors.t1)),
-              Text(sub, style: GoogleFonts.plusJakartaSans(
+              Text(sub, style: AppFont.sans(
                 fontSize: 11.5, color: AppColors.t3)),
             ])),
           if (selected)
-            const Icon(Symbols.check_circle, color: AppColors.brand, size: 20),
+            Icon(Symbols.check_circle, color: AppColors.brand, size: 20),
         ]),
       ),
     );
@@ -898,10 +897,10 @@ class _InfoRow extends StatelessWidget {
       child: Row(children: [
         Icon(icon, size: 16, color: color),
         const Gap(10),
-        Text(label, style: GoogleFonts.plusJakartaSans(
+        Text(label, style: AppFont.sans(
           fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.t2)),
         const Spacer(),
-        Text(value, style: GoogleFonts.plusJakartaSans(
+        Text(value, style: AppFont.sans(
           fontSize: 13, color: AppColors.t3)),
       ]));
   }
@@ -910,14 +909,14 @@ class _InfoRow extends StatelessWidget {
 Widget _Sec(String t) {
   return Padding(
     padding: const EdgeInsets.only(bottom: 12),
-    child: Text(t, style: GoogleFonts.plusJakartaSans(
+    child: Text(t, style: AppFont.sans(
       fontSize: 14.5, fontWeight: FontWeight.w800, color: AppColors.t1)));
 }
 
 Widget _Label(String t) {
   return Padding(
     padding: const EdgeInsets.only(bottom: 5),
-    child: Text(t, style: GoogleFonts.plusJakartaSans(
+    child: Text(t, style: AppFont.sans(
       fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.t3)));
 }
 
@@ -946,8 +945,8 @@ Widget _F(String label, TextEditingController ctrl,
             borderSide: BorderSide(color: AppColors.border)),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: AppColors.brand, width: 1.5)),
+            borderSide: BorderSide(color: AppColors.brand, width: 1.5)),
           contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13)),
-        style: GoogleFonts.plusJakartaSans(fontSize: 13.5, color: AppColors.t1)),
+        style: AppFont.sans(fontSize: 13.5, color: AppColors.t1)),
     ]));
 }
