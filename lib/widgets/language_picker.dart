@@ -26,7 +26,8 @@ class LanguagePickerScreen extends ConsumerWidget {
         title: Text(
           tr('set.language', ref),
           style: AppFont.sans(
-            fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1),
+            fontSize: 21, fontWeight: FontWeight.w700,
+          letterSpacing: -0.5, color: AppColors.t1),
         ),
       ),
       body: SafeArea(
@@ -38,12 +39,8 @@ class LanguagePickerScreen extends ConsumerWidget {
               Container(
                 width: 64, height: 64,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColors.brand, Color(0xFF4070FF)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
+                  color: AppColors.brand,
+                  borderRadius: BorderRadius.circular(26),
                   boxShadow: [
                     BoxShadow(
                       color: AppColors.brand.withOpacity(0.35),
@@ -56,7 +53,7 @@ class LanguagePickerScreen extends ConsumerWidget {
               const Gap(20),
               Text('BillZap',
                 style: AppFont.sans(
-                  fontSize: 28, fontWeight: FontWeight.w900,
+                  fontSize: 28, fontWeight: FontWeight.w700,
                   color: AppColors.t1, letterSpacing: -0.5)),
               const Gap(6),
               Text(
@@ -107,7 +104,7 @@ class LanguagePickerScreen extends ConsumerWidget {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
+                        borderRadius: BorderRadius.circular(20)),
                       elevation: 0,
                     ),
                     child: Row(
@@ -116,7 +113,7 @@ class LanguagePickerScreen extends ConsumerWidget {
                         Text(
                           tr('common.next', ref),
                           style: AppFont.sans(
-                            fontSize: 15, fontWeight: FontWeight.w800)),
+                            fontSize: 15, fontWeight: FontWeight.w600)),
                         const Gap(6),
                         const Icon(Symbols.arrow_forward, size: 18),
                       ],
@@ -149,7 +146,7 @@ class _LangTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: selected ? AppColors.brandSoft : AppColors.card,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: selected ? AppColors.brand : AppColors.border,
           width: selected ? 1.5 : 1,
@@ -159,7 +156,7 @@ class _LangTile extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(20),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
@@ -168,23 +165,16 @@ class _LangTile extends StatelessWidget {
                 Container(
                   width: 44, height: 44,
                   decoration: BoxDecoration(
-                    gradient: selected
-                      ? LinearGradient(
-                          colors: [AppColors.brand, Color(0xFF4070FF)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight)
-                      : null,
-                    color: selected ? null : AppColors.bg,
-                    borderRadius: BorderRadius.circular(12),
-                    border: selected ? null : Border.all(color: AppColors.border),
+                    color: selected ? AppColors.brand : AppColors.inset,
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Center(
                     child: Text(
                       lang.flag,
                       style: TextStyle(
                         fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: selected ? Colors.white : AppColors.t2,
+                        fontWeight: FontWeight.w600,
+                        color: selected ? AppColors.onBrand : AppColors.t2,
                       ),
                     ),
                   ),
@@ -264,7 +254,7 @@ class LanguagePill extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: AppColors.brandSoft,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(26),
           border: Border.all(color: AppColors.brand.withOpacity(0.2)),
         ),
         child: Row(

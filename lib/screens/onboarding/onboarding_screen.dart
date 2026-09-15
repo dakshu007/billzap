@@ -174,7 +174,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 32, vertical: 14),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(16)),
                     elevation: 0,
                   ),
                   child: _saving
@@ -210,12 +210,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.brand, Color(0xFF4070FF)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
+              color: AppColors.brand,
+              borderRadius: BorderRadius.circular(26),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.brand.withOpacity(0.35),
@@ -231,7 +227,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Text(trGlobal('onboard.welcome'),
               style: AppFont.sans(
                   fontSize: 28,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w700,
                   color: AppColors.t1,
                   height: 1.2)),
           const Gap(8),
@@ -243,7 +239,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Container(
             decoration: BoxDecoration(
               color: AppColors.card,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(20),
               border: Border.all(color: AppColors.border),
             ),
             child: Material(
@@ -255,7 +251,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     builder: (_) => const LanguagePickerScreen(),
                   ));
                 },
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(20),
                 child: Padding(
                   padding: const EdgeInsets.all(14),
                   child: Row(children: [
@@ -264,7 +260,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       height: 40,
                       decoration: BoxDecoration(
                         color: AppColors.brandSoft,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                       child: Icon(Symbols.translate,
                           color: AppColors.brand, size: 20),
@@ -317,7 +313,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Text(trGlobal('onboard.profile_title'),
               style: AppFont.sans(
                   fontSize: 24,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w700,
                   color: AppColors.t1)),
           const Gap(6),
           Text(trGlobal('onboard.profile_sub'),
@@ -351,7 +347,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
               color: AppColors.card,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppColors.border),
             ),
             child: DropdownButton<String>(
@@ -374,7 +370,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: AppColors.brandSoft,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppColors.brand.withOpacity(0.2)),
             ),
             child: Row(children: [
@@ -414,7 +410,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Text(trGlobal('onboard.done_title'),
               style: AppFont.sans(
                   fontSize: 26,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w700,
                   color: AppColors.t1,
                   height: 1.2),
               textAlign: TextAlign.center),
@@ -428,7 +424,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppColors.card,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(20),
               border: Border.all(color: AppColors.border),
             ),
             child: Column(children: [
@@ -456,7 +452,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           height: 36,
           decoration: BoxDecoration(
             color: AppColors.brandSoft,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(14),
           ),
           child: Icon(icon, color: AppColors.brand, size: 18),
         ),
@@ -510,15 +506,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               filled: true,
               fillColor: AppColors.card,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide(color: AppColors.border),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide(color: AppColors.border),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(14),
                 borderSide:
                     BorderSide(color: AppColors.brand, width: 1.5),
               ),

@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/ui_kit.dart';
 import '../../theme/app_spacing.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
@@ -79,10 +80,10 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         backgroundColor: AppColors.bg,
-        leading: IconButton(
-          icon: Icon(Symbols.arrow_back, color: AppColors.t1, size: 24),
+        leadingWidth: 62,
+        leading: AppBackButton(
           tooltip: trGlobal('common.cancel'),
-          onPressed: () {
+          onTap: () {
             if (context.canPop()) {
               context.pop();
             } else {
@@ -91,11 +92,16 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
           },
         ),
         title: Text(tr('cust.title', ref), style: AppFont.sans(
-          fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
+          fontSize: 21, fontWeight: FontWeight.w700,
+          letterSpacing: -0.5, color: AppColors.t1)),
         actions: [
-          IconButton(
-            icon: Icon(Symbols.person_add, color: AppColors.brand),
-            onPressed: () => _addSheet(context, ref)),
+          Padding(
+            padding: const EdgeInsets.only(right: 14),
+            child: AppIconButton(
+              icon: Symbols.person_add,
+              background: AppColors.brand,
+              foreground: AppColors.onBrand,
+              onTap: () => _addSheet(context, ref))),
         ],
       ),
       body: RefreshIndicator(
@@ -112,7 +118,7 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
                     Icon(Symbols.group, size: 48, color: AppColors.t4),
                     const Gap(10),
                     Text(tr('cust.no_customers', ref), style: AppFont.sans(
-                      fontSize: 16, fontWeight: FontWeight.w800)),
+                      fontSize: 16, fontWeight: FontWeight.w600)),
                     const Gap(6),
                     Text(tr('cust.tap_add', ref), style: AppFont.sans(
                       fontSize: 13, color: AppColors.t3)),
@@ -142,16 +148,16 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
                       margin: const EdgeInsets.only(bottom: 8),
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(color: AppColors.card,
-                        borderRadius: BorderRadius.circular(13),
+                        borderRadius: BorderRadius.circular(18),
                         border: Border.all(color: AppColors.border)),
                       child: Row(children: [
                         Container(width: 42, height: 42,
                           decoration: BoxDecoration(color: AppColors.brandSoft,
-                            borderRadius: BorderRadius.circular(11)),
+                            borderRadius: BorderRadius.circular(14)),
                           child: Center(child: Text(
                             c.name.isNotEmpty ? c.name[0].toUpperCase() : '?',
                             style: AppFont.sans(
-                              fontSize: 17, fontWeight: FontWeight.w900,
+                              fontSize: 17, fontWeight: FontWeight.w700,
                               color: AppColors.brand)))),
                         const Gap(12),
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -172,7 +178,7 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
                         ])),
                         Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                           Text(formatCurrency(tot), style: AppFont.sans(
-                            fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.t1)),
+                            fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.t1)),
                           Text('${ci.length} ${tr('cust.inv_short', ref)}',
                             style: AppFont.sans(
                               fontSize: 10.5, color: AppColors.t3)),
@@ -201,7 +207,7 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
     margin: const EdgeInsets.only(bottom: 8),
     decoration: BoxDecoration(
       color: AppColors.red,
-      borderRadius: BorderRadius.circular(13),
+      borderRadius: BorderRadius.circular(18),
     ),
     alignment: Alignment.centerRight,
     padding: const EdgeInsets.symmetric(horizontal: 22),
@@ -213,7 +219,7 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
         Text('Delete',
             style: TextStyle(
                 color: Colors.white,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
                 fontSize: 13)),
       ],
     ),
@@ -253,12 +259,12 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
                       borderRadius: BorderRadius.circular(99)))),
                   const Gap(16),
                   Text(trGlobal('cust.add_new'), style: AppFont.sans(
-                    fontSize: 18, fontWeight: FontWeight.w800)),
+                    fontSize: 18, fontWeight: FontWeight.w600)),
                   const Gap(16),
                   TextField(controller: name,
                     decoration: InputDecoration(labelText: trGlobal('cust.name'),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10))),
+                        borderRadius: BorderRadius.circular(14))),
                     style: AppFont.sans(fontSize: 13.5)),
                   const Gap(10),
                   TextField(controller: phone,
@@ -268,7 +274,7 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
                       labelText: trGlobal('cust.phone'),
                       errorText: phoneErr,
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10))),
+                        borderRadius: BorderRadius.circular(14))),
                     style: AppFont.sans(fontSize: 13.5)),
                   const Gap(10),
                   Row(children: [
@@ -279,13 +285,13 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
                         labelText: trGlobal('cust.gstin'),
                         errorText: gstinErr,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10))),
+                          borderRadius: BorderRadius.circular(14))),
                       style: AppFont.sans(fontSize: 13.5))),
                     const Gap(10),
                     Expanded(child: TextField(controller: addr,
                       decoration: InputDecoration(labelText: trGlobal('set.city'),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10))),
+                          borderRadius: BorderRadius.circular(14))),
                       style: AppFont.sans(fontSize: 13.5))),
                   ]),
                   const Gap(20),

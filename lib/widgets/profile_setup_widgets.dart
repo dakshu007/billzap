@@ -70,7 +70,7 @@ void _showWelcomeModal(BuildContext context) {
         decoration: BoxDecoration(
           // Use the theme-aware card color so the modal flips with dark mode.
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(26),
           boxShadow: [BoxShadow(
             color: Colors.black.withOpacity(AppColors.isDark ? 0.5 : 0.15),
             blurRadius: 28, offset: const Offset(0, 10))],
@@ -80,21 +80,19 @@ void _showWelcomeModal(BuildContext context) {
           Container(
             width: 76, height: 76,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.brand, Color(0xFF4070FF)],
-                begin: Alignment.topLeft, end: Alignment.bottomRight),
-              borderRadius: BorderRadius.circular(20),
+              color: AppColors.brand,
+              borderRadius: BorderRadius.circular(26),
               boxShadow: [BoxShadow(
                 color: AppColors.brand.withOpacity(0.35),
                 blurRadius: 20, offset: const Offset(0, 8))],
             ),
-            child: const Icon(Symbols.storefront, color: Colors.white, size: 40),
+            child: Icon(Symbols.storefront, color: AppColors.onBrand, size: 40),
           ),
           const Gap(20),
           Text('Welcome to BillZap! 👋',
             textAlign: TextAlign.center,
             style: AppFont.sans(
-              fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.t1)),
+              fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.t1)),
           const Gap(6),
           Text('Set up your business profile to create professional invoices',
             textAlign: TextAlign.center,
@@ -106,7 +104,7 @@ void _showWelcomeModal(BuildContext context) {
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: AppColors.brandSoft,
-              borderRadius: BorderRadius.circular(12)),
+              borderRadius: BorderRadius.circular(16)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               _Feature('🧾', 'Your business name on every PDF'),
               const Gap(8),
@@ -130,12 +128,12 @@ void _showWelcomeModal(BuildContext context) {
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(13)),
+                borderRadius: BorderRadius.circular(18)),
               elevation: 0),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Text('Set up profile',
                 style: AppFont.sans(
-                  fontSize: 15, fontWeight: FontWeight.w800)),
+                  fontSize: 15, fontWeight: FontWeight.w600)),
               const Gap(8),
               const Icon(Symbols.arrow_forward, size: 18),
             ]),
@@ -208,7 +206,7 @@ class ProfileIncompleteBanner extends ConsumerWidget {
           // yellowSoft is now brightness-aware (dark amber in dark mode),
           // so the t1 text drawn over it stays readable on both themes.
           color: AppColors.yellowSoft,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: AppColors.yellow.withOpacity(AppColors.isDark ? 0.55 : 0.4)),
         ),
@@ -217,7 +215,7 @@ class ProfileIncompleteBanner extends ConsumerWidget {
             width: 42, height: 42,
             decoration: BoxDecoration(
               color: AppColors.orange.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(11)),
+              borderRadius: BorderRadius.circular(14)),
             child: const Icon(Symbols.warning, color: AppColors.orange, size: 22),
           ),
           const Gap(12),
@@ -226,7 +224,7 @@ class ProfileIncompleteBanner extends ConsumerWidget {
             Row(children: [
               Text('Profile incomplete',
                 style: AppFont.sans(
-                  fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.t1)),
+                  fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.t1)),
               const Gap(8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
@@ -235,7 +233,7 @@ class ProfileIncompleteBanner extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(99)),
                 child: Text('$score%',
                   style: AppFont.sans(
-                    fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white)),
+                    fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)),
               ),
             ]),
             const Gap(2),

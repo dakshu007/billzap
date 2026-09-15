@@ -116,7 +116,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Send greetings?',
-          style: AppFont.sans(fontWeight: FontWeight.w900)),
+          style: AppFont.sans(fontWeight: FontWeight.w700)),
         content: Column(mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('This will open WhatsApp ${selectedCustomers.length} times.',
@@ -200,7 +200,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
           const Gap(8),
           Text(festival.name,
             style: AppFont.sans(
-              fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.t1)),
+              fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.t1)),
         ]),
       ),
       body: ListView(
@@ -210,10 +210,8 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFF6F00), Color(0xFFFFB300)],
-                begin: Alignment.topLeft, end: Alignment.bottomRight),
-              borderRadius: BorderRadius.circular(14),
+              color: AppColors.orange,
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Row(children: [
               Text(festival.emoji, style: const TextStyle(fontSize: 36)),
@@ -222,7 +220,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(festival.name,
                   style: AppFont.sans(
-                    fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
+                    fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
                 Text(_formatDate(festival.date),
                   style: AppFont.sans(
                     fontSize: 12, color: Colors.white.withOpacity(0.92))),
@@ -235,7 +233,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
                       borderRadius: BorderRadius.circular(99)),
                     child: Text('TODAY',
                       style: AppFont.sans(
-                        fontSize: 9, fontWeight: FontWeight.w900,
+                        fontSize: 9, fontWeight: FontWeight.w700,
                         color: Colors.white, letterSpacing: 0.7)),
                   ),
                 ],
@@ -247,13 +245,13 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
           // ─── Message section ───
           Text('MESSAGE',
             style: AppFont.sans(
-              fontSize: 11, fontWeight: FontWeight.w800,
+              fontSize: 11, fontWeight: FontWeight.w600,
               color: AppColors.t3, letterSpacing: 0.8)),
           const Gap(8),
           Container(
             decoration: BoxDecoration(
               color: AppColors.card,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.border)),
             padding: const EdgeInsets.all(12),
             child: TextField(
@@ -279,7 +277,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             Text('SEND TO',
               style: AppFont.sans(
-                fontSize: 11, fontWeight: FontWeight.w800,
+                fontSize: 11, fontWeight: FontWeight.w600,
                 color: AppColors.t3, letterSpacing: 0.8)),
             Row(children: [
               TextButton(
@@ -306,7 +304,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: AppColors.brandSoft,
-              borderRadius: BorderRadius.circular(10)),
+              borderRadius: BorderRadius.circular(14)),
             child: Text(
               '${_selectedIds.length} of ${withPhone.length} customers selected'
               '${withoutPhone > 0 ? " • $withoutPhone without phone skipped" : ""}',
@@ -333,7 +331,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
             Container(
               decoration: BoxDecoration(
                 color: AppColors.card,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppColors.border)),
               child: Column(children: [
                 for (int i = 0; i < withPhone.length; i++) ...[
@@ -371,7 +369,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: AppColors.yellowSoft,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppColors.yellow.withOpacity(0.4))),
               child: Row(children: [
                 const SizedBox(
@@ -395,12 +393,12 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
                   ? 'Select customers'
                   : 'Send to ${_selectedIds.length} customer${_selectedIds.length == 1 ? "" : "s"}',
                 style: AppFont.sans(
-                  fontSize: 14, fontWeight: FontWeight.w800)),
+                  fontSize: 14, fontWeight: FontWeight.w600)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF25D366),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
             ),
 
@@ -409,7 +407,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
             padding: const EdgeInsets.all(11),
             decoration: BoxDecoration(
               color: AppColors.bg,
-              borderRadius: BorderRadius.circular(8)),
+              borderRadius: BorderRadius.circular(12)),
             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Icon(Symbols.info, size: 14, color: AppColors.t3),
               const Gap(8),

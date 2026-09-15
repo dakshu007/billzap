@@ -44,15 +44,12 @@ class _InsightContainer extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: colors.gradient,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: colors.border, width: 0.6),
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: AppShadow.card,
+        border: AppColors.isDark ? Border.all(color: AppColors.border) : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,10 +67,10 @@ class _InsightContainer extends StatelessWidget {
               child: Text(
                 insight.title,
                 style: AppFont.sans(
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w900,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
                   color: colors.tagText,
-                  letterSpacing: 0.8,
+                  letterSpacing: 0.6,
                 ),
               ),
             ),
@@ -83,8 +80,8 @@ class _InsightContainer extends StatelessWidget {
           Text(
             insight.message,
             style: AppFont.sans(
-              fontSize: 13.5,
-              fontWeight: FontWeight.w600,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
               color: AppColors.t1,
               height: 1.45,
             ),
@@ -99,14 +96,14 @@ class _InsightContainer extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                   decoration: BoxDecoration(
                     color: colors.btnBg,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
                   ),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     Text(
                       insight.actionLabel!,
                       style: AppFont.sans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
                         color: colors.btnText,
                       ),
                     ),

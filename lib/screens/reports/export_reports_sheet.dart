@@ -291,7 +291,7 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
               const Gap(10),
               Text('Export Reports',
                 style: AppFont.sans(
-                  fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.t1)),
+                  fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.t1)),
               const Spacer(),
               IconButton(
                 onPressed: () => Navigator.pop(context),
@@ -308,7 +308,7 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
                 // ──────── Date range section ────────
                 Text('PERIOD',
                   style: AppFont.sans(
-                    fontSize: 11, fontWeight: FontWeight.w800,
+                    fontSize: 11, fontWeight: FontWeight.w600,
                     color: AppColors.t3, letterSpacing: 0.8)),
                 const Gap(8),
                 Wrap(
@@ -333,7 +333,7 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: AppColors.brandSoft,
-                    borderRadius: BorderRadius.circular(8)),
+                    borderRadius: BorderRadius.circular(12)),
                   child: Row(children: [
                     Icon(Symbols.event, size: 16, color: AppColors.brand),
                     const Gap(8),
@@ -350,7 +350,7 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
                 // ──────── Reports ────────
                 Text('REPORTS',
                   style: AppFont.sans(
-                    fontSize: 11, fontWeight: FontWeight.w800,
+                    fontSize: 11, fontWeight: FontWeight.w600,
                     color: AppColors.t3, letterSpacing: 0.8)),
                 const Gap(8),
 
@@ -404,7 +404,7 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: AppColors.yellowSoft,
-                    borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(14)),
                   child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     const Icon(Symbols.lightbulb, size: 16, color: AppColors.orange),
                     const Gap(8),
@@ -483,7 +483,7 @@ class _ReportRow extends StatelessWidget {
       padding: const EdgeInsets.all(13),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(13),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppColors.border)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
@@ -491,7 +491,7 @@ class _ReportRow extends StatelessWidget {
             width: 38, height: 38,
             decoration: BoxDecoration(
               color: iconColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10)),
+              borderRadius: BorderRadius.circular(14)),
             child: Icon(icon, color: iconColor, size: 20)),
           const Gap(11),
           Expanded(child: Column(
@@ -499,7 +499,7 @@ class _ReportRow extends StatelessWidget {
             children: [
               Text(title,
                 style: AppFont.sans(
-                  fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.t1)),
+                  fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.t1)),
               Text(subtitle,
                 style: AppFont.sans(
                   fontSize: 11.5, color: AppColors.t3, height: 1.3)),
@@ -512,11 +512,11 @@ class _ReportRow extends StatelessWidget {
             icon: Icon(Symbols.picture_as_pdf, size: 16, color: AppColors.brand),
             label: Text('PDF',
               style: AppFont.sans(
-                fontSize: 12.5, fontWeight: FontWeight.w800, color: AppColors.brand)),
+                fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.brand)),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 9),
               side: BorderSide(color: AppColors.border),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
           )),
           const Gap(8),
           Expanded(child: OutlinedButton.icon(
@@ -524,11 +524,11 @@ class _ReportRow extends StatelessWidget {
             icon: const Icon(Symbols.table_view, size: 16, color: AppColors.green),
             label: Text('CSV',
               style: AppFont.sans(
-                fontSize: 12.5, fontWeight: FontWeight.w800, color: AppColors.green)),
+                fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.green)),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 9),
               side: BorderSide(color: AppColors.border),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
           )),
         ]),
         // GSTR-1 JSON action — full-width second row, only when supplied.
@@ -539,11 +539,11 @@ class _ReportRow extends StatelessWidget {
             icon: const Icon(Symbols.data_object, size: 16, color: AppColors.purple),
             label: Text(jsonLabel ?? 'JSON',
               style: AppFont.sans(
-                fontSize: 12.5, fontWeight: FontWeight.w800, color: AppColors.purple)),
+                fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.purple)),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 9),
               side: BorderSide(color: AppColors.purple.withOpacity(0.35)),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
           )),
         ],
       ]),

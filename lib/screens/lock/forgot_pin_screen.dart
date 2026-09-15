@@ -103,7 +103,7 @@ class _ForgotPinState extends State<ForgotPinScreen> {
         iconTheme: IconThemeData(color: AppColors.t1),
         title: Text('Reset PIN',
           style: AppFont.sans(
-            fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.t1)),
+            fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.t1)),
       ),
       body: SafeArea(
         child: AnimatedSwitcher(
@@ -153,14 +153,14 @@ class _StepPickBackup extends StatelessWidget {
           width: 76, height: 76,
           decoration: BoxDecoration(
             color: AppColors.brandSoft,
-            borderRadius: BorderRadius.circular(20)),
+            borderRadius: BorderRadius.circular(26)),
           child: Icon(Symbols.help, color: AppColors.brand, size: 44),
         )),
         const Gap(20),
         Text('Forgot PIN?',
           textAlign: TextAlign.center,
           style: AppFont.sans(
-            fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.t1)),
+            fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.t1)),
         const Gap(10),
         Text(
           'No problem. To reset your PIN, you\'ll need your '
@@ -173,11 +173,11 @@ class _StepPickBackup extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: AppColors.brandSoft,
-            borderRadius: BorderRadius.circular(12)),
+            borderRadius: BorderRadius.circular(16)),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('Where to find it',
               style: AppFont.sans(
-                fontSize: 12, fontWeight: FontWeight.w900,
+                fontSize: 12, fontWeight: FontWeight.w700,
                 color: AppColors.brand, letterSpacing: 0.5)),
             const Gap(8),
             _whereRow(Symbols.folder, 'Downloads folder on this phone'),
@@ -196,13 +196,13 @@ class _StepPickBackup extends StatelessWidget {
             : const Icon(Symbols.upload_file, size: 20),
           label: Text(busy ? 'Validating...' : 'Choose backup file',
             style: AppFont.sans(
-              fontSize: 14.5, fontWeight: FontWeight.w800)),
+              fontSize: 14.5, fontWeight: FontWeight.w600)),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.brand,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(13)),
+              borderRadius: BorderRadius.circular(18)),
             elevation: 0),
         ),
       ]),
@@ -258,14 +258,14 @@ class _StepSetNewPinState extends State<_StepSetNewPin> {
           width: 64, height: 64,
           decoration: BoxDecoration(
             color: AppColors.greenSoft,
-            borderRadius: BorderRadius.circular(16)),
+            borderRadius: BorderRadius.circular(22)),
           child: const Icon(Symbols.check_circle, color: AppColors.green, size: 32),
         ),
         const Gap(16),
         Text('Backup verified ✓',
           textAlign: TextAlign.center,
           style: AppFont.sans(
-            fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.t1)),
+            fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.t1)),
         const Gap(4),
         Text('Set a new 4-digit PIN',
           textAlign: TextAlign.center,
@@ -307,17 +307,15 @@ class _StepResetDone extends StatelessWidget {
         Container(
           width: 96, height: 96,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [AppColors.green, Color(0xFF34D399)],
-              begin: Alignment.topLeft, end: Alignment.bottomRight),
-            borderRadius: BorderRadius.circular(24)),
+            color: AppColors.green,
+            borderRadius: BorderRadius.circular(28)),
           child: const Icon(Symbols.check, color: Colors.white, size: 56),
         ),
         const Gap(20),
         Text('PIN reset successfully!',
           textAlign: TextAlign.center,
           style: AppFont.sans(
-            fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.t1)),
+            fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.t1)),
         const Gap(8),
         Text('You can now use your new PIN.',
           textAlign: TextAlign.center,
@@ -331,11 +329,11 @@ class _StepResetDone extends StatelessWidget {
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(13)),
+              borderRadius: BorderRadius.circular(18)),
             elevation: 0),
           child: Text('Continue to BillZap',
             style: AppFont.sans(
-              fontSize: 14.5, fontWeight: FontWeight.w800)),
+              fontSize: 14.5, fontWeight: FontWeight.w600)),
         )),
       ]),
     );

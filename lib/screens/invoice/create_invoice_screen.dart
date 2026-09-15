@@ -124,11 +124,12 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
         backgroundColor: AppColors.bg,
         leading: IconButton(
           icon: Container(width: 34, height: 34,
-            decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(14)),
             child: Icon(Symbols.close, size: 19, color: AppColors.t1)),
           onPressed: () => context.go('/home')),
         title: Text(tr('create.title', ref), style: AppFont.sans(
-          fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
+          fontSize: 21, fontWeight: FontWeight.w700,
+          letterSpacing: -0.5, color: AppColors.t1)),
         actions: [
           Padding(padding: const EdgeInsets.only(right: 12),
             child: ElevatedButton(
@@ -149,7 +150,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
             Stack(clipBehavior: Clip.none, children: [
               _TextField(_custName, tr('create.search_customer', ref)),
               if (_acShow) Positioned(top: 46, left: 0, right: 0, child: Material(
-                elevation: 6, borderRadius: BorderRadius.circular(10),
+                elevation: 6, borderRadius: BorderRadius.circular(14),
                 child: ListView(
                   shrinkWrap: true, padding: EdgeInsets.zero,
                   children: _acSugg.map((cust) => ListTile(
@@ -187,8 +188,8 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
             DropdownButtonFormField<String>(
               value: kStates.contains(_place) ? _place : kStates.first,
               decoration: InputDecoration(isDense: true,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
                   borderSide: BorderSide(color: AppColors.border)),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13)),
               items: kStates.map((s) => DropdownMenuItem(value: s,
@@ -238,8 +239,8 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
               TextField(
                 keyboardType: TextInputType.number, onChanged: (v) => setState(() => _discount = double.tryParse(v) ?? 0),
                 decoration: InputDecoration(hintText: '0',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide(color: AppColors.border)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13)),
                 style: AppFont.sans(fontSize: 13.5)),
@@ -253,8 +254,8 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
               TextField(
                 keyboardType: TextInputType.number, onChanged: (v) => setState(() => _shipping = double.tryParse(v) ?? 0),
                 decoration: InputDecoration(hintText: '0',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
                     borderSide: BorderSide(color: AppColors.border)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13)),
                 style: AppFont.sans(fontSize: 13.5)),
@@ -272,9 +273,9 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
             const Divider(height: 18),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Text(tr('create.grand_total', ref), style: AppFont.sans(
-                fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.t1)),
+                fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.t1)),
               Text(formatCurrency(_grand), style: AppFont.sans(
-                fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.brand)),
+                fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.brand)),
             ]),
           ]),
 
@@ -283,8 +284,8 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
             TextField(controller: _notes, maxLines: 3,
               decoration: InputDecoration(hintText: tr('create.notes_hint', ref),
                 hintStyle: AppFont.sans(fontSize: 13, color: AppColors.t4),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
                   borderSide: BorderSide(color: AppColors.border)),
                 contentPadding: const EdgeInsets.all(13)),
               style: AppFont.sans(fontSize: 13.5)),
@@ -317,7 +318,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
           child: Column(children: [
             Container(width: 36, height: 4, margin: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(99))),
-            Text(trGlobal('cat.from_catalog'), style: AppFont.sans(fontSize: 17, fontWeight: FontWeight.w800)),
+            Text(trGlobal('cat.from_catalog'), style: AppFont.sans(fontSize: 17, fontWeight: FontWeight.w600)),
             const Gap(10),
             Expanded(child: ListView.builder(
               controller: ctrl, itemCount: items.length,
@@ -332,12 +333,12 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                   },
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(13),
-                    decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(12),
+                    decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: AppColors.border)),
                     child: Row(children: [
                       Container(width: 40, height: 40,
                         decoration: BoxDecoration(color: AppColors.brandSoft,
-                          borderRadius: BorderRadius.circular(10)),
+                          borderRadius: BorderRadius.circular(14)),
                         child: Icon(Symbols.shopping_basket, color: AppColors.brand, size: 20)),
                       const Gap(12),
                       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -348,7 +349,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                       ])),
                       Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                         Text(formatCurrency(p.price), style: AppFont.sans(
-                          fontSize: 15, fontWeight: FontWeight.w900, color: AppColors.brand)),
+                          fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.brand)),
                         Text('GST ${p.gstRate}%', style: AppFont.sans(
                           fontSize: 11, color: AppColors.green, fontWeight: FontWeight.w600)),
                       ]),
@@ -464,15 +465,15 @@ class _LineRowState extends State<_LineRow> {
   Widget build(BuildContext context) => Container(
     margin: const EdgeInsets.only(bottom: 10),
     padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(12),
+    decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(16),
       border: Border.all(color: AppColors.border)),
     child: Column(children: [
       Row(children: [
         Expanded(child: TextField(controller: _name,
           decoration: InputDecoration(hintText: 'Product / service name',
             hintStyle: AppFont.sans(fontSize: 13, color: AppColors.t4), isDense: true,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(9)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(9),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: AppColors.border)),
             contentPadding: const EdgeInsets.symmetric(horizontal: 11, vertical: 11)),
           style: AppFont.sans(fontSize: 13.5))),
@@ -480,7 +481,7 @@ class _LineRowState extends State<_LineRow> {
           const Gap(8),
           GestureDetector(onTap: widget.onRemove,
             child: Container(width: 32, height: 32,
-              decoration: BoxDecoration(color: AppColors.redSoft, borderRadius: BorderRadius.circular(8)),
+              decoration: BoxDecoration(color: AppColors.redSoft, borderRadius: BorderRadius.circular(12)),
               child: const Icon(Symbols.delete, size: 16, color: AppColors.red))),
         ],
       ]),
@@ -489,8 +490,8 @@ class _LineRowState extends State<_LineRow> {
         Expanded(child: TextField(controller: _hsn,
           decoration: InputDecoration(hintText: 'HSN/SAC',
             hintStyle: AppFont.sans(fontSize: 12, color: AppColors.t4), isDense: true,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(9)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(9),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: AppColors.border)),
             contentPadding: const EdgeInsets.symmetric(horizontal: 11, vertical: 10)),
           style: AppFont.sans(fontSize: 12.5, color: AppColors.t3))),
@@ -499,7 +500,7 @@ class _LineRowState extends State<_LineRow> {
         _QtyBtn('\u2212', () { if (widget.item.qty > 1) { setState(() => widget.item.qty--); widget.onChange(); } }),
         Padding(padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Text('${widget.item.qty.toInt()}',
-            style: AppFont.sans(fontSize: 16, fontWeight: FontWeight.w900))),
+            style: AppFont.sans(fontSize: 16, fontWeight: FontWeight.w700))),
         _QtyBtn('+', () { setState(() => widget.item.qty++); widget.onChange(); }),
         const Gap(8),
         SizedBox(width: 90, child: TextField(controller: _rate,
@@ -507,8 +508,8 @@ class _LineRowState extends State<_LineRow> {
               inputFormatters: [SmartAmountFormatter()], textAlign: TextAlign.right,
           decoration: InputDecoration(hintText: 'Rate \u20b9',
             hintStyle: AppFont.sans(fontSize: 12, color: AppColors.t4), isDense: true,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(9)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(9),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: AppColors.border)),
             contentPadding: const EdgeInsets.symmetric(horizontal: 11, vertical: 10)),
           style: AppFont.sans(fontSize: 13.5))),
@@ -539,7 +540,7 @@ class _LineRowState extends State<_LineRow> {
         )),
         const Gap(8),
         Text(formatCurrency(widget.item.qty * widget.item.rate), style: AppFont.sans(
-          fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.brand)),
+          fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.brand)),
       ]),
     ]),
   );
@@ -560,11 +561,11 @@ class _Section extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     margin: const EdgeInsets.only(bottom: 12),
     decoration: BoxDecoration(color: AppColors.card,
-      borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.border)),
+      borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.border)),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Padding(padding: const EdgeInsets.fromLTRB(14, 14, 10, 10),
         child: Row(children: [
-          Text(title, style: AppFont.sans(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.t1)),
+          Text(title, style: AppFont.sans(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.t1)),
           if (trailing != null) ...[const Spacer(), trailing!],
         ])),
       const Divider(height: 1),
@@ -583,10 +584,10 @@ Widget _TextField(TextEditingController ctrl, String hint,
     textCapitalization: caps ? TextCapitalization.characters : TextCapitalization.sentences,
     decoration: InputDecoration(hintText: hint,
       hintStyle: AppFont.sans(fontSize: 13, color: AppColors.t4),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide(color: AppColors.border)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide(color: AppColors.brand, width: 1.5)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13)),
     style: AppFont.sans(fontSize: 13.5, color: AppColors.t1));
@@ -602,7 +603,7 @@ Widget _DateBtn(DateTime date, ValueChanged<DateTime> onPick) =>
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       // Use theme-aware card colour so the Invoice/Due Date picker flips
       // with dark mode instead of staying white forever.
-      decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(10),
+      decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.border)),
       child: Row(children: [
         Icon(Symbols.calendar_today, size: 15, color: AppColors.t3),
@@ -647,7 +648,7 @@ Widget _TypeBtn(String label, bool selected, VoidCallback onTap) =>
       padding: const EdgeInsets.symmetric(vertical: 9),
       decoration: BoxDecoration(
         color: selected ? AppColors.brand : AppColors.bg,
-        borderRadius: BorderRadius.circular(9),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: selected ? AppColors.brand : AppColors.border)),
       child: Text(label, textAlign: TextAlign.center,
         style: AppFont.sans(fontSize: 12, fontWeight: FontWeight.w700,

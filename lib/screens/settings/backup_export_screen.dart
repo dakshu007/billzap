@@ -40,7 +40,7 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
         iconTheme: IconThemeData(color: AppColors.t1),
         title: Text('Backup & Export',
           style: AppFont.sans(
-            fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.t1)),
+            fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.t1)),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 30),
@@ -77,7 +77,7 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: AppColors.yellowSoft,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppColors.yellow.withOpacity(0.3))),
             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
               const Icon(Symbols.lightbulb, color: AppColors.orange, size: 16),
@@ -376,7 +376,7 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
       builder: (ctx) => StatefulBuilder(builder: (ctx, ss) {
         return AlertDialog(
           title: Text(title,
-            style: AppFont.sans(fontWeight: FontWeight.w800)),
+            style: AppFont.sans(fontWeight: FontWeight.w600)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -393,7 +393,7 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: InputDecoration(
                   labelText: requireConfirm ? 'PIN' : 'Enter PIN',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                   counterText: '',
                 ),
                 style: AppFont.sans(fontSize: 18, letterSpacing: 6),
@@ -408,7 +408,7 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   decoration: InputDecoration(
                     labelText: 'Confirm PIN',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                     counterText: '',
                   ),
                   style: AppFont.sans(fontSize: 18, letterSpacing: 6),
@@ -471,7 +471,7 @@ class _SectionHeader extends StatelessWidget {
       const Gap(6),
       Text(label,
         style: AppFont.sans(
-          fontSize: 11, fontWeight: FontWeight.w800,
+          fontSize: 11, fontWeight: FontWeight.w600,
           color: AppColors.t3, letterSpacing: 0.8)),
     ]);
   }
@@ -497,14 +497,14 @@ class _BigCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.border)),
       child: Row(children: [
         Container(
           width: 48, height: 48,
           decoration: BoxDecoration(
             color: iconColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(11)),
+            borderRadius: BorderRadius.circular(14)),
           child: Icon(icon, color: iconColor, size: 26),
         ),
         const Gap(12),
@@ -513,7 +513,7 @@ class _BigCard extends StatelessWidget {
           children: [
             Text(title,
               style: AppFont.sans(
-                fontSize: 14.5, fontWeight: FontWeight.w800, color: AppColors.t1)),
+                fontSize: 14.5, fontWeight: FontWeight.w600, color: AppColors.t1)),
             const Gap(2),
             Text(subtitle,
               style: AppFont.sans(
@@ -526,7 +526,7 @@ class _BigCard extends StatelessWidget {
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 minimumSize: const Size(0, 0),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: buttonLoading
                 ? const SizedBox(
@@ -558,19 +558,19 @@ class _ExportTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: disabled ? null : () { HapticFeedback.lightImpact(); onTap(); },
-      borderRadius: BorderRadius.circular(13),
+      borderRadius: BorderRadius.circular(18),
       child: Container(
         padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(13),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(color: AppColors.border)),
         child: Row(children: [
           Container(
             width: 38, height: 38,
             decoration: BoxDecoration(
               color: disabled ? AppColors.bg : iconColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10)),
+              borderRadius: BorderRadius.circular(14)),
             child: Icon(icon,
               color: disabled ? AppColors.t4 : iconColor, size: 20),
           ),

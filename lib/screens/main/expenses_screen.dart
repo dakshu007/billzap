@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/ui_kit.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../i18n/translations.dart';
@@ -27,11 +28,16 @@ class ExpensesScreen extends ConsumerWidget {
         iconTheme: IconThemeData(color: AppColors.t1),
                 backgroundColor: AppColors.bg,
         title: Text(tr('exp.title', ref), style: AppFont.sans(
-          fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
+          fontSize: 21, fontWeight: FontWeight.w700,
+          letterSpacing: -0.5, color: AppColors.t1)),
         actions: [
-          IconButton(
-            icon: Icon(Symbols.add, color: AppColors.brand, size: 26),
-            onPressed: () => _addSheet(context, ref)),
+          Padding(
+            padding: const EdgeInsets.only(right: 14),
+            child: AppIconButton(
+              icon: Symbols.add,
+              background: AppColors.brand,
+              foreground: AppColors.onBrand,
+              onTap: () => _addSheet(context, ref))),
         ],
       ),
       body: Column(children: [
@@ -52,7 +58,7 @@ class ExpensesScreen extends ConsumerWidget {
                 Icon(Symbols.payments, size: 48, color: AppColors.t4),
                 const Gap(10),
                 Text(tr('exp.no_expenses', ref), style: AppFont.sans(
-                  fontSize: 16, fontWeight: FontWeight.w800)),
+                  fontSize: 16, fontWeight: FontWeight.w600)),
                 const Gap(6),
                 Text(tr('exp.no_expenses', ref), style: AppFont.sans(
                   fontSize: 13, color: AppColors.t3)),
@@ -72,13 +78,13 @@ class ExpensesScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: AppColors.card,
-                      borderRadius: BorderRadius.circular(13),
+                      borderRadius: BorderRadius.circular(18),
                       border: Border.all(color: AppColors.border)),
                     child: Row(children: [
                       Container(width: 42, height: 42,
                         decoration: BoxDecoration(
                           color: AppColors.purpleSoft,
-                          borderRadius: BorderRadius.circular(11)),
+                          borderRadius: BorderRadius.circular(14)),
                         child: const Center(
                           child: Icon(Symbols.receipt, size: 20,
                             color: AppColors.purple))),
@@ -95,7 +101,7 @@ class ExpensesScreen extends ConsumerWidget {
                         ])),
                       Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                         Text(formatCurrency(e.amount), style: AppFont.sans(
-                          fontSize: 14, fontWeight: FontWeight.w800,
+                          fontSize: 14, fontWeight: FontWeight.w600,
                           color: AppColors.t1)),
                         const Gap(4),
                         GestureDetector(
@@ -145,26 +151,26 @@ class ExpensesScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(99)))),
                   const Gap(16),
                   Text(trGlobal('exp.add_new'), style: AppFont.sans(
-                    fontSize: 18, fontWeight: FontWeight.w800)),
+                    fontSize: 18, fontWeight: FontWeight.w600)),
                   const Gap(16),
                   TextField(controller: title,
                     decoration: InputDecoration(labelText: trGlobal('exp.expense_title'),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10))),
+                        borderRadius: BorderRadius.circular(14))),
                     style: AppFont.sans(fontSize: 13.5)),
                   const Gap(10),
                   TextField(controller: amount,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(labelText: trGlobal('exp.amount'),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10))),
+                        borderRadius: BorderRadius.circular(14))),
                     style: AppFont.sans(fontSize: 13.5)),
                   const Gap(10),
                   DropdownButtonFormField<String>(
                     value: category,
                     decoration: InputDecoration(labelText: trGlobal('exp.category'),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10))),
+                        borderRadius: BorderRadius.circular(14))),
                     items: cats.map((c) => DropdownMenuItem(
                       value: c,
                       child: Text(c, style: AppFont.sans(
@@ -214,14 +220,14 @@ class _SumCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       decoration: BoxDecoration(
         color: soft,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withOpacity(0.2))),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(label, style: AppFont.sans(
           fontSize: 10, color: color, fontWeight: FontWeight.w600)),
         const Gap(3),
         Text(value, style: AppFont.sans(
-          fontSize: 13, fontWeight: FontWeight.w900, color: color),
+          fontSize: 13, fontWeight: FontWeight.w700, color: color),
           maxLines: 1, overflow: TextOverflow.ellipsis),
       ]),
     ),

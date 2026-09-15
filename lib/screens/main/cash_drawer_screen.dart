@@ -107,7 +107,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
         iconTheme: IconThemeData(color: AppColors.t1),
         title: Text('Day Close',
           style: AppFont.sans(
-            fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.t1)),
+            fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.t1)),
         actions: [
           if (paid.isNotEmpty)
             Padding(
@@ -139,7 +139,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
             Expanded(child: Center(child: Column(children: [
               Text(dateLabel,
                 style: AppFont.sans(
-                  fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.t1)),
+                  fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.t1)),
               Text(DateFormat('d MMMM yyyy').format(_selectedDate),
                 style: AppFont.sans(
                   fontSize: 11, color: AppColors.t3)),
@@ -172,25 +172,24 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF0A1E5E), Color(0xFF1557FF)],
-                begin: Alignment.topLeft, end: Alignment.bottomRight),
-              borderRadius: BorderRadius.circular(18),
+              color: AppColors.brand,
+              borderRadius: BorderRadius.circular(24),
             ),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('TOTAL COLLECTIONS',
                 style: AppFont.sans(
-                  fontSize: 11, fontWeight: FontWeight.w800,
-                  color: Colors.white60, letterSpacing: 0.8)),
-              const Gap(6),
+                  fontSize: 11, fontWeight: FontWeight.w600,
+                  color: AppColors.onBrand.withOpacity(0.6), letterSpacing: 0.8)),
+              const Gap(8),
               Text(_inrFmt(grossTotal),
                 style: AppFont.sans(
-                  fontSize: 32, fontWeight: FontWeight.w900, color: Colors.white)),
-              const Gap(4),
+                  fontSize: 34, fontWeight: FontWeight.w700,
+                  letterSpacing: -1.2, color: AppColors.onBrand)),
+              const Gap(6),
               Text('${paid.length} ${paid.length == 1 ? "invoice" : "invoices"} • '
                    '${expenses.length} ${expenses.length == 1 ? "expense" : "expenses"}',
                 style: AppFont.sans(
-                  fontSize: 12, color: Colors.white70)),
+                  fontSize: 12.5, color: AppColors.onBrand.withOpacity(0.7))),
             ]),
           ),
 
@@ -212,7 +211,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
             // ─── Payment modes breakdown ───
             Text('PAYMENT MODES',
               style: AppFont.sans(
-                fontSize: 11, fontWeight: FontWeight.w800,
+                fontSize: 11, fontWeight: FontWeight.w600,
                 color: AppColors.t3, letterSpacing: 0.8)),
             const Gap(10),
             _ModeRow(
@@ -269,14 +268,14 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
               const Gap(20),
               Text('EXPENSES TODAY',
                 style: AppFont.sans(
-                  fontSize: 11, fontWeight: FontWeight.w800,
+                  fontSize: 11, fontWeight: FontWeight.w600,
                   color: AppColors.t3, letterSpacing: 0.8)),
               const Gap(10),
               Container(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.card,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppColors.border)),
                 child: Column(children: [
                   for (int i = 0; i < expenses.length; i++) ...[
@@ -298,7 +297,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
                           ])),
                         Text('-${_inrFmt(expenses[i].amount)}',
                           style: AppFont.sans(
-                            fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.red)),
+                            fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.red)),
                       ]),
                     ),
                   ],
@@ -312,14 +311,14 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: netTotal >= 0 ? AppColors.greenSoft : AppColors.redSoft,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: (netTotal >= 0 ? AppColors.green : AppColors.red).withOpacity(0.3))),
               child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text('NET FOR DAY',
                     style: AppFont.sans(
-                      fontSize: 10, fontWeight: FontWeight.w800,
+                      fontSize: 10, fontWeight: FontWeight.w600,
                       color: netTotal >= 0 ? AppColors.green : AppColors.red,
                       letterSpacing: 0.8)),
                   const Gap(2),
@@ -329,7 +328,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
                 ]),
                 Text(_inrFmt(netTotal),
                   style: AppFont.sans(
-                    fontSize: 22, fontWeight: FontWeight.w900,
+                    fontSize: 22, fontWeight: FontWeight.w700,
                     color: netTotal >= 0 ? AppColors.green : AppColors.red)),
               ]),
             ),
@@ -339,13 +338,13 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
               const Gap(20),
               Text('PAID INVOICES',
                 style: AppFont.sans(
-                  fontSize: 11, fontWeight: FontWeight.w800,
+                  fontSize: 11, fontWeight: FontWeight.w600,
                   color: AppColors.t3, letterSpacing: 0.8)),
               const Gap(10),
               Container(
                 decoration: BoxDecoration(
                   color: AppColors.card,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppColors.border)),
                 child: Column(children: [
                   for (int i = 0; i < paid.length; i++) ...[
@@ -357,7 +356,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
                           width: 30, height: 30,
                           decoration: BoxDecoration(
                             color: _modeColor(_paymentMode(paid[i])).withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(8)),
+                            borderRadius: BorderRadius.circular(12)),
                           child: Icon(_modeIcon(_paymentMode(paid[i])),
                             size: 16, color: _modeColor(_paymentMode(paid[i]))),
                         ),
@@ -374,7 +373,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
                           ])),
                         Text(_inrFmt(paid[i].grandTotal),
                           style: AppFont.sans(
-                            fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.t1)),
+                            fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.t1)),
                       ]),
                     ),
                   ],
@@ -530,7 +529,7 @@ class _ModeRow extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
@@ -538,7 +537,7 @@ class _ModeRow extends StatelessWidget {
             width: 36, height: 36,
             decoration: BoxDecoration(
               color: iconColor.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(9)),
+              borderRadius: BorderRadius.circular(12)),
             child: Icon(icon, color: iconColor, size: 19),
           ),
           const Gap(11),
@@ -547,14 +546,14 @@ class _ModeRow extends StatelessWidget {
             children: [
               Text(label,
                 style: AppFont.sans(
-                  fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.t1)),
+                  fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.t1)),
               Text('$count ${count == 1 ? "transaction" : "transactions"}',
                 style: AppFont.sans(
                   fontSize: 11, color: AppColors.t3)),
             ])),
           Text(fmt,
             style: AppFont.sans(
-              fontSize: 15, fontWeight: FontWeight.w900, color: iconColor)),
+              fontSize: 15, fontWeight: FontWeight.w700, color: iconColor)),
         ]),
         if (percent > 0) ...[
           const Gap(8),

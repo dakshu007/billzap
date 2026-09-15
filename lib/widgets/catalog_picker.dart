@@ -48,7 +48,7 @@ class CatalogPicker {
                   children: [
                     Text(trGlobal('cat.from_catalog'),
                         style: AppFont.sans(
-                            fontSize: 18, fontWeight: FontWeight.w800)),
+                            fontSize: 18, fontWeight: FontWeight.w600)),
                     Text('${items.length}',
                         style: AppFont.sans(
                             fontSize: 12, color: AppColors.t3)),
@@ -92,7 +92,7 @@ class CatalogPicker {
                           return Material(
                             color: Colors.transparent,
                             child: InkWell(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(16),
                               onTap: () {
                                 HapticFeedback.lightImpact();
                                 Navigator.pop(ctx, item);
@@ -103,7 +103,7 @@ class CatalogPicker {
                                 decoration: BoxDecoration(
                                   border: Border.all(
                                       color: AppColors.border),
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: Row(children: [
                                   Container(
@@ -111,7 +111,7 @@ class CatalogPicker {
                                     height: 38,
                                     decoration: BoxDecoration(
                                       color: AppColors.brandSoft,
-                                      borderRadius: BorderRadius.circular(10),
+                                      borderRadius: BorderRadius.circular(14),
                                     ),
                                     child: Center(
                                       child: Icon(Symbols.shopping_basket,

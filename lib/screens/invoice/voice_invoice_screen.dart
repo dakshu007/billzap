@@ -207,7 +207,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
             const Gap(16),
             Text('Choose Language',
               style: AppFont.sans(
-                fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.t1)),
+                fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.t1)),
             const Gap(12),
             ConstrainedBox(
               constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.55),
@@ -219,7 +219,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                     title: Text(entry.value,
                       style: AppFont.sans(
                         fontSize: 14,
-                        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                         color: available ? AppColors.t1 : AppColors.t4)),
                     subtitle: !available
                       ? Text('Not installed on this device',
@@ -253,12 +253,13 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
           icon: Container(
             width: 34, height: 34,
             decoration: BoxDecoration(
-              color: AppColors.bg, borderRadius: BorderRadius.circular(10)),
+              color: AppColors.bg, borderRadius: BorderRadius.circular(14)),
             child: Icon(Symbols.close, size: 19, color: AppColors.t1)),
           onPressed: () => context.go('/home')),
         title: Text('Voice Invoice',
           style: AppFont.sans(
-            fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
+            fontSize: 21, fontWeight: FontWeight.w700,
+          letterSpacing: -0.5, color: AppColors.t1)),
         actions: [
           TextButton.icon(
             onPressed: _pickLocale,
@@ -277,10 +278,8 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
           margin: const EdgeInsets.fromLTRB(14, 14, 14, 0),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AppColors.brandSoft, AppColors.card],
-              begin: Alignment.topLeft, end: Alignment.bottomRight),
-            borderRadius: BorderRadius.circular(14),
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(color: AppColors.brand.withOpacity(
               AppColors.isDark ? 0.4 : 0.2)),
           ),
@@ -302,7 +301,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: AppColors.redSoft,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppColors.red.withOpacity(0.3)),
               ),
               child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -312,7 +311,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                   crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text("Couldn't capture audio",
                       style: AppFont.sans(
-                        fontSize: 13.5, fontWeight: FontWeight.w800,
+                        fontSize: 13.5, fontWeight: FontWeight.w600,
                         color: AppColors.t1)),
                     const Gap(2),
                     Text(_speechError!,
@@ -327,7 +326,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                   icon: const Icon(Symbols.refresh, size: 16),
                   label: Text('Retry',
                     style: AppFont.sans(
-                      fontSize: 12, fontWeight: FontWeight.w800)),
+                      fontSize: 12, fontWeight: FontWeight.w600)),
                   style: TextButton.styleFrom(
                     foregroundColor: AppColors.red,
                     padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -371,21 +370,17 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                             width: 100, height: 100,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: _listening
-                                  ? [AppColors.red, const Color(0xFFD53A3A)]
-                                  : [AppColors.brand, const Color(0xFF4070FF)],
-                                begin: Alignment.topLeft, end: Alignment.bottomRight,
-                              ),
-                              boxShadow: [BoxShadow(
-                                color: (_listening ? AppColors.red : AppColors.brand).withOpacity(0.45),
-                                blurRadius: 22,
-                                offset: const Offset(0, 8))],
+                              color: _listening
+                                ? AppColors.red
+                                : AppColors.brand,
+                              boxShadow: AppShadow.float,
                             ),
                             child: Icon(
                               _listening ? Symbols.stop : Symbols.mic,
-                              color: Colors.white,
-                              size: 44,
+                              color: _listening
+                                ? Colors.white
+                                : AppColors.onBrand,
+                              size: 42,
                             ),
                           ),
                         ]);
@@ -411,7 +406,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: AppColors.card,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: AppColors.border),
                   ),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -439,7 +434,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: AppColors.greenSoft,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: AppColors.green.withOpacity(0.3)),
                   ),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -448,7 +443,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                       const Gap(8),
                       Text('Extracted',
                         style: AppFont.sans(
-                          fontSize: 13, fontWeight: FontWeight.w800,
+                          fontSize: 13, fontWeight: FontWeight.w600,
                           color: AppColors.green, letterSpacing: 0.5)),
                     ]),
                     const Gap(10),
@@ -474,7 +469,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(8)),
+                            borderRadius: BorderRadius.circular(12)),
                           child: Row(children: [
                             Container(
                               width: 32, height: 32,
@@ -494,7 +489,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                             ])),
                             Text('₹${item.price.toStringAsFixed(0)}',
                               style: AppFont.sans(
-                                fontSize: 14, fontWeight: FontWeight.w900, color: AppColors.brand)),
+                                fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.brand)),
                           ]),
                         ),
                       )),
@@ -514,19 +509,19 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                       foregroundColor: AppColors.t2,
                       padding: const EdgeInsets.symmetric(vertical: 13),
                       side: BorderSide(color: AppColors.border),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11))),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
                   )),
                   const Gap(10),
                   Expanded(flex: 2, child: ElevatedButton.icon(
                     onPressed: _parsed!.items.isEmpty ? null : _proceedToCreate,
                     icon: const Icon(Symbols.arrow_forward, size: 18),
                     label: Text('Continue',
-                      style: AppFont.sans(fontWeight: FontWeight.w800, fontSize: 13.5)),
+                      style: AppFont.sans(fontWeight: FontWeight.w600, fontSize: 13.5)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.brand,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 13),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11))),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
                   )),
                 ]),
               ],
@@ -538,12 +533,12 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: AppColors.card,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: AppColors.border)),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text('Voice Tips',
                       style: AppFont.sans(
-                        fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.t1)),
+                        fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.t1)),
                     const Gap(10),
                     _tip('Speak slowly and clearly'),
                     _tip('Mention quantity, item name, and price'),
@@ -574,7 +569,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
   Widget _kvRow(IconData icon, String label, String value) => Container(
     padding: const EdgeInsets.all(10),
     decoration: BoxDecoration(
-      color: AppColors.card, borderRadius: BorderRadius.circular(8)),
+      color: AppColors.card, borderRadius: BorderRadius.circular(12)),
     child: Row(children: [
       Icon(icon, size: 16, color: AppColors.t3),
       const Gap(8),
@@ -582,6 +577,6 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
         fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.t3)),
       const Gap(8),
       Text(value, style: AppFont.sans(
-        fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.t1)),
+        fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.t1)),
     ]));
 }

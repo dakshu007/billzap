@@ -102,20 +102,18 @@ class _LockScreenState extends State<LockScreen> {
               Container(
                 width: 76, height: 76,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColors.brand, Color(0xFF4070FF)],
-                    begin: Alignment.topLeft, end: Alignment.bottomRight),
-                  borderRadius: BorderRadius.circular(20),
+                  color: AppColors.brand,
+                  borderRadius: BorderRadius.circular(26),
                   boxShadow: [BoxShadow(
                     color: AppColors.brand.withOpacity(0.32),
                     blurRadius: 20, offset: const Offset(0, 8))],
                 ),
-                child: const Icon(Symbols.lock, color: Colors.white, size: 38),
+                child: Icon(Symbols.lock, color: AppColors.onBrand, size: 38),
               ),
               const Gap(18),
               Text('BillZap',
                 style: AppFont.sans(
-                  fontSize: 22, fontWeight: FontWeight.w900,
+                  fontSize: 22, fontWeight: FontWeight.w700,
                   color: AppColors.t1, letterSpacing: -0.5)),
               const Gap(4),
               Text(
@@ -156,7 +154,7 @@ class _LockScreenState extends State<LockScreen> {
                     size: 22, color: AppColors.brand),
                   label: Text('Use fingerprint',
                     style: AppFont.sans(
-                      fontSize: 13, fontWeight: FontWeight.w800,
+                      fontSize: 13, fontWeight: FontWeight.w600,
                       color: AppColors.brand)),
                 ),
 

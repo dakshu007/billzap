@@ -7,6 +7,7 @@ import 'package:billzap/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/ui_kit.dart';
 import '../../theme/app_spacing.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
@@ -78,11 +79,16 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
         iconTheme: IconThemeData(color: AppColors.t1),
         backgroundColor: AppColors.bg,
         title: Text(tr('prod.title', ref), style: AppFont.sans(
-          fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
+          fontSize: 21, fontWeight: FontWeight.w700,
+          letterSpacing: -0.5, color: AppColors.t1)),
         actions: [
-          IconButton(
-            icon: Icon(Symbols.add_box, color: AppColors.brand),
-            onPressed: () => _addSheet(context, ref)),
+          Padding(
+            padding: const EdgeInsets.only(right: 14),
+            child: AppIconButton(
+              icon: Symbols.add,
+              background: AppColors.brand,
+              foreground: AppColors.onBrand,
+              onTap: () => _addSheet(context, ref))),
         ],
       ),
       body: RefreshIndicator(
@@ -99,7 +105,7 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                     Icon(Symbols.inventory_2, size: 48, color: AppColors.t4),
                     const Gap(10),
                     Text(tr('prod.no_products', ref), style: AppFont.sans(
-                      fontSize: 16, fontWeight: FontWeight.w800)),
+                      fontSize: 16, fontWeight: FontWeight.w600)),
                     const Gap(6),
                     Text(tr('prod.no_products', ref), style: AppFont.sans(
                       fontSize: 13, color: AppColors.t3)),
@@ -130,13 +136,13 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
                           color: AppColors.card,
-                          borderRadius: BorderRadius.circular(13),
+                          borderRadius: BorderRadius.circular(18),
                           border: Border.all(color: AppColors.border)),
                         child: Row(children: [
                           Container(width: 42, height: 42,
                             decoration: BoxDecoration(
                               color: AppColors.brandSoft,
-                              borderRadius: BorderRadius.circular(11)),
+                              borderRadius: BorderRadius.circular(14)),
                             child: Center(
                               child: Icon(Symbols.inventory_2, size: 20, color: AppColors.brand))),
                           const Gap(12),
@@ -188,7 +194,7 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
     margin: const EdgeInsets.only(bottom: 8),
     decoration: BoxDecoration(
       color: AppColors.red,
-      borderRadius: BorderRadius.circular(13),
+      borderRadius: BorderRadius.circular(18),
     ),
     alignment: Alignment.centerRight,
     padding: const EdgeInsets.symmetric(horizontal: 22),
@@ -200,7 +206,7 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
         Text('Delete',
             style: TextStyle(
                 color: Colors.white,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
                 fontSize: 13)),
       ],
     ),
@@ -268,7 +274,7 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                   const Gap(16),
                   Text(isEdit ? 'Edit Product' : trGlobal('prod.add_new'),
                     style: AppFont.sans(
-                      fontSize: 18, fontWeight: FontWeight.w800,
+                      fontSize: 18, fontWeight: FontWeight.w600,
                       color: AppColors.t1)),
                   const Gap(16),
                   _SheetField(name, label: trGlobal('prod.name')),
@@ -416,7 +422,7 @@ class _SheetField extends StatelessWidget {
     onChanged: onChanged,
     decoration: InputDecoration(
       labelText: label,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14))),
     style: AppFont.sans(fontSize: 13.5));
 }
 
@@ -435,7 +441,7 @@ class _MarginChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(99)),
       child: Text('${margin.toStringAsFixed(0)}%',
         style: AppFont.sans(
-          fontSize: 10.5, fontWeight: FontWeight.w800, color: color)));
+          fontSize: 10.5, fontWeight: FontWeight.w600, color: color)));
   }
 }
 
@@ -466,6 +472,6 @@ class _StockBadge extends StatelessWidget {
         color: bg, borderRadius: BorderRadius.circular(99)),
       child: Text(label,
         style: AppFont.sans(
-          fontSize: 10.5, fontWeight: FontWeight.w800, color: fg)));
+          fontSize: 10.5, fontWeight: FontWeight.w600, color: fg)));
   }
 }

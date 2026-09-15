@@ -6,6 +6,7 @@ import 'package:billzap/theme/app_icons.dart';
 import 'package:gap/gap.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/ui_kit.dart';
 import '../../services/gst_classifier.dart';
 import '../../i18n/translations.dart';
 
@@ -97,13 +98,18 @@ class _CatalogScreenState extends State<CatalogScreen> {
         iconTheme: IconThemeData(color: AppColors.t1),
         title: Text(trGlobal('cat.title'),
             style: AppFont.sans(
-                fontSize: 19,
-                fontWeight: FontWeight.w900,
+                fontSize: 21,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.5,
                 color: AppColors.t1)),
         actions: [
-          IconButton(
-            icon: Icon(Symbols.add, color: AppColors.brand, size: 26),
-            onPressed: _addSheet,
+          Padding(
+            padding: const EdgeInsets.only(right: 14),
+            child: AppIconButton(
+              icon: Symbols.add,
+              background: AppColors.brand,
+              foreground: AppColors.onBrand,
+              onTap: _addSheet),
           ),
         ],
       ),
@@ -121,7 +127,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: AppColors.card,
-                        borderRadius: BorderRadius.circular(13),
+                        borderRadius: BorderRadius.circular(18),
                         border: Border.all(color: AppColors.border),
                       ),
                       child: Row(children: [
@@ -130,7 +136,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                           height: 44,
                           decoration: BoxDecoration(
                             color: AppColors.brandSoft,
-                            borderRadius: BorderRadius.circular(11),
+                            borderRadius: BorderRadius.circular(14),
                           ),
                           child: Center(
                               child: Icon(Symbols.shopping_basket,
@@ -188,7 +194,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
         const Gap(12),
         Text(trGlobal('cat.empty'),
             style: AppFont.sans(
-                fontSize: 16, fontWeight: FontWeight.w800)),
+                fontSize: 16, fontWeight: FontWeight.w600)),
         const Gap(6),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -253,7 +259,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 const Gap(16),
                 Text(trGlobal('cat.add_title'),
                     style: AppFont.sans(
-                        fontSize: 18, fontWeight: FontWeight.w800)),
+                        fontSize: 18, fontWeight: FontWeight.w600)),
                 const Gap(4),
                 Text(trGlobal('cat.gst_auto_hint'),
                     style: AppFont.sans(
@@ -266,7 +272,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                     labelText: trGlobal('cat.item_name'),
                     hintText: trGlobal('cat.item_hint'),
                     border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10)),
+                        borderRadius: BorderRadius.circular(14)),
                   ),
                   onChanged: (v) {
                     final r = GstClassifier.classify(v);
@@ -281,7 +287,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                         horizontal: 12, vertical: 10),
                     decoration: BoxDecoration(
                       color: AppColors.brandSoft,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(14),
                       border: Border.all(
                           color: AppColors.brand.withOpacity(0.3)),
                     ),
@@ -296,7 +302,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                             Text('$detectedGst% GST',
                                 style: AppFont.sans(
                                     fontSize: 13,
-                                    fontWeight: FontWeight.w800,
+                                    fontWeight: FontWeight.w600,
                                     color: AppColors.brand)),
                             Text(GstClassifier.categoryFor(detectedGst),
                                 style: AppFont.sans(
@@ -315,7 +321,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                     decoration: InputDecoration(
                       labelText: trGlobal('cat.price'),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10)),
+                          borderRadius: BorderRadius.circular(14)),
                     ),
                     style: AppFont.sans(fontSize: 13.5),
                   )),
@@ -326,7 +332,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                     decoration: InputDecoration(
                       labelText: trGlobal('cat.unit'),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10)),
+                          borderRadius: BorderRadius.circular(14)),
                     ),
                     style: AppFont.sans(fontSize: 13.5),
                   )),
@@ -338,7 +344,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                   decoration: InputDecoration(
                     labelText: trGlobal('cat.hsn'),
                     border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10)),
+                        borderRadius: BorderRadius.circular(14)),
                   ),
                   style: AppFont.sans(fontSize: 13.5),
                 ),

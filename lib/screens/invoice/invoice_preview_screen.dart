@@ -64,13 +64,14 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
               // Tiny inverse chip — uses the card surface so it stands
               // proud of the bg-toned appbar.
               decoration: BoxDecoration(color: AppColors.card,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: AppColors.border)),
               child: Icon(Symbols.arrow_back, size: 19, color: AppColors.t1)),
             onPressed: () => context.go('/invoices')),
           title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('Invoice Preview', style: AppFont.sans(
-              fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1)),
+              fontSize: 21, fontWeight: FontWeight.w700,
+          letterSpacing: -0.5, color: AppColors.t1)),
             Text(invoice.invoiceNumber, style: AppFont.sans(fontSize: 11, color: AppColors.t3)),
           ]),
           actions: [
@@ -93,7 +94,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                   color: c.withOpacity(0.12), borderRadius: BorderRadius.circular(99),
                   border: Border.all(color: c.withOpacity(0.3))),
                 child: Text(invoice.isOverdue ? 'OVERDUE' : invoice.status.name.toUpperCase(),
-                  style: AppFont.sans(fontSize: 12, fontWeight: FontWeight.w800, color: c))),
+                  style: AppFont.sans(fontSize: 12, fontWeight: FontWeight.w600, color: c))),
             ]),
             const Gap(12),
             _buildDoc(invoice, biz),
@@ -148,7 +149,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
   Widget _buildDoc(Invoice invoice, Business? biz) {
     return Container(
       decoration: BoxDecoration(color: AppColors.card,
-        borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(22), border: Border.all(color: AppColors.border),
         boxShadow: [BoxShadow(color: AppColors.brand.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(
@@ -158,19 +159,24 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(biz?.name ?? 'Your Business', style: AppFont.sans(
-                color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
+                color: AppColors.onBrand, fontSize: 18,
+                fontWeight: FontWeight.w700, letterSpacing: -0.4)),
               if (biz?.gstin.isNotEmpty == true)
-                Text('GSTIN: ${biz!.gstin}', style: AppFont.sans(color: Colors.white70, fontSize: 11)),
+                Text('GSTIN: ${biz!.gstin}', style: AppFont.sans(
+                  color: AppColors.onBrand.withOpacity(0.7), fontSize: 11)),
               if (biz?.address.isNotEmpty == true)
                 Text('${biz!.address}${biz.city.isNotEmpty ? ", ${biz.city}" : ""}',
-                  style: AppFont.sans(color: Colors.white60, fontSize: 10)),
+                  style: AppFont.sans(
+                    color: AppColors.onBrand.withOpacity(0.55), fontSize: 10)),
             ])),
             Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
               Text('TAX INVOICE', style: AppFont.sans(
-                color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 1)),
+                color: AppColors.onBrand, fontSize: 11,
+                fontWeight: FontWeight.w600, letterSpacing: 1)),
               const Gap(2),
               Text(invoice.invoiceNumber, style: AppFont.sans(
-                color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w700)),
+                color: AppColors.onBrand.withOpacity(0.7), fontSize: 12,
+                fontWeight: FontWeight.w600)),
             ]),
           ])),
         Padding(padding: const EdgeInsets.all(16), child: Column(
@@ -178,10 +184,10 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('BILL TO', style: AppFont.sans(
-                fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.t3, letterSpacing: 0.8)),
+                fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.t3, letterSpacing: 0.8)),
               const Gap(4),
               Text(invoice.customerName, style: AppFont.sans(
-                fontSize: 15, fontWeight: FontWeight.w900, color: AppColors.t1)),
+                fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.t1)),
               if (invoice.customerPhone.isNotEmpty)
                 Text(invoice.customerPhone, style: AppFont.sans(fontSize: 12, color: AppColors.t2)),
               if (invoice.customerGstin.isNotEmpty)
@@ -232,17 +238,17 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           const Gap(6),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-            decoration: BoxDecoration(color: AppColors.brandSoft, borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(color: AppColors.brandSoft, borderRadius: BorderRadius.circular(14)),
             child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Text('GRAND TOTAL', style: AppFont.sans(
-                fontWeight: FontWeight.w900, fontSize: 14, color: AppColors.brand)),
+                fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.brand)),
               Text(formatCurrency(invoice.grandTotal), style: AppFont.sans(
-                fontWeight: FontWeight.w900, fontSize: 19, color: AppColors.brand)),
+                fontWeight: FontWeight.w700, fontSize: 19, color: AppColors.brand)),
             ])),
           if (biz != null && (biz.bankName.isNotEmpty || biz.upiId.isNotEmpty)) ...[
             const Gap(14), const Divider(height: 1), const Gap(8),
             Text('PAYMENT DETAILS', style: AppFont.sans(
-              fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.t3, letterSpacing: 0.8)),
+              fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.t3, letterSpacing: 0.8)),
             const Gap(4),
             if (biz.bankName.isNotEmpty)
               Text('${biz.bankName}  ·  A/C: ${biz.accountNumber}  ·  IFSC: ${biz.ifscCode}',
@@ -276,17 +282,17 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           Expanded(child: ElevatedButton.icon(
             onPressed: () => _markPaid(invoice),
             icon: const Icon(Symbols.check_circle, size: 18),
-            label: Text('Paid', style: AppFont.sans(fontWeight: FontWeight.w800, fontSize: 14)),
+            label: Text('Paid', style: AppFont.sans(fontWeight: FontWeight.w600, fontSize: 14)),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.green, foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)))))
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)))))
         else
           Expanded(child: Container(
             padding: const EdgeInsets.symmetric(vertical: 14),
             decoration: BoxDecoration(
               color: AppColors.greenSoft,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.green.withOpacity(0.3)),
             ),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -294,18 +300,18 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
               const Gap(6),
               Text('Paid',
                 style: AppFont.sans(
-                  fontWeight: FontWeight.w800, fontSize: 14, color: AppColors.green)),
+                  fontWeight: FontWeight.w600, fontSize: 14, color: AppColors.green)),
             ]),
           )),
         const Gap(10),
         Expanded(child: ElevatedButton.icon(
           onPressed: () => _sendWhatsApp(invoice, biz),
           icon: const Icon(Symbols.chat, size: 18),
-          label: Text('Share', style: AppFont.sans(fontWeight: FontWeight.w800, fontSize: 14)),
+          label: Text('Share', style: AppFont.sans(fontWeight: FontWeight.w600, fontSize: 14)),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF25D366), foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))))),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))))),
         const Gap(10),
         Expanded(child: ElevatedButton.icon(
           onPressed: _pdfLoading ? null : () => _downloadPdf(invoice, biz),
@@ -313,11 +319,11 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
             ? const SizedBox(width: 16, height: 16,
                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
             : const Icon(Symbols.picture_as_pdf, size: 18),
-          label: Text('PDF', style: AppFont.sans(fontWeight: FontWeight.w800, fontSize: 14)),
+          label: Text('PDF', style: AppFont.sans(fontWeight: FontWeight.w600, fontSize: 14)),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.brand, foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))))),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))))),
       ]),
     );
   }
@@ -651,7 +657,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
       builder: (ctx) => AlertDialog(
         title: Text('How was it paid?',
           style: AppFont.sans(
-            fontSize: 17, fontWeight: FontWeight.w900, color: AppColors.t1)),
+            fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.t1)),
         contentPadding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
           _payOpt(ctx, 'cash', '💵 Cash', AppColors.green),
@@ -671,13 +677,13 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
   Widget _payOpt(BuildContext ctx, String mode, String label, Color color) {
     return InkWell(
       onTap: () => Navigator.pop(ctx, mode),
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(14),
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: color.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(color: color.withOpacity(0.25))),
         child: Row(children: [
           Expanded(child: Text(label,
@@ -783,12 +789,8 @@ class _UpiPaymentCard extends ConsumerWidget {
       decoration: BoxDecoration(
         // Gradient endpoint reads from theme so the panel flips with dark
         // mode instead of fading into bright white forever.
-        gradient: LinearGradient(
-          colors: [AppColors.brandSoft, AppColors.card],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(14),
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.brand.withOpacity(
           AppColors.isDark ? 0.45 : 0.25)),
       ),
@@ -798,14 +800,14 @@ class _UpiPaymentCard extends ConsumerWidget {
             padding: const EdgeInsets.all(7),
             decoration: BoxDecoration(
               color: AppColors.brand,
-              borderRadius: BorderRadius.circular(8)),
-            child: const Icon(Symbols.qr_code_2, color: Colors.white, size: 18),
+              borderRadius: BorderRadius.circular(12)),
+            child: Icon(Symbols.qr_code_2, color: AppColors.onBrand, size: 18),
           ),
           const Gap(10),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('Pay via UPI',
               style: AppFont.sans(
-                fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.t1)),
+                fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.t1)),
             Text('Instant payment • All UPI apps',
               style: AppFont.sans(fontSize: 11, color: AppColors.t3)),
           ])),
@@ -822,7 +824,7 @@ class _UpiPaymentCard extends ConsumerWidget {
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppColors.border),
             ),
             child: QrImageView(
@@ -848,7 +850,7 @@ class _UpiPaymentCard extends ConsumerWidget {
             const Gap(2),
             Text(formatCurrency(invoice.grandTotal),
               style: AppFont.sans(
-                fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.brand)),
+                fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.brand)),
             const Gap(2),
             Text('Ref: ${invoice.invoiceNumber}',
               style: AppFont.sans(fontSize: 10.5, color: AppColors.t3)),
@@ -858,13 +860,13 @@ class _UpiPaymentCard extends ConsumerWidget {
               icon: const Icon(Symbols.bolt, size: 16),
               label: Text('Pay now',
                 style: AppFont.sans(
-                  fontSize: 12.5, fontWeight: FontWeight.w800)),
+                  fontSize: 12.5, fontWeight: FontWeight.w600)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.brand,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 9),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(9)),
+                  borderRadius: BorderRadius.circular(12)),
               ),
             )),
           ])),
@@ -880,11 +882,11 @@ class _UpiPaymentCard extends ConsumerWidget {
               behavior: SnackBarBehavior.floating,
               duration: const Duration(seconds: 2),
               backgroundColor: AppColors.t1,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               margin: const EdgeInsets.fromLTRB(14, 0, 14, 20),
             ));
           },
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -930,7 +932,7 @@ class _NoUpiSetupCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.yellowSoft,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.yellow.withOpacity(0.3)),
       ),
       child: Row(children: [
@@ -938,14 +940,14 @@ class _NoUpiSetupCard extends StatelessWidget {
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: AppColors.yellow.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(8)),
+            borderRadius: BorderRadius.circular(12)),
           child: const Icon(Symbols.qr_code_2, color: AppColors.orange, size: 18),
         ),
         const Gap(12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('Enable UPI payments',
             style: AppFont.sans(
-              fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.t1)),
+              fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.t1)),
           Text('Add your UPI ID in Settings to let customers pay instantly via QR.',
             style: AppFont.sans(fontSize: 11.5, color: AppColors.t3)),
         ])),
@@ -957,7 +959,7 @@ class _NoUpiSetupCard extends StatelessWidget {
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             minimumSize: const Size(0, 0),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
           child: Text('Setup',
             style: AppFont.sans(fontSize: 11.5, fontWeight: FontWeight.w700)),
@@ -978,7 +980,7 @@ class _InvalidUpiCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.redSoft,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.red.withOpacity(0.3)),
       ),
       child: Row(children: [
@@ -987,7 +989,7 @@ class _InvalidUpiCard extends StatelessWidget {
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('Invalid UPI ID format',
             style: AppFont.sans(
-              fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.t1)),
+              fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.t1)),
           Text('"$vpa" is not a valid UPI. Should look like name@bank',
             style: AppFont.sans(fontSize: 11.5, color: AppColors.t3)),
         ])),
@@ -1040,22 +1042,22 @@ class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
         Container(width: 36, height: 4,
           decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(99))),
         const Gap(14),
-        Text('Edit Invoice', style: AppFont.sans(fontSize: 18, fontWeight: FontWeight.w800)),
+        Text('Edit Invoice', style: AppFont.sans(fontSize: 18, fontWeight: FontWeight.w600)),
         const Gap(16),
         TextField(controller: _custName,
           decoration: InputDecoration(labelText: 'Customer Name',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14))),
           style: AppFont.sans(fontSize: 13.5)),
         const Gap(10),
         Row(children: [
           Expanded(child: TextField(controller: _custPhone, keyboardType: TextInputType.phone,
             decoration: InputDecoration(labelText: 'Phone',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14))),
             style: AppFont.sans(fontSize: 13.5))),
           const Gap(10),
           Expanded(child: TextField(controller: _custGstin,
             decoration: InputDecoration(labelText: 'GSTIN',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14))),
             style: AppFont.sans(fontSize: 13.5))),
         ]),
         const Gap(10),
@@ -1067,7 +1069,7 @@ class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
         const Gap(10),
         TextField(controller: _notes, maxLines: 2,
           decoration: InputDecoration(labelText: 'Notes',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14))),
           style: AppFont.sans(fontSize: 13.5)),
         const Gap(16),
         SizedBox(width: double.infinity, child: ElevatedButton(
@@ -1089,7 +1091,7 @@ class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
         decoration: BoxDecoration(border: Border.all(color: AppColors.border),
-          borderRadius: BorderRadius.circular(10)),
+          borderRadius: BorderRadius.circular(14)),
         child: Row(children: [
           Icon(Symbols.calendar_today, size: 14, color: AppColors.t3),
           const Gap(6),
@@ -1136,7 +1138,7 @@ Widget _IRow(String l, String v) => Padding(
 
 Widget _TH(String t, {bool right = false}) => Text(t,
   textAlign: right ? TextAlign.right : TextAlign.left,
-  style: AppFont.sans(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.t3, letterSpacing: 0.5));
+  style: AppFont.sans(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.t3, letterSpacing: 0.5));
 
 Widget _TotRow(String label, double amount, {bool neg = false}) => Padding(
   padding: const EdgeInsets.symmetric(vertical: 2),
@@ -1165,13 +1167,13 @@ class _ActionTile extends StatelessWidget {
     child: Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(color: loading ? AppColors.bg : AppColors.card,
-        borderRadius: BorderRadius.circular(13), border: Border.all(color: AppColors.border)),
+        borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.border)),
       child: Row(children: [
         Container(
           width: 40, height: 40,
           decoration: BoxDecoration(
             color: iconColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(10)),
+            borderRadius: BorderRadius.circular(14)),
           child: loading
             ? Center(child: SizedBox(width: 20, height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.brand)))
@@ -1199,7 +1201,7 @@ class _OptTile extends StatelessWidget {
       width: 36, height: 36,
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8)),
+        borderRadius: BorderRadius.circular(12)),
       child: Icon(icon, size: 18, color: color)),
     title: Text(label, style: AppFont.sans(
       fontWeight: FontWeight.w700, color: AppColors.t1)),

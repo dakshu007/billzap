@@ -47,7 +47,7 @@ class _SplashState extends State<SplashScreen>
             ScaleTransition(
               scale: _scale,
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(28),
                 child: Image.asset(
                   'assets/icon.png',
                   width: 100,
@@ -61,7 +61,7 @@ class _SplashState extends State<SplashScreen>
               'BillZap',
               style: AppFont.sans(
                   fontSize: 38,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w700,
                   color: Colors.white,
                   letterSpacing: -1.2),
             ),

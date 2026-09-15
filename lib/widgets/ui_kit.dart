@@ -636,3 +636,23 @@ class AppSearchField extends StatelessWidget {
         ]),
       );
 }
+
+/// Circular back affordance for pushed sub-screens — the round chip that
+/// floats top-left in the reference. Falls back to `/home` when there is
+/// nothing on the stack to pop (deep links, restored sessions).
+class AppBackButton extends StatelessWidget {
+  final VoidCallback? onTap;
+  final String? tooltip;
+
+  const AppBackButton({super.key, this.onTap, this.tooltip});
+
+  @override
+  Widget build(BuildContext context) => Center(
+        child: AppIconButton(
+          icon: Icons.arrow_back,
+          size: 40,
+          tooltip: tooltip,
+          onTap: onTap ?? () => Navigator.of(context).maybePop(),
+        ),
+      );
+}

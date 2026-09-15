@@ -49,11 +49,14 @@ class _SkeletonState extends State<Skeleton> with SingleTickerProviderStateMixin
           height: widget.height,
           decoration: BoxDecoration(
             borderRadius: radius,
+            // Token-driven so the shimmer follows the theme instead of
+            // staying light-mode blue on a dark surface.
             gradient: LinearGradient(
-              colors: const [
-                Color(0xFFEDF1F8),
-                Color(0xFFF7F9FC),
-                Color(0xFFEDF1F8),
+              colors: [
+                AppColors.inset,
+                Color.alphaBlend(
+                  AppColors.t4.withOpacity(0.10), AppColors.inset),
+                AppColors.inset,
               ],
               begin: Alignment(-1 + t * 2, 0),
               end: Alignment(1 + t * 2, 0),
@@ -71,20 +74,21 @@ class SkeletonListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(13),
-        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: AppShadow.card,
+        border: AppColors.isDark ? Border.all(color: AppColors.border) : null,
       ),
       child: Row(children: [
         Skeleton(
-          width: 40,
-          height: 40,
-          borderRadius: BorderRadius.circular(10),
+          width: 46,
+          height: 46,
+          borderRadius: BorderRadius.circular(16),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 13),
         const Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,7 +123,7 @@ class SkeletonList extends StatelessWidget {
   const SkeletonList({
     super.key,
     this.count = 6,
-    this.padding = const EdgeInsets.fromLTRB(12, 10, 12, 100),
+    this.padding = const EdgeInsets.fromLTRB(20, 14, 20, 124),
   });
 
   @override

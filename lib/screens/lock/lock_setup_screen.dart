@@ -136,7 +136,7 @@ class _LockSetupState extends State<LockSetupScreen> {
         iconTheme: IconThemeData(color: AppColors.t1),
         title: Text('Set up App Lock',
           style: AppFont.sans(
-            fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.t1)),
+            fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.t1)),
       ),
       body: SafeArea(
         child: AnimatedSwitcher(
@@ -223,14 +223,14 @@ class _StepWarning extends StatelessWidget {
           width: 76, height: 76,
           decoration: BoxDecoration(
             color: AppColors.yellowSoft,
-            borderRadius: BorderRadius.circular(20)),
+            borderRadius: BorderRadius.circular(26)),
           child: const Icon(Symbols.warning, color: AppColors.orange, size: 40),
         )),
         const Gap(20),
         Text('Set up App Lock',
           textAlign: TextAlign.center,
           style: AppFont.sans(
-            fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.t1)),
+            fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.t1)),
         const Gap(10),
         Text(
           'Your PIN will be used both to unlock the app AND to encrypt '
@@ -244,7 +244,7 @@ class _StepWarning extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: AppColors.redSoft,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppColors.red.withOpacity(0.25))),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const Icon(Symbols.error, color: AppColors.red, size: 22),
@@ -253,7 +253,7 @@ class _StepWarning extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('IMPORTANT',
                 style: AppFont.sans(
-                  fontSize: 11, fontWeight: FontWeight.w900,
+                  fontSize: 11, fontWeight: FontWeight.w700,
                   color: AppColors.red, letterSpacing: 0.6)),
               const Gap(3),
               Text(
@@ -272,11 +272,11 @@ class _StepWarning extends StatelessWidget {
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(13)),
+              borderRadius: BorderRadius.circular(18)),
             elevation: 0),
           child: Text('I understand, continue',
             style: AppFont.sans(
-              fontSize: 14.5, fontWeight: FontWeight.w800)),
+              fontSize: 14.5, fontWeight: FontWeight.w600)),
         ),
       ]),
     );
@@ -296,7 +296,7 @@ class _StepCreatingBackup extends StatelessWidget {
         width: 76, height: 76,
         decoration: BoxDecoration(
           color: AppColors.brandSoft,
-          borderRadius: BorderRadius.circular(20)),
+          borderRadius: BorderRadius.circular(26)),
         child: Center(child: SizedBox(
           width: 32, height: 32,
           child: CircularProgressIndicator(
@@ -305,7 +305,7 @@ class _StepCreatingBackup extends StatelessWidget {
       const Gap(20),
       Text('Creating encrypted backup...',
         style: AppFont.sans(
-          fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.t1)),
+          fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.t1)),
       const Gap(6),
       Text('This will take a moment',
         style: AppFont.sans(
@@ -339,20 +339,20 @@ class _StepBackupShare extends StatelessWidget {
           width: 76, height: 76,
           decoration: BoxDecoration(
             color: AppColors.greenSoft,
-            borderRadius: BorderRadius.circular(20)),
+            borderRadius: BorderRadius.circular(26)),
           child: const Icon(Symbols.check_circle, color: AppColors.green, size: 44),
         )),
         const Gap(20),
         Text('Backup created \u2713',
           textAlign: TextAlign.center,
           style: AppFont.sans(
-            fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.t1)),
+            fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.t1)),
         const Gap(10),
         Container(
           padding: const EdgeInsets.all(11),
           decoration: BoxDecoration(
             color: AppColors.brandSoft,
-            borderRadius: BorderRadius.circular(10)),
+            borderRadius: BorderRadius.circular(14)),
           child: Row(children: [
             Icon(Symbols.folder, size: 18, color: AppColors.brand),
             const Gap(8),
@@ -375,13 +375,13 @@ class _StepBackupShare extends StatelessWidget {
           icon: const Icon(Symbols.share, size: 18),
           label: Text('Send via WhatsApp / Email',
             style: AppFont.sans(
-              fontSize: 14, fontWeight: FontWeight.w800)),
+              fontSize: 14, fontWeight: FontWeight.w600)),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF25D366),
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(13)),
+              borderRadius: BorderRadius.circular(18)),
             elevation: 0),
         ),
         const Spacer(),
@@ -399,11 +399,11 @@ class _StepBackupShare extends StatelessWidget {
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(13)),
+              borderRadius: BorderRadius.circular(18)),
             elevation: 0),
           child: Text('Continue',
             style: AppFont.sans(
-              fontSize: 14.5, fontWeight: FontWeight.w800)),
+              fontSize: 14.5, fontWeight: FontWeight.w600)),
         ),
       ]),
     );
@@ -458,14 +458,14 @@ class _StepPinState extends State<_StepPin> {
           width: 64, height: 64,
           decoration: BoxDecoration(
             color: AppColors.brandSoft,
-            borderRadius: BorderRadius.circular(16)),
+            borderRadius: BorderRadius.circular(22)),
           child: Icon(Symbols.pin, color: AppColors.brand, size: 32),
         ),
         const Gap(16),
         Text(widget.title,
           textAlign: TextAlign.center,
           style: AppFont.sans(
-            fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.t1)),
+            fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.t1)),
         const Gap(6),
         Text(widget.subtitle,
           textAlign: TextAlign.center,
@@ -515,14 +515,14 @@ class _StepBiometric extends StatelessWidget {
           width: 76, height: 76,
           decoration: BoxDecoration(
             color: AppColors.brandSoft,
-            borderRadius: BorderRadius.circular(20)),
+            borderRadius: BorderRadius.circular(26)),
           child: Icon(Symbols.fingerprint, color: AppColors.brand, size: 44),
         )),
         const Gap(20),
         Text('Add Fingerprint?',
           textAlign: TextAlign.center,
           style: AppFont.sans(
-            fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.t1)),
+            fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.t1)),
         const Gap(10),
         Text(
           'Unlock BillZap with your fingerprint instead of typing your PIN '
@@ -536,13 +536,13 @@ class _StepBiometric extends StatelessWidget {
           icon: const Icon(Symbols.fingerprint, size: 20),
           label: Text('Enable Fingerprint',
             style: AppFont.sans(
-              fontSize: 14.5, fontWeight: FontWeight.w800)),
+              fontSize: 14.5, fontWeight: FontWeight.w600)),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.brand,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(13)),
+              borderRadius: BorderRadius.circular(18)),
             elevation: 0),
         ),
         const Gap(8),
@@ -573,10 +573,8 @@ class _StepDone extends StatelessWidget {
         Container(
           width: 96, height: 96,
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [AppColors.green, Color(0xFF34D399)],
-              begin: Alignment.topLeft, end: Alignment.bottomRight),
-            borderRadius: BorderRadius.circular(24),
+            color: AppColors.green,
+            borderRadius: BorderRadius.circular(28),
             boxShadow: [BoxShadow(
               color: AppColors.green.withOpacity(0.32),
               blurRadius: 22, offset: const Offset(0, 10))],
@@ -587,7 +585,7 @@ class _StepDone extends StatelessWidget {
         Text('App Lock Enabled \ud83d\udd12',
           textAlign: TextAlign.center,
           style: AppFont.sans(
-            fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.t1)),
+            fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.t1)),
         const Gap(10),
         Text(
           'BillZap will lock when you switch apps and return after 1 minute. '
@@ -603,11 +601,11 @@ class _StepDone extends StatelessWidget {
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(13)),
+              borderRadius: BorderRadius.circular(18)),
             elevation: 0),
           child: Text('Done',
             style: AppFont.sans(
-              fontSize: 14.5, fontWeight: FontWeight.w800)),
+              fontSize: 14.5, fontWeight: FontWeight.w600)),
         )),
       ]),
     );

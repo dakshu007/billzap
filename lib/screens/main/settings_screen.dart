@@ -10,6 +10,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:billzap/theme/app_icons.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/app_spacing.dart';
+import '../../widgets/ui_kit.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../i18n/translations.dart';
@@ -33,25 +35,30 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: AppColors.bg,
+        toolbarHeight: 66,
+        titleSpacing: AppSpacing.screenH,
         title: Text(tr('set.title', ref), style: AppFont.sans(
-          fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.t1))),
+          fontSize: 24, fontWeight: FontWeight.w700,
+          letterSpacing: -0.6, color: AppColors.t1))),
 
 
       body: DesktopMaxWidth(maxWidth: 820, child: Column(children: [
         // (App Lock moved into the About tab — keeps the Me header clean
         //  and groups it with the rest of the security/info settings.)
-        Container(
-          color: AppColors.card,
-          padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
-          child: Row(children: [
-            _TabBtn(tr('set.business', ref), 0, _tab, (i) => setState(() => _tab = i)),
-            const Gap(8),
-            _TabBtn(tr('set.bank', ref), 1, _tab, (i) => setState(() => _tab = i)),
-            const Gap(8),
-            _TabBtn(tr('set.invoice', ref), 2, _tab, (i) => setState(() => _tab = i)),
-            const Gap(8),
-            _TabBtn(tr('set.about', ref), 3, _tab, (i) => setState(() => _tab = i)),
-          ])),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.screenH, 2, AppSpacing.screenH, 14),
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: AppColors.inset,
+              borderRadius: BorderRadius.circular(AppRadius.pill)),
+            child: Row(children: [
+              _TabBtn(tr('set.business', ref), 0, _tab, (i) => setState(() => _tab = i)),
+              _TabBtn(tr('set.bank', ref), 1, _tab, (i) => setState(() => _tab = i)),
+              _TabBtn(tr('set.invoice', ref), 2, _tab, (i) => setState(() => _tab = i)),
+              _TabBtn(tr('set.about', ref), 3, _tab, (i) => setState(() => _tab = i)),
+            ]))),
         Expanded(
           child: IndexedStack(index: _tab, children: const [
             _BusinessPanel(),
@@ -71,20 +78,29 @@ class _TabBtn extends StatelessWidget {
   const _TabBtn(this.label, this.idx, this.cur, this.onTap);
   @override
   Widget build(BuildContext context) {
+    final on = idx == cur;
     return Expanded(
       child: GestureDetector(
-        onTap: () => onTap(idx),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap(idx);
+        },
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(
-              color: idx == cur ? AppColors.brand : Colors.transparent,
-              width: 2))),
+            color: on ? AppColors.card : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+            boxShadow: on ? AppShadow.card : null),
           child: Text(label,
             textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: AppFont.sans(
-              fontSize: 12, fontWeight: FontWeight.w700,
-              color: idx == cur ? AppColors.brand : AppColors.t3)))));
+              fontSize: 12.5, fontWeight: FontWeight.w600,
+              color: on ? AppColors.t1 : AppColors.t3)))));
   }
 }
 
@@ -465,7 +481,7 @@ Download: $playStoreUrl
         context: context,
         builder: (ctx) => AlertDialog(
           title: Text(tr('set.lock_disable_title', ref),
-            style: AppFont.sans(fontWeight: FontWeight.w900)),
+            style: AppFont.sans(fontWeight: FontWeight.w700)),
           content: Text(tr('set.lock_disable_msg', ref)),
           actions: [
             TextButton(
@@ -520,13 +536,10 @@ Download: $playStoreUrl
                   Container(
                     width: 42, height: 42,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [AppColors.brand, Color(0xFF4070FF)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight),
+                      color: AppColors.brand,
                       borderRadius: BorderRadius.circular(11)),
-                    child: const Icon(Symbols.translate,
-                      color: Colors.white, size: 22)),
+                    child: Icon(Symbols.translate,
+                      color: AppColors.onBrand, size: 22)),
                   const Gap(12),
                   Expanded(child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -534,7 +547,7 @@ Download: $playStoreUrl
                       Text(tr('set.language', ref),
                         style: AppFont.sans(
                           fontSize: 14.5,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w600,
                           color: AppColors.t1)),
                       const Gap(2),
                       Text('${lang.name} • ${lang.englishName}',
@@ -630,7 +643,7 @@ Download: $playStoreUrl
             Icon(Symbols.bolt, size: 48, color: AppColors.brand),
             const Gap(8),
             Text('BillZap', style: AppFont.sans(
-              fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.t1)),
+              fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.t1)),
             Text(tr('splash.tagline', ref),
               style: AppFont.sans(
                 fontSize: 13, color: AppColors.t3)),
@@ -686,53 +699,35 @@ class _SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border)),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-            child: Row(children: [
-              Container(
-                width: 42, height: 42,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: gradient,
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight),
-                  borderRadius: BorderRadius.circular(11)),
-                child: Icon(icon, color: Colors.white, size: 22)),
-              const Gap(12),
-              Expanded(child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title,
-                    style: AppFont.sans(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.t1)),
-                  const Gap(2),
-                  Text(subtitle,
-                    style: AppFont.sans(
-                      fontSize: 12,
-                      color: subtitleColor ?? AppColors.t3,
-                      fontWeight: subtitleColor == AppColors.green
-                          ? FontWeight.w700
-                          : FontWeight.w500)),
-                ])),
-              Icon(Symbols.chevron_right,
-                color: AppColors.t3, size: 22),
-            ]),
-          ),
-        ),
-      ),
+    // `gradient` survives as the tile's accent source — the redesign uses
+    // its first stop as a flat tint instead of painting a gradient.
+    final accent = gradient.isEmpty ? AppColors.t2 : gradient.first;
+    return AppCard(
+      onTap: onTap,
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      child: Row(children: [
+        AppBadge(icon: icon, tone: accent, size: 44),
+        const Gap(13),
+        Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title,
+              style: AppFont.sans(
+                fontSize: 14.5,
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.2,
+                color: AppColors.t1)),
+            const Gap(3),
+            Text(subtitle,
+              style: AppFont.sans(
+                fontSize: 12.5,
+                color: subtitleColor ?? AppColors.t3,
+                fontWeight: FontWeight.w500)),
+          ])),
+        const Gap(8),
+        Icon(Symbols.chevron_right, color: AppColors.t4, size: 20),
+      ]),
     );
   }
 }
@@ -758,46 +753,26 @@ class _ThemeTile extends ConsumerWidget {
         break;
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border)),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: () => _pickMode(context, ref, mode),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-            child: Row(children: [
-              Container(
-                width: 42, height: 42,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF334155), Color(0xFF0F172A)],
-                    begin: Alignment.topLeft, end: Alignment.bottomRight),
-                  borderRadius: BorderRadius.circular(11)),
-                child: Icon(icon, color: Colors.white, size: 22),
-              ),
-              const Gap(12),
-              Expanded(child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(tr('set.theme', ref),
-                    style: AppFont.sans(
-                      fontSize: 14.5, fontWeight: FontWeight.w800,
-                      color: AppColors.t1)),
-                  const Gap(2),
-                  Text(label,
-                    style: AppFont.sans(
-                      fontSize: 12, color: AppColors.t3)),
-                ])),
-              Icon(Symbols.chevron_right, color: AppColors.t3, size: 22),
-            ]),
-          ),
-        ),
-      ),
+    return AppCard(
+      onTap: () => _pickMode(context, ref, mode),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      child: Row(children: [
+        AppBadge(icon: icon, size: 44),
+        const Gap(13),
+        Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(tr('set.theme', ref),
+              style: AppFont.sans(
+                fontSize: 14.5, fontWeight: FontWeight.w600,
+                letterSpacing: -0.2, color: AppColors.t1)),
+            const Gap(3),
+            Text(label,
+              style: AppFont.sans(fontSize: 12.5, color: AppColors.t3)),
+          ])),
+        const Gap(8),
+        Icon(Symbols.chevron_right, color: AppColors.t4, size: 20),
+      ]),
     );
   }
 
@@ -819,7 +794,7 @@ class _ThemeTile extends ConsumerWidget {
           const Gap(14),
           Text(tr('set.theme_choose', ref),
             style: AppFont.sans(
-              fontSize: 16, fontWeight: FontWeight.w800,
+              fontSize: 16, fontWeight: FontWeight.w600,
               color: AppColors.t1)),
           const Gap(8),
           _ThemeOption(
@@ -910,14 +885,15 @@ Widget _Sec(String t) {
   return Padding(
     padding: const EdgeInsets.only(bottom: 12),
     child: Text(t, style: AppFont.sans(
-      fontSize: 14.5, fontWeight: FontWeight.w800, color: AppColors.t1)));
+      fontSize: 16, fontWeight: FontWeight.w600,
+      letterSpacing: -0.3, color: AppColors.t1)));
 }
 
 Widget _Label(String t) {
   return Padding(
     padding: const EdgeInsets.only(bottom: 5),
     child: Text(t, style: AppFont.sans(
-      fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.t3)));
+      fontSize: 12.5, fontWeight: FontWeight.w500, color: AppColors.t3)));
 }
 
 Widget _F(String label, TextEditingController ctrl,
@@ -938,15 +914,8 @@ Widget _F(String label, TextEditingController ctrl,
         decoration: InputDecoration(
           hintText: hint,
           counterText: '',
-          errorText: errorText,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(color: AppColors.border)),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(color: AppColors.brand, width: 1.5)),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13)),
-        style: AppFont.sans(fontSize: 13.5, color: AppColors.t1)),
+          errorText: errorText),
+        style: AppFont.sans(
+          fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.t1)),
     ]));
 }
