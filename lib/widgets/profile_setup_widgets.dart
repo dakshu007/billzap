@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:billzap/theme/app_icons.dart';
 import '../theme/app_theme.dart';
+import 'ui_kit.dart';
 import '../providers/providers.dart';
 import '../utils/profile_completeness.dart';
 
@@ -203,28 +204,23 @@ class ProfileIncompleteBanner extends ConsumerWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          // yellowSoft is now brightness-aware (dark amber in dark mode),
-          // so the t1 text drawn over it stays readable on both themes.
-          color: AppColors.yellowSoft,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: AppColors.yellow.withOpacity(AppColors.isDark ? 0.55 : 0.4)),
+          // The last coloured panel on the dashboard — now a plain card
+          // with an orange accent badge, matching every other row.
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          boxShadow: AppShadow.card,
+          border: AppColors.isDark ? Border.all(color: AppColors.border) : null,
         ),
         child: Row(children: [
-          Container(
-            width: 42, height: 42,
-            decoration: BoxDecoration(
-              color: AppColors.orange.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(14)),
-            child: const Icon(Symbols.warning, color: AppColors.orange, size: 22),
-          ),
-          const Gap(12),
+          AppBadge(icon: Symbols.warning, tone: AppColors.orange, size: 42),
+          const Gap(13),
           Expanded(child: Column(
             crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               Text('Profile incomplete',
                 style: AppFont.sans(
-                  fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.t1)),
+                  fontSize: 14, fontWeight: FontWeight.w600,
+                  letterSpacing: -0.2, color: AppColors.t1)),
               const Gap(8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
@@ -239,7 +235,7 @@ class ProfileIncompleteBanner extends ConsumerWidget {
             const Gap(2),
             Text(missingText,
               style: AppFont.sans(
-                fontSize: 11.5, color: AppColors.t2)),
+                fontSize: 12.5, color: AppColors.t3)),
             const Gap(6),
             // Progress bar — track adapts so it doesn't flash bright white
             // against the dark amber panel in dark mode.
@@ -248,15 +244,13 @@ class ProfileIncompleteBanner extends ConsumerWidget {
               child: LinearProgressIndicator(
                 value: score / 100,
                 minHeight: 4,
-                backgroundColor: AppColors.isDark
-                    ? Colors.white.withOpacity(0.08)
-                    : Colors.white,
+                backgroundColor: AppColors.inset,
                 valueColor: const AlwaysStoppedAnimation(AppColors.orange),
               ),
             ),
           ])),
           const Gap(8),
-          Icon(Symbols.chevron_right, color: AppColors.t3, size: 22),
+          Icon(Symbols.chevron_right, color: AppColors.t4, size: 20),
         ]),
       ),
     );

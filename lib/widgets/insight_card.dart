@@ -49,7 +49,6 @@ class _InsightContainer extends StatelessWidget {
         color: AppColors.card,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: AppShadow.card,
-        border: AppColors.isDark ? Border.all(color: AppColors.border) : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,18 +171,12 @@ class _InsightContainer extends StatelessWidget {
     } catch (_) {}
   }
 
+  /// Accent for the tone's tag and action chip. The panel itself is a
+  /// plain card in both themes, so only these two elements carry colour.
   _InsightColors _colorsFor(InsightTone tone) {
-    // Dark-mode insight panels use deep tinted overlays so the t1
-    // (near-white) message text stays legible. Light mode keeps the
-    // original pastel pop.
-    final dark = AppColors.isDark;
     switch (tone) {
       case InsightTone.celebration:
         return _InsightColors(
-          gradient: dark
-              ? [const Color(0xFF2E2014), const Color(0xFF24180D)]
-              : [const Color(0xFFFFF4E5), const Color(0xFFFFFAF0)],
-          border: const Color(0xFFFFB84D).withOpacity(dark ? 0.35 : 0.5),
           tagBg: const Color(0xFFFF9800),
           tagText: Colors.white,
           btnBg: const Color(0xFFFF9800),
@@ -191,10 +184,6 @@ class _InsightContainer extends StatelessWidget {
         );
       case InsightTone.positive:
         return _InsightColors(
-          gradient: dark
-              ? [const Color(0xFF152A1A), const Color(0xFF0E2014)]
-              : [const Color(0xFFE8F5E9), const Color(0xFFF1F8E9)],
-          border: const Color(0xFF4CAF50).withOpacity(dark ? 0.35 : 0.4),
           tagBg: const Color(0xFF2E7D32),
           tagText: Colors.white,
           btnBg: const Color(0xFF2E7D32),
@@ -202,10 +191,6 @@ class _InsightContainer extends StatelessWidget {
         );
       case InsightTone.warning:
         return _InsightColors(
-          gradient: dark
-              ? [const Color(0xFF2D1F0F), const Color(0xFF23170B)]
-              : [const Color(0xFFFFF3E0), const Color(0xFFFFFAF0)],
-          border: const Color(0xFFFF9800).withOpacity(dark ? 0.35 : 0.4),
           tagBg: const Color(0xFFE65100),
           tagText: Colors.white,
           btnBg: const Color(0xFFE65100),
@@ -213,29 +198,21 @@ class _InsightContainer extends StatelessWidget {
         );
       case InsightTone.neutral:
         return _InsightColors(
-          gradient: dark
-              ? [AppColors.brandSoft, AppColors.card]
-              : [AppColors.brandSoft, Colors.white],
-          border: AppColors.brand.withOpacity(dark ? 0.4 : 0.3),
           tagBg: AppColors.brand,
-          tagText: Colors.white,
+          tagText: AppColors.onBrand,
           btnBg: AppColors.brand,
-          btnText: Colors.white,
+          btnText: AppColors.onBrand,
         );
     }
   }
 }
 
 class _InsightColors {
-  final List<Color> gradient;
-  final Color border;
   final Color tagBg;
   final Color tagText;
   final Color btnBg;
   final Color btnText;
   _InsightColors({
-    required this.gradient,
-    required this.border,
     required this.tagBg,
     required this.tagText,
     required this.btnBg,

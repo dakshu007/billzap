@@ -122,7 +122,10 @@ class AppColors {
   // panels without needing a heavy border.
   static const _lightBg         = Color(0xFFF3F3F5);
   static const _lightCard       = Color(0xFFFFFFFF);
-  static const _lightInset      = Color(0xFFF5F5F7);
+  // Deliberately a step darker than `_lightBg` (#F3F3F5): wells, chips
+  // and the segmented tab track sit directly on the page in places, and
+  // a closer value made them vanish.
+  static const _lightInset      = Color(0xFFEAEAEE);
   static const _lightT1         = Color(0xFF0C0C0F);
   static const _lightT2         = Color(0xFF37373D);
   static const _lightT3         = Color(0xFF76767E);

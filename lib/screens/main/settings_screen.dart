@@ -168,7 +168,8 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
                 fontSize: 14, fontWeight: FontWeight.w700))));
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenH, 4, AppSpacing.screenH, AppSpacing.bottomNavSafe),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -288,7 +289,8 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenH, 4, AppSpacing.screenH, AppSpacing.bottomNavSafe),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         _Sec(tr('set.bank_details', ref)),
         _F(tr('set.bank_name', ref), _bank, hint: 'State Bank of India'),
@@ -372,7 +374,8 @@ class _InvoicePanelState extends ConsumerState<_InvoicePanel> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenH, 4, AppSpacing.screenH, AppSpacing.bottomNavSafe),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         _Sec(tr('set.invoice_settings', ref)),
         _F(tr('set.invoice_prefix', ref), _prefix, hint: 'INV-'),
@@ -509,7 +512,8 @@ Download: $playStoreUrl
     final lang = currentLanguage(ref.watch(languageProvider));
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenH, 4, AppSpacing.screenH, AppSpacing.bottomNavSafe),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
         // ═════════════════════════════════════════════════
