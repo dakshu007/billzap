@@ -16,8 +16,18 @@ import 'ui_kit.dart';
 import '../providers/providers.dart';
 import '../utils/profile_completeness.dart';
 
-// Tracks whether the modal has been shown this session (per-app-launch state)
-final _modalShownThisSession = StateProvider<bool>((_) => false);
+// Tracks whether the modal has been shown this session (per-app-launch
+// state). Riverpod 3 removed the simple value-provider, so this is a
+// minimal Notifier with an explicit setter.
+class _ModalShownNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void markShown() => state = true;
+}
+
+final _modalShownThisSession =
+    NotifierProvider<_ModalShownNotifier, bool>(_ModalShownNotifier.new);
 
 /// Call this from dashboard's build to auto-show the welcome modal once
 /// per session if the business profile is empty.
@@ -45,7 +55,7 @@ class _WelcomeProfileModalTriggerState
 
     // Only show if business is essentially empty AND we haven't shown this session
     if (!shown && ProfileCompleteness.isEmpty(biz)) {
-      ref.read(_modalShownThisSession.notifier).state = true;
+      ref.read(_modalShownThisSession.notifier).markShown();
       // Slight delay so it doesn't pop instantly on app launch
       Future.delayed(const Duration(milliseconds: 600), () {
         if (mounted) _showWelcomeModal(context);
@@ -245,7 +255,7 @@ class ProfileIncompleteBanner extends ConsumerWidget {
                 value: score / 100,
                 minHeight: 4,
                 backgroundColor: AppColors.inset,
-                valueColor: const AlwaysStoppedAnimation(AppColors.orange),
+                valueColor: AlwaysStoppedAnimation(AppColors.orange),
               ),
             ),
           ])),

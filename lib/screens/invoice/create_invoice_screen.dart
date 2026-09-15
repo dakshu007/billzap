@@ -408,7 +408,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
       }
 
       if (!mounted) return;
-      ref.read(selectedInvoiceProvider.notifier).state = inv;
+      ref.read(selectedInvoiceProvider.notifier).select(inv);
       context.go('/preview');
     } catch (e) {
       if (!mounted) return;
@@ -482,7 +482,7 @@ class _LineRowState extends State<_LineRow> {
           GestureDetector(onTap: widget.onRemove,
             child: Container(width: 32, height: 32,
               decoration: BoxDecoration(color: AppColors.redSoft, borderRadius: BorderRadius.circular(12)),
-              child: const Icon(Symbols.delete, size: 16, color: AppColors.red))),
+              child: Icon(Symbols.delete, size: 16, color: AppColors.red))),
         ],
       ]),
       const Gap(8),

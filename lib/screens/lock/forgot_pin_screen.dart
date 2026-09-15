@@ -34,16 +34,13 @@ class _ForgotPinState extends State<ForgotPinScreen> {
   Future<void> _pickBackup() async {
     setState(() => _busy = true);
     try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.any,
-        allowMultiple: false,
-      );
+      final result = await FilePicker.pickFile(type: FileType.any);
       if (!mounted) return;
-      if (result == null || result.files.single.path == null) {
+      if (result?.path == null) {
         setState(() => _busy = false);
         return;
       }
-      final path = result.files.single.path!;
+      final path = result!.path!;
       // Validate the file (read header, attempt decrypt)
       final isValid = await _validateBackup(path);
       if (!mounted) return;
@@ -55,7 +52,7 @@ class _ForgotPinState extends State<ForgotPinScreen> {
         });
       } else {
         setState(() => _busy = false);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('This file is not a valid BillZap backup.'),
           backgroundColor: AppColors.red));
       }
@@ -259,7 +256,7 @@ class _StepSetNewPinState extends State<_StepSetNewPin> {
           decoration: BoxDecoration(
             color: AppColors.greenSoft,
             borderRadius: BorderRadius.circular(22)),
-          child: const Icon(Symbols.check_circle, color: AppColors.green, size: 32),
+          child: Icon(Symbols.check_circle, color: AppColors.green, size: 32),
         ),
         const Gap(16),
         Text('Backup verified ✓',

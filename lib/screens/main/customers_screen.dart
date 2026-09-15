@@ -55,7 +55,7 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             child: Text(trGlobal('common.delete'),
-              style: const TextStyle(color: AppColors.red))),
+              style: TextStyle(color: AppColors.red))),
         ],
       ),
     );
@@ -184,7 +184,7 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
                               fontSize: 10.5, color: AppColors.t3)),
                           const Gap(4),
                           IconButton(
-                            icon: const Icon(Symbols.delete, size: 18, color: AppColors.red),
+                            icon: Icon(Symbols.delete, size: 18, color: AppColors.red),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
                             tooltip: tr('common.delete', ref),

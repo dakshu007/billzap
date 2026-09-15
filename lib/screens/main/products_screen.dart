@@ -53,7 +53,7 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             child: Text(tr('common.delete', ref),
-              style: const TextStyle(color: AppColors.red))),
+              style: TextStyle(color: AppColors.red))),
         ],
       ),
     );
@@ -173,7 +173,7 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                                 fontSize: 10.5, color: AppColors.t4)),
                           ])),
                           IconButton(
-                            icon: const Icon(Symbols.delete, size: 18, color: AppColors.red),
+                            icon: Icon(Symbols.delete, size: 18, color: AppColors.red),
                             tooltip: tr('common.delete', ref),
                             onPressed: () async {
                               if (await _confirmDelete(p)) {
@@ -294,7 +294,7 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                   if (livePct != null) ...[
                     const Gap(8),
                     Row(children: [
-                      const Icon(Symbols.trending_up, size: 16, color: AppColors.green),
+                      Icon(Symbols.trending_up, size: 16, color: AppColors.green),
                       const Gap(6),
                       Text('Margin: ${livePct.toStringAsFixed(1)}%',
                         style: AppFont.sans(

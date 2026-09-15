@@ -130,7 +130,7 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(tr('common.delete', ref),
-              style: const TextStyle(color: AppColors.red))),
+              style: TextStyle(color: AppColors.red))),
         ],
       ),
     );
@@ -273,7 +273,7 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
                             inv: inv,
                             statusLabel: _statusLabel(inv),
                             onTap: () {
-                              ref.read(selectedInvoiceProvider.notifier).state = inv;
+                              ref.read(selectedInvoiceProvider.notifier).select(inv);
                               context.push('/preview');
                             },
                             onDelete: () async {

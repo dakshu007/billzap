@@ -7,9 +7,14 @@ import '../services/local_storage.dart';
 final storageProvider = Provider<LocalStorage>((_) => LocalStorage.instance);
 
 // ─── Business ─────────────────────────────────────────────────────────────
-class BusinessNotifier extends StateNotifier<Business?> {
-  final LocalStorage _db;
-  BusinessNotifier(this._db) : super(_db.getBusiness());
+class BusinessNotifier extends Notifier<Business?> {
+  late LocalStorage _db;
+
+  @override
+  Business? build() {
+    _db = ref.watch(storageProvider);
+    return _db.getBusiness();
+  }
 
   Future<void> save(Business b) async {
     await _db.saveBusiness(b);
@@ -19,13 +24,18 @@ class BusinessNotifier extends StateNotifier<Business?> {
   void reload() => state = _db.getBusiness();
 }
 
-final businessProvider = StateNotifierProvider<BusinessNotifier, Business?>(
-  (ref) => BusinessNotifier(ref.watch(storageProvider)));
+final businessProvider =
+    NotifierProvider<BusinessNotifier, Business?>(BusinessNotifier.new);
 
 // ─── Invoices ─────────────────────────────────────────────────────────────
-class InvoiceNotifier extends StateNotifier<List<Invoice>> {
-  final LocalStorage _db;
-  InvoiceNotifier(this._db) : super(_db.getInvoices());
+class InvoiceNotifier extends Notifier<List<Invoice>> {
+  late LocalStorage _db;
+
+  @override
+  List<Invoice> build() {
+    _db = ref.watch(storageProvider);
+    return _db.getInvoices();
+  }
 
   Future<void> add(Invoice inv) async {
     inv.touch(); // sync foundation: bump updatedAt
@@ -86,15 +96,35 @@ class InvoiceNotifier extends StateNotifier<List<Invoice>> {
   }
 }
 
-final invoiceProvider = StateNotifierProvider<InvoiceNotifier, List<Invoice>>(
-  (ref) => InvoiceNotifier(ref.watch(storageProvider)));
+final invoiceProvider =
+    NotifierProvider<InvoiceNotifier, List<Invoice>>(InvoiceNotifier.new);
 
-final selectedInvoiceProvider = StateProvider<Invoice?>((ref) => null);
+/// The invoice currently open in the preview / editor.
+///
+/// Riverpod 3 removed the simple value-provider, and a Notifier's `state`
+/// setter is protected, so selection goes through an explicit method
+/// rather than being poked from the outside.
+class SelectedInvoiceNotifier extends Notifier<Invoice?> {
+  @override
+  Invoice? build() => null;
+
+  void select(Invoice? invoice) => state = invoice;
+  void clear() => state = null;
+}
+
+final selectedInvoiceProvider =
+    NotifierProvider<SelectedInvoiceNotifier, Invoice?>(
+        SelectedInvoiceNotifier.new);
 
 // ─── Customers ────────────────────────────────────────────────────────────
-class CustomerNotifier extends StateNotifier<List<Customer>> {
-  final LocalStorage _db;
-  CustomerNotifier(this._db) : super(_db.getCustomers());
+class CustomerNotifier extends Notifier<List<Customer>> {
+  late LocalStorage _db;
+
+  @override
+  List<Customer> build() {
+    _db = ref.watch(storageProvider);
+    return _db.getCustomers();
+  }
 
   Future<void> add(Customer c) async {
     c.touch();
@@ -110,13 +140,18 @@ class CustomerNotifier extends StateNotifier<List<Customer>> {
   void reload() => state = _db.getCustomers();
 }
 
-final customerProvider = StateNotifierProvider<CustomerNotifier, List<Customer>>(
-  (ref) => CustomerNotifier(ref.watch(storageProvider)));
+final customerProvider =
+    NotifierProvider<CustomerNotifier, List<Customer>>(CustomerNotifier.new);
 
 // ─── Products ─────────────────────────────────────────────────────────────
-class ProductNotifier extends StateNotifier<List<Product>> {
-  final LocalStorage _db;
-  ProductNotifier(this._db) : super(_db.getProducts());
+class ProductNotifier extends Notifier<List<Product>> {
+  late LocalStorage _db;
+
+  @override
+  List<Product> build() {
+    _db = ref.watch(storageProvider);
+    return _db.getProducts();
+  }
 
   Future<void> add(Product p) async {
     p.touch();
@@ -154,13 +189,18 @@ class ProductNotifier extends StateNotifier<List<Product>> {
   void reload() => state = _db.getProducts();
 }
 
-final productProvider = StateNotifierProvider<ProductNotifier, List<Product>>(
-  (ref) => ProductNotifier(ref.watch(storageProvider)));
+final productProvider =
+    NotifierProvider<ProductNotifier, List<Product>>(ProductNotifier.new);
 
 // ─── Expenses ─────────────────────────────────────────────────────────────
-class ExpenseNotifier extends StateNotifier<List<Expense>> {
-  final LocalStorage _db;
-  ExpenseNotifier(this._db) : super(_db.getExpenses());
+class ExpenseNotifier extends Notifier<List<Expense>> {
+  late LocalStorage _db;
+
+  @override
+  List<Expense> build() {
+    _db = ref.watch(storageProvider);
+    return _db.getExpenses();
+  }
 
   Future<void> add(Expense e) async {
     e.touch();
@@ -176,5 +216,5 @@ class ExpenseNotifier extends StateNotifier<List<Expense>> {
   void reload() => state = _db.getExpenses();
 }
 
-final expenseProvider = StateNotifierProvider<ExpenseNotifier, List<Expense>>(
-  (ref) => ExpenseNotifier(ref.watch(storageProvider)));
+final expenseProvider =
+    NotifierProvider<ExpenseNotifier, List<Expense>>(ExpenseNotifier.new);

@@ -85,7 +85,7 @@ class ExpensesScreen extends ConsumerWidget {
                         decoration: BoxDecoration(
                           color: AppColors.purpleSoft,
                           borderRadius: BorderRadius.circular(14)),
-                        child: const Center(
+                        child: Center(
                           child: Icon(Symbols.receipt, size: 20,
                             color: AppColors.purple))),
                       const Gap(12),
@@ -106,7 +106,7 @@ class ExpensesScreen extends ConsumerWidget {
                         const Gap(4),
                         GestureDetector(
                           onTap: () => ref.read(expenseProvider.notifier).delete(e.id),
-                          child: const Icon(Symbols.delete, size: 15,
+                          child: Icon(Symbols.delete, size: 15,
                             color: AppColors.red)),
                       ]),
                     ]),

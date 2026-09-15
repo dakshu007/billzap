@@ -4,7 +4,7 @@
 // right palette on next paint.
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import '../theme/app_theme.dart';
 
 const _kBox = 'settings';
@@ -26,9 +26,13 @@ String _encode(ThemeMode m) {
   }
 }
 
-class ThemeNotifier extends StateNotifier<ThemeMode> {
-  ThemeNotifier() : super(ThemeMode.system) {
+class ThemeNotifier extends Notifier<ThemeMode> {
+  @override
+  ThemeMode build() {
+    // Read the persisted choice asynchronously; the synchronous default
+    // keeps the very first frame from blocking on disk.
     _load();
+    return ThemeMode.system;
   }
 
   Future<void> _load() async {
@@ -53,9 +57,8 @@ class ThemeNotifier extends StateNotifier<ThemeMode> {
   }
 }
 
-final themeModeProvider = StateNotifierProvider<ThemeNotifier, ThemeMode>(
-  (ref) => ThemeNotifier(),
-);
+final themeModeProvider =
+    NotifierProvider<ThemeNotifier, ThemeMode>(ThemeNotifier.new);
 
 /// Resolve a ThemeMode to a concrete brightness given the device's
 /// platform brightness.

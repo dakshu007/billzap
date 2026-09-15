@@ -296,7 +296,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
               border: Border.all(color: AppColors.green.withOpacity(0.3)),
             ),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              const Icon(Symbols.check_circle, color: AppColors.green, size: 18),
+              Icon(Symbols.check_circle, color: AppColors.green, size: 18),
               const Gap(6),
               Text('Paid',
                 style: AppFont.sans(
@@ -580,7 +580,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
         subject: 'Invoice ${invoice.invoiceNumber}',
         text: 'Invoice ${invoice.invoiceNumber} — ${formatCurrency(invoice.grandTotal)}');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('PDF ready ✓'), backgroundColor: AppColors.green));
     } catch (e) {
       if (!mounted) return;
@@ -609,7 +609,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
   Future<void> _markPaid(Invoice invoice) async {
     await ref.read(invoiceProvider.notifier).markPaid(invoice.id);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('Marked as paid ✓'), backgroundColor: AppColors.green));
   }
 
@@ -620,12 +620,12 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
       actions: [
         TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
         TextButton(onPressed: () => Navigator.pop(context, true),
-          child: const Text('Mark Unpaid', style: TextStyle(color: AppColors.orange))),
+          child: Text('Mark Unpaid', style: TextStyle(color: AppColors.orange))),
       ]));
     if (ok == true) {
       await ref.read(invoiceProvider.notifier).markUnpaid(invoice.id);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Marked as unpaid'), backgroundColor: AppColors.orange));
     }
   }
@@ -637,7 +637,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
       actions: [
         TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
         TextButton(onPressed: () => Navigator.pop(context, true),
-          child: const Text('Delete', style: TextStyle(color: AppColors.red))),
+          child: Text('Delete', style: TextStyle(color: AppColors.red))),
       ]));
     if (ok == true) {
       await ref.read(invoiceProvider.notifier).delete(invoice.id);
@@ -740,7 +740,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           await launchUrl(fallback, mode: LaunchMode.externalApplication);
         } else {
           if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('WhatsApp not installed'), backgroundColor: AppColors.red));
         }
       }
@@ -910,7 +910,7 @@ class _UpiPaymentCard extends ConsumerWidget {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('No UPI app installed'),
             backgroundColor: AppColors.red));
         }
@@ -941,7 +941,7 @@ class _NoUpiSetupCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.yellow.withOpacity(0.2),
             borderRadius: BorderRadius.circular(12)),
-          child: const Icon(Symbols.qr_code_2, color: AppColors.orange, size: 18),
+          child: Icon(Symbols.qr_code_2, color: AppColors.orange, size: 18),
         ),
         const Gap(12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -984,7 +984,7 @@ class _InvalidUpiCard extends StatelessWidget {
         border: Border.all(color: AppColors.red.withOpacity(0.3)),
       ),
       child: Row(children: [
-        const Icon(Symbols.error, color: AppColors.red, size: 22),
+        Icon(Symbols.error, color: AppColors.red, size: 22),
         const Gap(10),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('Invalid UPI ID format',
@@ -1113,10 +1113,10 @@ class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
       inv.invoiceDate = _date;
       inv.dueDate = _due;
       await ref.read(invoiceProvider.notifier).update(inv);
-      ref.read(selectedInvoiceProvider.notifier).state = inv;
+      ref.read(selectedInvoiceProvider.notifier).select(inv);
       if (!mounted) return;
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Invoice updated ✓'), backgroundColor: AppColors.green));
     } catch (e) {
       if (!mounted) return;

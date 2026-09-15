@@ -305,7 +305,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                 border: Border.all(color: AppColors.red.withOpacity(0.3)),
               ),
               child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Icon(Symbols.error, size: 20, color: AppColors.red),
+                Icon(Symbols.error, size: 20, color: AppColors.red),
                 const Gap(10),
                 Expanded(child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -439,7 +439,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                   ),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Row(children: [
-                      const Icon(Symbols.auto_awesome, size: 18, color: AppColors.green),
+                      Icon(Symbols.auto_awesome, size: 18, color: AppColors.green),
                       const Gap(8),
                       Text('Extracted',
                         style: AppFont.sans(

@@ -224,7 +224,7 @@ class _StepWarning extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.yellowSoft,
             borderRadius: BorderRadius.circular(26)),
-          child: const Icon(Symbols.warning, color: AppColors.orange, size: 40),
+          child: Icon(Symbols.warning, color: AppColors.orange, size: 40),
         )),
         const Gap(20),
         Text('Set up App Lock',
@@ -247,7 +247,7 @@ class _StepWarning extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppColors.red.withOpacity(0.25))),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Icon(Symbols.error, color: AppColors.red, size: 22),
+            Icon(Symbols.error, color: AppColors.red, size: 22),
             const Gap(10),
             Expanded(child: Column(
               crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -340,7 +340,7 @@ class _StepBackupShare extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.greenSoft,
             borderRadius: BorderRadius.circular(26)),
-          child: const Icon(Symbols.check_circle, color: AppColors.green, size: 44),
+          child: Icon(Symbols.check_circle, color: AppColors.green, size: 44),
         )),
         const Gap(20),
         Text('Backup created \u2713',

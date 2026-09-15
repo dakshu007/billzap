@@ -228,7 +228,7 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
     }
     if (_gstinErr != null || _phoneErr != null ||
         _emailErr != null || _pinErr != null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Fix the highlighted fields first'),
         backgroundColor: AppColors.red));
       return;
@@ -322,7 +322,7 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
 
   Future<void> _save() async {
     if (_ifscErr != null || _upiErr != null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Fix the highlighted fields first'),
         backgroundColor: AppColors.red));
       return;
@@ -494,7 +494,7 @@ Download: $playStoreUrl
             TextButton(
               onPressed: () => Navigator.pop(ctx, true),
               child: Text(tr('set.lock_disable_btn', ref),
-                style: const TextStyle(color: AppColors.red))),
+                style: TextStyle(color: AppColors.red))),
           ],
         ),
       );

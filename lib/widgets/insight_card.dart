@@ -163,7 +163,7 @@ class _InsightContainer extends StatelessWidget {
         await launchUrl(url, mode: LaunchMode.externalApplication);
       } else {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('WhatsApp not available'),
             backgroundColor: AppColors.red));
         }

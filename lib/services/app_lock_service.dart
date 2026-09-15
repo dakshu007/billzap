@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:crypto/crypto.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 
 class AppLockService {
   AppLockService._();
@@ -65,11 +65,8 @@ class AppLockService {
       debugPrint("AppLock: testBiometricForSetup starting...");
       final ok = await _localAuth.authenticate(
         localizedReason: 'Confirm your fingerprint to enable for BillZap',
-        options: const AuthenticationOptions(
-          biometricOnly: true,
-          stickyAuth: false,
-          useErrorDialogs: true,
-        ),
+        biometricOnly: true,
+        persistAcrossBackgrounding: false,
       );
       debugPrint("AppLock: testBiometricForSetup result=$ok");
       return ok;
@@ -80,11 +77,8 @@ class AppLockService {
         debugPrint("AppLock: retrying without biometricOnly...");
         final ok = await _localAuth.authenticate(
           localizedReason: 'Confirm your fingerprint to enable for BillZap',
-          options: const AuthenticationOptions(
-            biometricOnly: false,
-            stickyAuth: false,
-            useErrorDialogs: true,
-          ),
+          biometricOnly: false,
+        persistAcrossBackgrounding: false,
         );
         debugPrint("AppLock: retry result=$ok");
         return ok;
@@ -142,11 +136,8 @@ class AppLockService {
       debugPrint("AppLock: authenticateBiometric starting...");
       final ok = await _localAuth.authenticate(
         localizedReason: 'Unlock BillZap with your fingerprint',
-        options: const AuthenticationOptions(
-          biometricOnly: true,
-          stickyAuth: true,
-          useErrorDialogs: true,
-        ),
+        biometricOnly: true,
+        persistAcrossBackgrounding: true,
       );
       debugPrint("AppLock: authenticate result=$ok");
       if (ok) {
@@ -160,11 +151,8 @@ class AppLockService {
       try {
         final ok = await _localAuth.authenticate(
           localizedReason: 'Unlock BillZap',
-          options: const AuthenticationOptions(
-            biometricOnly: false,
-            stickyAuth: true,
-            useErrorDialogs: true,
-          ),
+          biometricOnly: false,
+        persistAcrossBackgrounding: true,
         );
         if (ok) {
           _hasUnlocked = true;

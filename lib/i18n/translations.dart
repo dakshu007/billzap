@@ -7,7 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 
 // ── Supported languages ───────────────────────────────────────
 class AppLanguage {
@@ -2749,9 +2749,11 @@ final Map<String, Map<String, String>> _allTranslations = {
 };
 
 // ── State management ──────────────────────────────────────────
-class LanguageNotifier extends StateNotifier<String> {
-  LanguageNotifier() : super('en') {
+class LanguageNotifier extends Notifier<String> {
+  @override
+  String build() {
     _load();
+    return 'en';
   }
 
   Future<void> _load() async {
@@ -2776,9 +2778,8 @@ class LanguageNotifier extends StateNotifier<String> {
   }
 }
 
-final languageProvider = StateNotifierProvider<LanguageNotifier, String>(
-  (ref) => LanguageNotifier(),
-);
+final languageProvider =
+    NotifierProvider<LanguageNotifier, String>(LanguageNotifier.new);
 
 // ── Translate function ────────────────────────────────────────
 String tr(String key, WidgetRef ref) {

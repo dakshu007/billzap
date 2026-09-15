@@ -105,7 +105,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
       .toList();
 
     if (selectedCustomers.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Select at least one customer with a phone number'),
         backgroundColor: AppColors.red));
       return;
@@ -155,7 +155,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Row(children: [
+        title: Row(children: [
           Icon(Symbols.check_circle, color: AppColors.green),
           SizedBox(width: 10),
           Text('All sent!'),
@@ -372,7 +372,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppColors.yellow.withOpacity(0.4))),
               child: Row(children: [
-                const SizedBox(
+                SizedBox(
                   width: 18, height: 18,
                   child: CircularProgressIndicator(strokeWidth: 2,
                     color: AppColors.orange)),

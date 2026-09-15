@@ -283,7 +283,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       child: Row(children: [
-                        const Icon(Symbols.remove_circle, size: 18, color: AppColors.red),
+                        Icon(Symbols.remove_circle, size: 18, color: AppColors.red),
                         const Gap(10),
                         Expanded(child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

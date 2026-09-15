@@ -1,30 +1,40 @@
-// lib/main.dart — BillZap, 100% offline, zero Firebase
+// lib/main.dart — BillZap. 100% offline, no backend, no Firebase.
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'services/local_storage.dart';
-import 'services/app_lock_service.dart';
-import 'widgets/app_lock_gate.dart';
-import 'theme/app_theme.dart';
+import 'package:hive_ce_flutter/hive_ce_flutter.dart';
+
+import 'design/theme.dart' as ds;
+import 'design/tokens.dart';
+import 'i18n/translations.dart';
 import 'providers/theme_provider.dart';
 import 'router/app_router.dart';
-import 'i18n/translations.dart';
+import 'services/app_lock_service.dart';
+import 'services/local_storage.dart';
 import 'utils/platform.dart';
+import 'widgets/app_lock_gate.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+
   await Hive.initFlutter();
   await LocalStorage.instance.init();
   await AppLockService.instance.init();
-  // Pre-open settings box so theme + language can read synchronously.
-  try { await Hive.openBox('settings'); } catch (_) {}
-  // Initialize multilang cache
-  try { initGlobalLanguage(); } catch (_) {}
+
+  // Pre-open settings so theme + language resolve on the first frame
+  // instead of flashing a default.
+  try {
+    await Hive.openBox('settings');
+  } catch (_) {}
+  try {
+    initGlobalLanguage();
+  } catch (_) {}
 
   runApp(const ProviderScope(child: BillZapApp()));
 }
@@ -35,43 +45,41 @@ class BillZapApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
-    final platform  = MediaQuery.platformBrightnessOf(context);
+    final platform = MediaQuery.platformBrightnessOf(context);
     final brightness = brightnessFor(themeMode, platform);
-    // Make sure the static AppColors palette matches the theme that
-    // MaterialApp is about to paint. Custom widgets read these tokens
-    // directly, so they need to be in sync with `themeMode`.
-    syncAppColors(brightness);
 
+    // Custom widgets read the token getters directly, so the static
+    // palette has to match the ThemeData about to be painted.
+    AppTokens.setMode(brightness);
     final isDark = brightness == Brightness.dark;
+
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-      systemNavigationBarColor: AppColors.bg,
+      statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+      systemNavigationBarColor: AppColor.canvas,
       systemNavigationBarIconBrightness:
-        isDark ? Brightness.light : Brightness.dark,
+          isDark ? Brightness.light : Brightness.dark,
     ));
 
     return MaterialApp.router(
       title: 'BillZap',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
+      theme: ds.AppTheme.light(),
+      darkTheme: ds.AppTheme.dark(),
       themeMode: themeMode,
-      // Stretch the default 200ms theme tween → 360ms with an ease curve so
-      // the dark/light switch reads as a deliberate transition rather than
-      // a hard cut. Scaffold, AppBar, dividers, switches, button themes
-      // and the BottomNav (which now reads from theme) all crossfade in
-      // lockstep.
-      themeAnimationDuration: const Duration(milliseconds: 360),
-      themeAnimationCurve: Curves.easeInOut,
+      // Slower than Material's 200ms default so the light/dark switch
+      // reads as a deliberate transition rather than a hard cut.
+      themeAnimationDuration: AppMotion.theme,
+      themeAnimationCurve: AppMotion.standard,
       routerConfig: ref.watch(routerProvider),
       builder: (context, child) {
         final mq = MediaQuery.of(context);
-        // Desktop windows sit further from the eyes and have lots of
-        // room, so nudge text ~12% larger for readability. Phones keep
-        // the device's own scale (clamped to a sane range).
-        final base = mq.textScaler.scale(1.0).clamp(0.85, 1.15);
-        final scale = AppPlatform.isDesktop ? base * 1.12 : base;
+        // Respect the user's text-size setting, but clamp it: this is a
+        // dense financial UI and unbounded scaling breaks money columns.
+        // Desktop sits further from the eye, so nudge it up.
+        final base = mq.textScaler.scale(1.0).clamp(0.85, 1.25);
+        final scale = AppPlatform.isDesktop ? base * 1.1 : base;
         return MediaQuery(
           data: mq.copyWith(textScaler: TextScaler.linear(scale)),
           child: AppLockGate(child: child!),

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:billzap/theme/app_icons.dart';
 import 'package:gap/gap.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/ui_kit.dart';
 import '../../services/gst_classifier.dart';
@@ -176,7 +176,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Symbols.delete,
+                          icon: Icon(Symbols.delete,
                               size: 20, color: AppColors.red),
                           onPressed: () => _confirmDelete(item),
                         ),
@@ -415,7 +415,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
               await _load();
             },
             child: Text(trGlobal('common.delete'),
-                style: const TextStyle(color: AppColors.red)),
+                style: TextStyle(color: AppColors.red)),
           ),
         ],
       ),

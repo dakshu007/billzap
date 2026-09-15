@@ -33,7 +33,7 @@ jobs:
         # that compiles for one compiles for the other.
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.6'
+          flutter-version: '3.47.4'
           channel: 'stable'
           cache: true
 

@@ -406,7 +406,7 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
                     color: AppColors.yellowSoft,
                     borderRadius: BorderRadius.circular(14)),
                   child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const Icon(Symbols.lightbulb, size: 16, color: AppColors.orange),
+                    Icon(Symbols.lightbulb, size: 16, color: AppColors.orange),
                     const Gap(8),
                     Expanded(child: Text(
                       'PDFs are great for sharing and printing. CSVs work in Excel for further analysis.',
@@ -521,7 +521,7 @@ class _ReportRow extends StatelessWidget {
           const Gap(8),
           Expanded(child: OutlinedButton.icon(
             onPressed: busy ? null : onCsv,
-            icon: const Icon(Symbols.table_view, size: 16, color: AppColors.green),
+            icon: Icon(Symbols.table_view, size: 16, color: AppColors.green),
             label: Text('CSV',
               style: AppFont.sans(
                 fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.green)),
@@ -536,7 +536,7 @@ class _ReportRow extends StatelessWidget {
           const Gap(8),
           SizedBox(width: double.infinity, child: OutlinedButton.icon(
             onPressed: busy ? null : onJson,
-            icon: const Icon(Symbols.data_object, size: 16, color: AppColors.purple),
+            icon: Icon(Symbols.data_object, size: 16, color: AppColors.purple),
             label: Text(jsonLabel ?? 'JSON',
               style: AppFont.sans(
                 fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.purple)),

@@ -8,7 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:billzap/theme/app_icons.dart';
 import 'package:gap/gap.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import '../../theme/app_theme.dart';
 import '../../i18n/translations.dart';
 import '../../widgets/language_picker.dart';
@@ -403,7 +403,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               color: AppColors.green.withOpacity(0.12),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Symbols.check_circle,
+            child: Icon(Symbols.check_circle,
                 color: AppColors.green, size: 56),
           ),
           const Gap(28),

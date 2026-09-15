@@ -237,7 +237,7 @@ class DashboardScreen extends ConsumerWidget {
             )
           else
             ...invoices.take(6).map((inv) => _InvoiceRow(inv: inv, onTap: () {
-              ref.read(selectedInvoiceProvider.notifier).state = inv;
+              ref.read(selectedInvoiceProvider.notifier).select(inv);
               context.push('/preview');
             })),
         ],

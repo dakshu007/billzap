@@ -80,7 +80,7 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppColors.yellow.withOpacity(0.3))),
             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Icon(Symbols.lightbulb, color: AppColors.orange, size: 16),
+              Icon(Symbols.lightbulb, color: AppColors.orange, size: 16),
               const Gap(8),
               Expanded(child: Text(
                 'Backup files are PIN-protected. Send them to yourself via WhatsApp / Email / Drive for safekeeping.',
@@ -196,25 +196,23 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
             child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Continue', style: TextStyle(color: AppColors.red))),
+            child: Text('Continue', style: TextStyle(color: AppColors.red))),
         ],
       ),
     );
     if (confirmed != true) return;
 
     // Pick file
-    FilePickerResult? picked;
+    PlatformFile? picked;
     try {
-      picked = await FilePicker.platform.pickFiles(
-        type: FileType.any,  // .billzap may not be recognized as a known type
-        allowMultiple: false,
-      );
+      // .billzap is not a type the picker knows, so stay on FileType.any.
+      picked = await FilePicker.pickFile(type: FileType.any);
     } catch (e) {
       _showError('File picker failed: $e');
       return;
     }
-    if (picked == null || picked.files.isEmpty) return;
-    final filePath = picked.files.first.path;
+    if (picked == null) return;
+    final filePath = picked.path;
     if (filePath == null) {
       _showError('Could not access selected file');
       return;
@@ -250,7 +248,7 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Row(children: [
+        title: Row(children: [
           Icon(Symbols.check_circle, color: AppColors.green),
           SizedBox(width: 10),
           Text('Restore complete'),
