@@ -492,12 +492,17 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
         Expanded(child: ElevatedButton.icon(
           onPressed: _pdfLoading ? null : () => _downloadPdf(invoice, biz),
           icon: _pdfLoading
-            ? const SizedBox(width: 16, height: 16,
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+            ? SizedBox(width: 16, height: 16,
+                child: CircularProgressIndicator(
+                    color: AppColor.onContrast, strokeWidth: 2))
             : const Icon(Symbols.picture_as_pdf, size: 18),
           label: Text('PDF', style: AppFont.sans(fontWeight: FontWeight.w600, fontSize: 14)),
+          // Ink, not jade: Share beside it is WhatsApp green and Paid is
+          // a jade outline, so a third green button left the row with no
+          // hierarchy at all.
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.brand, foregroundColor: AppColors.onBrand,
+            backgroundColor: AppColor.contrast,
+            foregroundColor: AppColor.onContrast,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))))),
       ]),

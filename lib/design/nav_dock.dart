@@ -329,7 +329,11 @@ class _CreateButton extends StatelessWidget {
 /// gradient lets content dissolve into the page instead.
 class DockScrim extends StatelessWidget {
   final double height;
-  const DockScrim({super.key, this.height = 132});
+
+  /// Taller than the dock on purpose. At 132 the fade only began level
+  /// with the bar, so the last list row still met it at full opacity and
+  /// came out sliced; the dissolve has to start well above the chrome.
+  const DockScrim({super.key, this.height = 184});
 
   @override
   Widget build(BuildContext context) => IgnorePointer(
@@ -346,7 +350,7 @@ class DockScrim extends StatelessWidget {
                   AppColor.canvas,
                   AppColor.canvas,
                 ],
-                stops: const [0.0, 0.45, 0.72, 1.0],
+                stops: const [0.0, 0.40, 0.66, 1.0],
               ),
             ),
           ),

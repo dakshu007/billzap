@@ -44,6 +44,9 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icon.png
+    # The mark without its jade tile — used on the splash, where the
+    # tile's own ground would vanish into the screen behind it.
+    - assets/icon_foreground.png
     # Embedded in the generated invoice PDF. The PDF spec's built-in
     # fonts are Latin-1 only and have no rupee glyph, which is why the
     # old invoices printed "Rs." — a detail that makes a bill look
@@ -56,7 +59,7 @@ flutter_icons:
   android: true
   ios: false
   image_path: "assets/icon.png"
-  adaptive_icon_background: "#1557FF"
-  adaptive_icon_foreground: "assets/icon.png"
+  adaptive_icon_background: "#10A56F"
+  adaptive_icon_foreground: "assets/icon_foreground.png"
   remove_alpha_ios: false
   min_sdk_android: 24
