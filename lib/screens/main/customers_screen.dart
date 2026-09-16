@@ -42,24 +42,14 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
   }
 
   Future<bool> _confirmDelete(Customer c) async {
-    HapticFeedback.mediumImpact();
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(trGlobal('common.delete')),
-        content: Text('${c.name}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(trGlobal('common.cancel'))),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(trGlobal('common.delete'),
-              style: TextStyle(color: AppColors.red))),
-        ],
-      ),
-    );
-    return ok == true;
+    return confirm(context,
+        title: 'Delete ${c.name}?',
+        message: 'Their invoices stay in the ledger — only the saved '
+            'contact goes.',
+        icon: Symbols.delete,
+        destructive: true,
+        confirmLabel: trGlobal('common.delete'),
+        cancelLabel: trGlobal('common.cancel'));
   }
 
   Future<void> _doDelete(Customer c) async {
@@ -320,7 +310,7 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
                           }
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text('${name.text.trim()} added ✓'),
+                              content: Text('${name.text.trim()} added'),
                               backgroundColor: AppColors.green));
                           }
                         } finally {

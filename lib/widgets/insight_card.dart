@@ -53,10 +53,18 @@ class _InsightContainer extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header row: emoji + title tag
+          // Header row: icon chip + title tag
           Row(children: [
-            Text(insight.emoji, style: const TextStyle(fontSize: 18)),
-            const Gap(8),
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: colors.tagBg.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(insight.icon, size: 16, color: colors.tagBg),
+            ),
+            const Gap(10),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
@@ -153,7 +161,7 @@ class _InsightContainer extends StatelessWidget {
     final bizName = (biz?.name as String?)?.isNotEmpty == true ? biz!.name : 'BillZap';
     final msg = Uri.encodeComponent(
       'Hi $customerName,\n\n'
-      'Thank you so much for your continued business this month! 🙏\n'
+      'Thank you so much for your continued business this month.\n'
       'It means a lot. Looking forward to serving you again soon.\n\n'
       '— $bizName');
 

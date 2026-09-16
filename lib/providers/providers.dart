@@ -18,7 +18,7 @@ class BusinessNotifier extends Notifier<Business?> {
 
   Future<void> save(Business b) async {
     await _db.saveBusiness(b);
-    state = b; // ✅ immediately updates all watchers including dashboard
+    state = b; // immediately updates all watchers including dashboard
   }
 
   void reload() => state = _db.getBusiness();
@@ -60,13 +60,13 @@ class InvoiceNotifier extends Notifier<List<Invoice>> {
     state = _db.getInvoices();
   }
 
-  // ✅ Mark as paid
+  // Mark as paid
   Future<void> markPaid(String id) async {
     await _db.markInvoicePaid(id);
     state = _db.getInvoices();
   }
 
-  // ✅ NEW: Mark as unpaid
+  // NEW: Mark as unpaid
   Future<void> markUnpaid(String id) async {
     await _db.markInvoiceUnpaid(id);
     state = _db.getInvoices();

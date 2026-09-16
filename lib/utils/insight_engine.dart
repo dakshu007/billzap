@@ -2,6 +2,9 @@
 // Generates rotating daily insights from local invoice/customer data.
 // Pure Dart, zero dependencies, runs in <1ms on real data.
 
+import 'package:flutter/widgets.dart';
+import 'package:billzap/theme/app_icons.dart';
+
 import '../models/models.dart';
 
 enum InsightType {
@@ -24,7 +27,11 @@ class Insight {
   final String? actionLabel;  // optional CTA button text
   final InsightAction? action; // optional CTA action
   final InsightTone tone;
-  final String emoji;
+
+  /// Lucide glyph for the card. Icons are bundled with the app, so they
+  /// render identically on every device — unlike emoji, which fall back
+  /// to whatever set the OEM ships.
+  final IconData icon;
 
   Insight({
     required this.type,
@@ -33,7 +40,7 @@ class Insight {
     this.actionLabel,
     this.action,
     this.tone = InsightTone.neutral,
-    this.emoji = '💡',
+    this.icon = Symbols.lightbulb,
   });
 }
 
@@ -62,7 +69,7 @@ class InsightEngine {
         type: InsightType.firstInvoice,
         title: 'GET STARTED',
         message: 'Create your first GST invoice in seconds. Tap the + button or use Voice Bill.',
-        emoji: '🚀',
+        icon: Symbols.trending_up,
         tone: InsightTone.neutral,
       );
     }
@@ -126,9 +133,9 @@ class InsightEngine {
       if (thisWeek > bestPrev && bestPrev > 0) {
         return Insight(
           type: InsightType.bestWeekEver,
-          title: 'NEW RECORD 🎉',
+          title: 'New record',
           message: 'You earned ${_inr(thisWeek)} this week — your best week yet!',
-          emoji: '🏆',
+          icon: Symbols.check_circle,
           tone: InsightTone.celebration,
         );
       }
@@ -160,27 +167,27 @@ class InsightEngine {
 
     String message;
     InsightTone tone;
-    String emoji;
+    IconData icon;
 
     if (lastWeek == 0) {
       message = 'You earned ${_inr(thisWeek)} this week. Keep it up!';
       tone = InsightTone.positive;
-      emoji = '📈';
+      icon = Symbols.trending_up;
     } else {
       final diff = thisWeek - lastWeek;
       final pct = (diff / lastWeek * 100).round();
       if (pct > 10) {
-        message = '${_inr(thisWeek)} this week — up $pct% from last week 📈';
+        message = '${_inr(thisWeek)} this week — up $pct% from last week';
         tone = InsightTone.celebration;
-        emoji = '🎉';
+        icon = Symbols.auto_awesome;
       } else if (pct < -10) {
         message = '${_inr(thisWeek)} this week — down ${pct.abs()}% from last week. Push harder!';
         tone = InsightTone.warning;
-        emoji = '💪';
+        icon = Symbols.bar_chart;
       } else {
         message = '${_inr(thisWeek)} earned this week — steady performance';
         tone = InsightTone.neutral;
-        emoji = '📊';
+        icon = Symbols.bar_chart;
       }
     }
 
@@ -189,7 +196,7 @@ class InsightEngine {
       title: 'THIS WEEK',
       message: message,
       tone: tone,
-      emoji: emoji,
+      icon: icon,
     );
   }
 
@@ -217,7 +224,7 @@ class InsightEngine {
       type: InsightType.topCustomer,
       title: 'TOP CUSTOMER',
       message: '${top.key} is your top customer this month — ${_inr(top.value)} across multiple invoices.',
-      emoji: '⭐',
+      icon: Symbols.person,
       tone: InsightTone.positive,
       actionLabel: 'Send thanks',
       action: InsightAction(
@@ -236,9 +243,9 @@ class InsightEngine {
       if (paid >= 3) {
         return Insight(
           type: InsightType.pendingPayments,
-          title: 'ALL CLEAR ✓',
+          title: 'All clear',
           message: 'No overdue invoices. Great cash flow!',
-          emoji: '💚',
+          icon: Symbols.check_circle,
           tone: InsightTone.positive,
         );
       }
@@ -251,7 +258,7 @@ class InsightEngine {
       type: InsightType.pendingPayments,
       title: 'OVERDUE',
       message: '${overdue.length} invoice${overdue.length > 1 ? 's' : ''} overdue worth ${_inr(total)}. Time to follow up.',
-      emoji: '⏰',
+      icon: Symbols.lightbulb,
       tone: InsightTone.warning,
       actionLabel: 'View overdue',
       action: InsightAction(route: '/invoices'),
@@ -288,7 +295,7 @@ class InsightEngine {
       type: InsightType.bestDay,
       title: 'BUSIEST DAY',
       message: '${dayNames[best.key]} is your best sales day this month — ${_inr(best.value)} earned.',
-      emoji: '📆',
+      icon: Symbols.event,
       tone: InsightTone.positive,
     );
   }
@@ -309,7 +316,7 @@ class InsightEngine {
       type: InsightType.monthlyGst,
       title: 'GST COLLECTED',
       message: '${_inr(gst)} GST collected in $monthName so far. File on time to avoid penalties.',
-      emoji: '🧾',
+      icon: Symbols.receipt_long,
       tone: InsightTone.neutral,
       actionLabel: 'View report',
       action: InsightAction(route: '/reports'),
@@ -349,7 +356,7 @@ class InsightEngine {
       type: InsightType.inactiveCustomer,
       title: 'TIME TO FOLLOW UP',
       message: "You haven't billed ${top.key} in $daysSince days. Reach out?",
-      emoji: '👋',
+      icon: Symbols.lightbulb,
       tone: InsightTone.neutral,
       actionLabel: 'Create invoice',
       action: InsightAction(route: '/create', customerName: top.key),
@@ -374,7 +381,7 @@ class InsightEngine {
       type: InsightType.weekAhead,
       title: 'WEEK AHEAD',
       message: '${dueSoon.length} invoice${dueSoon.length > 1 ? 's' : ''} worth ${_inr(total)} due this week.',
-      emoji: '📅',
+      icon: Symbols.lightbulb,
       tone: InsightTone.neutral,
       actionLabel: 'View invoices',
       action: InsightAction(route: '/invoices'),
@@ -393,7 +400,7 @@ class InsightEngine {
       message: paid > 0
           ? '$paid invoices paid, ${_inr(total)} earned overall. Keep going!'
           : 'Welcome to BillZap! Create your first invoice to see insights here.',
-      emoji: '✨',
+      icon: Symbols.lightbulb,
       tone: InsightTone.positive,
     );
   }

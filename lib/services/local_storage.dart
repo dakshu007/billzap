@@ -82,7 +82,7 @@ class LocalStorage {
     await _box.put(_kInvoices, jsonEncode(list.map((i) => i.toMap()).toList()));
   }
 
-  // ✅ NEW: Mark as unpaid
+  // NEW: Mark as unpaid
   Future<void> markInvoiceUnpaid(String id) async {
     final list = getInvoices();
     for (final inv in list) {

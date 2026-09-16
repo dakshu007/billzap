@@ -25,11 +25,15 @@ class AppColors {
   AppColors._();
 
   // The old "brand" was a blue used for both chrome and primary actions.
-  // It now resolves to the neutral contrast tone, so jade stays reserved
-  // for money. Screens wanting the accent use `AppColors.green`.
-  static Color get brand     => dt.AppColor.contrast;
-  static Color get onBrand   => dt.AppColor.onContrast;
-  static Color get brandDark => dt.AppColor.contrast;
+  // It pointed at the neutral contrast tone for a while, on the theory
+  // that jade should stay reserved for money — but the ~120 call sites
+  // for it are accents: tinted icons, focus rings, selected chips,
+  // progress spinners, the splash. Every one of them came out solid
+  // ink, which reads as a rendering fault, not as restraint. Jade is
+  // this app's brand colour, so `brand` is jade.
+  static Color get brand     => dt.AppColor.primary;
+  static Color get onBrand   => dt.AppColor.onPrimary;
+  static Color get brandDark => dt.AppColor.jade700;
 
   static Color get green  => dt.AppColor.paid;
   static Color get red    => dt.AppColor.overdue;
@@ -39,8 +43,8 @@ class AppColors {
   static Color get blue   => dt.AppColor.info;
   static Color get navBg  => dt.AppColor.contrast;
 
-  static Color get brandSoft   => dt.AppColor.sunken;
-  static Color get brandSofter => dt.AppColor.sunken;
+  static Color get brandSoft   => dt.AppColor.wash(dt.AppColor.primary);
+  static Color get brandSofter => dt.AppColor.primarySoft;
   static Color get greenSoft   => dt.AppColor.wash(dt.AppColor.paid);
   static Color get redSoft      => dt.AppColor.wash(dt.AppColor.overdue);
   static Color get yellowSoft   => dt.AppColor.wash(dt.AppColor.pending);

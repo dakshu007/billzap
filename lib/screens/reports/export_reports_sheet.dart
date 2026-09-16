@@ -229,7 +229,7 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'application/json')],
         subject: 'GSTR-1 JSON — ${DateFormat('MMM yyyy').format(_from)}');
-      _toast('GSTR-1 JSON ready ✓', AppColors.green);
+      _toast('GSTR-1 JSON ready', AppColors.green);
     } catch (e) {
       _toast('GSTR-1 export failed: $e', AppColors.red);
     } finally {

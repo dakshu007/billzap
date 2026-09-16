@@ -1,7 +1,7 @@
 // lib/screens/invoice/create_invoice_screen.dart
-// ✅ FIX: "From Catalog" reads from CatalogService (Hive 'catalog' box), not productProvider
-// ✅ Fully translated
-// ✅ GST auto-classify on item name change
+// FIX: "From Catalog" reads from CatalogService (Hive 'catalog' box), not productProvider
+// Fully translated
+// GST auto-classify on item name change
 import 'package:flutter/material.dart';
 import '../../utils/smart_amount.dart';
 import 'package:billzap/theme/app_icons.dart';

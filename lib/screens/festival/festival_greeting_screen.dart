@@ -11,6 +11,8 @@ import 'package:gap/gap.dart';
 import 'package:billzap/theme/app_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../theme/app_theme.dart';
+import '../../design/components.dart';
+import '../../design/tokens.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../utils/festival_data.dart';
@@ -112,33 +114,14 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
     }
 
     // Confirm before sending
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Send greetings?',
-          style: AppFont.sans(fontWeight: FontWeight.w700)),
-        content: Column(mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('This will open WhatsApp ${selectedCustomers.length} times.',
-            style: AppFont.sans(fontSize: 13)),
-          const Gap(8),
-          Text('After each Send, return to this app — the next customer will open automatically.',
-            style: AppFont.sans(
-              fontSize: 12.5, color: AppColors.t3)),
-        ]),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.brand, foregroundColor: AppColors.onBrand),
-            child: Text('Start (${selectedCustomers.length})')),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
+    final confirmed = await confirm(context,
+        title: 'Send greetings?',
+        message: 'WhatsApp opens ${selectedCustomers.length} times — once per '
+            'customer. Come back to BillZap after each Send and the next one '
+            'opens on its own.',
+        icon: Symbols.send,
+        confirmLabel: 'Start (${selectedCustomers.length})');
+    if (!confirmed) return;
 
     // Begin send loop
     setState(() => _currentSendIndex = 0);
@@ -152,24 +135,12 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
 
     if (!mounted) return;
     setState(() => _currentSendIndex = -1);
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Row(children: [
-          Icon(Symbols.check_circle, color: AppColors.green),
-          SizedBox(width: 10),
-          Text('All sent!'),
-        ]),
-        content: Text(
-          'Greetings opened in WhatsApp for all ${selectedCustomers.length} customers. '
-          'You\'re all set! 🎉'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK')),
-        ],
-      ),
-    );
+    notify(context,
+        title: 'All sent',
+        message: 'Greetings opened in WhatsApp for all '
+            '${selectedCustomers.length} customers.',
+        icon: Symbols.check_circle,
+        tone: AppColor.paid);
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -196,7 +167,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
         backgroundColor: AppColors.bg,
         iconTheme: IconThemeData(color: AppColors.t1),
         title: Row(children: [
-          Text(festival.emoji, style: const TextStyle(fontSize: 22)),
+          Icon(festival.icon, size: 22, color: AppColors.orange),
           const Gap(8),
           Text(festival.name,
             style: AppFont.sans(
@@ -214,7 +185,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(children: [
-              Text(festival.emoji, style: const TextStyle(fontSize: 36)),
+              Icon(festival.icon, size: 36, color: AppColors.orange),
               const Gap(12),
               Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start, children: [

@@ -29,6 +29,19 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsState extends ConsumerState<SettingsScreen> {
   int _tab = 0;
+
+  /// Horizontal offset the incoming panel travels from, signed by the
+  /// direction of travel so forward and backward feel different.
+  double _slideFrom = 0.06;
+
+  void _selectTab(int i) {
+    if (i == _tab) return;
+    HapticFeedback.selectionClick();
+    setState(() {
+      _slideFrom = i > _tab ? 0.06 : -0.06;
+      _tab = i;
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,18 +65,48 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
               color: AppColor.sunken,
               borderRadius: AppRadius.all(AppRadius.pill)),
             child: Row(children: [
-              _TabBtn(tr('set.business', ref), 0, _tab, (i) => setState(() => _tab = i)),
-              _TabBtn(tr('set.bank', ref), 1, _tab, (i) => setState(() => _tab = i)),
-              _TabBtn(tr('set.invoice', ref), 2, _tab, (i) => setState(() => _tab = i)),
-              _TabBtn(tr('set.about', ref), 3, _tab, (i) => setState(() => _tab = i)),
+              _TabBtn(tr('set.business', ref), 0, _tab, _selectTab),
+              _TabBtn(tr('set.bank', ref), 1, _tab, _selectTab),
+              _TabBtn(tr('set.invoice', ref), 2, _tab, _selectTab),
+              _TabBtn(tr('set.about', ref), 3, _tab, _selectTab),
             ]))),
         Expanded(
-          child: IndexedStack(index: _tab, children: const [
-            _BusinessPanel(),
-            _BankPanel(),
-            _InvoicePanel(),
-            _AboutPanel(),
-          ])),
+          child: AnimatedSwitcher(
+            duration: AppMotion.base,
+            switchInCurve: AppMotion.enter,
+            switchOutCurve: AppMotion.exit,
+            layoutBuilder: (current, previous) =>
+                Stack(alignment: Alignment.topCenter, children: [
+                  ...previous,
+                  if (current != null) current,
+                ]),
+            transitionBuilder: (child, anim) {
+              final incoming = child.key == ValueKey<int>(_tab);
+              // Both halves travel the same way: the outgoing panel exits
+              // opposite to the direction of travel, the incoming one
+              // arrives from it.
+              final dx = (incoming ? 1.0 : -1.0) * _slideFrom;
+              return FadeTransition(
+                opacity: anim,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: Offset(dx, 0),
+                    end: Offset.zero,
+                  ).animate(anim),
+                  child: child,
+                ),
+              );
+            },
+            child: KeyedSubtree(
+              key: ValueKey<int>(_tab),
+              child: const [
+                _BusinessPanel(),
+                _BankPanel(),
+                _InvoicePanel(),
+                _AboutPanel(),
+              ][_tab],
+            ),
+          )),
       ]))),
     );
   }
@@ -461,42 +504,32 @@ class _AboutPanelState extends ConsumerState<_AboutPanel> {
     const playStoreUrl =
         'https://play.google.com/store/apps/details?id=com.billzap.app';
     final msg = '''
-🚀 *BillZap* — Free GST billing for India
+*BillZap* — Free GST billing for India
 
 I'm using BillZap to send professional GST invoices in seconds.
-✓ 100% offline • No sign-up • Free forever
-✓ UPI QR on every invoice — get paid instantly
-✓ Available in 12 Indian languages
-✓ Voice billing in your language
+• 100% offline • No sign-up • Free forever
+• UPI QR on every invoice — get paid instantly
+• Available in 12 Indian languages
+• Voice billing in your language
 
 Try it: $_siteUrl
 Download: $playStoreUrl
 
-— Sent via BillZap ⚡''';
+— Sent via BillZap''';
     await Share.share(msg, subject: 'Try BillZap — Free GST Billing');
   }
 
   Future<void> _toggleAppLock() async {
     HapticFeedback.lightImpact();
     if (AppLockService.instance.isEnabled) {
-      final confirm = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(tr('set.lock_disable_title', ref),
-            style: AppFont.sans(fontWeight: FontWeight.w700)),
-          content: Text(tr('set.lock_disable_msg', ref)),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(tr('common.cancel', ref))),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: Text(tr('set.lock_disable_btn', ref),
-                style: TextStyle(color: AppColors.red))),
-          ],
-        ),
-      );
-      if (confirm == true) {
+      final ok = await confirm(context,
+          title: tr('set.lock_disable_title', ref),
+          message: tr('set.lock_disable_msg', ref),
+          icon: Symbols.lock_open,
+          destructive: true,
+          confirmLabel: tr('set.lock_disable_btn', ref),
+          cancelLabel: tr('common.cancel', ref));
+      if (ok) {
         await AppLockService.instance.disableLock();
         if (mounted) setState(() {});
       }
@@ -536,13 +569,16 @@ Download: $playStoreUrl
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                 child: Row(children: [
+                  // Washed jade like every other tile on this panel. A
+                  // solid ink square here read as a rendering fault
+                  // sitting in a column of pastel discs.
                   Container(
                     width: 42, height: 42,
                     decoration: BoxDecoration(
-                      color: AppColors.brand,
+                      color: AppColor.wash(AppColor.primary),
                       borderRadius: BorderRadius.circular(11)),
                     child: Icon(Symbols.translate,
-                      color: AppColors.onBrand, size: 22)),
+                      color: AppColor.primary, size: 22)),
                   const Gap(12),
                   Expanded(child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -643,7 +679,8 @@ Download: $playStoreUrl
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: AppColors.border)),
           child: Column(children: [
-            Icon(Symbols.bolt, size: 48, color: AppColors.brand),
+            // The mark is jade — it is the app's own logo, not chrome.
+            Icon(Symbols.bolt, size: 48, color: AppColor.primary),
             const Gap(8),
             Text('BillZap', style: AppFont.sans(
               fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.t1)),

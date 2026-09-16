@@ -17,6 +17,7 @@ import '../../i18n/translations.dart';
 import '../../providers/providers.dart';
 import '../../utils/platform.dart';
 import '../../design/nav_dock.dart';
+import '../../design/tokens.dart';
 import '../../design/components.dart';
 import 'dashboard_screen.dart';
 import 'invoices_screen.dart';
@@ -39,11 +40,21 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
   int _idx = 0;
   DateTime? _lastBackTime;
 
+  /// Continuous page position, republished on every scroll tick. The dock
+  /// animates its bubble from this, so the indicator tracks a swipe in
+  /// real time instead of snapping once the page settles.
+  final ValueNotifier<double> _pageOffset = ValueNotifier<double>(0);
+
+  // Kept alive so a tab is built once per session. Without this PageView
+  // disposes the off-screen pages, so every swipe back re-runs the
+  // staggered entrance animations and re-reads Hive — the page appears to
+  // reassemble itself each time, which is precisely the jank a swipe
+  // between tabs should not have.
   static const _pages = <Widget>[
-    DashboardScreen(),
-    InvoicesScreen(),
-    ReportsScreen(),
-    SettingsScreen(),
+    _KeepAlive(child: DashboardScreen()),
+    _KeepAlive(child: InvoicesScreen()),
+    _KeepAlive(child: ReportsScreen()),
+    _KeepAlive(child: SettingsScreen()),
   ];
 
   @override
@@ -51,6 +62,8 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
     super.initState();
     _idx = _indexFor(widget.location);
     _pc = PageController(initialPage: _idx);
+    _pageOffset.value = _idx.toDouble();
+    _pc.addListener(_publishOffset);
 
     // Listen for back press from MainActivity.kt
     _backChannel.setMethodCallHandler((call) async {
@@ -67,13 +80,21 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
     final newIdx = _indexFor(widget.location);
     if (newIdx != _idx && _pc.hasClients) {
       _pc.jumpToPage(newIdx);
+      _pageOffset.value = newIdx.toDouble();
       setState(() => _idx = newIdx);
     }
   }
 
+  void _publishOffset() {
+    if (!_pc.hasClients || _pc.page == null) return;
+    _pageOffset.value = _pc.page!;
+  }
+
   @override
   void dispose() {
+    _pc.removeListener(_publishOffset);
     _pc.dispose();
+    _pageOffset.dispose();
     super.dispose();
   }
 
@@ -165,17 +186,18 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
 
   void _tapTab(int i) {
     if (i == _idx) return;
-    HapticFeedback.lightImpact();
-    // Adjacent tab → animate (feels smoother than a jump). Non-adjacent
-    // tab → jump (animating across multiple pages renders all the pages
-    // in between, which causes a brief stutter).
-    if ((i - _idx).abs() == 1) {
-      _pc.animateToPage(i,
-          duration: const Duration(milliseconds: 260),
-          curve: Curves.easeOutCubic);
-    } else {
-      _pc.jumpToPage(i);
-    }
+    // The dock's hold-and-sweep already ticks on each slot boundary, so
+    // no extra haptic here — two per crossing feels like a stutter.
+    //
+    // Always animate, never jump: the bubble is driven by the page
+    // offset, and a jump would teleport it. Distant tabs get a slightly
+    // longer, softer ride rather than a cut.
+    final distance = (i - _idx).abs();
+    _pc.animateToPage(
+      i,
+      duration: Duration(milliseconds: 260 + (distance - 1).clamp(0, 2) * 70),
+      curve: AppMotion.standard,
+    );
     setState(() => _idx = i);
     GoRouter.of(context).go(_pathFor(i));
   }
@@ -187,13 +209,15 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
 
   AppNavDock _dock(WidgetRef ref) => AppNavDock(
         index: _idx,
+        offset: _pageOffset,
         onSelect: _tapTab,
-        // The create button rides only on Home. Anywhere else it floated
-        // over dense figures — it covered the Net Profit line in Reports
-        // and a cell of the quick-action grid — and Invoices already
-        // carries its own "+" in the header. Reports and Settings are
-        // read/configure surfaces; creating a bill is not their job.
-        onCreate: _idx == 0 ? _create : null,
+        // The create button rides on every tab. It was Home-only for a
+        // while, which meant the bar lost 68pt of width the moment you
+        // left Home and all four icons slid sideways under your finger —
+        // the dock has to be the one thing on screen that never moves.
+        // The figures it used to cover are clear now that every tab
+        // reserves the same [AppSpace.navClearance] at its tail.
+        onCreate: _create,
         createLabel: tr('dash.new_invoice', ref),
         createIcon: Symbols.add,
         destinations: [
@@ -256,6 +280,11 @@ class _ShellScreenState extends ConsumerState<ShellScreen> {
           onPageChanged: _onPageChanged,
           children: _pages,
         ),
+        // Content dissolves into the page under the dock instead of
+        // being sliced by it — without this a list row slides beneath
+        // the bar and its text pokes out below, which reads as a bug.
+        const Positioned(
+          left: 0, right: 0, bottom: 0, child: DockScrim()),
         Positioned(
           left: 0, right: 0, bottom: 0,
           child: Consumer(
@@ -430,5 +459,28 @@ class _SideItemState extends State<_SideItem> {
         ),
       ),
     );
+  }
+}
+
+
+/// Keeps a tab's element tree (and therefore its animation controllers and
+/// scroll offsets) alive while it is off-screen.
+class _KeepAlive extends StatefulWidget {
+  final Widget child;
+  const _KeepAlive({required this.child});
+
+  @override
+  State<_KeepAlive> createState() => _KeepAliveState();
+}
+
+class _KeepAliveState extends State<_KeepAlive>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }

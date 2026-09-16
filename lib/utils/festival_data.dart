@@ -1,3 +1,6 @@
+import 'package:flutter/widgets.dart';
+import 'package:billzap/theme/app_icons.dart';
+
 // lib/utils/festival_data.dart
 // Festival database for India: dates 2026-2027 + multi-language message templates.
 //
@@ -14,7 +17,10 @@
 class Festival {
   final String id;            // 'diwali', 'holi', etc.
   final String name;          // Display name
-  final String emoji;
+  /// Lucide glyph for the banner and greeting header. Kept separate from
+  /// the message text, which still carries a festive emoji because that
+  /// is a message to a customer rather than app chrome.
+  final IconData icon;
   final DateTime date;
   final String? region;       // null = pan-Indian. else: 'TN', 'KL', 'PB', etc.
   final String defaultMessage;  // English fallback
@@ -23,7 +29,7 @@ class Festival {
   const Festival({
     required this.id,
     required this.name,
-    required this.emoji,
+    required this.icon,
     required this.date,
     this.region,
     required this.defaultMessage,
@@ -54,7 +60,7 @@ class FestivalData {
     Festival(
       id: 'newyear_2026',
       name: 'New Year',
-      emoji: '🎊',
+      icon: Symbols.auto_awesome,
       date: DateTime(2026, 1, 1),
       defaultMessage:
         'Wishing you a happy and prosperous New Year! 🎊\nMay 2026 bring success and joy.\n\n— {biz}',
@@ -67,7 +73,7 @@ class FestivalData {
     Festival(
       id: 'pongal_2026',
       name: 'Pongal',
-      emoji: '🌾',
+      icon: Symbols.shopping_basket,
       date: DateTime(2026, 1, 14),
       region: 'TN',
       defaultMessage:
@@ -80,7 +86,7 @@ class FestivalData {
     Festival(
       id: 'republicday_2026',
       name: 'Republic Day',
-      emoji: '🇮🇳',
+      icon: Symbols.public,
       date: DateTime(2026, 1, 26),
       defaultMessage:
         'Happy Republic Day! 🇮🇳\nWishing you and your family a proud and peaceful day.\n\n— {biz}',
@@ -92,7 +98,7 @@ class FestivalData {
     Festival(
       id: 'holi_2026',
       name: 'Holi',
-      emoji: '🎨',
+      icon: Symbols.auto_awesome,
       date: DateTime(2026, 3, 4),
       defaultMessage:
         'Happy Holi! 🎨\nWishing you a colourful and joyful festival.\nMay your life be filled with the colours of love and happiness.\n\n— {biz}',
@@ -105,7 +111,7 @@ class FestivalData {
     Festival(
       id: 'tamilnewyear_2026',
       name: 'Tamil New Year',
-      emoji: '🌸',
+      icon: Symbols.auto_awesome,
       date: DateTime(2026, 4, 14),
       region: 'TN',
       defaultMessage:
@@ -117,7 +123,7 @@ class FestivalData {
     Festival(
       id: 'baisakhi_2026',
       name: 'Baisakhi',
-      emoji: '🌾',
+      icon: Symbols.shopping_basket,
       date: DateTime(2026, 4, 14),
       region: 'PB',
       defaultMessage:
@@ -130,7 +136,7 @@ class FestivalData {
     Festival(
       id: 'eidulfitr_2026',
       name: 'Eid ul-Fitr',
-      emoji: '🌙',
+      icon: Symbols.dark_mode,
       date: DateTime(2026, 3, 21), // approximate, depends on moon sighting
       defaultMessage:
         'Eid Mubarak! 🌙\nMay this Eid bring peace, happiness, and prosperity to your family.\n\n— {biz}',
@@ -142,7 +148,7 @@ class FestivalData {
     Festival(
       id: 'independenceday_2026',
       name: 'Independence Day',
-      emoji: '🇮🇳',
+      icon: Symbols.public,
       date: DateTime(2026, 8, 15),
       defaultMessage:
         'Happy Independence Day! 🇮🇳\nProud to be Indian. Wishing you a happy day with family.\n\n— {biz}',
@@ -154,7 +160,7 @@ class FestivalData {
     Festival(
       id: 'onam_2026',
       name: 'Onam',
-      emoji: '🌺',
+      icon: Symbols.auto_awesome,
       date: DateTime(2026, 8, 26),
       region: 'KL',
       defaultMessage:
@@ -166,7 +172,7 @@ class FestivalData {
     Festival(
       id: 'rakshabandhan_2026',
       name: 'Raksha Bandhan',
-      emoji: '🪢',
+      icon: Symbols.auto_awesome,
       date: DateTime(2026, 8, 28),
       defaultMessage:
         'Happy Raksha Bandhan! 🪢\nWishing your family love and togetherness.\n\n— {biz}',
@@ -177,7 +183,7 @@ class FestivalData {
     Festival(
       id: 'janmashtami_2026',
       name: 'Janmashtami',
-      emoji: '🪈',
+      icon: Symbols.auto_awesome,
       date: DateTime(2026, 9, 4),
       defaultMessage:
         'Happy Janmashtami! 🪈\nMay Lord Krishna bless you and your family.\n\n— {biz}',
@@ -189,7 +195,7 @@ class FestivalData {
     Festival(
       id: 'ganeshchaturthi_2026',
       name: 'Ganesh Chaturthi',
-      emoji: '🐘',
+      icon: Symbols.auto_awesome,
       date: DateTime(2026, 9, 14),
       defaultMessage:
         'Ganpati Bappa Morya! 🐘\nMay Lord Ganesha bring success, wisdom and prosperity to your business.\n\n— {biz}',
@@ -201,7 +207,7 @@ class FestivalData {
     Festival(
       id: 'gandhijayanti_2026',
       name: 'Gandhi Jayanti',
-      emoji: '🕊️',
+      icon: Symbols.auto_awesome,
       date: DateTime(2026, 10, 2),
       defaultMessage:
         'Remembering Mahatma Gandhi today. 🕊️\nMay his ideals of truth and peace guide us all.\n\n— {biz}',
@@ -212,7 +218,7 @@ class FestivalData {
     Festival(
       id: 'navratri_2026',
       name: 'Navratri',
-      emoji: '💃',
+      icon: Symbols.auto_awesome,
       date: DateTime(2026, 10, 11),
       defaultMessage:
         'Happy Navratri! 💃\nMay Maa Durga shower her blessings on you and your family.\n\n— {biz}',
@@ -224,7 +230,7 @@ class FestivalData {
     Festival(
       id: 'dussehra_2026',
       name: 'Dussehra',
-      emoji: '🏹',
+      icon: Symbols.auto_awesome,
       date: DateTime(2026, 10, 19),
       defaultMessage:
         'Happy Dussehra! 🏹\nMay good triumph over evil in your life. Wishing you success.\n\n— {biz}',
@@ -235,7 +241,7 @@ class FestivalData {
     Festival(
       id: 'diwali_2026',
       name: 'Diwali',
-      emoji: '🪔',
+      icon: Symbols.lightbulb,
       date: DateTime(2026, 11, 8),
       defaultMessage:
         '🪔 Happy Diwali!\n\nWishing you and your family a Diwali full of light, joy, and prosperity.\nMay Goddess Lakshmi bless your home and business.\n\n— {biz}',
@@ -256,7 +262,7 @@ class FestivalData {
     Festival(
       id: 'christmas_2026',
       name: 'Christmas',
-      emoji: '🎄',
+      icon: Symbols.auto_awesome,
       date: DateTime(2026, 12, 25),
       defaultMessage:
         'Merry Christmas! 🎄\nWishing you and your family joy, peace, and good cheer this season.\n\n— {biz}',
@@ -271,7 +277,7 @@ class FestivalData {
     Festival(
       id: 'newyear_2027',
       name: 'New Year',
-      emoji: '🎊',
+      icon: Symbols.auto_awesome,
       date: DateTime(2027, 1, 1),
       defaultMessage:
         'Wishing you a happy and prosperous New Year! 🎊\n\n— {biz}',
@@ -279,7 +285,7 @@ class FestivalData {
     Festival(
       id: 'pongal_2027',
       name: 'Pongal',
-      emoji: '🌾',
+      icon: Symbols.shopping_basket,
       date: DateTime(2027, 1, 14),
       region: 'TN',
       defaultMessage:
@@ -288,7 +294,7 @@ class FestivalData {
     Festival(
       id: 'republicday_2027',
       name: 'Republic Day',
-      emoji: '🇮🇳',
+      icon: Symbols.public,
       date: DateTime(2027, 1, 26),
       defaultMessage:
         'Happy Republic Day! 🇮🇳\nJai Hind!\n\n— {biz}',
@@ -296,7 +302,7 @@ class FestivalData {
     Festival(
       id: 'holi_2027',
       name: 'Holi',
-      emoji: '🎨',
+      icon: Symbols.auto_awesome,
       date: DateTime(2027, 3, 22),
       defaultMessage:
         'Happy Holi! 🎨\nMay your life be filled with colours of joy.\n\n— {biz}',
@@ -304,7 +310,7 @@ class FestivalData {
     Festival(
       id: 'independenceday_2027',
       name: 'Independence Day',
-      emoji: '🇮🇳',
+      icon: Symbols.public,
       date: DateTime(2027, 8, 15),
       defaultMessage:
         'Happy Independence Day! 🇮🇳\nJai Hind!\n\n— {biz}',
@@ -312,7 +318,7 @@ class FestivalData {
     Festival(
       id: 'diwali_2027',
       name: 'Diwali',
-      emoji: '🪔',
+      icon: Symbols.lightbulb,
       date: DateTime(2027, 10, 28),
       defaultMessage:
         '🪔 Happy Diwali!\nWishing you light, joy and prosperity.\n\n— {biz}',
@@ -320,7 +326,7 @@ class FestivalData {
     Festival(
       id: 'christmas_2027',
       name: 'Christmas',
-      emoji: '🎄',
+      icon: Symbols.auto_awesome,
       date: DateTime(2027, 12, 25),
       defaultMessage:
         'Merry Christmas! 🎄\nWishing you joy and peace this season.\n\n— {biz}',

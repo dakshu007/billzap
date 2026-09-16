@@ -13,6 +13,7 @@ import 'package:gap/gap.dart';
 import 'package:billzap/theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import '../design/components.dart';
+import '../design/tokens.dart';
 import '../providers/providers.dart';
 import '../utils/profile_completeness.dart';
 
@@ -70,128 +71,173 @@ class _WelcomeProfileModalTriggerState
 }
 
 void _showWelcomeModal(BuildContext context) {
-  showDialog<void>(
+  showGeneralDialog<void>(
     context: context,
-    barrierDismissible: false, // Forces user to use the buttons (not tap outside)
-    builder: (ctx) => Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.all(20),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
-        decoration: BoxDecoration(
-          // Use the theme-aware card color so the modal flips with dark mode.
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(26),
-          boxShadow: [BoxShadow(
-            color: Colors.black.withOpacity(AppColors.isDark ? 0.5 : 0.15),
-            blurRadius: 28, offset: const Offset(0, 10))],
+    barrierDismissible: false, // the buttons are the way out, not a stray tap
+    barrierLabel: 'Welcome',
+    barrierColor: Colors.black.withValues(alpha: AppTokens.pick(0.34, 0.62)),
+    transitionDuration: AppMotion.slow,
+    pageBuilder: (ctx, _, __) => const SizedBox.shrink(),
+    transitionBuilder: (ctx, anim, _, __) {
+      // Rises and settles with a little overshoot rather than popping in
+      // at full size — a first impression is worth animating properly.
+      final curved = CurvedAnimation(
+        parent: anim,
+        curve: Curves.easeOutBack,
+        reverseCurve: Curves.easeInCubic,
+      );
+      return Opacity(
+        opacity: anim.value.clamp(0.0, 1.0),
+        child: Transform.translate(
+          offset: Offset(0, 40 * (1 - curved.value)),
+          child: Transform.scale(
+            scale: 0.92 + 0.08 * curved.value,
+            child: _WelcomeSheet(onClose: () => Navigator.pop(ctx)),
+          ),
         ),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          // Hero icon
-          Container(
-            width: 76, height: 76,
-            decoration: BoxDecoration(
-              color: AppColors.brand,
-              borderRadius: BorderRadius.circular(26),
-              boxShadow: [BoxShadow(
-                color: AppColors.brand.withOpacity(0.35),
-                blurRadius: 20, offset: const Offset(0, 8))],
-            ),
-            child: Icon(Symbols.storefront, color: AppColors.onBrand, size: 40),
-          ),
-          const Gap(20),
-          Text('Welcome to BillZap! 👋',
-            textAlign: TextAlign.center,
-            style: AppFont.sans(
-              fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.t1)),
-          const Gap(6),
-          Text('Set up your business profile to create professional invoices',
-            textAlign: TextAlign.center,
-            style: AppFont.sans(
-              fontSize: 13, color: AppColors.t3, height: 1.4)),
-          const Gap(20),
-          // Feature checklist
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: AppColors.brandSoft,
-              borderRadius: BorderRadius.circular(16)),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              _Feature('🧾', 'Your business name on every PDF'),
-              const Gap(8),
-              _Feature('✓', 'GST-compliant invoices'),
-              const Gap(8),
-              _Feature('📱', 'UPI QR for instant payments'),
-              const Gap(8),
-              _Feature('💬', 'WhatsApp share with branding'),
-            ]),
-          ),
-          const Gap(20),
-          // Primary action
-          SizedBox(width: double.infinity, child: ElevatedButton(
-            onPressed: () {
-              HapticFeedback.mediumImpact();
-              Navigator.pop(ctx);
-              GoRouter.of(context).go('/settings');
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.brand,
-              foregroundColor: AppColors.onBrand,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18)),
-              elevation: 0),
-            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Text('Set up profile',
-                style: AppFont.sans(
-                  fontSize: 15, fontWeight: FontWeight.w600)),
-              const Gap(8),
-              const Icon(Symbols.arrow_forward, size: 18),
-            ]),
-          )),
-          const Gap(8),
-          // Secondary (dismissible)
-          TextButton(
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              Navigator.pop(ctx);
-            },
-            child: Text('Maybe later',
-              style: AppFont.sans(
-                fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.t3)),
-          ),
-          const Gap(4),
-          Text('You can always set this up from Settings',
-            textAlign: TextAlign.center,
-            style: AppFont.sans(
-              fontSize: 10.5, color: AppColors.t4, fontStyle: FontStyle.italic)),
-        ]),
-      ),
-    ),
+      );
+    },
   );
 }
 
-class _Feature extends StatelessWidget {
-  final String emoji;
-  final String text;
-  const _Feature(this.emoji, this.text);
+class _WelcomeSheet extends StatelessWidget {
+  final VoidCallback onClose;
+  const _WelcomeSheet({required this.onClose});
 
   @override
   Widget build(BuildContext context) {
-    return Row(children: [
-      SizedBox(width: 24,
-        child: Text(emoji, style: const TextStyle(fontSize: 16))),
-      const Gap(8),
-      Expanded(child: Text(text,
-        style: AppFont.sans(
-          fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.t1))),
-    ]);
+    final features = <(IconData, String, String)>[
+      (Symbols.receipt_long, 'GST-compliant invoices',
+          'CGST, SGST and IGST worked out for you'),
+      (Symbols.qr_code_2, 'UPI QR on every bill',
+          'Customers pay by scanning, straight away'),
+      (Symbols.picture_as_pdf, 'Your name on every PDF',
+          'Shared to WhatsApp with your branding'),
+      (Symbols.wifi_off, 'Works with no signal',
+          'Everything stays on this phone'),
+    ];
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpace.gutter),
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 420),
+            padding: const EdgeInsets.fromLTRB(
+                AppSpace.xl, AppSpace.xxl, AppSpace.xl, AppSpace.xl),
+            decoration: BoxDecoration(
+              color: AppColor.surface,
+              borderRadius: AppRadius.all(AppRadius.sheet),
+              border: Border.all(color: AppColor.hairline),
+              boxShadow: AppElevation.lifted,
+            ),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              // Hero mark — jade, glowing, the same language as the
+              // primary action it is asking for.
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: AppColor.primary,
+                  borderRadius: AppRadius.all(24),
+                  boxShadow: AppElevation.glow(AppColor.primary),
+                ),
+                child: Icon(Symbols.storefront,
+                    color: AppColor.onPrimary, size: 34),
+              ),
+              const Gap(AppSpace.xl),
+              Text('Set up your shop',
+                  textAlign: TextAlign.center,
+                  style: AppFont.style(AppType.titleL,
+                      color: AppColor.textPrimary)),
+              const Gap(AppSpace.sm),
+              Text(
+                'A minute now, and every bill you send carries your name, '
+                'your GSTIN and your UPI.',
+                textAlign: TextAlign.center,
+                style:
+                    AppFont.style(AppType.bodyM, color: AppColor.textTertiary),
+              ),
+              const Gap(AppSpace.xl),
+
+              for (var i = 0; i < features.length; i++) ...[
+                if (i > 0) const Gap(AppSpace.md),
+                _Feature(
+                  icon: features[i].$1,
+                  title: features[i].$2,
+                  detail: features[i].$3,
+                ),
+              ],
+
+              const Gap(AppSpace.xxl),
+              SizedBox(
+                width: double.infinity,
+                child: AppButton(
+                  label: 'Set up profile',
+                  trailingIcon: Symbols.arrow_forward,
+                  onPressed: () {
+                    onClose();
+                    GoRouter.of(context).go('/settings');
+                  },
+                ),
+              ),
+              const Gap(AppSpace.sm),
+              TextButton(
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  onClose();
+                },
+                child: Text('Not now',
+                    style: AppFont.style(AppType.labelM,
+                        color: AppColor.textTertiary)),
+              ),
+            ]),
+          ),
+        ),
+      ),
+    );
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
-// PERSISTENT BANNER ON HOME
-// ═══════════════════════════════════════════════════════════════
+class _Feature extends StatelessWidget {
+  final IconData icon;
+  final String title, detail;
+  const _Feature({required this.icon, required this.title, required this.detail});
+
+  @override
+  Widget build(BuildContext context) => Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: AppColor.wash(AppColor.primary),
+              borderRadius: AppRadius.all(AppRadius.sm),
+            ),
+            child: Icon(icon, size: 17, color: AppColor.primary),
+          ),
+          const Gap(AppSpace.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(title,
+                    style: AppFont.style(AppType.labelL,
+                        color: AppColor.textPrimary)),
+                const Gap(2),
+                Text(detail,
+                    style: AppFont.style(AppType.bodyS,
+                        color: AppColor.textTertiary)),
+              ],
+            ),
+          ),
+        ],
+      );
+}
+
 class ProfileIncompleteBanner extends ConsumerWidget {
   const ProfileIncompleteBanner({super.key});
 

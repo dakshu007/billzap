@@ -16,7 +16,10 @@ class AppSpacing {
   static const double screenV = 16;
   /// Clearance for the floating nav dock (dock height + its bottom margin
   /// + breathing room). Every scrollable screen pads its tail by this.
-  static const double bottomNavSafe = 124;
+  /// It is the same number as [AppSpace.navClearance]; screens on the new
+  /// widget library use that name, older ones use this, and they must not
+  /// drift apart or the dock covers the tail of one list but not another.
+  static const double bottomNavSafe = AppSpace.navClearance;
 
   // Card / item
   static const double card    = 18;

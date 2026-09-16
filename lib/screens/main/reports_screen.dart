@@ -12,6 +12,8 @@
 // discrete buckets, and a line implies a continuous series between them.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:billzap/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -340,10 +342,18 @@ class _Delta extends StatelessWidget {
   }
 }
 
-/// Six monthly bars. The current month is jade; earlier months recede to
-/// the sunken tone so the eye lands on "now" first. Each bar carries its
-/// own short value so the chart can be read without a y-axis.
-class _RevenueChart extends StatelessWidget {
+/// The revenue chart.
+///
+/// Bars rather than a line: monthly totals are discrete buckets, and a
+/// line implies a continuous series between them.
+///
+/// The animation is the point here. Bars grow from the baseline on a
+/// stagger so the chart assembles left to right, each one easing out of
+/// a slight overshoot so it settles rather than stopping dead. The
+/// current month is jade; earlier months recede to the sunken tone so
+/// the eye lands on "now" first. Touch any bar to read its exact value —
+/// a chart you cannot interrogate is decoration.
+class _RevenueChart extends StatefulWidget {
   final List<double> series;
   final List<String> labels;
   final double peak;
@@ -355,60 +365,158 @@ class _RevenueChart extends StatelessWidget {
   });
 
   @override
+  State<_RevenueChart> createState() => _RevenueChartState();
+}
+
+class _RevenueChartState extends State<_RevenueChart>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1150),
+  );
+  int? _touched;
+
+  @override
+  void initState() {
+    super.initState();
+    // A beat before it starts, so the card has landed and the growth is
+    // something you watch rather than something already finished.
+    Future.delayed(const Duration(milliseconds: 120), () {
+      if (mounted) _c.forward();
+    });
+  }
+
+  @override
+  void didUpdateWidget(_RevenueChart old) {
+    super.didUpdateWidget(old);
+    // Re-run when the underlying figures change (a bill gets paid).
+    if (!listEquals(old.series, widget.series)) _c.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    const maxBar = 118.0;
+    const maxBar = 128.0;
+    final n = widget.series.length;
+
     return SizedBox(
-      height: 168,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: List.generate(series.length, (i) {
-          final current = i == series.length - 1;
-          final value = series[i];
-          return Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  value > 0 ? formatMoneyShort(value) : '',
-                  maxLines: 1,
-                  style: AppFont.style(
-                    AppType.labelS,
-                    color: current
-                        ? AppColor.textPrimary
-                        : AppColor.textQuiet,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                // Grows on first paint so the chart assembles rather than
-                // appearing fully formed.
-                TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0, end: (value / peak).clamp(0.0, 1.0)),
-                  duration: Duration(milliseconds: 520 + i * 60),
-                  curve: AppMotion.enter,
-                  builder: (_, t, __) => Container(
-                    height: (maxBar * t).clamp(4.0, maxBar),
-                    margin: const EdgeInsets.symmetric(horizontal: 5),
-                    decoration: BoxDecoration(
-                      color:
-                          current ? AppColor.primary : AppColor.sunken,
-                      borderRadius: AppRadius.all(AppRadius.xs),
+      height: 186,
+      child: LayoutBuilder(
+        builder: (context, box) {
+          final slot = box.maxWidth / n;
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapDown: (d) {
+              final i = (d.localPosition.dx / slot).floor().clamp(0, n - 1);
+              HapticFeedback.selectionClick();
+              setState(() => _touched = i);
+            },
+            onTapUp: (_) => setState(() => _touched = null),
+            onTapCancel: () => setState(() => _touched = null),
+            onHorizontalDragUpdate: (d) {
+              final i = (d.localPosition.dx / slot).floor().clamp(0, n - 1);
+              if (i != _touched) {
+                HapticFeedback.selectionClick();
+                setState(() => _touched = i);
+              }
+            },
+            onHorizontalDragEnd: (_) => setState(() => _touched = null),
+            child: AnimatedBuilder(
+              animation: _c,
+              builder: (context, _) => Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: List.generate(n, (i) {
+                  final current = i == n - 1;
+                  final active = _touched == i || (_touched == null && current);
+                  final value = widget.series[i];
+
+                  // Each bar owns a slice of the timeline, overlapping its
+                  // neighbour so the stagger reads as a wave, not as six
+                  // separate animations.
+                  final begin = (i / n) * 0.55;
+                  final t = Curves.easeOutBack.transform(
+                    ((_c.value - begin) / (1 - begin)).clamp(0.0, 1.0),
+                  );
+                  final target = (value / widget.peak).clamp(0.0, 1.0);
+                  final height = (maxBar * target * t).clamp(3.0, maxBar);
+
+                  return Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        // The value rides above its bar and only for the
+                        // bar in focus, so the chart stays quiet until
+                        // you ask it something.
+                        AnimatedOpacity(
+                          opacity: active && value > 0 ? 1 : 0,
+                          duration: AppMotion.fast,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppColor.contrast,
+                              borderRadius: AppRadius.all(AppRadius.xs),
+                            ),
+                            child: Text(
+                              formatMoneyShort(value),
+                              maxLines: 1,
+                              style: AppFont.style(AppType.labelS,
+                                  color: AppColor.onContrast),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 7),
+                        AnimatedContainer(
+                          duration: AppMotion.fast,
+                          curve: AppMotion.standard,
+                          height: height,
+                          margin: EdgeInsets.symmetric(
+                              horizontal: active ? 4 : 5.5),
+                          decoration: BoxDecoration(
+                            // A vertical gradient gives the jade bar a
+                            // little depth instead of reading as a flat
+                            // block of colour.
+                            gradient: active
+                                ? LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      AppColor.primary,
+                                      AppColor.primary
+                                          .withValues(alpha: 0.72),
+                                    ],
+                                  )
+                                : null,
+                            color: active ? null : AppColor.sunken,
+                            borderRadius: AppRadius.all(AppRadius.xs),
+                            boxShadow: active
+                                ? AppElevation.glow(AppColor.primary)
+                                : null,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpace.sm),
+                        Text(
+                          widget.labels[i],
+                          style: AppFont.style(
+                            AppType.labelS,
+                            color: active
+                                ? AppColor.textPrimary
+                                : AppColor.textTertiary,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ),
-                const SizedBox(height: AppSpace.sm),
-                Text(
-                  labels[i],
-                  style: AppFont.style(
-                    AppType.labelS,
-                    color: current
-                        ? AppColor.textPrimary
-                        : AppColor.textTertiary,
-                  ),
-                ),
-              ],
+                  );
+                }),
+              ),
             ),
           );
-        }),
+        },
       ),
     );
   }

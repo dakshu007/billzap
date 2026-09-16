@@ -258,7 +258,7 @@ class _StepSetNewPinState extends State<_StepSetNewPin> {
           child: Icon(Symbols.check_circle, color: AppColors.green, size: 32),
         ),
         const Gap(16),
-        Text('Backup verified ✓',
+        Text('Backup verified',
           textAlign: TextAlign.center,
           style: AppFont.sans(
             fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.t1)),

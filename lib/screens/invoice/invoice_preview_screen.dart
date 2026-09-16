@@ -17,6 +17,7 @@ import 'package:barcode/barcode.dart' as bc;
 import 'dart:io';
 import '../../theme/app_theme.dart';
 import '../../design/components.dart';
+import '../../design/nav_dock.dart';
 import '../../design/money.dart';
 import '../../design/tokens.dart';
 import '../../providers/providers.dart';
@@ -62,6 +63,9 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
       child: Scaffold(
         backgroundColor: AppColors.bg,
         appBar: AppBar(
+          // The document scrolls under this bar; without the scrim a row
+          // of figures comes out sliced across the title.
+          flexibleSpace: const TopScrim(),
           leadingWidth: 62,
           leading: Center(
             child: AppIconButton(
@@ -108,7 +112,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
             const Gap(AppSpace.md),
 
             // ═══════════════════════════════════════════════
-            // ✨ NEW: UPI Payment QR card (only shown if not paid)
+            // UPI Payment QR card (only shown if not paid)
             // ═══════════════════════════════════════════════
             if (!isPaid) ...[
               _UpiPaymentCard(invoice: invoice, biz: biz),
@@ -259,23 +263,33 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           child: Column(children: [
             Row(children: [
               Expanded(
-                  flex: 5,
+                  flex: 9,
                   child: Text('ITEM',
                       style: doc(AppType.overline, color: inkFaint))),
               Expanded(
-                  child: Text('QTY',
-                      textAlign: TextAlign.right,
-                      style: doc(AppType.overline, color: inkFaint))),
+                  flex: 3,
+                  child: Padding(
+                    padding: _docColGutter,
+                    child: Text('QTY',
+                        textAlign: TextAlign.right,
+                        style: doc(AppType.overline, color: inkFaint)),
+                  )),
               Expanded(
-                  flex: 2,
-                  child: Text('RATE',
-                      textAlign: TextAlign.right,
-                      style: doc(AppType.overline, color: inkFaint))),
+                  flex: 5,
+                  child: Padding(
+                    padding: _docColGutter,
+                    child: Text('RATE',
+                        textAlign: TextAlign.right,
+                        style: doc(AppType.overline, color: inkFaint)),
+                  )),
               Expanded(
-                  flex: 2,
-                  child: Text('AMOUNT',
-                      textAlign: TextAlign.right,
-                      style: doc(AppType.overline, color: inkFaint))),
+                  flex: 6,
+                  child: Padding(
+                    padding: _docColGutter,
+                    child: Text('AMOUNT',
+                        textAlign: TextAlign.right,
+                        style: doc(AppType.overline, color: inkFaint)),
+                  )),
             ]),
             const Gap(AppSpace.sm),
             Divider(height: 1, color: rule),
@@ -285,7 +299,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
-                          flex: 5,
+                          flex: 9,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -298,33 +312,43 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                           ),
                         ),
                         Expanded(
-                          child: Text(
-                            formatIndianDigits(item.quantity,
-                                decimals:
-                                    item.quantity == item.quantity.roundToDouble()
-                                        ? 0
-                                        : 2),
-                            textAlign: TextAlign.right,
-                            style: doc(AppType.numeric, color: inkSoft),
+                          flex: 3,
+                          child: Padding(
+                            padding: _docColGutter,
+                            child: Text(
+                              formatIndianDigits(item.quantity,
+                                  decimals: item.quantity ==
+                                          item.quantity.roundToDouble()
+                                      ? 0
+                                      : 2),
+                              textAlign: TextAlign.right,
+                              style: doc(AppType.numeric, color: inkSoft),
+                            ),
                           ),
                         ),
                         Expanded(
-                          flex: 2,
-                          child: Money(item.rate,
-                              style: AppType.numeric,
-                              color: inkSoft,
-                              showSymbol: false,
-                              compact: false,
-                              textAlign: TextAlign.right),
+                          flex: 5,
+                          child: Padding(
+                            padding: _docColGutter,
+                            child: Money(item.rate,
+                                style: AppType.numeric,
+                                color: inkSoft,
+                                showSymbol: false,
+                                compact: false,
+                                textAlign: TextAlign.right),
+                          ),
                         ),
                         Expanded(
-                          flex: 2,
-                          child: Money(item.taxable,
-                              style: AppType.amountS,
-                              color: ink,
-                              showSymbol: false,
-                              compact: false,
-                              textAlign: TextAlign.right),
+                          flex: 6,
+                          child: Padding(
+                            padding: _docColGutter,
+                            child: Money(item.taxable,
+                                style: AppType.amountS,
+                                color: ink,
+                                showSymbol: false,
+                                compact: false,
+                                textAlign: TextAlign.right),
+                          ),
                         ),
                       ]),
                 )),
@@ -515,18 +539,62 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
   // ═══════════════════════════════════════════════════════════
   // PDF GENERATOR — now embeds UPI QR if business has UPI ID
   // ═══════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════════
+  // INVOICE PDF
+  // ════════════════════════════════════════════════════════════════
+  //
+  // This is the artefact the shopkeeper's customer actually receives, so
+  // it gets the same care as the screen. It mirrors the on-screen paper
+  // document: letterhead, ruled sections, a tabular item table, a jade
+  // total band, and the UPI QR.
+  //
+  // Typeface: Inter is embedded rather than using a built-in PDF font.
+  // The PDF standard fonts are Latin-1 and have no rupee glyph, which is
+  // why this used to print "Rs." — Inter carries U+20B9 and has tabular
+  // figures, so printed money columns align the way they do on screen.
+
+  /// Cached across invoices — parsing a 300KB TTF on every share is slow
+  /// enough to feel like a hang on a low-end phone.
+  static pw.Font? _pdfRegular;
+  static pw.Font? _pdfBold;
+
+  static Future<void> _loadPdfFonts() async {
+    if (_pdfRegular != null && _pdfBold != null) return;
+    _pdfRegular = pw.Font.ttf(
+        await rootBundle.load('assets/fonts/Inter-Regular.ttf'));
+    _pdfBold = pw.Font.ttf(
+        await rootBundle.load('assets/fonts/Inter-SemiBold.ttf'));
+  }
+
+  // The print palette, matched to the app's Ink & Jade tokens. Deliberate
+  // constants rather than reads from AppColor: a bill must look the same
+  // whether the phone was in dark mode when it was shared or not.
+  static const _pInk = PdfColor.fromInt(0xFF0C1014);
+  static const _pInkSoft = PdfColor.fromInt(0xFF4C5866);
+  static const _pInkFaint = PdfColor.fromInt(0xFF93A0AE);
+  static const _pRule = PdfColor.fromInt(0xFFE2E7EC);
+  static const _pJade = PdfColor.fromInt(0xFF0A8A5F);
+  static const _pJadeWash = PdfColor.fromInt(0xFFEBFAF3);
+  static const _pPaper = PdfColor.fromInt(0xFFFBFAF7);
+
   static Future<pw.Document> buildPdf(Invoice invoice, Business? biz) async {
-    final doc = pw.Document();
-    final cgst = invoice.totalCgst;
-    final sgst = invoice.totalSgst;
-    final igst = invoice.totalIgst;
-    final gr   = invoice.gstRateForDisplay;
+    await _loadPdfFonts();
+
+    final theme = pw.ThemeData.withFont(
+      base: _pdfRegular!,
+      bold: _pdfBold!,
+    ).copyWith(
+      defaultTextStyle: pw.TextStyle(font: _pdfRegular, fontSize: 10, color: _pInk),
+    );
+
+    final doc = pw.Document(theme: theme);
     final isPaid = invoice.status == InvoiceStatus.paid;
 
-    String rs(double amount) {
+    /// Indian digit grouping with a real rupee sign.
+    String rs(double amount, {bool symbol = true}) {
       final abs = amount.abs();
       final parts = abs.toStringAsFixed(2).split('.');
-      String integer = parts[0];
+      var integer = parts[0];
       if (integer.length > 3) {
         final last3 = integer.substring(integer.length - 3);
         final rest = integer.substring(0, integer.length - 3);
@@ -536,15 +604,15 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
         }
         integer = '${groups.join(',')},$last3';
       }
-      return '${amount < 0 ? '-' : ''}Rs.$integer.${parts[1]}';
+      final sign = amount < 0 ? '-' : '';
+      return '$sign${symbol ? '₹' : ''}$integer.${parts[1]}';
     }
 
-    // Build UPI link if business has UPI ID and invoice not paid
     final upiLink = (biz != null &&
-                     biz.upiId.isNotEmpty &&
-                     UpiHelper.isValidVpa(biz.upiId) &&
-                     !isPaid &&
-                     invoice.grandTotal > 0)
+            biz.upiId.isNotEmpty &&
+            UpiHelper.isValidVpa(biz.upiId) &&
+            !isPaid &&
+            invoice.grandTotal > 0)
         ? UpiHelper.buildLink(
             vpa: biz.upiId,
             name: biz.name,
@@ -552,171 +620,373 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
             note: invoice.invoiceNumber)
         : null;
 
+    pw.Widget label(String t) => pw.Text(t.toUpperCase(),
+        style: pw.TextStyle(
+            font: _pdfBold, fontSize: 7, color: _pInkFaint, letterSpacing: 0.8));
+
+    pw.Widget totalRow(String name, double amount, {bool strong = false}) =>
+        pw.Padding(
+          padding: const pw.EdgeInsets.symmetric(vertical: 2.5),
+          child: pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text(name,
+                    style: pw.TextStyle(
+                        fontSize: 9.5,
+                        color: strong ? _pInk : _pInkSoft,
+                        font: strong ? _pdfBold : _pdfRegular)),
+                pw.Text(rs(amount, symbol: false),
+                    style: pw.TextStyle(
+                        fontSize: 9.5,
+                        font: strong ? _pdfBold : _pdfRegular,
+                        color: _pInk)),
+              ]),
+        );
+
     doc.addPage(pw.Page(
       pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.all(32),
-      build: (_) => pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-        pw.Container(
-          padding: const pw.EdgeInsets.all(18),
-          decoration: const pw.BoxDecoration(color: PdfColor.fromInt(0xFF1557FF),
-            borderRadius: pw.BorderRadius.all(pw.Radius.circular(8))),
-          child: pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
-            pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-              pw.Text(biz?.name ?? 'Business Name',
-                style: pw.TextStyle(color: PdfColors.white, fontSize: 20, fontWeight: pw.FontWeight.bold)),
-              if (biz?.gstin.isNotEmpty == true)
-                pw.Text('GSTIN: ${biz!.gstin}', style: const pw.TextStyle(color: PdfColors.grey300, fontSize: 10)),
-              if (biz?.address.isNotEmpty == true)
-                pw.Text('${biz!.address}, ${biz.city}', style: const pw.TextStyle(color: PdfColors.grey300, fontSize: 10)),
-            ]),
-            pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
-              pw.Text('TAX INVOICE',
-                style: pw.TextStyle(color: PdfColors.white, fontSize: 13, fontWeight: pw.FontWeight.bold)),
-              pw.SizedBox(height: 4),
-              pw.Text(invoice.invoiceNumber, style: const pw.TextStyle(color: PdfColors.grey300, fontSize: 11)),
-            ]),
-          ])),
-        pw.SizedBox(height: 16),
-        pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-          pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-            pw.Text('BILL TO', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.grey600)),
-            pw.SizedBox(height: 3),
-            pw.Text(invoice.customerName, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-            if (invoice.customerPhone.isNotEmpty)
-              pw.Text(invoice.customerPhone, style: const pw.TextStyle(fontSize: 10)),
-            if (invoice.customerGstin.isNotEmpty)
-              pw.Text('GSTIN: ${invoice.customerGstin}', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
-          ]),
-          pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
-            pw.Text('Date: ${DateFormat('dd MMM yyyy').format(invoice.invoiceDate)}', style: const pw.TextStyle(fontSize: 10)),
-            pw.Text('Due:  ${DateFormat('dd MMM yyyy').format(invoice.dueDate)}', style: const pw.TextStyle(fontSize: 10)),
-          ]),
-        ]),
-        pw.SizedBox(height: 16), pw.Divider(), pw.SizedBox(height: 8),
-        pw.Table(
-          columnWidths: {0: const pw.FlexColumnWidth(3), 1: const pw.FlexColumnWidth(1),
-            2: const pw.FlexColumnWidth(1.5), 3: const pw.FlexColumnWidth(1.5)},
+      margin: const pw.EdgeInsets.all(38),
+      build: (_) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.TableRow(
-              decoration: const pw.BoxDecoration(color: PdfColor.fromInt(0xFFEBF0FF)),
-              children: ['DESCRIPTION','QTY','RATE','AMOUNT'].map((h) => pw.Padding(
-                padding: const pw.EdgeInsets.all(6),
-                child: pw.Text(h, style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700)))).toList()),
-            ...invoice.lineItems.map((item) => pw.TableRow(children: [
-              pw.Padding(padding: const pw.EdgeInsets.all(6), child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-                  pw.Text(item.name, style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
-                  if (item.hsnCode.isNotEmpty)
-                    pw.Text('HSN: ${item.hsnCode}', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600)),
-                ])),
-              pw.Padding(padding: const pw.EdgeInsets.all(6),
-                child: pw.Text('${item.quantity.toInt()}', textAlign: pw.TextAlign.center, style: const pw.TextStyle(fontSize: 11))),
-              pw.Padding(padding: const pw.EdgeInsets.all(6),
-                child: pw.Text(rs(item.rate), textAlign: pw.TextAlign.right, style: const pw.TextStyle(fontSize: 11))),
-              pw.Padding(padding: const pw.EdgeInsets.all(6),
-                child: pw.Text(rs(item.taxable), textAlign: pw.TextAlign.right,
-                  style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold))),
-            ])),
-          ]),
-        pw.SizedBox(height: 12),
-        pw.Align(alignment: pw.Alignment.centerRight, child: pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
-          _pRow('Subtotal', invoice.subtotal, rs),
-          if (cgst > 0) _pRow('CGST (${gr/2}%)', cgst, rs),
-          if (sgst > 0) _pRow('SGST (${gr/2}%)', sgst, rs),
-          if (igst > 0) _pRow('IGST ($gr%)', igst, rs),
-          if (invoice.shippingCharge > 0) _pRow('Shipping', invoice.shippingCharge, rs),
-          if (invoice.flatDiscount > 0) _pRow('Discount', -invoice.flatDiscount, rs),
-          pw.SizedBox(height: 6),
-          pw.Container(
-            padding: const pw.EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-            decoration: const pw.BoxDecoration(color: PdfColor.fromInt(0xFF1557FF),
-              borderRadius: pw.BorderRadius.all(pw.Radius.circular(6))),
-            child: pw.Row(children: [
-              pw.Text('GRAND TOTAL   ', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 13)),
-              pw.Text(rs(invoice.grandTotal), style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 16)),
-            ])),
-        ])),
+            // ── Letterhead ──────────────────────────────────────────
+            pw.Row(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Expanded(
+                    child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text(biz?.name ?? 'Your Business',
+                              style: pw.TextStyle(
+                                  font: _pdfBold, fontSize: 17, color: _pInk)),
+                          if (biz?.gstin.isNotEmpty == true) ...[
+                            pw.SizedBox(height: 3),
+                            pw.Text('GSTIN ${biz!.gstin}',
+                                style: const pw.TextStyle(
+                                    fontSize: 9, color: _pInkSoft)),
+                          ],
+                          if (biz?.address.isNotEmpty == true)
+                            pw.Text(
+                                '${biz!.address}${biz.city.isNotEmpty ? ", ${biz.city}" : ""}'
+                                '${biz.pincode.isNotEmpty ? " ${biz.pincode}" : ""}',
+                                style: const pw.TextStyle(
+                                    fontSize: 9, color: _pInkFaint)),
+                          if (biz?.phone.isNotEmpty == true)
+                            pw.Text(biz!.phone,
+                                style: const pw.TextStyle(
+                                    fontSize: 9, color: _pInkFaint)),
+                        ]),
+                  ),
+                  pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.end,
+                      children: [
+                        label('Tax Invoice'),
+                        pw.SizedBox(height: 4),
+                        pw.Text(invoice.invoiceNumber,
+                            style: pw.TextStyle(font: _pdfBold, fontSize: 12)),
+                        if (isPaid) ...[
+                          pw.SizedBox(height: 6),
+                          pw.Container(
+                            padding: const pw.EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 3),
+                            decoration: const pw.BoxDecoration(
+                                color: _pJadeWash,
+                                borderRadius:
+                                    pw.BorderRadius.all(pw.Radius.circular(3))),
+                            child: pw.Text('PAID',
+                                style: pw.TextStyle(
+                                    font: _pdfBold,
+                                    fontSize: 7,
+                                    color: _pJade,
+                                    letterSpacing: 0.8)),
+                          ),
+                        ],
+                      ]),
+                ]),
+            pw.SizedBox(height: 16),
+            pw.Divider(height: 1, color: _pRule),
+            pw.SizedBox(height: 14),
 
-        // ═══════════════════════════════════════════════
-        // ✨ NEW: UPI QR section in PDF
-        // ═══════════════════════════════════════════════
-        if (upiLink != null) ...[
-          pw.SizedBox(height: 18),
-          pw.Container(
-            padding: const pw.EdgeInsets.all(12),
-            decoration: pw.BoxDecoration(
-              color: const PdfColor.fromInt(0xFFF0F5FF),
-              borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
-              border: pw.Border.all(color: const PdfColor.fromInt(0xFF1557FF), width: 0.6),
-            ),
-            child: pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.center, children: [
-              // QR code (left)
-              pw.Container(
-                width: 90, height: 90,
-                color: PdfColors.white,
-                padding: const pw.EdgeInsets.all(4),
-                child: pw.BarcodeWidget(
-                  barcode: bc.Barcode.qrCode(),
-                  data: upiLink,
-                  drawText: false,
-                ),
-              ),
-              pw.SizedBox(width: 14),
-              // Text (right)
-              pw.Expanded(child: pw.Column(
+            // ── Parties and dates ───────────────────────────────────
+            pw.Row(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text('SCAN TO PAY VIA UPI',
-                    style: pw.TextStyle(fontSize: 10,
-                      fontWeight: pw.FontWeight.bold,
-                      color: const PdfColor.fromInt(0xFF1557FF),
-                      letterSpacing: 0.6)),
-                  pw.SizedBox(height: 4),
-                  pw.Text(rs(invoice.grandTotal),
-                    style: pw.TextStyle(fontSize: 18,
-                      fontWeight: pw.FontWeight.bold,
-                      color: const PdfColor.fromInt(0xFF1557FF))),
-                  pw.SizedBox(height: 4),
-                  pw.Text('Pays exact amount with reference: ${invoice.invoiceNumber}',
-                    style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
-                  pw.SizedBox(height: 2),
-                  pw.Text('Works with PhonePe, Google Pay, Paytm, BHIM & all UPI apps',
-                    style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
-                ],
-              )),
-            ]),
-          ),
-        ],
+                  pw.Expanded(
+                    flex: 3,
+                    child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          label('Billed to'),
+                          pw.SizedBox(height: 5),
+                          pw.Text(invoice.customerName,
+                              style:
+                                  pw.TextStyle(font: _pdfBold, fontSize: 12)),
+                          if (invoice.customerPhone.isNotEmpty)
+                            pw.Text(invoice.customerPhone,
+                                style: const pw.TextStyle(
+                                    fontSize: 9, color: _pInkSoft)),
+                          if (invoice.customerGstin.isNotEmpty)
+                            pw.Text('GSTIN ${invoice.customerGstin}',
+                                style: const pw.TextStyle(
+                                    fontSize: 9, color: _pInkFaint)),
+                          if (invoice.customerAddress.isNotEmpty)
+                            pw.Text(invoice.customerAddress,
+                                style: const pw.TextStyle(
+                                    fontSize: 9, color: _pInkFaint)),
+                        ]),
+                  ),
+                  pw.Expanded(
+                    flex: 2,
+                    child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.end,
+                        children: [
+                          label('Issued'),
+                          pw.SizedBox(height: 5),
+                          pw.Text(
+                              DateFormat('d MMM yyyy')
+                                  .format(invoice.invoiceDate),
+                              style: pw.TextStyle(font: _pdfBold, fontSize: 10)),
+                          pw.SizedBox(height: 8),
+                          label('Due'),
+                          pw.SizedBox(height: 5),
+                          pw.Text(
+                              DateFormat('d MMM yyyy').format(invoice.dueDate),
+                              style: pw.TextStyle(font: _pdfBold, fontSize: 10)),
+                          pw.SizedBox(height: 8),
+                          label('Place of supply'),
+                          pw.SizedBox(height: 5),
+                          pw.Text(invoice.placeOfSupply,
+                              style: const pw.TextStyle(
+                                  fontSize: 9, color: _pInkSoft)),
+                        ]),
+                  ),
+                ]),
+            pw.SizedBox(height: 18),
 
-        if (biz != null && (biz.bankName.isNotEmpty || biz.upiId.isNotEmpty)) ...[
-          pw.SizedBox(height: 12), pw.Divider(), pw.SizedBox(height: 8),
-          pw.Text('PAYMENT DETAILS', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.grey600)),
-          pw.SizedBox(height: 4),
-          if (biz.bankName.isNotEmpty)
-            pw.Text('Bank: ${biz.bankName}   A/C: ${biz.accountNumber}   IFSC: ${biz.ifscCode}',
-              style: const pw.TextStyle(fontSize: 10)),
-          if (biz.upiId.isNotEmpty)
-            pw.Text('UPI: ${biz.upiId}', style: const pw.TextStyle(fontSize: 10)),
-        ],
-        if (invoice.notes.isNotEmpty) ...[
-          pw.SizedBox(height: 12),
-          pw.Text('Notes: ${invoice.notes}', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
-        ],
-        pw.SizedBox(height: 20),
-        pw.Center(child: pw.Text("Generated by BillZap - India's Free GST Billing App",
-          style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey500))),
-      ])));
+            // ── Items ───────────────────────────────────────────────
+            pw.Table(
+              columnWidths: {
+                0: const pw.FlexColumnWidth(5),
+                1: const pw.FlexColumnWidth(1.2),
+                2: const pw.FlexColumnWidth(2),
+                3: const pw.FlexColumnWidth(1.4),
+                4: const pw.FlexColumnWidth(2.2),
+              },
+              children: [
+                pw.TableRow(
+                  decoration: const pw.BoxDecoration(
+                    border: pw.Border(
+                        bottom: pw.BorderSide(color: _pRule, width: 1)),
+                  ),
+                  children: [
+                    _pHead('Item', _pdfBold!),
+                    _pHead('Qty', _pdfBold!, right: true),
+                    _pHead('Rate', _pdfBold!, right: true),
+                    _pHead('GST', _pdfBold!, right: true),
+                    _pHead('Amount', _pdfBold!, right: true),
+                  ],
+                ),
+                for (final item in invoice.lineItems)
+                  pw.TableRow(
+                    decoration: const pw.BoxDecoration(
+                      border: pw.Border(
+                          bottom: pw.BorderSide(color: _pRule, width: 0.5)),
+                    ),
+                    children: [
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.symmetric(vertical: 7),
+                        child: pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
+                            children: [
+                              pw.Text(item.name,
+                                  style: pw.TextStyle(
+                                      font: _pdfBold, fontSize: 9.5)),
+                              if (item.hsnCode.isNotEmpty)
+                                pw.Text('HSN ${item.hsnCode}',
+                                    style: const pw.TextStyle(
+                                        fontSize: 7.5, color: _pInkFaint)),
+                            ]),
+                      ),
+                      _pCell(
+                          item.quantity == item.quantity.roundToDouble()
+                              ? item.quantity.toInt().toString()
+                              : item.quantity.toString(),
+                          right: true),
+                      _pCell(rs(item.rate, symbol: false), right: true),
+                      _pCell('${item.gstRate.toStringAsFixed(0)}%',
+                          right: true),
+                      _pCell(rs(item.taxable, symbol: false),
+                          right: true, bold: _pdfBold),
+                    ],
+                  ),
+              ],
+            ),
+            pw.SizedBox(height: 14),
+
+            // ── Totals, right-aligned under the amount column ───────
+            pw.Row(children: [
+              pw.Spacer(flex: 3),
+              pw.Expanded(
+                flex: 4,
+                child: pw.Column(children: [
+                  totalRow('Subtotal', invoice.subtotal),
+                  if (invoice.totalCgst > 0)
+                    totalRow('CGST ${invoice.gstRateForDisplay / 2}%',
+                        invoice.totalCgst),
+                  if (invoice.totalSgst > 0)
+                    totalRow('SGST ${invoice.gstRateForDisplay / 2}%',
+                        invoice.totalSgst),
+                  if (invoice.totalIgst > 0)
+                    totalRow('IGST ${invoice.gstRateForDisplay}%',
+                        invoice.totalIgst),
+                  if (invoice.shippingCharge > 0)
+                    totalRow('Shipping', invoice.shippingCharge),
+                  if (invoice.flatDiscount > 0)
+                    totalRow('Discount', -invoice.flatDiscount),
+                  pw.SizedBox(height: 8),
+                  pw.Container(
+                    padding: const pw.EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    decoration: const pw.BoxDecoration(
+                        color: _pJadeWash,
+                        borderRadius:
+                            pw.BorderRadius.all(pw.Radius.circular(6))),
+                    child: pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.Text(isPaid ? 'TOTAL PAID' : 'TOTAL DUE',
+                              style: pw.TextStyle(
+                                  font: _pdfBold,
+                                  fontSize: 8,
+                                  color: _pInkSoft,
+                                  letterSpacing: 0.8)),
+                          pw.Text(rs(invoice.grandTotal),
+                              style: pw.TextStyle(
+                                  font: _pdfBold, fontSize: 15, color: _pJade)),
+                        ]),
+                  ),
+                ]),
+              ),
+            ]),
+
+            // ── Pay by UPI ──────────────────────────────────────────
+            if (upiLink != null) ...[
+              pw.SizedBox(height: 20),
+              pw.Container(
+                padding: const pw.EdgeInsets.all(14),
+                decoration: pw.BoxDecoration(
+                  color: _pPaper,
+                  borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+                  border: pw.Border.all(color: _pRule, width: 1),
+                ),
+                child: pw.Row(
+                    crossAxisAlignment: pw.CrossAxisAlignment.center,
+                    children: [
+                      pw.Container(
+                        width: 84,
+                        height: 84,
+                        color: PdfColors.white,
+                        padding: const pw.EdgeInsets.all(4),
+                        child: pw.BarcodeWidget(
+                            barcode: bc.Barcode.qrCode(),
+                            data: upiLink,
+                            drawText: false),
+                      ),
+                      pw.SizedBox(width: 16),
+                      pw.Expanded(
+                        child: pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
+                            children: [
+                              label('Scan to pay'),
+                              pw.SizedBox(height: 5),
+                              pw.Text(rs(invoice.grandTotal),
+                                  style: pw.TextStyle(
+                                      font: _pdfBold,
+                                      fontSize: 17,
+                                      color: _pInk)),
+                              pw.SizedBox(height: 5),
+                              pw.Text(
+                                  'Opens with the exact amount and reference '
+                                  '${invoice.invoiceNumber}.',
+                                  style: const pw.TextStyle(
+                                      fontSize: 8.5, color: _pInkSoft)),
+                              pw.Text(
+                                  'Works with GPay, PhonePe, Paytm, BHIM and '
+                                  'every other UPI app.',
+                                  style: const pw.TextStyle(
+                                      fontSize: 8, color: _pInkFaint)),
+                            ]),
+                      ),
+                    ]),
+              ),
+            ],
+
+            if (biz != null &&
+                (biz.bankName.isNotEmpty || biz.upiId.isNotEmpty)) ...[
+              pw.SizedBox(height: 16),
+              label('Pay to'),
+              pw.SizedBox(height: 4),
+              if (biz.bankName.isNotEmpty)
+                pw.Text(
+                    '${biz.bankName}  ·  A/C ${biz.accountNumber}  ·  IFSC ${biz.ifscCode}',
+                    style: const pw.TextStyle(fontSize: 9, color: _pInkSoft)),
+              if (biz.upiId.isNotEmpty)
+                pw.Text('UPI ${biz.upiId}',
+                    style: const pw.TextStyle(fontSize: 9, color: _pInkSoft)),
+            ],
+
+            if (invoice.notes.isNotEmpty) ...[
+              pw.SizedBox(height: 14),
+              label('Note'),
+              pw.SizedBox(height: 4),
+              pw.Text(invoice.notes,
+                  style: const pw.TextStyle(fontSize: 9, color: _pInkSoft)),
+            ],
+
+            if (invoice.terms.isNotEmpty) ...[
+              pw.SizedBox(height: 10),
+              pw.Text(invoice.terms,
+                  style: const pw.TextStyle(fontSize: 8, color: _pInkFaint)),
+            ],
+
+            pw.Spacer(),
+            pw.Divider(height: 1, color: _pRule),
+            pw.SizedBox(height: 8),
+            pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('This is a computer-generated invoice.',
+                      style:
+                          const pw.TextStyle(fontSize: 7.5, color: _pInkFaint)),
+                  pw.Text('Made with BillZap',
+                      style:
+                          const pw.TextStyle(fontSize: 7.5, color: _pInkFaint)),
+                ]),
+          ]),
+    ));
     return doc;
   }
 
-  static pw.Widget _pRow(String label, double amount, String Function(double) rs) => pw.Padding(
-    padding: const pw.EdgeInsets.symmetric(vertical: 2),
-    child: pw.Row(children: [
-      pw.Text('$label:   ', style: const pw.TextStyle(fontSize: 11, color: PdfColors.grey700)),
-      pw.Text(rs(amount), style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
-    ]));
+  static pw.Widget _pHead(String t, pw.Font bold, {bool right = false}) =>
+      pw.Padding(
+        padding: const pw.EdgeInsets.only(bottom: 6),
+        child: pw.Text(t.toUpperCase(),
+            textAlign: right ? pw.TextAlign.right : pw.TextAlign.left,
+            style: pw.TextStyle(
+                font: bold, fontSize: 7, color: _pInkFaint, letterSpacing: 0.8)),
+      );
+
+  static pw.Widget _pCell(String t,
+          {bool right = false, pw.Font? bold}) =>
+      pw.Padding(
+        padding: const pw.EdgeInsets.symmetric(vertical: 7),
+        child: pw.Text(t,
+            textAlign: right ? pw.TextAlign.right : pw.TextAlign.left,
+            style: pw.TextStyle(
+                fontSize: 9.5, font: bold, color: _pInk)),
+      );
 
   Future<void> _downloadPdf(Invoice invoice, Business? biz) async {
     if (_pdfLoading) return;
@@ -733,7 +1003,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
         text: 'Invoice ${invoice.invoiceNumber} — ${formatCurrency(invoice.grandTotal)}');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('PDF ready ✓'), backgroundColor: AppColors.green));
+        content: const Text('PDF ready'), backgroundColor: AppColors.green));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -762,19 +1032,17 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     await ref.read(invoiceProvider.notifier).markPaid(invoice.id);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('Marked as paid ✓'), backgroundColor: AppColors.green));
+      content: const Text('Marked as paid'), backgroundColor: AppColors.green));
   }
 
   Future<void> _markUnpaid(Invoice invoice) async {
-    final ok = await showDialog<bool>(context: context, builder: (_) => AlertDialog(
-      title: const Text('Mark as Unpaid?'),
-      content: const Text('This will change the invoice status back to Sent.'),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-        TextButton(onPressed: () => Navigator.pop(context, true),
-          child: Text('Mark Unpaid', style: TextStyle(color: AppColors.orange))),
-      ]));
-    if (ok == true) {
+    final ok = await confirm(context,
+        title: 'Mark as unpaid?',
+        message: 'The status goes back to Sent. Nothing else changes.',
+        icon: Symbols.undo,
+        tone: AppColor.pending,
+        confirmLabel: 'Mark unpaid');
+    if (ok) {
       await ref.read(invoiceProvider.notifier).markUnpaid(invoice.id);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -783,68 +1051,17 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
   }
 
   Future<void> _deleteInvoice(Invoice invoice) async {
-    final ok = await showDialog<bool>(context: context, builder: (_) => AlertDialog(
-      title: const Text('Delete Invoice?'),
-      content: Text('${invoice.invoiceNumber} will be permanently deleted.'),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-        TextButton(onPressed: () => Navigator.pop(context, true),
-          child: Text('Delete', style: TextStyle(color: AppColors.red))),
-      ]));
-    if (ok == true) {
+    final ok = await confirm(context,
+        title: 'Delete this invoice?',
+        message: '${invoice.invoiceNumber} will be removed for good. '
+            'This cannot be undone.',
+        icon: Symbols.delete,
+        destructive: true,
+        confirmLabel: 'Delete invoice');
+    if (ok) {
       await ref.read(invoiceProvider.notifier).delete(invoice.id);
       if (mounted) context.go('/invoices');
     }
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  // WhatsApp message — now includes UPI link if available
-
-  // ═══════════════════════════════════════════════════════════
-  // ASK PAYMENT MODE — small dialog when marking invoice paid
-  // ═══════════════════════════════════════════════════════════
-  Future<String?> _askPaymentMode() async {
-    return showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('How was it paid?',
-          style: AppFont.sans(
-            fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.t1)),
-        contentPadding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          _payOpt(ctx, 'cash', '💵 Cash', AppColors.green),
-          _payOpt(ctx, 'upi', '📱 UPI', AppColors.brand),
-          _payOpt(ctx, 'bank', '🏦 Bank Transfer', AppColors.purple),
-          _payOpt(ctx, 'other', '📋 Other', AppColors.orange),
-        ]),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel')),
-        ],
-      ),
-    );
-  }
-
-  Widget _payOpt(BuildContext ctx, String mode, String label, Color color) {
-    return InkWell(
-      onTap: () => Navigator.pop(ctx, mode),
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: color.withOpacity(0.25))),
-        child: Row(children: [
-          Expanded(child: Text(label,
-            style: AppFont.sans(
-              fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.t1))),
-          Icon(Symbols.chevron_right, color: color, size: 18),
-        ]),
-      ),
-    );
   }
 
   Future<void> _sendWhatsApp(Invoice invoice, Business? biz) async {
@@ -862,7 +1079,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
         name: biz.name,
         amount: invoice.grandTotal,
         note: invoice.invoiceNumber);
-      upiLine = '\n\n💳 *Pay instantly via UPI:*\n$link';
+      upiLine = '\n\n*Pay instantly via UPI:*\n$link';
     }
 
     final msg = Uri.encodeComponent(
@@ -871,7 +1088,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
       'for *${formatCurrency(invoice.grandTotal)}* is ready.\n\n'
       'Due: ${DateFormat('dd MMM yyyy').format(invoice.dueDate)}'
       '$upiLine\n\n'
-      'Thank you! 🙏\n\n— Sent via BillZap ⚡');
+      'Thank you.\n\n— Sent via BillZap');
 
     final phone = invoice.customerPhone.replaceAll(RegExp(r'[^0-9]'), '');
 
@@ -905,7 +1122,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// ✨ NEW: UPI Payment Card widget
+// UPI Payment Card widget
 // ═══════════════════════════════════════════════════════════════
 class _UpiPaymentCard extends ConsumerWidget {
   final Invoice invoice;
@@ -1269,7 +1486,7 @@ class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
       if (!mounted) return;
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Invoice updated ✓'), backgroundColor: AppColors.green));
+        content: const Text('Invoice updated'), backgroundColor: AppColors.green));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1279,27 +1496,6 @@ class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
     }
   }
 }
-
-// ── Helper widgets ─────────────────────────────────────────────
-Widget _IRow(String l, String v) => Padding(
-  padding: const EdgeInsets.only(bottom: 3),
-  child: Row(children: [
-    Text('$l: ', style: AppFont.sans(fontSize: 11, color: AppColors.t3)),
-    Text(v, style: AppFont.sans(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.t1)),
-  ]));
-
-Widget _TH(String t, {bool right = false}) => Text(t,
-  textAlign: right ? TextAlign.right : TextAlign.left,
-  style: AppFont.sans(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.t3, letterSpacing: 0.5));
-
-Widget _TotRow(String label, double amount, {bool neg = false}) => Padding(
-  padding: const EdgeInsets.symmetric(vertical: 2),
-  child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-    Text(label, style: AppFont.sans(fontSize: 13, color: AppColors.t2)),
-    Text(neg ? '- ${formatCurrency(amount)}' : formatCurrency(amount),
-      style: AppFont.sans(fontSize: 13, fontWeight: FontWeight.w600,
-        color: neg ? AppColors.green : AppColors.t1)),
-  ]));
 
 class _ActionTile extends StatelessWidget {
   final IconData icon;
@@ -1362,6 +1558,12 @@ class _OptTile extends StatelessWidget {
 
 
 /// A totals line inside the invoice document.
+/// Gutter between the document's numeric columns. Without it a wide
+/// amount fills its column edge to edge and runs straight into the rate
+/// beside it — "129.0019,350.00" — which is the one thing a tax invoice
+/// cannot afford to look like.
+const EdgeInsets _docColGutter = EdgeInsets.only(left: AppSpace.sm);
+
 class _DocTotal extends StatelessWidget {
   final String label;
   final double amount;

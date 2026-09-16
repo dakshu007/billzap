@@ -55,8 +55,7 @@ class FestivalBanner extends ConsumerWidget {
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.25),
               borderRadius: BorderRadius.circular(16)),
-            child: Center(child: Text(festival.emoji,
-              style: const TextStyle(fontSize: 26))),
+            child: Icon(festival.icon, size: 22, color: AppColors.orange),
           ),
           const Gap(13),
           Expanded(child: Column(

@@ -7,6 +7,11 @@ analyzer:
     - windows/**
     - macos/**
     - linux/**
+    # Stale snapshots of screens from an earlier design, kept in the repo
+    # for reference only. They are not part of the app and do not compile
+    # against the current widget library.
+    - github_files/**
+    - billzap_full/**
 include: package:flutter_lints/flutter.yaml
 
 linter:

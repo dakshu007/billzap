@@ -40,24 +40,14 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
   }
 
   Future<bool> _confirmDelete(Product p) async {
-    HapticFeedback.mediumImpact();
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(tr('common.delete', ref)),
-        content: Text('${p.name} will be removed.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(tr('common.cancel', ref))),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(tr('common.delete', ref),
-              style: TextStyle(color: AppColors.red))),
-        ],
-      ),
-    );
-    return ok == true;
+    return confirm(context,
+        title: 'Delete ${p.name}?',
+        message: 'Invoices that already list this item keep their line — '
+            'only the saved item goes.',
+        icon: Symbols.delete,
+        destructive: true,
+        confirmLabel: tr('common.delete', ref),
+        cancelLabel: tr('common.cancel', ref));
   }
 
   Future<void> _doDelete(Product p) async {
@@ -382,8 +372,8 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                               content: Text(isEdit
-                                  ? '${name.text.trim()} updated ✓'
-                                  : '${name.text.trim()} added ✓'),
+                                  ? '${name.text.trim()} updated'
+                                  : '${name.text.trim()} added'),
                               backgroundColor: AppColors.green));
                           }
                         } finally {

@@ -1,7 +1,7 @@
 // lib/router/app_router.dart
-// ✅ ShellScreen is a single page with PageView inside
-// ✅ /home, /invoices, /reports, /settings all show ShellScreen
-// ✅ /create and /preview are separate pages with custom transitions
+// ShellScreen is a single page with PageView inside
+// /home, /invoices, /reports, /settings all show ShellScreen
+// /create and /preview are separate pages with custom transitions
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -20,6 +20,9 @@ import '../screens/main/products_screen.dart';
 import '../screens/main/expenses_screen.dart';
 import '../screens/main/catalog_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
+import '../design/components.dart';
+import '../design/tokens.dart';
+import 'package:billzap/theme/app_icons.dart';
 
 CustomTransitionPage<void> _slideRight(BuildContext c, GoRouterState s, Widget w) {
   return CustomTransitionPage<void>(
@@ -71,6 +74,10 @@ CustomTransitionPage<void> _none(BuildContext c, GoRouterState s, Widget w) {
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/splash',
+    // go_router's stock 404 is a red-on-white stack trace. A shop owner
+    // who lands on it from a stale shortcut should see the app, not a
+    // debug screen.
+    errorBuilder: (context, state) => const _RouteNotFound(),
     routes: [
       GoRoute(
         path: '/splash',
@@ -148,3 +155,29 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+
+/// The 404. Deliberately unremarkable — one way out, no diagnostics.
+class _RouteNotFound extends StatelessWidget {
+  const _RouteNotFound();
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        backgroundColor: AppColor.canvas,
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpace.xxl),
+              child: AppEmptyState(
+                icon: Symbols.search,
+                tone: AppColor.textTertiary,
+                title: 'Nothing here',
+                message: 'That link does not lead anywhere in BillZap.',
+                actionLabel: 'Back to home',
+                onAction: () => GoRouter.of(context).go('/home'),
+              ),
+            ),
+          ),
+        ),
+      );
+}

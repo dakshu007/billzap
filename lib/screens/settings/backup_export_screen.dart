@@ -12,6 +12,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
+import '../../design/components.dart';
+import '../../design/tokens.dart';
 import '../../providers/providers.dart';
 import '../../utils/backup_service.dart';
 import '../../utils/csv_helper.dart';
@@ -182,25 +184,14 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
   // ═══════════════════════════════════════════════════════════════
   Future<void> _startRestore() async {
     // Confirm overwrite first
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Restore backup?'),
-        content: const Text(
-          'This will REPLACE existing data with the backup contents. '
-          'Any current data not in the backup will be lost.\n\n'
-          'Continue?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text('Continue', style: TextStyle(color: AppColors.red))),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
+    final confirmed = await confirm(context,
+        title: 'Restore this backup?',
+        message: 'Everything on this phone is replaced by what is in the '
+            'backup file. Anything not in the file is lost.',
+        icon: Symbols.restore,
+        destructive: true,
+        confirmLabel: 'Replace my data');
+    if (!confirmed) return;
 
     // Pick file
     PlatformFile? picked;
@@ -245,31 +236,37 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
     ref.invalidate(businessProvider);
 
     if (!mounted) return;
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Row(children: [
-          Icon(Symbols.check_circle, color: AppColors.green),
-          SizedBox(width: 10),
-          Text('Restore complete'),
-        ]),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('• ${result.invoiceCount} invoices'),
-            Text('• ${result.customerCount} customers'),
-            Text('• ${result.productCount} products'),
-            Text('• ${result.expenseCount} expenses'),
+    notify(context,
+        title: 'Restore complete',
+        icon: Symbols.check_circle,
+        tone: AppColor.paid,
+        body: AppWell(
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpace.lg, vertical: AppSpace.md),
+          child: Column(children: [
+            _restoredRow('Invoices', result.invoiceCount ?? 0),
+            _restoredRow('Customers', result.customerCount ?? 0),
+            _restoredRow('Products', result.productCount ?? 0),
+            _restoredRow('Expenses', result.expenseCount ?? 0),
           ]),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK')),
-        ],
-      ),
-    );
+        ));
   }
+
+  /// One line of the restore summary — label left, count right, in the
+  /// same tabular figures the ledger uses so the column is straight.
+  Widget _restoredRow(String label, int count) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 3),
+        child: Row(children: [
+          Expanded(
+            child: Text(label,
+                style: AppFont.style(AppType.bodyM,
+                    color: AppColor.textSecondary)),
+          ),
+          Text('$count',
+              style: AppFont.style(AppType.numeric,
+                  color: AppColor.textPrimary)),
+        ]),
+      );
 
   // ═══════════════════════════════════════════════════════════════
   // CSV EXPORTS
@@ -368,79 +365,59 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
     final pin2Ctrl = TextEditingController();
     String? error;
 
-    return showDialog<String>(
+    return showAppDialog<String>(
       context: context,
-      barrierDismissible: false,
+      dismissible: false,
       builder: (ctx) => StatefulBuilder(builder: (ctx, ss) {
-        return AlertDialog(
-          title: Text(title,
-            style: AppFont.sans(fontWeight: FontWeight.w600)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(message,
-                style: AppFont.sans(fontSize: 13, color: AppColors.t2)),
-              const Gap(16),
-              TextField(
-                controller: pin1Ctrl,
-                keyboardType: TextInputType.number,
-                obscureText: true,
-                maxLength: 8,
-                autofocus: true,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: InputDecoration(
-                  labelText: requireConfirm ? 'PIN' : 'Enter PIN',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                  counterText: '',
-                ),
-                style: AppFont.sans(fontSize: 18, letterSpacing: 6),
+        void submit() {
+          final p1 = pin1Ctrl.text.trim();
+          if (p1.length < 4) {
+            ss(() => error = 'A PIN needs at least 4 digits');
+            return;
+          }
+          if (requireConfirm && p1 != pin2Ctrl.text.trim()) {
+            ss(() => error = 'The two PINs are different');
+            return;
+          }
+          Navigator.pop(ctx, p1);
+        }
+
+        return AppDialog(
+          title: title,
+          message: message,
+          icon: Symbols.lock,
+          confirmLabel: 'Continue',
+          onConfirm: submit,
+          cancelLabel: 'Cancel',
+          onCancel: () => Navigator.pop(ctx),
+          body: Column(children: [
+            _PinField(
+              controller: pin1Ctrl,
+              label: requireConfirm ? 'Choose a PIN' : 'Enter PIN',
+              autofocus: true,
+              onSubmitted: requireConfirm ? null : (_) => submit(),
+            ),
+            if (requireConfirm) ...[
+              const Gap(AppSpace.sm),
+              _PinField(
+                controller: pin2Ctrl,
+                label: 'Type it again',
+                onSubmitted: (_) => submit(),
               ),
-              if (requireConfirm) ...[
-                const Gap(10),
-                TextField(
-                  controller: pin2Ctrl,
-                  keyboardType: TextInputType.number,
-                  obscureText: true,
-                  maxLength: 8,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: InputDecoration(
-                    labelText: 'Confirm PIN',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                    counterText: '',
-                  ),
-                  style: AppFont.sans(fontSize: 18, letterSpacing: 6),
-                ),
-              ],
-              if (error != null) ...[
-                const Gap(8),
-                Text(error!,
-                  style: AppFont.sans(
-                    fontSize: 12, color: AppColors.red, fontWeight: FontWeight.w600)),
-              ],
             ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
-            ElevatedButton(
-              onPressed: () {
-                final p1 = pin1Ctrl.text.trim();
-                if (p1.length < 4) {
-                  ss(() => error = 'PIN must be at least 4 digits');
-                  return;
-                }
-                if (requireConfirm) {
-                  if (p1 != pin2Ctrl.text.trim()) {
-                    ss(() => error = 'PINs do not match');
-                    return;
-                  }
-                }
-                Navigator.pop(ctx, p1);
-              },
-              child: const Text('OK')),
-          ],
+            if (error != null) ...[
+              const Gap(AppSpace.md),
+              Row(children: [
+                Icon(Symbols.warning, size: 15, color: AppColor.overdue),
+                const Gap(AppSpace.xs),
+                Expanded(
+                  child: Text(error!,
+                      style: AppFont.style(AppType.bodyS,
+                          color: AppColor.overdue)),
+                ),
+              ]),
+            ],
+          ]),
         );
       }),
     );
@@ -590,4 +567,56 @@ class _ExportTile extends StatelessWidget {
       ),
     );
   }
+}
+
+
+/// The PIN entry used by the backup dialogs. A recessed well with wide
+/// letter-spacing, rather than Material's underlined field — the dialog
+/// it sits in has no outlines anywhere else.
+class _PinField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final bool autofocus;
+  final ValueChanged<String>? onSubmitted;
+
+  const _PinField({
+    required this.controller,
+    required this.label,
+    this.autofocus = false,
+    this.onSubmitted,
+  });
+
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label.toUpperCase(),
+              style: AppFont.style(AppType.labelS,
+                  color: AppColor.textTertiary)),
+          const Gap(AppSpace.xs),
+          AppWell(
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpace.lg, vertical: 2),
+            child: TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              obscureText: true,
+              obscuringCharacter: '\u2022',
+              maxLength: 8,
+              autofocus: autofocus,
+              textAlign: TextAlign.center,
+              onSubmitted: onSubmitted,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                counterText: '',
+                isDense: true,
+              ),
+              style: AppFont.style(AppType.titleM,
+                      color: AppColor.textPrimary)
+                  .copyWith(letterSpacing: 10),
+            ),
+          ),
+        ],
+      );
 }

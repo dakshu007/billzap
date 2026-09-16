@@ -396,29 +396,16 @@ class _CatalogScreenState extends State<CatalogScreen> {
     );
   }
 
-  void _confirmDelete(CatalogItem item) {
-    HapticFeedback.lightImpact();
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(trGlobal('cat.delete_title')),
-        content: Text('${item.name}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(trGlobal('common.cancel')),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await CatalogService.delete(item.id);
-              await _load();
-            },
-            child: Text(trGlobal('common.delete'),
-                style: TextStyle(color: AppColors.red)),
-          ),
-        ],
-      ),
-    );
+  Future<void> _confirmDelete(CatalogItem item) async {
+    final ok = await confirm(context,
+        title: trGlobal('cat.delete_title'),
+        message: '${item.name} will be removed from your catalogue.',
+        icon: Symbols.delete,
+        destructive: true,
+        confirmLabel: trGlobal('common.delete'),
+        cancelLabel: trGlobal('common.cancel'));
+    if (!ok) return;
+    await CatalogService.delete(item.id);
+    await _load();
   }
 }

@@ -73,6 +73,16 @@ class DashboardScreen extends ConsumerWidget {
         .where((i) => i.status == InvoiceStatus.paid)
         .fold<double>(0, (s, i) => s + i.grandTotal);
 
+    // Six months of paid revenue, so the headline figure can carry the
+    // shape of how it got there rather than standing on its own.
+    final trend = List.generate(6, (k) {
+      final m = DateTime(now.year, now.month - 5 + k);
+      return paid
+          .where((i) =>
+              i.invoiceDate.month == m.month && i.invoiceDate.year == m.year)
+          .fold<double>(0, (s, i) => s + i.grandTotal);
+    });
+
     final bizName = biz?.name.trim().isNotEmpty == true ? biz!.name : null;
     final wide = MediaQuery.of(context).size.width >= 900;
 
@@ -102,6 +112,7 @@ class DashboardScreen extends ConsumerWidget {
                   index: 0,
                   child: _EarningsCard(
                     revenue: revenue,
+                    trend: trend,
                     label: tr('dash.total_revenue', ref),
                     monthLabel: tr('dash.this_month_label', ref),
                     monthRevenue: thisMonthRevenue,
@@ -277,7 +288,10 @@ class _Header extends StatelessWidget {
           PressScale(
             onTap: onProfile,
             scale: 0.9,
-            child: AppAvatar(label: business ?? 'B', size: 46, solid: false),
+            child: AppAvatar(
+                label: business ?? 'B',
+                size: 46,
+                tone: AppColor.primary),
           ),
         ]),
       );
@@ -290,6 +304,7 @@ class _EarningsCard extends StatelessWidget {
   final double revenue, monthRevenue;
   final String label, monthLabel;
   final int billCount;
+  final List<double> trend;
   final VoidCallback onTap;
 
   const _EarningsCard({
@@ -298,6 +313,7 @@ class _EarningsCard extends StatelessWidget {
     required this.monthLabel,
     required this.monthRevenue,
     required this.billCount,
+    required this.trend,
     required this.onTap,
   });
 
@@ -323,6 +339,16 @@ class _EarningsCard extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: MoneyCounter(revenue, style: AppType.amountHero),
             ),
+            // The trend, drawn small under the figure. Shown only once
+            // there is a shape worth showing — a flat line across six
+            // empty months says nothing and reads as broken.
+            if (trend.any((v) => v > 0)) ...[
+              const SizedBox(height: AppSpace.lg),
+              SizedBox(
+                height: 44,
+                child: Sparkline(values: trend, color: AppColor.primary),
+              ),
+            ],
             const SizedBox(height: AppSpace.lg),
             Row(children: [
               Container(

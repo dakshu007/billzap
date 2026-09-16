@@ -114,26 +114,14 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
   }
 
   Future<bool> _confirmDelete(Invoice inv) async {
-    HapticFeedback.mediumImpact();
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(tr('common.delete', ref)),
-        content: Text('${inv.invoiceNumber} will be permanently deleted.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(tr('common.cancel', ref)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(tr('common.delete', ref),
-                style: TextStyle(color: AppColor.overdue)),
-          ),
-        ],
-      ),
-    );
-    return ok == true;
+    return confirm(context,
+        title: 'Delete this invoice?',
+        message: '${inv.invoiceNumber} will be removed for good. '
+            'This cannot be undone.',
+        icon: Symbols.delete,
+        destructive: true,
+        confirmLabel: tr('common.delete', ref),
+        cancelLabel: tr('common.cancel', ref));
   }
 
   Future<void> _delete(Invoice inv) async {
@@ -162,12 +150,9 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
               eyebrow: '${all.length} total',
               padding: const EdgeInsets.fromLTRB(
                   AppSpace.gutter, AppSpace.lg, AppSpace.gutter, AppSpace.lg),
-              trailing: AppIconButton(
-                icon: Symbols.add,
-                background: AppColor.primary,
-                foreground: AppColor.onPrimary,
-                onTap: () => context.push('/create'),
-              ),
+              // No "+" here: the dock's create button now rides on every
+              // tab, and two jade plus-buttons 60pt apart on the same
+              // screen just makes a person wonder which one is different.
             ),
 
             Padding(

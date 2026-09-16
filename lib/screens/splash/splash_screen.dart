@@ -43,7 +43,7 @@ class _SplashState extends State<SplashScreen>
         opacity: _fade,
         child: Center(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            // ✅ Real app logo from assets
+            // Real app logo from assets
             ScaleTransition(
               scale: _scale,
               child: ClipRRect(

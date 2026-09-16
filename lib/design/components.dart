@@ -4,7 +4,9 @@
 // containers by hand, which is what keeps radius, elevation, hairline
 // weight and type consistent across 20-odd screens.
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'money.dart';
 import 'motion.dart';
@@ -872,4 +874,360 @@ class AppBackButton extends StatelessWidget {
           onTap: onTap ?? () => Navigator.of(context).maybePop(),
         ),
       );
+}
+
+/// A sparkline — the shape of a series, without axes or labels.
+///
+/// Used behind a headline figure so the number carries its own trend. It
+/// draws itself on first paint (the line sweeps left to right and the
+/// fill rises underneath) because a static chart next to an animated
+/// counter looks like it failed to load.
+class Sparkline extends StatefulWidget {
+  final List<double> values;
+  final Color color;
+  final double strokeWidth;
+
+  const Sparkline({
+    super.key,
+    required this.values,
+    required this.color,
+    this.strokeWidth = 2.2,
+  });
+
+  @override
+  State<Sparkline> createState() => _SparklineState();
+}
+
+class _SparklineState extends State<Sparkline>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1100),
+  )..forward();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: _c,
+        builder: (_, __) => CustomPaint(
+          painter: _SparklinePainter(
+            values: widget.values,
+            color: widget.color,
+            strokeWidth: widget.strokeWidth,
+            progress: Curves.easeOutCubic.transform(_c.value),
+          ),
+          size: Size.infinite,
+        ),
+      );
+}
+
+class _SparklinePainter extends CustomPainter {
+  final List<double> values;
+  final Color color;
+  final double strokeWidth;
+  final double progress;
+
+  _SparklinePainter({
+    required this.values,
+    required this.color,
+    required this.strokeWidth,
+    required this.progress,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (values.length < 2 || size.width <= 0) return;
+
+    final maxV = values.reduce((a, b) => a > b ? a : b);
+    final minV = values.reduce((a, b) => a < b ? a : b);
+    final span = (maxV - minV).abs() < 0.0001 ? 1.0 : maxV - minV;
+
+    Offset at(int i) {
+      final x = size.width * (i / (values.length - 1));
+      // Inset vertically so the stroke is never clipped by the bounds.
+      final t = (values[i] - minV) / span;
+      final y = size.height - (t * (size.height - strokeWidth)) - strokeWidth / 2;
+      return Offset(x, y);
+    }
+
+    // Catmull-Rom style smoothing: each segment's control points are
+    // pulled toward its neighbours, which reads as a curve rather than a
+    // chain of straight lines without overshooting the data.
+    final path = Path()..moveTo(at(0).dx, at(0).dy);
+    for (var i = 0; i < values.length - 1; i++) {
+      final p0 = at(i);
+      final p1 = at(i + 1);
+      final dx = (p1.dx - p0.dx) * 0.42;
+      path.cubicTo(p0.dx + dx, p0.dy, p1.dx - dx, p1.dy, p1.dx, p1.dy);
+    }
+
+    // Reveal by clipping to the swept width, so the line draws on.
+    canvas.save();
+    canvas.clipRect(Rect.fromLTWH(0, 0, size.width * progress, size.height));
+
+    final fill = Path.from(path)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+    canvas.drawPath(
+      fill,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            color.withValues(alpha: 0.20),
+            color.withValues(alpha: 0.0),
+          ],
+        ).createShader(Offset.zero & size),
+    );
+
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
+    );
+    canvas.restore();
+
+    // A dot on the latest point, once the line has reached it.
+    if (progress > 0.985) {
+      final last = at(values.length - 1);
+      canvas.drawCircle(last, strokeWidth * 1.9,
+          Paint()..color = color.withValues(alpha: 0.22));
+      canvas.drawCircle(last, strokeWidth * 0.95, Paint()..color = color);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_SparklinePainter old) =>
+      old.progress != progress ||
+      old.color != color ||
+      !listEquals(old.values, values);
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// DIALOGS
+// ═════════════════════════════════════════════════════════════════════
+//
+// Every confirmation, warning and "done" message in the app goes through
+// here. Material's stock AlertDialog was the last place the old chrome
+// survived — square-ish corners, a 24pt title, two flat text buttons —
+// and it showed, because destructive confirmations are exactly the
+// moments a person looks closely at what they are tapping.
+//
+// The sheet rises and settles with a little overshoot, which is the same
+// entrance the welcome modal uses, so dialogs read as one family.
+
+/// The card itself. Use [showAppDialog] rather than building this
+/// directly unless you need a custom body.
+class AppDialog extends StatelessWidget {
+  /// Tone for the icon disc and the primary button. Defaults to jade.
+  final Color? tone;
+  final IconData? icon;
+  final String title;
+  final String? message;
+
+  /// Optional content between the message and the buttons.
+  final Widget? body;
+
+  /// Primary action. Its label is required; a null [onConfirm] pops true.
+  final String confirmLabel;
+  final VoidCallback? onConfirm;
+
+  /// Secondary action. Pass null to show only the primary button.
+  final String? cancelLabel;
+  final VoidCallback? onCancel;
+
+  /// Renders the primary button in the danger style.
+  final bool destructive;
+
+  const AppDialog({
+    super.key,
+    required this.title,
+    this.message,
+    this.body,
+    this.icon,
+    this.tone,
+    this.confirmLabel = 'OK',
+    this.onConfirm,
+    this.cancelLabel,
+    this.onCancel,
+    this.destructive = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = tone ?? (destructive ? AppColor.overdue : AppColor.primary);
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpace.gutter),
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 400),
+            padding: const EdgeInsets.fromLTRB(
+                AppSpace.xl, AppSpace.xl, AppSpace.xl, AppSpace.lg),
+            decoration: BoxDecoration(
+              color: AppColor.surface,
+              borderRadius: AppRadius.all(AppRadius.sheet),
+              border: Border.all(color: AppColor.hairline),
+              boxShadow: AppElevation.lifted,
+            ),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              if (icon != null) ...[
+                Container(
+                  width: 54,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    color: AppColor.wash(accent),
+                    borderRadius: AppRadius.all(AppRadius.lg),
+                  ),
+                  child: Icon(icon, color: accent, size: 26),
+                ),
+                const SizedBox(height: AppSpace.lg),
+              ],
+              Text(title,
+                  textAlign: TextAlign.center,
+                  style: AppFont.style(AppType.titleM,
+                      color: AppColor.textPrimary)),
+              if (message != null) ...[
+                const SizedBox(height: AppSpace.sm),
+                Text(message!,
+                    textAlign: TextAlign.center,
+                    style: AppFont.style(AppType.bodyM,
+                        color: AppColor.textTertiary)),
+              ],
+              if (body != null) ...[
+                const SizedBox(height: AppSpace.lg),
+                body!,
+              ],
+              const SizedBox(height: AppSpace.xl),
+              SizedBox(
+                width: double.infinity,
+                child: destructive
+                    ? AppButton.danger(
+                        label: confirmLabel,
+                        onPressed: onConfirm ??
+                            () => Navigator.of(context).pop(true),
+                      )
+                    : AppButton(
+                        label: confirmLabel,
+                        onPressed: onConfirm ??
+                            () => Navigator.of(context).pop(true),
+                      ),
+              ),
+              if (cancelLabel != null) ...[
+                const SizedBox(height: AppSpace.xs),
+                TextButton(
+                  onPressed: onCancel ??
+                      () {
+                        HapticFeedback.lightImpact();
+                        Navigator.of(context).pop(false);
+                      },
+                  child: Text(cancelLabel!,
+                      style: AppFont.style(AppType.labelM,
+                          color: AppColor.textTertiary)),
+                ),
+              ],
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Presents [child] with the app's dialog entrance and scrim.
+Future<T?> showAppDialog<T>({
+  required BuildContext context,
+  required WidgetBuilder builder,
+  bool dismissible = true,
+}) {
+  return showGeneralDialog<T>(
+    context: context,
+    barrierDismissible: dismissible,
+    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+    barrierColor: Colors.black.withValues(alpha: AppTokens.pick(0.34, 0.62)),
+    transitionDuration: AppMotion.base,
+    pageBuilder: (ctx, _, _) => const SizedBox.shrink(),
+    transitionBuilder: (ctx, anim, _, _) {
+      final curved = CurvedAnimation(
+        parent: anim,
+        curve: Curves.easeOutBack,
+        reverseCurve: Curves.easeInCubic,
+      );
+      return Opacity(
+        opacity: anim.value.clamp(0.0, 1.0),
+        child: Transform.translate(
+          offset: Offset(0, 28 * (1 - curved.value)),
+          child: Transform.scale(
+            scale: 0.94 + 0.06 * curved.value,
+            child: builder(ctx),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+/// The common case: ask a yes/no question and return whether the person
+/// said yes. Returns false if they dismissed it.
+Future<bool> confirm(
+  BuildContext context, {
+  required String title,
+  String? message,
+  IconData? icon,
+  String confirmLabel = 'Confirm',
+  String cancelLabel = 'Cancel',
+  bool destructive = false,
+  Color? tone,
+}) async {
+  HapticFeedback.mediumImpact();
+  final ok = await showAppDialog<bool>(
+    context: context,
+    builder: (ctx) => AppDialog(
+      title: title,
+      message: message,
+      icon: icon,
+      tone: tone,
+      destructive: destructive,
+      confirmLabel: confirmLabel,
+      cancelLabel: cancelLabel,
+    ),
+  );
+  return ok == true;
+}
+
+/// A one-button acknowledgement — "done", "all sent", "restore complete".
+Future<void> notify(
+  BuildContext context, {
+  required String title,
+  String? message,
+  Widget? body,
+  IconData? icon,
+  Color? tone,
+  String buttonLabel = 'Done',
+}) {
+  return showAppDialog<void>(
+    context: context,
+    builder: (ctx) => AppDialog(
+      title: title,
+      message: message,
+      body: body,
+      icon: icon,
+      tone: tone,
+      confirmLabel: buttonLabel,
+      onConfirm: () => Navigator.of(ctx).pop(),
+    ),
+  );
 }
