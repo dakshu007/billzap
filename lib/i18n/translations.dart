@@ -100,6 +100,7 @@ const _en = <String, String>{
 
   // Customers
   'cust.title': 'Customers',
+  'create.customer': 'Customer',
   'cust.add_new': 'Add Customer',
   'cust.name': 'Name',
   'cust.phone': 'Phone',
@@ -407,6 +408,7 @@ const _hi = <String, String>{
   'create.share_pdf': 'PDF भेजें',
 
   'cust.title': 'ग्राहक',
+  'create.customer': 'ग्राहक',
   'cust.add_new': 'ग्राहक जोड़ें',
   'cust.name': 'नाम',
   'cust.phone': 'फ़ोन',
@@ -693,6 +695,7 @@ const _ta = <String, String>{
   'create.share_pdf': 'PDF அனுப்பு',
 
   'cust.title': 'வாடிக்கையாளர்கள்',
+  'create.customer': 'வாடிக்கையாளர்',
   'cust.add_new': 'வாடிக்கையாளர் சேர்',
   'cust.name': 'பெயர்',
   'cust.phone': 'தொலைபேசி',
@@ -975,6 +978,7 @@ const _te = <String, String>{
   'create.share_whatsapp': 'WhatsAppలో పంచుకోండి',
   'create.share_pdf': 'PDF పంచుకోండి',
   'cust.title': 'కస్టమర్లు',
+  'create.customer': 'కస్టమర్',
   'cust.add_new': 'కస్టమర్‌ను జోడించండి',
   'cust.name': 'పేరు',
   'cust.phone': 'ఫోన్',
@@ -1232,6 +1236,7 @@ const _kn = <String, String>{
   'create.save_draft': 'ಡ್ರಾಫ್ಟ್ ಉಳಿಸಿ', 'create.share_whatsapp': 'WhatsApp ನಲ್ಲಿ ಹಂಚಿಕೊಳ್ಳಿ',
   'create.share_pdf': 'PDF ಹಂಚಿಕೊಳ್ಳಿ',
   'cust.title': 'ಗ್ರಾಹಕರು', 'cust.add_new': 'ಗ್ರಾಹಕ ಸೇರಿಸಿ',
+  'create.customer': 'ಗ್ರಾಹಕ',
   'cust.name': 'ಹೆಸರು', 'cust.phone': 'ಫೋನ್', 'cust.gstin': 'GSTIN',
   'cust.address': 'ವಿಳಾಸ', 'cust.email': 'ಇಮೇಲ್',
   'cust.no_customers': 'ಇನ್ನೂ ಗ್ರಾಹಕರಿಲ್ಲ', 'cust.required': 'ಗ್ರಾಹಕರ ಹೆಸರು ಅಗತ್ಯವಿದೆ',

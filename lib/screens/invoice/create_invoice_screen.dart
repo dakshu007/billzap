@@ -181,7 +181,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
         children: [
           // ── Who ────────────────────────────────────────────────
           _Section(
-            tr('cust.title', ref),
+            tr('create.customer', ref),
             subtitle: 'Who this bill is for',
             icon: Symbols.person,
             children: [
@@ -637,103 +637,267 @@ class _LineRowState extends State<_LineRow> {
   void dispose() { _name.dispose(); _hsn.dispose(); _rate.dispose(); super.dispose(); }
 
   @override
-  Widget build(BuildContext context) => Container(
-    margin: const EdgeInsets.only(bottom: 10),
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: AppColors.border)),
-    child: Column(children: [
-      Row(children: [
-        Expanded(child: TextField(controller: _name,
-          decoration: InputDecoration(hintText: 'Product / service name',
-            hintStyle: AppFont.sans(fontSize: 13, color: AppColors.t4), isDense: true,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.border)),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 11, vertical: 11)),
-          style: AppFont.sans(fontSize: 13.5))),
-        if (widget.onRemove != null) ...[
-          const Gap(8),
-          GestureDetector(onTap: widget.onRemove,
-            child: Container(width: 32, height: 32,
-              decoration: BoxDecoration(color: AppColors.redSoft, borderRadius: BorderRadius.circular(12)),
-              child: Icon(Symbols.delete, size: 16, color: AppColors.red))),
-        ],
+  Widget build(BuildContext context) {
+    final line = widget.item.qty * widget.item.rate;
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpace.md),
+      padding: const EdgeInsets.all(AppSpace.md),
+      decoration: BoxDecoration(
+        color: AppColor.canvas,
+        borderRadius: AppRadius.all(AppRadius.lg),
+        border: Border.all(color: AppColor.hairline),
+      ),
+      child: Column(children: [
+        // Line number and the remove control, so a bill with six lines
+        // can be talked about ("take off line 3") instead of pointed at.
+        Row(children: [
+          Container(
+            width: 20,
+            height: 20,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColor.sunken,
+              borderRadius: BorderRadius.circular(99),
+            ),
+            child: Text('${widget.index + 1}',
+                style: AppFont.style(AppType.labelS,
+                    color: AppColor.textTertiary)),
+          ),
+          const Gap(AppSpace.sm),
+          Expanded(
+            child: _LineField(
+              controller: _name,
+              hint: 'Product or service',
+              bold: true,
+            ),
+          ),
+          if (widget.onRemove != null) ...[
+            const Gap(AppSpace.sm),
+            PressScale(
+              onTap: widget.onRemove,
+              haptic: HapticFeedbackType.light,
+              child: Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: AppColor.wash(AppColor.overdue),
+                  borderRadius: AppRadius.all(AppRadius.sm),
+                ),
+                child: Icon(Symbols.delete, size: 16, color: AppColor.overdue),
+              ),
+            ),
+          ],
+        ]),
+        const Gap(AppSpace.sm),
+        Row(children: [
+          Expanded(
+            flex: 3,
+            // "HSN / SAC" truncated to "HSN / S…" once the stepper
+            // became a pill. HSN is the word shopkeepers actually use,
+            // and the field is unambiguous in this row.
+            child: _LineField(controller: _hsn, hint: 'HSN'),
+          ),
+          const Gap(AppSpace.sm),
+          // Stepper as one pill rather than two loose jade squares — it
+          // reads as a single control, and the squares were the heaviest
+          // thing in a row of quiet wells.
+          Container(
+            decoration: BoxDecoration(
+              color: AppColor.sunken,
+              borderRadius: AppRadius.all(AppRadius.pill),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              _QtyBtn(Symbols.remove, () {
+                if (widget.item.qty > 1) {
+                  setState(() => widget.item.qty--);
+                  widget.onChange();
+                }
+              }, enabled: widget.item.qty > 1),
+              SizedBox(
+                width: 30,
+                child: Text('${widget.item.qty.toInt()}',
+                    textAlign: TextAlign.center,
+                    style: AppFont.style(AppType.numeric,
+                        color: AppColor.textPrimary)),
+              ),
+              _QtyBtn(Symbols.add, () {
+                setState(() => widget.item.qty++);
+                widget.onChange();
+              }),
+            ]),
+          ),
+          const Gap(AppSpace.sm),
+          SizedBox(
+            width: 82,
+            child: _LineField(
+              controller: _rate,
+              hint: 'Rate',
+              align: TextAlign.right,
+              keyboardType: TextInputType.number,
+              formatters: [SmartAmountFormatter()],
+            ),
+          ),
+        ]),
+        const Gap(AppSpace.sm),
+        Row(children: [
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpace.md),
+              decoration: BoxDecoration(
+                color: AppColor.sunken,
+                borderRadius: AppRadius.all(AppRadius.sm),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<double>(
+                  value: const [0.0, 0.25, 5.0, 12.0, 18.0, 28.0, 40.0]
+                          .contains(widget.item.gstRate)
+                      ? widget.item.gstRate
+                      : 18.0,
+                  isExpanded: true,
+                  isDense: true,
+                  borderRadius: AppRadius.all(AppRadius.md),
+                  icon: Icon(Symbols.expand_more,
+                      size: 16, color: AppColor.textTertiary),
+                  style: AppFont.style(AppType.labelM,
+                      color: AppColor.textPrimary),
+                  items: const [
+                    (r: 0.0, l: 'GST 0%  ·  Exempt'),
+                    (r: 0.25, l: 'GST 0.25%  ·  Stones'),
+                    (r: 5.0, l: 'GST 5%  ·  Essentials'),
+                    (r: 12.0, l: 'GST 12%  ·  Standard'),
+                    (r: 18.0, l: 'GST 18%  ·  General'),
+                    (r: 28.0, l: 'GST 28%  ·  Luxury'),
+                    (r: 40.0, l: 'GST 40%  ·  Sin tax'),
+                  ]
+                      .map((g) => DropdownMenuItem(
+                            value: g.r,
+                            child: Text(g.l,
+                                style: AppFont.style(AppType.labelM,
+                                    color: AppColor.textPrimary)),
+                          ))
+                      .toList(),
+                  onChanged: (v) {
+                    if (v != null) {
+                      setState(() => widget.item.gstRate = v);
+                      widget.onChange();
+                    }
+                  },
+                ),
+              ),
+            ),
+          ),
+          const Gap(AppSpace.md),
+          Money(line,
+              style: AppType.amountS,
+              compact: false,
+              color: line > 0 ? AppColor.primary : AppColor.textTertiary),
+        ]),
       ]),
-      const Gap(8),
-      Row(children: [
-        Expanded(child: TextField(controller: _hsn,
-          decoration: InputDecoration(hintText: 'HSN/SAC',
-            hintStyle: AppFont.sans(fontSize: 12, color: AppColors.t4), isDense: true,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.border)),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 11, vertical: 10)),
-          style: AppFont.sans(fontSize: 12.5, color: AppColors.t3))),
-        const Gap(8),
-        // Qty stepper
-        _QtyBtn('\u2212', () { if (widget.item.qty > 1) { setState(() => widget.item.qty--); widget.onChange(); } }),
-        Padding(padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: Text('${widget.item.qty.toInt()}',
-            style: AppFont.sans(fontSize: 16, fontWeight: FontWeight.w700))),
-        _QtyBtn('+', () { setState(() => widget.item.qty++); widget.onChange(); }),
-        const Gap(8),
-        SizedBox(width: 90, child: TextField(controller: _rate,
-          keyboardType: TextInputType.number,
-              inputFormatters: [SmartAmountFormatter()], textAlign: TextAlign.right,
-          decoration: InputDecoration(hintText: 'Rate \u20b9',
-            hintStyle: AppFont.sans(fontSize: 12, color: AppColors.t4), isDense: true,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.border)),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 11, vertical: 10)),
-          style: AppFont.sans(fontSize: 13.5))),
-      ]),
-      const Gap(8),
-      Row(children: [
-        Text('GST: ', style: AppFont.sans(fontSize: 12, color: AppColors.t3)),
-        Expanded(child: DropdownButton<double>(
-          value: [0, 0.25, 5, 12, 18, 28, 40].map((e) => e.toDouble()).contains(widget.item.gstRate)
-            ? widget.item.gstRate : 18.0,
-          isExpanded: true,
-          underline: const SizedBox(),
-          style: AppFont.sans(fontSize: 12, color: AppColors.brand, fontWeight: FontWeight.w700),
-          items: [
-            (r: 0.0,   l: '0% — Exempt'),
-            (r: 0.25,  l: '0.25% — Stones'),
-            (r: 5.0,   l: '5% — Essentials'),
-            (r: 12.0,  l: '12% — Standard'),
-            (r: 18.0,  l: '18% — General'),
-            (r: 28.0,  l: '28% — Luxury'),
-            (r: 40.0,  l: '40% — Sin tax'),
-          ].map((g) => DropdownMenuItem(
-            value: g.r,
-            child: Text(g.l, style: AppFont.sans(fontSize: 12, color: AppColors.t1)))).toList(),
-          onChanged: (v) {
-            if (v != null) { setState(() => widget.item.gstRate = v); widget.onChange(); }
-          },
-        )),
-        const Gap(8),
-        Text(formatCurrency(widget.item.qty * widget.item.rate), style: AppFont.sans(
-          fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.brand)),
-      ]),
-    ]),
-  );
+    );
+  }
 }
 
-Widget _QtyBtn(String label, VoidCallback onTap) => GestureDetector(
-  onTap: onTap,
-  child: Container(width: 28, height: 28,
-    decoration: BoxDecoration(color: AppColors.brand, borderRadius: BorderRadius.circular(7)),
-    child: Center(child: Text(label, style: TextStyle(
-      color: AppColors.onBrand, fontSize: 16, fontWeight: FontWeight.bold)))));
+/// A compact field for the line-item row. Same well and focus keyline as
+/// [AppField], without the label and status column — at this density a
+/// label above every box would double the row's height.
+class _LineField extends StatefulWidget {
+  final TextEditingController controller;
+  final String hint;
+  final bool bold;
+  final TextAlign align;
+  final TextInputType? keyboardType;
+  final List<TextInputFormatter>? formatters;
 
-// ── Shared helpers ──────────────────────────────────────────────────────────
-/// One step of the bill, on its own surface with a tinted mark.
-///
-/// Making a bill is five decisions — who, when, what, tax, note — and
-/// the icons let a person scrolling back find the one they want by
-/// shape, before reading a word of it.
+  const _LineField({
+    required this.controller,
+    required this.hint,
+    this.bold = false,
+    this.align = TextAlign.start,
+    this.keyboardType,
+    this.formatters,
+  });
+
+  @override
+  State<_LineField> createState() => _LineFieldState();
+}
+
+class _LineFieldState extends State<_LineField> {
+  late final FocusNode _f;
+  bool _on = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _f = FocusNode()
+      ..addListener(() {
+        if (_f.hasFocus != _on) setState(() => _on = _f.hasFocus);
+      });
+  }
+
+  @override
+  void dispose() {
+    _f.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedContainer(
+        duration: AppMotion.fast,
+        curve: AppMotion.standard,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpace.md),
+        decoration: BoxDecoration(
+          color: _on ? AppColor.surface : AppColor.sunken,
+          borderRadius: AppRadius.all(AppRadius.sm),
+          border: Border.all(
+            color: _on ? AppColor.primary : AppColor.hairline,
+            width: _on ? 1.5 : 1,
+          ),
+        ),
+        child: TextField(
+          controller: widget.controller,
+          focusNode: _f,
+          textAlign: widget.align,
+          keyboardType: widget.keyboardType,
+          inputFormatters: widget.formatters,
+          cursorColor: AppColor.primary,
+          cursorWidth: 2,
+          style: AppFont.style(
+                  widget.bold ? AppType.labelM : AppType.bodyM,
+                  color: AppColor.textPrimary)
+              .copyWith(height: 1.2),
+          decoration: InputDecoration(
+            isDense: true,
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(vertical: 11),
+            hintText: widget.hint,
+            hintStyle: AppFont.style(
+                widget.bold ? AppType.labelM : AppType.bodyM,
+                color: AppColor.textTertiary),
+          ),
+        ),
+      );
+}
+
+Widget _QtyBtn(IconData icon, VoidCallback onTap, {bool enabled = true}) =>
+    PressScale(
+      onTap: enabled ? onTap : null,
+      scale: 0.86,
+      haptic: HapticFeedbackType.selection,
+      child: Container(
+        width: 28,
+        height: 28,
+        decoration: BoxDecoration(
+          color: enabled ? AppColor.surface : Colors.transparent,
+          borderRadius: BorderRadius.circular(99),
+          boxShadow: enabled ? AppElevation.card : AppElevation.none,
+        ),
+        child: Icon(icon,
+            size: 15,
+            color: enabled ? AppColor.textPrimary : AppColor.textTertiary),
+      ),
+    );
+
 class _Section extends StatelessWidget {
   final String title;
   final String? subtitle;
@@ -794,24 +958,6 @@ class _Section extends StatelessWidget {
     );
   }
 }
-
-Widget _LF(String t) => Padding(
-  padding: const EdgeInsets.only(bottom: 5),
-  child: Text(t, style: AppFont.sans(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.t3)));
-
-Widget _TextField(TextEditingController ctrl, String hint,
-    {TextInputType? type, bool caps = false}) =>
-  TextField(controller: ctrl, keyboardType: type,
-    textCapitalization: caps ? TextCapitalization.characters : TextCapitalization.sentences,
-    decoration: InputDecoration(hintText: hint,
-      hintStyle: AppFont.sans(fontSize: 13, color: AppColors.t4),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: AppColors.border)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: AppColors.brand, width: 1.5)),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13)),
-    style: AppFont.sans(fontSize: 13.5, color: AppColors.t1));
 
 /// A date, in the same shape as a text field so the row reads as one
 /// set of inputs rather than a field next to a button.
@@ -887,19 +1033,6 @@ Widget _TogRow(String label, String sub, bool value, ValueChanged<bool> onChange
           )),
       ),
     ]));
-
-Widget _TypeBtn(String label, bool selected, VoidCallback onTap) =>
-  Expanded(child: GestureDetector(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 9),
-      decoration: BoxDecoration(
-        color: selected ? AppColors.brand : AppColors.bg,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: selected ? AppColors.brand : AppColors.border)),
-      child: Text(label, textAlign: TextAlign.center,
-        style: AppFont.sans(fontSize: 12, fontWeight: FontWeight.w700,
-          color: selected ? AppColors.onBrand : AppColors.t2)))));
 
 Widget _SRow(String label, double amount) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),

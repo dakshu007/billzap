@@ -98,6 +98,7 @@ class Symbols {
   static const IconData receipt_long = LucideIcons.receiptText;
   static const IconData refresh = LucideIcons.refreshCw;
   static const IconData remove_circle = LucideIcons.circleMinus;
+  static const IconData remove = LucideIcons.minus;
   static const IconData restore = LucideIcons.archiveRestore;
   static const IconData schedule = LucideIcons.clock;
   static const IconData search = LucideIcons.search;

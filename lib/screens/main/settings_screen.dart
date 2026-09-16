@@ -168,161 +168,136 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
     ];
     final done = filled.where((x) => x).length;
 
-    return Stack(children: [
-      SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.screenH, 4, AppSpacing.screenH, AppSpacing.bottomNavSafe),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _IdentityCard(
-              name: _name.text.trim(),
-              gstin: _gstin.text.trim(),
-              city: _city.text.trim(),
-              done: done,
-              total: filled.length,
-            ),
-            const Gap(AppSpace.lg),
-
-            FieldGroup(
-              title: tr('set.business_profile', ref),
-              subtitle: 'Printed at the top of every bill',
-              icon: Symbols.storefront,
-              children: [
-                AppField(
-                  label: tr('set.business_name', ref),
-                  controller: _name,
-                  icon: Symbols.storefront,
-                  hint: 'e.g. Ravi Electronics',
-                  onChanged: (_) => setState(() {}),
-                ),
-                AppField(
-                  label: tr('cust.gstin', ref),
-                  controller: _gstin,
-                  icon: Symbols.verified,
-                  hint: '33RAAAA1234B1Z5',
-                  caps: true,
-                  errorText: _gstinErr,
-                  helper: 'Leave blank if you are not registered',
-                  onChanged: (v) =>
-                      setState(() => _gstinErr = Validators.gstin(v)),
-                ),
-              ],
-            ),
-
-            FieldGroup(
-              title: 'How customers reach you',
-              subtitle: 'Shown on the bill and the WhatsApp message',
-              icon: Symbols.phone,
-              tone: AppColor.info,
-              children: [
-                AppField(
-                  label: tr('cust.phone', ref),
-                  controller: _phone,
-                  icon: Symbols.phone,
-                  hint: '+91 98765 43210',
-                  keyboardType: TextInputType.phone,
-                  errorText: _phoneErr,
-                  onChanged: (v) =>
-                      setState(() => _phoneErr = Validators.phone(v)),
-                ),
-                AppField(
-                  label: tr('cust.email', ref),
-                  controller: _email,
-                  icon: Symbols.mail,
-                  hint: 'you@email.com',
-                  keyboardType: TextInputType.emailAddress,
-                  errorText: _emailErr,
-                  onChanged: (v) =>
-                      setState(() => _emailErr = Validators.email(v)),
-                ),
-              ],
-            ),
-
-            FieldGroup(
-              title: 'Where you trade from',
-              subtitle: 'State decides CGST/SGST against IGST',
-              icon: Symbols.location_on,
-              tone: AppColor.pending,
-              children: [
-                AppField(
-                  label: tr('cust.address', ref),
-                  controller: _addr,
-                  icon: Symbols.location_on,
-                  hint: 'Street, area',
-                  maxLines: 2,
-                  validatable: false,
-                  onChanged: (_) => setState(() {}),
-                ),
-                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Expanded(
-                    flex: 3,
-                    child: AppField(
-                      label: tr('set.city', ref),
-                      controller: _city,
-                      hint: 'Coimbatore',
-                      onChanged: (_) => setState(() {}),
-                    ),
-                  ),
-                  const Gap(AppSpace.md),
-                  Expanded(
-                    flex: 2,
-                    child: AppField(
-                      label: tr('set.pincode', ref),
-                      controller: _pin,
-                      hint: '641001',
-                      keyboardType: TextInputType.number,
-                      maxLength: 6,
-                      errorText: _pinErr,
-                      onChanged: (v) =>
-                          setState(() => _pinErr = Validators.pincode(v)),
-                    ),
-                  ),
-                ]),
-                _StatePicker(
-                  value: currentState,
-                  onChanged: (v) => setState(() => _state = v),
-                ),
-              ],
-            ),
-            const Gap(AppSpace.xxl),
-          ],
-        ),
-      ),
-
-      // Pinned, not at the tail of the scroll. Somebody correcting a
-      // GSTIN should not have to scroll past four groups to commit it.
-      Positioned(
-        left: 0,
-        right: 0,
-        bottom: 0,
-        child: IgnorePointer(
-          ignoring: false,
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screenH, AppSpace.md, AppSpacing.screenH, 96),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColor.canvas.withValues(alpha: 0),
-                  AppColor.canvas,
-                  AppColor.canvas,
-                ],
-                stops: const [0, 0.42, 1],
-              ),
-            ),
-            child: AppButton(
-              label: tr('set.save_business', ref),
-              icon: Symbols.check,
-              busy: _saving,
-              onPressed: _saving ? null : _save,
-            ),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenH, 4, AppSpacing.screenH, AppSpacing.bottomNavSafe),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _IdentityCard(
+            name: _name.text.trim(),
+            gstin: _gstin.text.trim(),
+            city: _city.text.trim(),
+            done: done,
+            total: filled.length,
           ),
-        ),
+          const Gap(AppSpace.lg),
+
+          FieldGroup(
+            title: tr('set.business_profile', ref),
+            subtitle: 'Printed at the top of every bill',
+            icon: Symbols.storefront,
+            children: [
+              AppField(
+                label: tr('set.business_name', ref),
+                controller: _name,
+                icon: Symbols.storefront,
+                hint: 'e.g. Ravi Electronics',
+                onChanged: (_) => setState(() {}),
+              ),
+              AppField(
+                label: tr('cust.gstin', ref),
+                controller: _gstin,
+                icon: Symbols.verified,
+                hint: '33RAAAA1234B1Z5',
+                caps: true,
+                errorText: _gstinErr,
+                helper: 'Leave blank if you are not registered',
+                onChanged: (v) =>
+                    setState(() => _gstinErr = Validators.gstin(v)),
+              ),
+            ],
+          ),
+
+          FieldGroup(
+            title: 'How customers reach you',
+            subtitle: 'Shown on the bill and the WhatsApp message',
+            icon: Symbols.phone,
+            tone: AppColor.info,
+            children: [
+              AppField(
+                label: tr('cust.phone', ref),
+                controller: _phone,
+                icon: Symbols.phone,
+                hint: '+91 98765 43210',
+                keyboardType: TextInputType.phone,
+                errorText: _phoneErr,
+                onChanged: (v) =>
+                    setState(() => _phoneErr = Validators.phone(v)),
+              ),
+              AppField(
+                label: tr('cust.email', ref),
+                controller: _email,
+                icon: Symbols.mail,
+                hint: 'you@email.com',
+                keyboardType: TextInputType.emailAddress,
+                errorText: _emailErr,
+                onChanged: (v) =>
+                    setState(() => _emailErr = Validators.email(v)),
+              ),
+            ],
+          ),
+
+          FieldGroup(
+            title: 'Where you trade from',
+            subtitle: 'State decides CGST/SGST against IGST',
+            icon: Symbols.location_on,
+            tone: AppColor.pending,
+            children: [
+              AppField(
+                label: tr('cust.address', ref),
+                controller: _addr,
+                icon: Symbols.location_on,
+                hint: 'Street, area',
+                maxLines: 2,
+                validatable: false,
+                onChanged: (_) => setState(() {}),
+              ),
+              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Expanded(
+                  flex: 3,
+                  child: AppField(
+                    label: tr('set.city', ref),
+                    controller: _city,
+                    hint: 'Coimbatore',
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+                const Gap(AppSpace.md),
+                Expanded(
+                  flex: 2,
+                  child: AppField(
+                    label: tr('set.pincode', ref),
+                    controller: _pin,
+                    hint: '641001',
+                    keyboardType: TextInputType.number,
+                    maxLength: 6,
+                    errorText: _pinErr,
+                    onChanged: (v) =>
+                        setState(() => _pinErr = Validators.pincode(v)),
+                  ),
+                ),
+              ]),
+              _StatePicker(
+                value: currentState,
+                onChanged: (v) => setState(() => _state = v),
+              ),
+            ],
+          ),
+          const Gap(AppSpace.xl),
+          // Save lives at the end of the form, not pinned above the
+          // dock: the shell paints a 184pt scrim over the whole PageView
+          // so the dock's chrome reads as floating, and anything a tab
+          // pins inside that band comes out washed to near-white.
+          AppButton(
+            label: tr('set.save_business', ref),
+            icon: Symbols.check,
+            busy: _saving,
+            onPressed: _saving ? null : _save,
+          ),
+        ],
       ),
-    ]);
+    );
   }
 
   Future<void> _save() async {
@@ -398,31 +373,59 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.screenH, 4, AppSpacing.screenH, AppSpacing.bottomNavSafe),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _Sec(tr('set.bank_details', ref)),
-        _F(tr('set.bank_name', ref), _bank, hint: 'State Bank of India'),
-        _F(tr('set.account_number', ref), _acc, hint: '1234567890', type: TextInputType.number),
-        _F(tr('set.ifsc', ref), _ifsc, hint: 'SBIN0001234', caps: true,
-          errorText: _ifscErr,
-          onChanged: (v) => setState(() => _ifscErr = Validators.ifsc(v))),
-        const Gap(8),
-        _Sec('UPI'),
-        _F(tr('set.upi_id', ref), _upi, hint: 'business@upi',
-          errorText: _upiErr,
-          onChanged: (v) => setState(() => _upiErr = Validators.upi(v))),
-        const Gap(20),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: _saving ? null : _save,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 15)),
-            child: _saving
-              ? SizedBox(width: 20, height: 20,
-                  child: CircularProgressIndicator(
-                    color: AppColors.onBrand, strokeWidth: 2))
-              : Text(tr('set.save_bank', ref),
-                  style: AppFont.sans(
-                    fontSize: 14, fontWeight: FontWeight.w700)))),
+        FieldGroup(
+          title: tr('set.bank_details', ref),
+          subtitle: 'Printed on the bill so customers can transfer',
+          icon: Symbols.account_balance,
+          tone: AppColor.info,
+          children: [
+            AppField(
+              label: tr('set.bank_name', ref),
+              controller: _bank,
+              icon: Symbols.account_balance,
+              hint: 'State Bank of India',
+              onChanged: (_) => setState(() {}),
+            ),
+            AppField(
+              label: tr('set.account_number', ref),
+              controller: _acc,
+              hint: '1234567890',
+              keyboardType: TextInputType.number,
+              onChanged: (_) => setState(() {}),
+            ),
+            AppField(
+              label: tr('set.ifsc', ref),
+              controller: _ifsc,
+              hint: 'SBIN0001234',
+              caps: true,
+              errorText: _ifscErr,
+              onChanged: (v) => setState(() => _ifscErr = Validators.ifsc(v)),
+            ),
+          ],
+        ),
+        FieldGroup(
+          title: 'UPI',
+          subtitle: 'Becomes the QR code on every unpaid bill',
+          icon: Symbols.qr_code_2,
+          children: [
+            AppField(
+              label: tr('set.upi_id', ref),
+              controller: _upi,
+              icon: Symbols.qr_code_2,
+              hint: 'business@upi',
+              errorText: _upiErr,
+              helper: 'Customers scan this to pay you directly',
+              onChanged: (v) => setState(() => _upiErr = Validators.upi(v)),
+            ),
+          ],
+        ),
+        const Gap(AppSpace.md),
+        AppButton(
+          label: tr('set.save_bank', ref),
+          icon: Symbols.check,
+          busy: _saving,
+          onPressed: _saving ? null : _save,
+        ),
       ]));
   }
 
@@ -484,35 +487,35 @@ class _InvoicePanelState extends ConsumerState<_InvoicePanel> {
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.screenH, 4, AppSpacing.screenH, AppSpacing.bottomNavSafe),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _Sec(tr('set.invoice_settings', ref)),
-        _F(tr('set.invoice_prefix', ref), _prefix, hint: 'INV-'),
-        _Label(tr('set.default_terms', ref)),
-        TextField(
-          controller: _terms, maxLines: 4,
-          decoration: InputDecoration(
-            hintText: 'Payment due within 30 days.',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: AppColors.border)),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: AppColors.brand, width: 1.5)),
-            contentPadding: const EdgeInsets.all(13)),
-          style: AppFont.sans(fontSize: 13.5, color: AppColors.t1)),
-        const Gap(20),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: _saving ? null : _save,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 15)),
-            child: _saving
-              ? const SizedBox(width: 20, height: 20,
-                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-              : Text(tr('set.save_settings', ref),
-                  style: AppFont.sans(
-                    fontSize: 14, fontWeight: FontWeight.w700)))),
+        FieldGroup(
+          title: tr('set.invoice_settings', ref),
+          subtitle: 'How new bills are numbered and worded',
+          icon: Symbols.receipt_long,
+          children: [
+            AppField(
+              label: tr('set.invoice_prefix', ref),
+              controller: _prefix,
+              icon: Symbols.receipt_long,
+              hint: 'INV-',
+              helper: 'Your next bill will be numbered from this',
+              onChanged: (_) => setState(() {}),
+            ),
+            AppField(
+              label: tr('set.default_terms', ref),
+              controller: _terms,
+              hint: 'Payment due within 30 days.',
+              maxLines: 3,
+              validatable: false,
+            ),
+          ],
+        ),
+        const Gap(AppSpace.md),
+        AppButton(
+          label: tr('set.save_settings', ref),
+          icon: Symbols.check,
+          busy: _saving,
+          onPressed: _saving ? null : _save,
+        ),
       ]));
   }
 
@@ -736,7 +739,12 @@ Download: $playStoreUrl
         ),
 
         // ─── About BillZap card ───
-        _Sec(tr('set.about_billzap', ref)),
+        Padding(
+          padding: const EdgeInsets.only(bottom: AppSpace.md),
+          child: Text(tr('set.about_billzap', ref),
+              style: AppFont.style(AppType.titleS,
+                  color: AppColor.textPrimary)),
+        ),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -985,46 +993,6 @@ class _InfoRow extends StatelessWidget {
       ]));
   }
 }
-
-Widget _Sec(String t) {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 12),
-    child: Text(t, style: AppFont.sans(
-      fontSize: 16, fontWeight: FontWeight.w600,
-      letterSpacing: -0.3, color: AppColors.t1)));
-}
-
-Widget _Label(String t) {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 5),
-    child: Text(t, style: AppFont.sans(
-      fontSize: 12.5, fontWeight: FontWeight.w500, color: AppColors.t3)));
-}
-
-Widget _F(String label, TextEditingController ctrl,
-    {String? hint, TextInputType? type, bool caps = false, int? max,
-    String? errorText, ValueChanged<String>? onChanged}) {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 12),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      _Label(label),
-      TextField(
-        controller: ctrl,
-        keyboardType: type,
-        maxLength: max,
-        onChanged: onChanged,
-        textCapitalization: caps
-          ? TextCapitalization.characters
-          : TextCapitalization.sentences,
-        decoration: InputDecoration(
-          hintText: hint,
-          counterText: '',
-          errorText: errorText),
-        style: AppFont.sans(
-          fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.t1)),
-    ]));
-}
-
 
 /// The header of the business panel: who this profile is, and how much
 /// of it is done. It is the only thing on the page that is not an input,
