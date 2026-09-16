@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 
 import 'design/theme.dart' as ds;
@@ -17,6 +18,14 @@ import 'widgets/app_lock_gate.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // The UI face ships in assets/fonts. Left to its default,
+  // google_fonts would quietly fetch it from fonts.gstatic.com on
+  // first launch — a network call this app promises never to make,
+  // and one that fails in exactly the shop BillZap is built for. With
+  // fetching off, a missing or misnamed asset throws on startup in
+  // debug instead of degrading to Roboto in the field.
+  GoogleFonts.config.allowRuntimeFetching = false;
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

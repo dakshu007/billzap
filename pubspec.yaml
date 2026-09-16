@@ -54,6 +54,20 @@ flutter:
     # columns line up in print too. SIL Open Font License.
     - assets/fonts/Inter-Regular.ttf
     - assets/fonts/Inter-SemiBold.ttf
+    # Plus Jakarta Sans is the app's UI face. google_fonts resolves a
+    # family from the asset manifest first and only falls back to an
+    # HTTP fetch from fonts.gstatic.com when it finds nothing — so
+    # leaving these out meant a shop with no signal got Roboto on first
+    # launch, and every other shop silently pinged Google. Both are
+    # wrong for an app whose whole claim is that it works offline and
+    # talks to nobody. The filenames are not cosmetic: google_fonts
+    # matches on the `Family-Variant` suffix, so renaming one puts the
+    # runtime fetch back. Bytes verified against the package's own
+    # sha256 manifest. SIL Open Font License.
+    - assets/fonts/PlusJakartaSans-Regular.ttf
+    - assets/fonts/PlusJakartaSans-Medium.ttf
+    - assets/fonts/PlusJakartaSans-SemiBold.ttf
+    - assets/fonts/PlusJakartaSans-Bold.ttf
 
 flutter_icons:
   android: true
