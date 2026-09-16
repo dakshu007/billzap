@@ -33,6 +33,13 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # The `secrets` context is not available in a step-level `if:` — it
+    # resolves to empty there, so a `secrets.X != ''` guard is always
+    # false and the deploy silently skips. `env` is available, and a
+    # job-level `env:` may read `secrets`, so the presence check is
+    # hoisted here.
+    env:
+      HAS_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -61,7 +68,7 @@ jobs:
           echo "Committed build matches its sources."
 
       - name: Deploy to Netlify
-        if: ${{ secrets.NETLIFY_AUTH_TOKEN != '' }}
+        if: env.HAS_TOKEN == 'true'
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           PROD: ${{ github.event_name != 'workflow_dispatch' || inputs.production }}
@@ -71,7 +78,7 @@ jobs:
           npx -y netlify-cli@latest deploy $ARGS
 
       - name: Explain a missing token
-        if: ${{ secrets.NETLIFY_AUTH_TOKEN == '' }}
+        if: env.HAS_TOKEN != 'true'
         run: |
           echo "::warning::NETLIFY_AUTH_TOKEN is not set, so nothing was deployed."
           echo "Add it under Settings -> Secrets and variables -> Actions."
