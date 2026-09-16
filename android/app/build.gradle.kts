@@ -2,9 +2,9 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    // The Flutter Gradle Plugin must be applied after the Android and
-    // Kotlin plugins.
+    // Kotlin is applied by the Flutter Gradle Plugin (built-in Kotlin).
+    // Declaring org.jetbrains.kotlin.android here as well is what Flutter
+    // 3.47 warns "will cause build failures in future versions".
     id("dev.flutter.flutter-gradle-plugin")
 }
 
