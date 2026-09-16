@@ -1,7 +1,7 @@
 name: billzap
 description: BillZap - Free GST Billing for Indian MSMEs. 100% Offline.
 publish_to: 'none'
-version: 1.0.0+260502269
+version: 1.0.0+260502270
 
 environment:
   sdk: ^3.13.0
