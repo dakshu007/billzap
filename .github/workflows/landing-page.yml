@@ -67,15 +67,29 @@ jobs:
           fi
           echo "Committed build matches its sources."
 
+      # Run from landing-page/, not the repo root. The CLI reads
+      # netlify.toml from its working directory, and ours lives beside
+      # the files it describes — from the root it finds nothing and the
+      # deploy silently ships with no redirects, no cache headers and no
+      # CSP. The step prints the rule counts Netlify reports back so a
+      # silent drop is visible in the log rather than in production.
+      #
+      # --no-build because this is a folder of finished files; letting
+      # the CLI hunt for a build command in a Flutter repo can only go
+      # wrong. CI=true keeps it non-interactive, so a prompt fails the
+      # step instead of hanging the runner until the job times out.
       - name: Deploy to Netlify
         if: env.HAS_TOKEN == 'true'
+        working-directory: landing-page
+        timeout-minutes: 12
         env:
+          CI: 'true'
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           PROD: ${{ github.event_name != 'workflow_dispatch' || inputs.production }}
         run: |
-          ARGS="--dir=landing-page --site=$NETLIFY_SITE_ID --message=${GITHUB_SHA::7}"
+          ARGS="--dir=. --no-build --site=$NETLIFY_SITE_ID --message=${GITHUB_SHA::7}"
           if [ "$PROD" = "true" ]; then ARGS="$ARGS --prod"; fi
-          npx -y netlify-cli@latest deploy $ARGS
+          npx -y netlify-cli@latest deploy $ARGS < /dev/null
 
       - name: Explain a missing token
         if: env.HAS_TOKEN != 'true'
