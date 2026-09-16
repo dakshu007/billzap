@@ -752,9 +752,15 @@ Download: $playStoreUrl
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: AppColors.border)),
           child: Column(children: [
-            // The mark is jade — it is the app's own logo, not chrome.
-            Icon(Symbols.bolt, size: 48, color: AppColor.primary),
-            const Gap(8),
+            // The actual app icon, on its jade tile — the same mark
+            // that sits on the home screen and the splash. A generic
+            // bolt glyph stood in here, which is not the logo.
+            ClipRRect(
+              borderRadius: AppRadius.all(AppRadius.lg),
+              child: Image.asset('assets/icon.png',
+                  width: 68, height: 68, fit: BoxFit.cover),
+            ),
+            const Gap(AppSpace.md),
             Text('BillZap', style: AppFont.sans(
               fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.t1)),
             Text(tr('splash.tagline', ref),

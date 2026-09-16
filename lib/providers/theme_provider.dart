@@ -29,21 +29,26 @@ String _encode(ThemeMode m) {
 class ThemeNotifier extends Notifier<ThemeMode> {
   @override
   ThemeMode build() {
-    // Read the persisted choice asynchronously; the synchronous default
-    // keeps the very first frame from blocking on disk.
-    _load();
-    return ThemeMode.system;
+    // Read it here, synchronously, and return it as the initial value.
+    //
+    // This used to return ThemeMode.system and kick off an async load
+    // that assigned `state` once the box resolved. The write worked, but
+    // the value never came back on the next launch — so picking Light,
+    // closing the app and reopening it landed you back on system
+    // default. main() already awaits Hive.openBox('settings') before
+    // runApp, so by the time anything reads this provider the box is
+    // open and there is nothing to wait for.
+    return _readStored() ?? ThemeMode.system;
   }
 
-  Future<void> _load() async {
+  ThemeMode? _readStored() {
     try {
-      final box = Hive.isBoxOpen(_kBox)
-          ? Hive.box(_kBox)
-          : await Hive.openBox(_kBox);
-      final raw = box.get(_kKey) as String?;
-      final mode = _decode(raw);
-      if (mode != state) state = mode;
-    } catch (_) {}
+      if (!Hive.isBoxOpen(_kBox)) return null;
+      final raw = Hive.box(_kBox).get(_kKey);
+      return raw is String ? _decode(raw) : null;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> set(ThemeMode mode) async {

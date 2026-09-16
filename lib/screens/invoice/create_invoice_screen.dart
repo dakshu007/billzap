@@ -868,7 +868,16 @@ class _LineFieldState extends State<_LineField> {
               .copyWith(height: 1.2),
           decoration: InputDecoration(
             isDense: true,
+            // See AppField: the global theme's enabledBorder/focusedBorder
+            // draw a second outline inside the well unless every variant
+            // is cleared.
+            filled: false,
             border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            disabledBorder: InputBorder.none,
+            errorBorder: InputBorder.none,
+            focusedErrorBorder: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(vertical: 11),
             hintText: widget.hint,
             hintStyle: AppFont.style(

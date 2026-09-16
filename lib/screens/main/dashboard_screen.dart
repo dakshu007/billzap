@@ -506,28 +506,37 @@ class _ActionGrid extends StatelessWidget {
             onTap: a.onTap,
             radius: AppRadius.md,
             padding: const EdgeInsets.all(AppSpace.md),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: AppColor.wash(a.tone),
-                    borderRadius: AppRadius.all(AppRadius.sm),
+            // Full width on purpose. AppSurface lays its child out in a
+            // Stack, which hands down loose constraints, so the Column
+            // was shrinking to its widest item and getting pinned to the
+            // start — icon and label both hugging the left edge of a
+            // card wide enough to centre them in.
+            child: SizedBox(
+              width: double.infinity,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: AppColor.wash(a.tone),
+                      borderRadius: AppRadius.all(AppRadius.sm),
+                    ),
+                    child: Icon(a.icon, size: 19, color: a.tone),
                   ),
-                  child: Icon(a.icon, size: 19, color: a.tone),
-                ),
-                const SizedBox(height: AppSpace.sm),
-                Text(
-                  a.label,
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppFont.style(AppType.labelS,
-                      color: AppColor.textSecondary),
-                ),
-              ],
+                  const SizedBox(height: AppSpace.sm),
+                  Text(
+                    a.label,
+                    maxLines: 2,
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppFont.style(AppType.labelS,
+                        color: AppColor.textSecondary),
+                  ),
+                ],
+              ),
             ),
           );
         },

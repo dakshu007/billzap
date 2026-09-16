@@ -1623,7 +1623,18 @@ class _AppFieldState extends State<AppField> {
                   cursorRadius: const Radius.circular(2),
                   decoration: InputDecoration(
                     isDense: true,
+                    // Every border variant, not just `border`: the global
+                    // InputDecorationTheme sets enabledBorder and
+                    // focusedBorder, and those are what was drawing a
+                    // second rounded rect inside the well. The well
+                    // itself is the field — one outline, one glow.
+                    filled: false,
                     border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    disabledBorder: InputBorder.none,
+                    errorBorder: InputBorder.none,
+                    focusedErrorBorder: InputBorder.none,
                     counterText: '',
                     contentPadding: EdgeInsets.symmetric(
                         vertical: widget.maxLines > 1 ? 0 : AppSpace.md),
