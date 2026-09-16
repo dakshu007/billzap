@@ -1,24 +1,84 @@
 # Netlify config for the BillZap landing page.
-# Point Netlify's "publish directory" at this folder (landing-page/).
+# Publish directory: landing-page/
 
 [build]
   publish = "."
 
-# Long-cache the immutable bits; the HTML stays fresh.
+# ── Caching ────────────────────────────────────────────────────────
+# The HTML must revalidate so a deploy is visible immediately. Fonts,
+# images and icons are content-addressed by filename and never change
+# under the same name, so they get a year and immutable.
 [[headers]]
-  for = "/*.html"
+  for = "/index.html"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/assets/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Access-Control-Allow-Origin = "*"
+
+[[headers]]
+  for = "/assets/shots/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# ── Security headers ───────────────────────────────────────────────
+# A strict CSP is possible because the page loads nothing third-party:
+# no CDN fonts, no analytics, no embeds. 'unsafe-inline' is needed for
+# the inlined <style> and the one bootstrap <script>; everything else
+# is locked to self.
+[[headers]]
+  for = "/*"
+  [headers.values]
     X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=(), interest-cohort=()"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'self'; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests"
+
+# llms.txt is read by crawlers that expect text/plain, not a download.
+[[headers]]
+  for = "/llms.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/llms-full.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+    Cache-Control = "public, max-age=3600"
 
 [[headers]]
   for = "/sitemap.xml"
   [headers.values]
-    Content-Type = "application/xml"
+    Content-Type = "application/xml; charset=utf-8"
 
-# Pretty alias: /download → the devices section.
 [[redirects]]
   from = "/download"
-  to = "/#devices"
+  to = "/#download"
   status = 302
+
+[[redirects]]
+  from = "/features"
+  to = "/#features"
+  status = 302
+
+[[redirects]]
+  from = "/faq"
+  to = "/#faq"
+  status = 302
+
+# The old case study is gone; send its traffic to the live page.
+[[redirects]]
+  from = "/case-study.html"
+  to = "/"
+  status = 301

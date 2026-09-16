@@ -1,0 +1,14 @@
+{
+  "name": "BillZap — Free GST Billing App",
+  "short_name": "BillZap",
+  "description": "Free GST billing for Indian shops. Works offline.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F6F7F9",
+  "theme_color": "#10A56F",
+  "lang": "en",
+  "icons": [
+    { "src": "/assets/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "/assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

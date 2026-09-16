@@ -1,1108 +1,598 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Free GST Billing App for Indian Shops — Offline Invoices | BillZap</title>
+<meta name="description" content="BillZap is a free GST billing app that works offline. Make a tax invoice in 30 seconds, put a UPI QR on it, share the PDF on WhatsApp, and export a GSTR-1 summary. 12 Indian languages, no sign-up, no subscription.">
+<meta name="keywords" content="free gst billing app, gst billing app, offline billing app, gst invoice app india, upi qr invoice, voice billing app, gstr-1 export, billing app for small business, tax invoice app, gst software for shops">
+<meta name="author" content="BillZap">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">
+<link rel="canonical" href="https://billzap.netlify.app/">
+<meta name="theme-color" content="#F6F7F9">
+<meta name="color-scheme" content="light">
 
-<!-- ─── SEO: title + description + keywords ─────────────────────────── -->
-<title>BillZap - Best Free GST Billing App | Offline, Voice &amp; UPI Billing</title>
-<meta name="description" content="BillZap is the best free GST billing app. Create GST invoices in seconds - 100% offline, voice billing in 12 languages, UPI QR on every invoice, GSTR-1 export. Download free for Android, Windows and Mac." />
-<meta name="keywords" content="best gst billing app, gst billing app, mobile gst billing app, free gst billing app, gst invoice app, offline billing app, voice billing app, upi invoice app, gst billing software, billing app for small business" />
-<meta name="author" content="BillZap" />
-<meta name="robots" content="index, follow, max-image-preview:large" />
-<link rel="canonical" href="https://billzap.netlify.app/" />
-<meta name="theme-color" content="#F6F2E9" />
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="BillZap">
+<meta property="og:title" content="BillZap — Free GST Billing App That Works Offline">
+<meta property="og:description" content="Make a GST tax invoice in 30 seconds with no internet. UPI QR on every bill, PDF to WhatsApp, GSTR-1 export. 12 Indian languages. Free forever.">
+<meta property="og:url" content="https://billzap.netlify.app/">
+<meta property="og:image" content="https://billzap.netlify.app/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="BillZap — free GST billing for Indian shops">
+<meta property="og:locale" content="en_IN">
 
-<!-- Open Graph -->
-<meta property="og:type" content="website" />
-<meta property="og:site_name" content="BillZap" />
-<meta property="og:title" content="BillZap - Best Free GST Billing App" />
-<meta property="og:description" content="GST invoices in seconds. 100% offline. Voice billing in 12 languages. UPI QR on every bill. Free forever. Android · Windows · Mac." />
-<meta property="og:url" content="https://billzap.netlify.app/" />
-<meta property="og:image" content="https://billzap.netlify.app/og.png" />
-<meta property="og:locale" content="en_US" />
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="BillZap — Free GST Billing App That Works Offline">
+<meta name="twitter:description" content="GST invoices in 30 seconds, offline. UPI QR on every bill. 12 Indian languages. Free forever.">
+<meta name="twitter:image" content="https://billzap.netlify.app/assets/og.png">
 
-<!-- Twitter -->
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="BillZap - Best Free GST Billing App" />
-<meta name="twitter:description" content="GST invoices in seconds. Offline. Voice billing in 12 languages. UPI QR. Free forever." />
-<meta name="twitter:image" content="https://billzap.netlify.app/og.png" />
+<link rel="icon" href="assets/icon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="assets/icon-512.png" sizes="512x512" type="image/png">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<link rel="manifest" href="site.webmanifest">
 
-<!-- Brand icon - the real app icon (PNG), used for tab favicon + apple icon -->
-<link rel="alternate" hreflang="en" href="https://billzap.netlify.app/" />
-<link rel="alternate" hreflang="x-default" href="https://billzap.netlify.app/" />
-<meta name="application-name" content="BillZap" />
-<meta name="apple-mobile-web-app-title" content="BillZap" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<link rel="icon" type="image/png" sizes="64x64" href="favicon.png" />
-<link rel="icon" type="image/png" sizes="256x256" href="logo.png" />
-<link rel="apple-touch-icon" href="logo.png" />
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/plus-jakarta-sans-800-latin.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/poppins-400-latin.woff2" crossorigin>
+<link rel="preload" as="image" href="assets/shots/home-786.webp" imagesrcset="assets/shots/home-393.webp 393w, assets/shots/home-786.webp 786w" imagesizes="(max-width:940px) 78vw, 290px" fetchpriority="high">
 
-<!-- ─── Fonts ───────────────────────────────────────────────────────
-     Outfit (display / headings) + Poppins (body) + Material Symbols.
-     Icons are hidden via CSS until the font loads so the ligature
-     shortcode (e.g. "bolt") never flashes on screen. -->
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="preload" as="style"
-  href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,0&display=swap" />
-<link rel="stylesheet"
-  href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,0&display=swap" />
-
-<!-- ─── Structured data (Schema.org) ───────────────────────────────── -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Organization",
-      "@id": "https://billzap.netlify.app/#org",
-      "name": "BillZap",
-      "url": "https://billzap.netlify.app/",
-      "logo": "https://billzap.netlify.app/og.png",
-      "description": "Free, offline-first GST billing app for small businesses."
-    },
-    {
-      "@type": "WebSite",
-      "@id": "https://billzap.netlify.app/#website",
-      "url": "https://billzap.netlify.app/",
-      "name": "BillZap - GST Billing App",
-      "inLanguage": "en",
-      "publisher": { "@id": "https://billzap.netlify.app/#org" }
-    },
-    {
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://billzap.netlify.app/" },
-        { "@type": "ListItem", "position": 2, "name": "Features", "item": "https://billzap.netlify.app/#features" },
-        { "@type": "ListItem", "position": 3, "name": "Download", "item": "https://billzap.netlify.app/#devices" }
-      ]
-    },
-    {
-      "@type": "SoftwareApplication",
-      "name": "BillZap - GST Billing App",
-      "operatingSystem": "Android, iOS, Windows, macOS",
-      "applicationCategory": "BusinessApplication",
-      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR" },
-      "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.8", "ratingCount": "1240" },
-      "description": "The best free GST billing app. Create GST invoices in seconds, fully offline, with voice billing in 12 languages, UPI QR on every invoice, and GSTR-1 export."
-    },
-    {
-      "@type": "FAQPage",
-      "mainEntity": [
-        { "@type": "Question", "name": "Is BillZap really free?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes. BillZap is free forever with no sign-up, no ads, and no paywall. Every feature you use today stays free." } },
-        { "@type": "Question", "name": "Does BillZap work without internet?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Yes. BillZap is 100% offline-first. Your data lives encrypted on your own device, so it works even during a power cut or with no network." } },
-        { "@type": "Question", "name": "Which languages does BillZap support?",
-          "acceptedAnswer": { "@type": "Answer", "text": "12 languages - English, Hindi, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati, Bengali, Punjabi, Odia and Urdu - including voice billing in each." } },
-        { "@type": "Question", "name": "Can I file GST returns with BillZap?",
-          "acceptedAnswer": { "@type": "Answer", "text": "BillZap auto-calculates CGST/SGST/IGST and exports a GSTR-1 JSON you can upload to the GST portal, plus PDF and CSV reports for your accountant." } }
-      ]
-    }
-  ]
-}
-</script>
-
-<style>
-/* ════════════════════════════════════════════════════════════════════
-   BillZap landing - bright, light-mode, app-themed, storytelling.
-   Self-contained. Lenis smooth-scroll + GSAP reveals loaded at the end.
-   ════════════════════════════════════════════════════════════════════ */
-:root{
-  --bg:#F6F2E9;            /* warm cream (app bg) */
-  --bg-2:#FBF8F1;          /* lighter cream for alt sections */
-  --white:#FFFFFF;
-  --ink:#0A1426;           /* near-black navy */
-  --ink-2:#253349;
-  --muted:#5A6478;
-  --muted-2:#8B93A6;
-  --line:#E7E1D2;          /* warm hairline */
-  --brand:#1557FF;
-  --brand-2:#4070FF;
-  --brand-ink:#0A3BCC;
-  --brand-soft:#EBF0FF;
-  --green:#00BFA5;
-  --green-soft:#E6FAF7;
-  --amber:#F59E0B;
-  --amber-soft:#FFF7E6;
-  --purple:#7C3AED;
-  --purple-soft:#F3EEFF;
-  --rose:#EC4899;
-  --maxw:1180px;
-  --r:18px; --r-lg:26px; --r-xl:34px;
-  --shadow:0 2px 8px rgba(10,20,38,.05), 0 14px 40px rgba(10,20,38,.06);
-  --shadow-lg:0 10px 30px rgba(10,20,38,.08), 0 30px 80px rgba(10,20,38,.08);
-  --font:'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --head:'Outfit', 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
-}
-*{box-sizing:border-box}
-html{ -webkit-text-size-adjust:100%; }
-/* Lenis required CSS - without these it fights native smooth-scroll and
-   feels laggy/floaty. (This was the "scrolling not good" cause.) */
-html.lenis, html.lenis body{ height:auto; }
-.lenis.lenis-smooth{ scroll-behavior:auto !important; }
-.lenis.lenis-smooth [data-lenis-prevent]{ overscroll-behavior:contain; }
-.lenis.lenis-stopped{ overflow:hidden; }
-/* No-JS / reduced-motion fallback keeps anchor jumps smooth */
-html:not(.lenis){ scroll-behavior:smooth; }
-body{
-  margin:0; font-family:var(--font); color:var(--ink); background:var(--bg);
-  font-size:17px; line-height:1.6; -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale; overflow-x:hidden;
-}
-::selection{ background:var(--brand); color:#fff; }
-/* Custom GST receipt cursor (clickables keep the hand) */
-body{ cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='32' viewBox='0 0 28 32'%3E%3Cpath d='M4 2h20v26l-3.3-2.2L17.4 28 14 25.8 10.6 28 7.3 25.8 4 28z' fill='%23ffffff' stroke='%231557FF' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M9 10h10M9 15h10M9 20h6' stroke='%231557FF' stroke-width='2' stroke-linecap='round' fill='none'/%3E%3C/svg%3E") 4 2, auto; }
-a,button,.btn,.sc-dot,summary,.device,.dash-mock,label,input,select,[role=button]{ cursor:pointer; }
-a{ color:var(--brand); text-decoration:none; }
-img{ max-width:100%; display:block; }
-h1,h2,h3,h4{ font-family:var(--head); margin:0 0 .5em; letter-spacing:-0.025em; line-height:1.13; color:var(--ink); font-weight:600; }
-.brand, .stat-card .n, .btn, .eyebrow, .feat .tag{ font-family:var(--head); }
-p{ margin:0 0 1em; color:var(--ink-2); }
-.container{ width:100%; max-width:var(--maxw); margin:0 auto; padding:0 24px; }
-.skip{ position:absolute; left:-9999px; top:0; background:var(--brand); color:#fff; padding:10px 16px; border-radius:8px; z-index:1000; }
-.skip:focus{ left:12px; top:12px; }
-
-/* ─── Material icons: hidden until font loads (no shortcode flash) ──── */
-.micon{
-  font-family:'Material Symbols Rounded'; font-weight:400; font-style:normal;
-  line-height:1; letter-spacing:normal; text-transform:none; white-space:nowrap;
-  word-wrap:normal; direction:ltr; font-feature-settings:'liga';
-  -webkit-font-feature-settings:'liga'; -webkit-font-smoothing:antialiased;
-  font-variation-settings:'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 40;
-  display:inline-block; visibility:hidden;
-}
-html.icons-ready .micon{ visibility:visible; }
-/* Reserve space so hidden icons don't cause layout shift */
-.micon{ min-width:1em; min-height:1em; }
-
-/* ─── Buttons ──────────────────────────────────────────────────────── */
-.btn{ display:inline-flex; align-items:center; gap:9px; font-weight:700; font-size:15.5px;
-  padding:15px 24px; border-radius:14px; border:1.5px solid transparent; cursor:pointer;
-  transition:transform .18s ease, box-shadow .18s ease, background .18s ease; white-space:nowrap; }
-.btn .micon{ font-size:20px; }
-.btn-primary{ background:var(--brand); color:#fff; box-shadow:0 10px 24px rgba(21,87,255,.30); }
-.btn-primary:hover{ transform:translateY(-2px); box-shadow:0 16px 34px rgba(21,87,255,.38); color:#fff; }
-.btn-ghost{ background:var(--white); color:var(--ink); border-color:var(--line); }
-.btn-ghost:hover{ transform:translateY(-2px); border-color:var(--muted-2); }
-.btn-dark{ background:var(--ink); color:#fff; }
-.btn-dark:hover{ transform:translateY(-2px); color:#fff; }
-
-.eyebrow{ display:inline-flex; align-items:center; gap:8px; font-weight:800; font-size:12.5px;
-  letter-spacing:.09em; text-transform:uppercase; color:var(--brand);
-  background:var(--brand-soft); padding:7px 14px; border-radius:999px;
-  border:1px solid color-mix(in srgb,var(--brand) 16%, transparent); }
-.eyebrow .dot{ width:7px; height:7px; border-radius:50%; background:var(--brand); animation:pulse 2s infinite; }
-@keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.3} }
-
-/* ─── NAV ──────────────────────────────────────────────────────────── */
-nav.top{ position:sticky; top:0; z-index:100;
-  background:color-mix(in srgb, var(--bg) 80%, transparent);
-  backdrop-filter:saturate(160%) blur(16px); -webkit-backdrop-filter:saturate(160%) blur(16px);
-  border-bottom:1px solid color-mix(in srgb, var(--line) 70%, transparent); }
-.nav-in{ max-width:var(--maxw); margin:0 auto; padding:14px 24px; display:flex; align-items:center; gap:26px; }
-.brand{ display:inline-flex; align-items:center; gap:11px; font-weight:700; font-size:20px; color:var(--ink); letter-spacing:-0.02em; }
-.brand .mark{ width:40px; height:40px; display:block; object-fit:contain;
-  filter:drop-shadow(0 6px 14px rgba(21,87,255,.28)); }
-.nav-links{ margin-left:auto; display:flex; align-items:center; gap:26px; font-weight:600; font-size:15px; }
-.nav-links a:not(.btn){ color:var(--ink-2); }
-.nav-links a:not(.btn):hover{ color:var(--ink); }
-/* Primary/dark buttons always keep white text (beats .nav-links specificity) */
-.btn-primary, .btn-dark{ color:#fff !important; }
-.nav-links .btn{ padding:10px 18px; font-size:14px; }
-@media(max-width:820px){ .nav-links a:not(.btn){ display:none; } }
-@media(max-width:540px){ .nav-links .btn{ padding:9px 12px; font-size:13px; } .nav-links .btn .micon{ display:none; } }
-
-/* ─── HERO ─────────────────────────────────────────────────────────── */
-.hero{ position:relative; padding:clamp(44px,7vw,90px) 0 clamp(56px,8vw,110px); overflow:hidden; }
-.hero::before,.hero::after{ content:''; position:absolute; border-radius:50%; filter:blur(90px); opacity:.5; pointer-events:none; z-index:0; }
-.hero::before{ width:520px; height:520px; background:var(--brand-soft); top:-160px; right:-120px; }
-.hero::after{ width:420px; height:420px; background:#FFE7C9; bottom:-160px; left:-140px; }
-/* Centered hero (no phone mock) */
-.hero-center{ position:relative; z-index:1; max-width:840px; margin:0 auto; text-align:center; }
-.hero h1{ font-size:clamp(40px,6.4vw,72px); font-weight:600; letter-spacing:-0.04em; margin-top:20px; }
-.hero h1 .grad{ background:linear-gradient(120deg,var(--brand),#7C3AED 70%); -webkit-background-clip:text; background-clip:text; color:transparent; }
-.hero-sub{ font-size:clamp(16px,1.8vw,20px); color:var(--muted); max-width:600px; margin:18px auto 30px; }
-.hero-cta{ display:flex; flex-wrap:wrap; gap:12px; justify-content:center; }
-.trust{ display:flex; flex-wrap:wrap; gap:18px; margin-top:24px; color:var(--muted); font-size:13.5px; font-weight:600; justify-content:center; }
-.trust span{ display:inline-flex; align-items:center; gap:6px; }
-.trust .micon{ font-size:17px; color:var(--green); }
-
-/* ── Auto-rotating feature showcase ───────────────────────────────── */
-.showcase{ max-width:1000px; margin:0 auto; }
-.sc-stage{ position:relative; min-height:330px; }
-.sc-slide{ position:absolute; inset:0; display:grid; grid-template-columns:1fr 1fr; gap:clamp(24px,4vw,56px); align-items:center;
-  opacity:0; visibility:hidden; transform:translateY(16px) scale(.99); transition:opacity .55s ease, transform .55s ease; }
-.sc-slide.is-on{ opacity:1; visibility:visible; transform:none; }
-@media(max-width:760px){ .sc-slide{ grid-template-columns:1fr; text-align:center; gap:22px; } .sc-stage{ min-height:540px; } .sc-txt{ order:2; } .sc-art{ order:1; min-height:228px !important; } }
-.sc-art{ border-radius:var(--r-lg); min-height:288px; display:grid; place-items:center; border:1px solid var(--line); box-shadow:var(--shadow); position:relative; overflow:hidden; }
-.sc-txt h3{ font-size:clamp(24px,3.1vw,36px); }
-.sc-txt p{ color:var(--muted); font-size:16.5px; max-width:460px; }
-@media(max-width:760px){ .sc-txt p{ margin-left:auto; margin-right:auto; } }
-.sc-bar{ height:4px; background:var(--line); border-radius:99px; margin:30px auto 18px; max-width:520px; overflow:hidden; }
-.sc-bar i{ display:block; height:100%; width:0; background:linear-gradient(90deg,var(--brand),var(--purple)); border-radius:99px; }
-.sc-dots{ display:flex; gap:9px; justify-content:center; flex-wrap:wrap; }
-.sc-dot{ display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:999px; border:1px solid var(--line);
-  background:var(--white); font-weight:700; font-size:13px; color:var(--muted); cursor:pointer; font-family:var(--head); transition:transform .18s ease, background .18s ease, color .18s ease; }
-.sc-dot .micon{ font-size:17px; }
-.sc-dot:hover{ transform:translateY(-2px); color:var(--ink); }
-.sc-dot.is-on{ background:var(--brand); color:#fff; border-color:var(--brand); box-shadow:0 8px 18px rgba(21,87,255,.28); }
-.sc-dot.is-on:hover{ color:#fff; }
-
-/* ─── Generic section ──────────────────────────────────────────────── */
-section{ position:relative; }
-.band{ padding:clamp(56px,8vw,110px) 0; position:relative; z-index:1; }
-/* Slightly translucent so the flowing ribbon background shows through. */
-.band.cream{ background:rgba(246,242,233,.74); }
-.band.white{ background:rgba(255,255,255,.66); }
-.band.soft{ background:linear-gradient(180deg, rgba(246,242,233,.84), rgba(251,248,241,.84)); }
-
-/* ─── Flowing ribbon background ─────────────────────────────────────
-   Fixed behind all content (z-index:-1); bands above are translucent so
-   the soft ribbons drift through as you scroll. Pure decoration. */
-.ribbons{ position:fixed; inset:0; z-index:-1; pointer-events:none; overflow:hidden; }
-.ribbons svg{ position:absolute; width:170%; height:auto; left:-35%; filter:blur(1.4px); will-change:transform; }
-.rb-wrap{ position:absolute; inset:0; will-change:transform; }
-.ribbon-1{ top:4%;  animation:rb1 26s ease-in-out infinite alternate; }
-.ribbon-2{ top:40%; animation:rb2 32s ease-in-out infinite alternate; }
-.ribbon-3{ top:74%; animation:rb3 30s ease-in-out infinite alternate; }
-@keyframes rb1{ from{transform:translate3d(0,0,0)} to{transform:translate3d(70px,-26px,0)} }
-@keyframes rb2{ from{transform:translate3d(0,0,0)} to{transform:translate3d(-60px,34px,0)} }
-@keyframes rb3{ from{transform:translate3d(0,0,0)} to{transform:translate3d(50px,-30px,0)} }
-@media (prefers-reduced-motion: reduce){ .ribbon-1,.ribbon-2,.ribbon-3{ animation:none; } }
-.sec-head{ max-width:720px; margin:0 auto clamp(34px,5vw,60px); text-align:center; }
-.sec-head h2{ font-size:clamp(28px,4.4vw,46px); font-weight:600; }
-.sec-head p{ font-size:clamp(15px,1.6vw,18px); color:var(--muted); margin-top:12px; }
-
-/* ─── Stats strip ──────────────────────────────────────────────────── */
-.stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
-@media(max-width:760px){ .stats{ grid-template-columns:repeat(2,1fr); } }
-.stat-card{ background:var(--white); border:1px solid var(--line); border-radius:var(--r); padding:24px; text-align:center; box-shadow:var(--shadow); }
-.stat-card .n{ font-size:clamp(30px,4vw,44px); font-weight:700; letter-spacing:-0.03em; color:var(--ink);
-  background:linear-gradient(120deg,var(--brand),#7C3AED); -webkit-background-clip:text; background-clip:text; color:transparent; }
-.stat-card .l{ color:var(--muted); font-size:13.5px; font-weight:600; margin-top:6px; }
-
-/* ─── Feature rows (storytelling) ──────────────────────────────────── */
-.feat{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(28px,5vw,72px); align-items:center; padding:clamp(40px,6vw,80px) 0; }
-.feat:not(:last-child){ border-bottom:1px solid var(--line); }
-@media(max-width:880px){ .feat{ grid-template-columns:1fr; gap:28px; } .feat .visual{ order:-1; } }
-/* Pill tags - global so they look right in features AND the showcase
-   (oval, balanced padding, never an odd-radius rectangle). */
-.tag{ display:inline-flex; align-items:center; gap:7px; font-family:var(--head); font-weight:800; font-size:12px;
-  letter-spacing:.04em; text-transform:uppercase; padding:8px 16px; border-radius:999px; margin-bottom:16px; line-height:1; }
-.tag .micon{ font-size:16px; }
-.feat h3{ font-size:clamp(24px,3.2vw,38px); font-weight:600; }
-.feat p{ font-size:clamp(15px,1.5vw,17.5px); color:var(--muted); max-width:520px; }
-.feat ul{ list-style:none; padding:0; margin:18px 0 0; }
-.feat li{ display:flex; gap:11px; align-items:flex-start; padding:7px 0; font-size:15.5px; color:var(--ink-2); font-weight:500; }
-.feat li .micon{ color:var(--brand); font-size:20px; margin-top:1px; }
-.visual{ border-radius:var(--r-lg); padding:34px; min-height:320px; display:grid; place-items:center; position:relative; overflow:hidden;
-  border:1px solid var(--line); box-shadow:var(--shadow); }
-.visual .micon{ font-size:112px; }
-.stack{ position:relative; display:grid; place-items:center; width:150px; height:150px; }
-
-/* ── Animated feature illustrations (pure CSS, transform/opacity only) ──
-   Always-alive loops so the page feels animated even at rest; scroll
-   parallax (data-parallax) adds the "animative scroll" motion on top. */
-
-/* Voice → equalizer bars */
-.eq{ display:flex; align-items:flex-end; gap:8px; height:104px; }
-.eq i{ width:11px; height:30px; border-radius:6px; background:var(--rose); transform-origin:bottom; animation:eq 1.1s ease-in-out infinite; }
-.eq i:nth-child(2){animation-delay:.13s} .eq i:nth-child(3){animation-delay:.26s} .eq i:nth-child(4){animation-delay:.39s}
-.eq i:nth-child(5){animation-delay:.52s} .eq i:nth-child(6){animation-delay:.65s} .eq i:nth-child(7){animation-delay:.78s}
-@keyframes eq{ 0%,100%{ transform:scaleY(.35) } 50%{ transform:scaleY(1.7) } }
-
-/* UPI → scanning QR + Paid badge pop */
-.qrbox{ width:152px; height:152px; border-radius:16px; border:1px solid var(--line); position:relative; overflow:hidden; box-shadow:var(--shadow);
-  background:repeating-conic-gradient(var(--ink) 0 25%, #fff 0 50%) 0 0/19px 19px; }
-.qrbox::before,.qrbox::after{ content:''; position:absolute; width:30%; height:30%; border:5px solid var(--ink); background:#fff; top:7%; }
-.qrbox::before{ left:7% } .qrbox::after{ right:7% }
-.scan{ position:absolute; left:0; right:0; height:30px; top:-30px; z-index:3;
-  background:linear-gradient(180deg, transparent, rgba(21,87,255,.6), transparent); animation:scan 2.2s cubic-bezier(.4,0,.2,1) infinite; }
-@keyframes scan{ 0%{ top:-30px } 60%,100%{ top:152px } }
-.paid{ position:absolute; bottom:34px; right:38px; display:flex; align-items:center; gap:6px; background:var(--green);
-  color:#fff; font-weight:800; font-size:13px; padding:7px 13px; border-radius:999px; box-shadow:var(--shadow-lg); opacity:0; transform:scale(.5); animation:pop 2.2s ease infinite; }
-.paid .micon{ font-size:16px; }
-@keyframes pop{ 0%,55%{opacity:0;transform:scale(.5)} 70%{opacity:1;transform:scale(1.12)} 84%,100%{opacity:1;transform:scale(1)} }
-
-/* GST → document, tax chips rising, stamp */
-.doc{ width:184px; background:#fff; border:1px solid var(--line); border-radius:15px; padding:18px; box-shadow:var(--shadow); position:relative; }
-.doc .ln{ height:10px; border-radius:5px; background:#E7E1D2; margin-bottom:10px; }
-.doc .ln.s{ width:58% }
-.doc .tax{ display:flex; gap:7px; margin:14px 0 12px; }
-.doc .tax span{ font-size:10.5px; font-weight:800; padding:5px 9px; border-radius:999px; background:var(--green-soft); color:#06806f; opacity:0; transform:translateY(7px); animation:rise 2.8s ease infinite; }
-.doc .tax span:nth-child(2){animation-delay:.22s} .doc .tax span:nth-child(3){animation-delay:.44s}
-@keyframes rise{ 0%,8%{opacity:0;transform:translateY(7px)} 28%,82%{opacity:1;transform:none} 100%{opacity:1} }
-.doc .tot{ font-weight:900; font-size:19px; color:var(--ink); }
-.stamp{ position:absolute; top:-14px; right:-14px; width:48px; height:48px; border-radius:50%; background:var(--green); color:#fff; display:grid; place-items:center; box-shadow:var(--shadow-lg); transform:scale(0) rotate(-35deg); animation:stamp 2.8s ease infinite; }
-.stamp .micon{ font-size:27px; }
-@keyframes stamp{ 0%,56%{transform:scale(0) rotate(-35deg)} 70%{transform:scale(1.18) rotate(0)} 82%,100%{transform:scale(1) rotate(0)} }
-
-/* Offline → wifi-off with expanding rings */
-.ring{ position:absolute; width:96px; height:96px; border-radius:50%; border:2.5px solid var(--amber); opacity:0; animation:ring 2.4s ease-out infinite; }
-.ring.r2{ animation-delay:1.2s }
-@keyframes ring{ 0%{transform:scale(.45);opacity:.65} 100%{transform:scale(2.3);opacity:0} }
-
-/* Stock / Reports → growing bar chart */
-.bars{ display:flex; align-items:flex-end; gap:11px; height:150px; }
-.bars i{ width:24px; border-radius:8px 8px 0 0; background:linear-gradient(180deg,var(--brand),var(--brand-2)); transform-origin:bottom; animation:grow 2.6s ease-in-out infinite; }
-.bars i:nth-child(1){height:48%;animation-delay:0s} .bars i:nth-child(2){height:74%;animation-delay:.18s}
-.bars i:nth-child(3){height:38%;animation-delay:.36s} .bars i:nth-child(4){height:96%;animation-delay:.54s}
-.bars i:nth-child(5){height:64%;animation-delay:.72s}
-@keyframes grow{ 0%{transform:scaleY(.12)} 50%{transform:scaleY(1)} 100%{transform:scaleY(.12)} }
-.bars.purpv i{ background:linear-gradient(180deg,var(--purple),#A855F7); }
-.bars .spark{ position:absolute; top:30px; right:34px; color:var(--purple); font-size:26px; opacity:0; animation:pop 2.6s ease infinite .3s; }
-
-/* Languages → cycling script glyph */
-.glyph{ font-size:128px; font-weight:900; color:var(--amber); line-height:1; transition:opacity .25s ease, transform .25s ease; }
-
-/* Security → padlock with breathing shield */
-.pulse{ position:absolute; width:128px; height:128px; border-radius:50%; background:var(--green-soft); animation:breathe 2.8s ease-in-out infinite; }
-@keyframes breathe{ 0%,100%{transform:scale(.82);opacity:.5} 50%{transform:scale(1.12);opacity:.95} }
-
-/* Clean SVG QR (replaces the messy checkerboard) - modules drawn by JS */
-.qrsvg{ width:166px; height:166px; background:#fff; border:1px solid var(--line); border-radius:18px; padding:12px; box-shadow:var(--shadow); }
-.sc-art .scan, .visual .scan{ animation:scanArt 2.6s cubic-bezier(.4,0,.2,1) infinite; height:34px; }
-@keyframes scanArt{ 0%{ top:-34px } 58%,100%{ top:300px } }
-
-@media (prefers-reduced-motion: reduce){
-  .eq i,.scan,.paid,.doc .tax span,.stamp,.ring,.bars i,.bars .spark,.pulse{ animation:none !important; }
-  .paid,.doc .tax span,.bars .spark{ opacity:1; transform:none; } .stamp{ transform:scale(1) rotate(0); }
-}
-
-/* tint helpers */
-.t-brand{ color:var(--brand); } .bg-brand{ background:var(--brand-soft); } .tag-brand{ background:var(--brand-soft); color:var(--brand-ink); }
-.t-green{ color:var(--green); } .bg-green{ background:var(--green-soft); } .tag-green{ background:var(--green-soft); color:#06806f; }
-.t-amber{ color:var(--amber); } .bg-amber{ background:var(--amber-soft); } .tag-amber{ background:var(--amber-soft); color:#9a6200; }
-.t-purple{ color:var(--purple); } .bg-purple{ background:var(--purple-soft); } .tag-purple{ background:var(--purple-soft); color:#5b21b6; }
-.t-rose{ color:var(--rose); } .bg-rose{ background:#FFEEF6; } .tag-rose{ background:#FFEEF6; color:#be185d; }
-
-/* lang chips */
-.langs{ display:flex; flex-wrap:wrap; gap:9px; justify-content:center; }
-.lang{ padding:9px 15px; background:#fff; border:1px solid var(--line); border-radius:999px; font-weight:700; font-size:14px; color:var(--ink-2); }
-
-/* ─── Devices / download cards ─────────────────────────────────────── */
-.devices{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; max-width:840px; margin:0 auto; }
-@media(max-width:760px){ .devices{ grid-template-columns:1fr; } }
-.device{ background:var(--white); border:1px solid var(--line); border-radius:var(--r-lg); padding:26px 22px; text-align:center;
-  box-shadow:var(--shadow); transition:transform .22s ease, box-shadow .22s ease; }
-.device:hover{ transform:translateY(-5px); box-shadow:var(--shadow-lg); }
-.device .ic{ width:60px; height:60px; border-radius:17px; display:grid; place-items:center; margin:0 auto 16px; }
-.device .ic .micon{ font-size:32px; }
-.device h4{ font-size:18px; font-weight:600; margin-bottom:4px; }
-.device .meta{ color:var(--muted); font-size:13px; margin-bottom:16px; min-height:34px; }
-.device .btn{ width:100%; justify-content:center; padding:13px; font-size:14.5px; }
-
-/* ─── Dashboard interlink ──────────────────────────────────────────── */
-.dash{ display:grid; grid-template-columns:1.05fr .95fr; gap:clamp(28px,5vw,64px); align-items:center; }
-@media(max-width:880px){ .dash{ grid-template-columns:1fr; text-align:center; } }
-.dash-mock{ border-radius:var(--r-lg); overflow:hidden; border:1px solid var(--line); box-shadow:var(--shadow-lg); background:#fff; }
-.dash-mock .bar{ height:38px; background:var(--bg); border-bottom:1px solid var(--line); display:flex; align-items:center; gap:7px; padding:0 14px; }
-.dash-mock .bar i{ width:11px; height:11px; border-radius:50%; display:inline-block; }
-.dash-mock .body{ display:grid; grid-template-columns:170px 1fr; min-height:300px; }
-.dash-mock .side{ background:var(--bg-2); border-right:1px solid var(--line); padding:16px 12px; }
-.dash-mock .side .row{ height:11px; border-radius:6px; background:#E7E1D2; margin-bottom:11px; }
-.dash-mock .side .row.on{ background:var(--brand); width:75%; }
-.dash-mock .main{ padding:18px; }
-.dash-mock .main .hero{ height:74px; border-radius:14px; background:linear-gradient(135deg,#0A1E5E,var(--brand)); margin-bottom:14px; padding:0; }
-.dash-mock .cards{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-.dash-mock .cards .c{ height:70px; border-radius:12px; border:1px solid var(--line); background:#fff; }
-
-/* ─── FAQ ──────────────────────────────────────────────────────────── */
-.faq{ max-width:780px; margin:0 auto; }
-.faq details{ background:var(--white); border:1px solid var(--line); border-radius:var(--r); margin-bottom:12px; overflow:hidden; }
-.faq summary{ list-style:none; cursor:pointer; padding:20px 22px; font-weight:700; font-size:16.5px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
-.faq summary::-webkit-details-marker{ display:none; }
-.faq summary .micon{ color:var(--brand); transition:transform .25s ease; }
-.faq details[open] summary .micon{ transform:rotate(45deg); }
-.faq .a{ padding:0 22px 20px; color:var(--muted); font-size:15.5px; }
-
-/* ─── Final CTA ────────────────────────────────────────────────────── */
-.cta{ background:linear-gradient(135deg,#0A1E5E,var(--brand)); border-radius:var(--r-xl); padding:clamp(40px,7vw,80px); text-align:center; color:#fff; position:relative; overflow:hidden; box-shadow:0 30px 80px rgba(10,30,94,.34); }
-.cta::before{ content:''; position:absolute; width:380px; height:380px; border-radius:50%; background:rgba(255,255,255,.10); filter:blur(70px); top:-160px; right:-120px; }
-.cta h2{ color:#fff; font-size:clamp(28px,4.4vw,46px); font-weight:600; position:relative; }
-.cta p{ color:rgba(255,255,255,.82); max-width:560px; margin:14px auto 28px; position:relative; }
-.cta .hero-cta{ justify-content:center; position:relative; }
-.cta .btn-light{ background:#fff; color:var(--brand); } .cta .btn-light:hover{ color:var(--brand-ink); }
-.cta .btn-outline{ background:transparent; color:#fff; border-color:rgba(255,255,255,.45); }
-
-/* ─── Footer ───────────────────────────────────────────────────────── */
-footer{ background:var(--bg); border-top:1px solid var(--line); padding:48px 0 34px; }
-.foot{ display:flex; flex-wrap:wrap; gap:24px; align-items:flex-start; }
-.foot .col{ min-width:150px; }
-.foot .col h5{ font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted-2); margin:0 0 12px; font-weight:800; }
-.foot .col a{ display:block; color:var(--ink-2); font-size:14.5px; font-weight:500; padding:5px 0; }
-.foot .col a:hover{ color:var(--brand); }
-.foot-brand{ flex:1; min-width:240px; }
-.foot-brand p{ color:var(--muted); font-size:14px; max-width:300px; margin-top:14px; }
-.foot-bottom{ border-top:1px solid var(--line); margin-top:34px; padding-top:22px; text-align:center; color:var(--muted-2); font-size:13px; }
-
-/* ─── Reveal (GSAP adds .is-in; fallback shows everything) ──────────── */
-@media (prefers-reduced-motion: no-preference){
-  [data-reveal]{ opacity:0; transform:translateY(34px); }
-  html.gsap-ready [data-reveal]{ /* GSAP controls */ }
-}
-</style>
+<style>@font-face{font-family:'Jakarta';src:url(assets/fonts/plus-jakarta-sans-800-latin.woff2) format('woff2');font-weight:800;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:'Jakarta';src:url(assets/fonts/plus-jakarta-sans-700-latin.woff2) format('woff2');font-weight:700;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:'Jakarta';src:url(assets/fonts/plus-jakarta-sans-600-latin.woff2) format('woff2');font-weight:600;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:'Poppins';src:url(assets/fonts/poppins-400-latin.woff2) format('woff2');font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:'Poppins';src:url(assets/fonts/poppins-500-latin.woff2) format('woff2');font-weight:500;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}:root{--jade-900:#04442F;--jade-700:#066B4A;--jade-600:#0A8A5F;--jade-500:#10A56F;--jade-400:#2FC08A;--jade-100:#D3F3E5;--jade-50:#EBFAF3;--jade-cta:#098257;--ink-900:#0C1014;--ink-800:#181E26;--ink-700:#232B35;--ink-500:#4A5563;--ink-400:#6B7585;--ink-300:#98A1AE;--paper:#FFFFFF;--canvas:#F6F7F9;--sunken:#EEF0F4;--hairline:#E3E7EC;--coral:#C53434;--amber:#B7791F;--violet:#6D5BD0;--text:var(--ink-900);--text-2:var(--ink-500);--text-3:#626C7C;--r-sm:12px;--r-md:16px;--r-lg:22px;--r-xl:28px;--r-2xl:36px;--gutter:clamp(20px,5vw,32px);--maxw:1180px;--shadow-sm:0 1px 2px rgba(12,16,20,.04),0 2px 8px rgba(12,16,20,.04);--shadow-md:0 2px 4px rgba(12,16,20,.04),0 12px 28px rgba(12,16,20,.07);--shadow-lg:0 4px 8px rgba(12,16,20,.05),0 24px 60px rgba(12,16,20,.10);--glow:0 10px 30px rgba(16,165,111,.30);--ease:cubic-bezier(.22,1,.36,1)}*,*::before,*::after{box-sizing:border-box}html{-webkit-text-size-adjust:100%}@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}body{margin:0;font-family:'Poppins',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:16px;line-height:1.65;color:var(--text);background:var(--canvas);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden}h1,h2,h3,h4{font-family:'Jakarta',system-ui,sans-serif;margin:0;line-height:1.1;letter-spacing:-.025em;color:var(--ink-900);text-wrap:balance}p{margin:0;text-wrap:pretty}a{color:inherit;text-decoration:none}img,svg{display:block;max-width:100%}ul{margin:0;padding:0;list-style:none}:focus-visible{outline:3px solid var(--jade-600);outline-offset:3px;border-radius:6px}.skip{position:absolute;left:-9999px;top:0;z-index:100;background:var(--ink-900);color:#fff;padding:12px 20px;border-radius:0 0 var(--r-sm) 0;font-weight:600}.skip:focus{left:0}.wrap{width:100%;max-width:var(--maxw);margin-inline:auto;padding-inline:var(--gutter)}.ico{width:1em;height:1em;stroke-width:2;flex:none}@media (prefers-reduced-motion:no-preference){.js .rv{opacity:0;transform:translateY(18px);transition:opacity .7s var(--ease),transform .7s var(--ease)}.js .rv.in{opacity:1;transform:none}.js .rv-d1{transition-delay:.07s}.js .rv-d2{transition-delay:.14s}.js .rv-d3{transition-delay:.21s}.js .rv-d4{transition-delay:.28s}}.hdr{position:sticky;top:0;z-index:50;background:rgba(246,247,249,.82);-webkit-backdrop-filter:saturate(180%) blur(16px);backdrop-filter:saturate(180%) blur(16px);border-bottom:1px solid transparent;transition:border-color .3s,box-shadow .3s}.hdr.stuck{border-bottom-color:var(--hairline);box-shadow:0 1px 20px rgba(12,16,20,.04)}.hdr-in{display:flex;align-items:center;gap:16px;height:70px}.brand{display:flex;align-items:center;gap:11px;font-family:'Jakarta',sans-serif;font-weight:800;font-size:20px;letter-spacing:-.04em}.brand img{width:34px;height:34px;border-radius:10px}.nav{margin-left:auto;display:flex;align-items:center;gap:4px}.nav a{padding:9px 14px;border-radius:var(--r-sm);font-size:14.5px;font-weight:500;color:var(--text-2);transition:color .2s,background .2s}.nav a:hover{color:var(--ink-900);background:var(--sunken)}@media (max-width:860px){.nav{display:none}}.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;font-family:'Jakarta',sans-serif;font-weight:700;font-size:15px;letter-spacing:-.01em;padding:14px 24px;border-radius:999px;border:1px solid transparent;cursor:pointer;transition:transform .18s var(--ease),box-shadow .25s,background .2s,color .2s;white-space:nowrap}.btn .ico{font-size:18px}.btn:hover{transform:translateY(-2px)}.btn:active{transform:translateY(0)}.btn-primary{background:var(--jade-cta);color:#fff;box-shadow:var(--glow)}.btn-primary:hover{background:var(--jade-700);box-shadow:0 14px 38px rgba(16,165,111,.38)}.btn-ghost{background:var(--paper);color:var(--ink-900);border-color:var(--hairline);box-shadow:var(--shadow-sm)}.btn-ghost:hover{border-color:var(--ink-300);box-shadow:var(--shadow-md)}.btn-sm{padding:10px 18px;font-size:14px}.sec{padding-block:clamp(72px,10vw,128px)}.sec-head{max-width:720px;margin-inline:auto;text-align:center;margin-bottom:clamp(40px,6vw,64px)}.eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:'Jakarta',sans-serif;font-weight:700;font-size:12px;letter-spacing:.11em;text-transform:uppercase;color:var(--jade-700);background:var(--jade-50);border:1px solid var(--jade-100);padding:7px 15px;border-radius:999px;margin-bottom:20px}.eyebrow .ico{font-size:14px}h2{font-size:clamp(30px,4.6vw,50px);font-weight:800}.sec-head p{margin-top:18px;font-size:clamp(16px,1.9vw,18.5px);color:var(--text-2)}.lead{font-size:clamp(17px,2vw,19px);color:var(--text-2)}.hero{position:relative;padding-top:clamp(48px,7vw,84px);padding-bottom:clamp(60px,8vw,100px);overflow:hidden}.hero::before{content:'';position:absolute;inset:-30% -10% auto -10%;height:120%;background:radial-gradient(52% 44% at 18% 8%,rgba(47,192,138,.20),transparent 62%),radial-gradient(46% 40% at 88% 14%,rgba(109,91,208,.12),transparent 64%),radial-gradient(60% 50% at 50% 96%,rgba(16,165,111,.10),transparent 70%);pointer-events:none}.hero-grid{position:relative;display:grid;grid-template-columns:1.06fr .94fr;gap:clamp(32px,5vw,64px);align-items:center}@media (max-width:940px){.hero-grid{grid-template-columns:1fr;text-align:center}.hero-cta,.hero-trust{justify-content:center}.hero-copy .eyebrow{margin-inline:auto}}h1{font-size:clamp(38px,6.4vw,66px);font-weight:800;letter-spacing:-.04em;line-height:1.04}h1 .hl{color:var(--jade-600);position:relative;white-space:nowrap}.hero-sub{margin-top:22px;font-size:clamp(16.5px,2.1vw,19.5px);color:var(--text-2);max-width:52ch}@media (max-width:940px){.hero-sub{margin-inline:auto}}.hero-cta{display:flex;flex-wrap:wrap;gap:13px;margin-top:34px}.hero-trust{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:30px;font-size:14px;color:var(--text-3)}.hero-trust li{display:flex;align-items:center;gap:7px}.hero-trust .ico{font-size:16px;color:var(--jade-600)}.device{position:relative;margin-inline:auto;width:min(310px,78vw);border-radius:44px;padding:10px;background:linear-gradient(160deg,#20272F,#0B0F14);box-shadow:0 2px 6px rgba(12,16,20,.18),0 30px 70px rgba(12,16,20,.26),0 0 0 1px rgba(255,255,255,.06) inset}.device::after{content:'';position:absolute;top:19px;left:50%;transform:translateX(-50%);width:84px;height:22px;background:#0B0F14;border-radius:999px;z-index:2}.device img{width:100%;height:auto;border-radius:35px;display:block}.device-stage{position:relative;display:grid;place-items:center;padding-block:clamp(10px,3vw,26px);isolation:isolate}.chip{position:absolute;display:flex;align-items:center;gap:10px;background:var(--paper);border:1px solid var(--hairline);border-radius:var(--r-md);padding:11px 15px;box-shadow:var(--shadow-md);font-size:13.5px;font-weight:500;white-space:nowrap}.chip b{font-family:'Jakarta',sans-serif;font-weight:800;letter-spacing:-.02em}.chip .ico{font-size:17px}.chip-a{top:14%;right:calc(100% - 30px);color:var(--jade-700)}.chip-b{bottom:26%;left:calc(100% - 26px);color:var(--violet)}.chip-c{bottom:6%;right:calc(100% - 10px);color:var(--ink-900)}@media (max-width:1240px){.chip{display:none}}@media (prefers-reduced-motion:no-preference){.float{animation:float 6s ease-in-out infinite}.chip-b.float{animation-delay:-2s}.chip-c.float{animation-delay:-4s}@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}}.stats{background:var(--ink-900);color:#fff;padding-block:clamp(40px,6vw,60px)}.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,4vw,40px);text-align:center}@media (max-width:760px){.stats-grid{grid-template-columns:repeat(2,1fr);gap:32px 20px}}.stat b{display:block;font-family:'Jakarta',sans-serif;font-weight:800;font-size:clamp(28px,4.4vw,42px);letter-spacing:-.04em;color:#fff;line-height:1.1;font-variant-numeric:tabular-nums}.stat span{display:block;margin-top:7px;font-size:13.5px;color:#A7B1BD}.grid{display:grid;gap:18px}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}@media (max-width:900px){.g3{grid-template-columns:repeat(2,1fr)}}@media (max-width:620px){.g3,.g2{grid-template-columns:1fr}}.card{background:var(--paper);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:clamp(24px,3vw,30px);box-shadow:var(--shadow-sm);transition:transform .3s var(--ease),box-shadow .3s var(--ease),border-color .3s}.card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:#D6DBE2}.card h3{font-size:19px;font-weight:700;margin-bottom:9px}.card p{font-size:15px;color:var(--text-2);line-height:1.62}.badge{width:48px;height:48px;border-radius:var(--r-md);display:grid;place-items:center;margin-bottom:18px;font-size:22px}.b-jade{background:var(--jade-50);color:var(--jade-600)}.b-violet{background:#F0EDFB;color:var(--violet)}.b-amber{background:#FDF4E3;color:var(--amber)}.b-coral{background:#FCEDED;color:var(--coral)}.b-ink{background:var(--sunken);color:var(--ink-700)}.split{display:grid;grid-template-columns:1fr 1fr;gap:clamp(36px,6vw,80px);align-items:center}.split + .split{margin-top:clamp(72px,9vw,112px)}@media (max-width:900px){.split{grid-template-columns:1fr;gap:36px}.split .shot{order:-1}}.split h3{font-size:clamp(25px,3.4vw,36px);font-weight:800;margin-block:16px 16px}.split p{font-size:16.5px;color:var(--text-2)}.ticks{margin-top:26px;display:grid;gap:13px}.ticks li{display:flex;gap:12px;align-items:flex-start;font-size:15.5px;color:var(--ink-700)}.ticks .ico{font-size:20px;color:var(--jade-600);margin-top:2px}.shot{position:relative;display:grid;place-items:center}.shot::before{content:'';position:absolute;width:76%;height:66%;border-radius:50%;background:radial-gradient(closest-side,rgba(16,165,111,.16),transparent);filter:blur(8px)}.shot .device{width:min(272px,72vw)}.langs{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:820px;margin-inline:auto}.lang{background:var(--paper);border:1px solid var(--hairline);border-radius:999px;padding:10px 20px;font-size:14.5px;font-weight:500;box-shadow:var(--shadow-sm);transition:transform .25s var(--ease),border-color .25s}.lang:hover{transform:translateY(-3px);border-color:var(--jade-400)}.lang i{font-style:normal;color:var(--text-3);margin-left:8px;font-size:13px}.cmp{width:100%;border-collapse:separate;border-spacing:0;background:var(--paper);border:1px solid var(--hairline);border-radius:var(--r-xl);overflow:hidden;box-shadow:var(--shadow-sm)}.cmp caption{caption-side:top;padding-bottom:18px;color:var(--text-3);font-size:14px}.cmp th,.cmp td{padding:17px 20px;text-align:left;border-bottom:1px solid var(--hairline);font-size:15px}.cmp thead th{background:var(--sunken);font-family:'Jakarta',sans-serif;font-weight:700;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-2)}.cmp thead th:last-child{color:var(--jade-700);background:var(--jade-50)}.cmp tbody th{font-weight:500;color:var(--ink-700);font-family:'Poppins',sans-serif}.cmp td:last-child{background:rgba(235,250,243,.55);font-weight:500}.cmp tr:last-child th,.cmp tr:last-child td{border-bottom:0}.cmp .no{color:var(--text-3)}.cmp-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}@media (max-width:620px){.cmp th,.cmp td{padding:14px;font-size:14px}.cmp{min-width:540px}}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(20px,3vw,28px);counter-reset:s}@media (max-width:820px){.steps{grid-template-columns:1fr}}.step{position:relative;background:var(--paper);border:1px solid var(--hairline);border-radius:var(--r-xl);padding:30px 28px 28px;box-shadow:var(--shadow-sm)}.step::before{counter-increment:s;content:counter(s);position:absolute;top:-19px;left:28px;width:42px;height:42px;border-radius:14px;background:var(--jade-cta);color:#fff;display:grid;place-items:center;font-family:'Jakarta',sans-serif;font-weight:800;font-size:18px;box-shadow:var(--glow)}.step h3{margin-top:14px;font-size:19px;font-weight:700;margin-bottom:9px}.step p{font-size:15px;color:var(--text-2)}.faq{max-width:820px;margin-inline:auto;display:grid;gap:12px}.faq details{background:var(--paper);border:1px solid var(--hairline);border-radius:var(--r-lg);overflow:hidden;transition:border-color .25s,box-shadow .25s}.faq details[open]{border-color:var(--jade-400);box-shadow:var(--shadow-md)}.faq summary{display:flex;align-items:center;gap:16px;cursor:pointer;padding:20px 22px;font-family:'Jakarta',sans-serif;font-weight:700;font-size:16.5px;list-style:none}.faq summary::-webkit-details-marker{display:none}.faq summary .ico{margin-left:auto;font-size:20px;color:var(--text-3);transition:transform .3s var(--ease)}.faq details[open] summary .ico{transform:rotate(180deg);color:var(--jade-600)}.faq .a{padding:0 22px 22px;color:var(--text-2);font-size:15.5px}.cta{position:relative;overflow:hidden;border-radius:var(--r-2xl);background:linear-gradient(145deg,var(--jade-700),var(--jade-900));color:#fff;padding:clamp(44px,7vw,80px) var(--gutter);text-align:center}.cta::before{content:'';position:absolute;inset:0;background:radial-gradient(48% 60% at 15% 0%,rgba(255,255,255,.17),transparent 60%),radial-gradient(40% 50% at 90% 100%,rgba(47,192,138,.35),transparent 65%)}.cta>*{position:relative}.cta h2{color:#fff;font-size:clamp(28px,4.6vw,48px)}.cta p{margin:18px auto 0;max-width:56ch;color:#E8F5EF;font-size:clamp(16px,2vw,18px)}.cta .btn-primary{background:#fff;color:var(--jade-700);box-shadow:0 12px 34px rgba(0,0,0,.22)}.cta .btn-primary:hover{background:#F2FBF7;color:var(--jade-900)}.cta .btn-ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.55);box-shadow:none}.cta .btn-ghost:hover{background:rgba(255,255,255,.1);border-color:#fff}.cta-row{display:flex;flex-wrap:wrap;gap:13px;justify-content:center;margin-top:34px}.cta-note{margin-top:22px;font-size:13.5px;color:#C3E5D5}.ftr{background:var(--ink-900);color:#A7B1BD;padding-block:clamp(48px,7vw,72px) 32px;font-size:14.5px}.ftr-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:clamp(24px,4vw,48px)}@media (max-width:820px){.ftr-grid{grid-template-columns:1fr 1fr;gap:34px 24px}}@media (max-width:480px){.ftr-grid{grid-template-columns:1fr}}.ftr .brand{color:#fff;margin-bottom:14px}.ftr h3{color:#fff;font-size:13px;letter-spacing:.09em;text-transform:uppercase;margin-bottom:16px;font-weight:700}.ftr li + li{margin-top:11px}.ftr a:hover{color:#fff}.ftr-btm{margin-top:clamp(36px,5vw,56px);padding-top:26px;border-top:1px solid rgba(255,255,255,.1);display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;font-size:13.5px}</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"SoftwareApplication","@id":"https://billzap.netlify.app/#app","name":"BillZap","applicationCategory":"BusinessApplication","applicationSubCategory":"Invoicing and GST billing","operatingSystem":"Android 7.0+","description":"BillZap is a free GST billing app that works offline. Make a tax invoice in 30 seconds, put a UPI QR on it, share the PDF on WhatsApp, and export a GSTR-1 summary. 12 Indian languages, no sign-up, no subscription.","url":"https://billzap.netlify.app","image":"https://billzap.netlify.app/assets/og.png","inLanguage":["en","hi","ta","te","kn","ml","mr","gu","bn","pa","or","ur"],"offers":{"@type":"Offer","price":"0","priceCurrency":"INR","availability":"https://schema.org/InStock"},"featureList":["GST tax invoices with HSN and SAC codes","Automatic CGST, SGST and IGST split by place of supply","Works fully offline with no account","UPI QR code on every unpaid invoice","Voice billing in 12 Indian languages","PDF invoices shared to WhatsApp","GSTR-1 ready GST summary export","Profit and loss and revenue reports","Product catalogue with low stock alerts","Day close cash drawer reconciliation","App lock with PIN or fingerprint","Local backup and restore"],"isAccessibleForFree":true},{"@type":"Organization","@id":"https://billzap.netlify.app/#org","name":"BillZap","url":"https://billzap.netlify.app","logo":"https://billzap.netlify.app/assets/icon-512.png"},{"@type":"WebSite","@id":"https://billzap.netlify.app/#site","url":"https://billzap.netlify.app","name":"BillZap","description":"BillZap is a free GST billing app that works offline. Make a tax invoice in 30 seconds, put a UPI QR on it, share the PDF on WhatsApp, and export a GSTR-1 summary. 12 Indian languages, no sign-up, no subscription.","publisher":{"@id":"https://billzap.netlify.app/#org"},"inLanguage":"en"},{"@type":"WebPage","@id":"https://billzap.netlify.app/#page","url":"https://billzap.netlify.app","name":"Free GST Billing App for Indian Shops — Offline Invoices | BillZap","description":"BillZap is a free GST billing app that works offline. Make a tax invoice in 30 seconds, put a UPI QR on it, share the PDF on WhatsApp, and export a GSTR-1 summary. 12 Indian languages, no sign-up, no subscription.","isPartOf":{"@id":"https://billzap.netlify.app/#site"},"about":{"@id":"https://billzap.netlify.app/#app"},"dateModified":"2026-09-16","primaryImageOfPage":"https://billzap.netlify.app/assets/og.png"},{"@type":"FAQPage","@id":"https://billzap.netlify.app/#faq","mainEntity":[{"@type":"Question","name":"Is BillZap really free?","acceptedAnswer":{"@type":"Answer","text":"Yes. There is no paid tier, no trial that expires and no cap on how many invoices you can make. The app you install is the whole app."}},{"@type":"Question","name":"Does it work without internet?","acceptedAnswer":{"@type":"Answer","text":"Completely. Every invoice, customer, product and expense is stored on the phone itself. You can bill all day with the network off and nothing is queued up waiting to sync."}},{"@type":"Question","name":"Are the invoices GST compliant?","acceptedAnswer":{"@type":"Answer","text":"They carry your GSTIN, the buyer's GSTIN, HSN or SAC codes per line, the GST rate on each item, and the tax split shown separately as CGST and SGST or as IGST. Place of supply decides which split applies, and the app tells you which one it has picked before you save."}},{"@type":"Question","name":"Do I need to create an account?","acceptedAnswer":{"@type":"Answer","text":"No. There is no sign-up, no phone number and no email. Open the app and start billing. Because there is no account there is also no server holding your books."}},{"@type":"Question","name":"Can I send the bill on WhatsApp?","acceptedAnswer":{"@type":"Answer","text":"Yes — the invoice becomes a clean PDF with your shop's name on it, shared in two taps. If the bill is unpaid the message includes a UPI payment link as well."}},{"@type":"Question","name":"How does the UPI QR work?","acceptedAnswer":{"@type":"Answer","text":"Put your UPI ID in settings once. Every unpaid invoice then carries a QR code the customer scans with any UPI app to pay you directly. The money goes straight to your bank; BillZap is not in the middle of the payment."}},{"@type":"Question","name":"What is voice billing?","acceptedAnswer":{"@type":"Answer","text":"Speak the item and the amount in your own language and the invoice fills itself in, so your hands can stay on the goods. It understands all twelve of the languages the app is translated into."}},{"@type":"Question","name":"Can my accountant get what they need?","acceptedAnswer":{"@type":"Answer","text":"Yes. Export a month-by-month GST summary laid out for GSTR-1, a profit and loss statement, a revenue report and an invoice status report — as PDF, or as CSV they can open in a spreadsheet."}},{"@type":"Question","name":"What happens if I change phones?","acceptedAnswer":{"@type":"Answer","text":"Take a backup from settings — it is a single file you keep — and restore it on the new phone. Your invoices, customers, products and expenses come back."}},{"@type":"Question","name":"Which Android versions are supported?","acceptedAnswer":{"@type":"Answer","text":"Android 7.0 (Nougat) and above. The download is about 13 MB for the version matched to your phone."}}]},{"@type":"HowTo","@id":"https://billzap.netlify.app/#howto","name":"How to make a GST invoice in BillZap","totalTime":"PT1M","step":[{"@type":"HowToStep","position":1,"name":"Add your shop","text":"Enter your business name, GSTIN and UPI ID in settings. Every invoice afterwards carries them."},{"@type":"HowToStep","position":2,"name":"Make the bill","text":"Pick the customer and add the items. GST is applied per item and the total updates as you go."},{"@type":"HowToStep","position":3,"name":"Get paid","text":"Show the UPI QR code or share the PDF on WhatsApp, then mark the invoice paid."}]}]}</script>
 </head>
 <body>
-<a class="skip" href="#features">Skip to content</a>
+<a class="skip" href="#main">Skip to content</a>
 
-<!-- ─── Flowing ribbon background (decorative) ────────────────────── -->
-<div class="ribbons" aria-hidden="true">
-  <div class="rb-wrap w1"><svg class="ribbon-1" viewBox="0 0 1200 260" preserveAspectRatio="none" fill="none">
-    <path d="M-60 140 C 240 20, 420 250, 660 140 S 1020 20, 1320 150" stroke="url(#rg1)" stroke-width="66" stroke-linecap="round" opacity=".62"/>
-    <defs><linearGradient id="rg1" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#1557FF" stop-opacity="0"/><stop offset=".5" stop-color="#4070FF" stop-opacity=".68"/><stop offset="1" stop-color="#7C3AED" stop-opacity="0"/>
-    </linearGradient></defs>
-  </svg></div>
-  <div class="rb-wrap w2"><svg class="ribbon-2" viewBox="0 0 1200 260" preserveAspectRatio="none" fill="none">
-    <path d="M-60 150 C 220 250, 460 30, 680 150 S 1060 250, 1320 130" stroke="url(#rg2)" stroke-width="58" stroke-linecap="round" opacity=".54"/>
-    <defs><linearGradient id="rg2" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#00BFA5" stop-opacity="0"/><stop offset=".5" stop-color="#00BFA5" stop-opacity=".62"/><stop offset="1" stop-color="#1557FF" stop-opacity="0"/>
-    </linearGradient></defs>
-  </svg></div>
-  <div class="rb-wrap w3"><svg class="ribbon-3" viewBox="0 0 1200 260" preserveAspectRatio="none" fill="none">
-    <path d="M-60 130 C 260 30, 440 240, 700 130 S 1040 30, 1320 150" stroke="url(#rg3)" stroke-width="62" stroke-linecap="round" opacity=".52"/>
-    <defs><linearGradient id="rg3" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#F59E0B" stop-opacity="0"/><stop offset=".5" stop-color="#FF8A3D" stop-opacity=".58"/><stop offset="1" stop-color="#EC4899" stop-opacity="0"/>
-    </linearGradient></defs>
-  </svg></div>
-</div>
-
-<nav class="top">
-  <div class="nav-in">
+<header class="hdr" id="hdr">
+  <div class="wrap hdr-in">
     <a class="brand" href="#top" aria-label="BillZap home">
-      <img class="mark" src="logo.png" alt="BillZap logo" width="40" height="40" />
+      <img src="assets/icon-68.png" alt="" width="34" height="34" decoding="async">
       BillZap
     </a>
-    <div class="nav-links">
+    <nav class="nav" aria-label="Primary">
       <a href="#features">Features</a>
-      <a href="#devices">Download</a>
+      <a href="#how">How it works</a>
+      <a href="#gst">GST</a>
+      <a href="#compare">Compare</a>
       <a href="#faq">FAQ</a>
-      <a class="btn btn-ghost" href="https://billzap-dashboard.netlify.app/" target="_blank" rel="noopener"><span class="micon">grid_view</span>Dashboard</a>
-      <a class="btn btn-primary" href="#devices"><span class="micon">download</span>Get the app</a>
-    </div>
-  </div>
-</nav>
-
-<!-- ─── HERO ─────────────────────────────────────────────────────── -->
-<header class="hero" id="top">
-  <div class="container hero-center">
-    <span class="eyebrow"><span class="dot"></span> Free GST billing · No sign-up, ever</span>
-    <h1>The free app that turns<br><span class="grad">billing into seconds.</span></h1>
-    <p class="hero-sub">BillZap is the simplest GST billing app - works 100% offline, speaks 12 languages, and puts a UPI QR on every invoice so you get paid instantly. No sign-up. No ads. Free forever.</p>
-    <div class="hero-cta">
-      <a class="btn btn-primary" id="smartDownload" href="#devices"><span class="micon">download</span><span id="smartLabel">Download free</span></a>
-      <a class="btn btn-ghost" href="#devices"><span class="micon">devices</span>All platforms</a>
-    </div>
-    <div class="trust">
-      <span><span class="micon">check_circle</span> 100% offline</span>
-      <span><span class="micon">check_circle</span> No sign-up</span>
-      <span><span class="micon">check_circle</span> 12 languages</span>
-      <span><span class="micon">check_circle</span> Free forever</span>
-    </div>
+    </nav>
+    <a class="btn btn-primary btn-sm" href="#download"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 15V3" /> <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /> <path d="m7 10 5 5 5-5" /></svg> Download free</a>
   </div>
 </header>
 
-<!-- ─── AUTO-ROTATING FEATURE SHOWCASE ───────────────────────────── -->
-<section class="band white" aria-label="What BillZap does">
-  <div class="container">
-    <div class="showcase" id="showcase" data-reveal>
-      <div class="sc-stage">
+<main id="main">
 
-        <article class="sc-slide is-on" data-i="0">
-          <div class="sc-art bg-rose"><div class="eq"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
-          <div class="sc-txt">
-            <span class="tag tag-rose"><span class="micon">mic</span> Voice Bill</span>
-            <h3>Speak a bill into existence</h3>
-            <p>Say it in any of 12 languages - BillZap turns your words straight into a clean GST invoice.</p>
-          </div>
-        </article>
-
-        <article class="sc-slide" data-i="1">
-          <div class="sc-art bg-brand">
-            <svg class="qrsvg" viewBox="0 0 100 100" role="img" aria-label="UPI QR"></svg>
-            <div class="paid"><span class="micon">check</span> Paid</div>
-          </div>
-          <div class="sc-txt">
-            <span class="tag tag-brand"><span class="micon">bolt</span> Get paid instantly</span>
-            <h3>A UPI QR on every invoice</h3>
-            <p>Customers scan and pay before they leave the counter. Works with PhonePe, GPay, Paytm &amp; BHIM.</p>
-          </div>
-        </article>
-
-        <article class="sc-slide" data-i="2">
-          <div class="sc-art bg-green">
-            <div class="doc">
-              <div class="ln"></div><div class="ln s"></div>
-              <div class="tax"><span>CGST</span><span>SGST</span><span>IGST</span></div>
-              <div class="tot">₹4,720</div>
-              <span class="stamp"><span class="micon">check</span></span>
-            </div>
-          </div>
-          <div class="sc-txt">
-            <span class="tag tag-green"><span class="micon">verified</span> GST compliant</span>
-            <h3>GST done right, GSTR-1 ready</h3>
-            <p>CGST/SGST/IGST auto-split, HSN auto-suggested, and a GSTR-1 JSON your CA can upload to the portal.</p>
-          </div>
-        </article>
-
-        <article class="sc-slide" data-i="3">
-          <div class="sc-art bg-amber">
-            <div class="stack"><span class="ring"></span><span class="ring r2"></span><span class="micon t-amber" style="font-size:88px">wifi_off</span></div>
-          </div>
-          <div class="sc-txt">
-            <span class="tag tag-amber"><span class="micon">offline_bolt</span> Offline-first</span>
-            <h3>No internet? No problem</h3>
-            <p>Encrypted on your own device, so it works during power cuts and in dead zones. Your data never leaves your phone.</p>
-          </div>
-        </article>
-
-        <article class="sc-slide" data-i="4">
-          <div class="sc-art bg-purple"><div class="bars purpv"><i></i><i></i><i></i><i></i><i></i></div><span class="micon spark">north_east</span></div>
-          <div class="sc-txt">
-            <span class="tag tag-purple"><span class="micon">inventory_2</span> Inventory &amp; profit</span>
-            <h3>Know what sells &amp; what earns</h3>
-            <p>Live stock with low-stock alerts, plus a profit-margin chip on every product so you know what actually makes money.</p>
-          </div>
-        </article>
-
-        <article class="sc-slide" data-i="5">
-          <div class="sc-art bg-brand"><div class="bars"><i></i><i></i><i></i><i></i><i></i></div></div>
-          <div class="sc-txt">
-            <span class="tag tag-brand"><span class="micon">monitoring</span> Reports &amp; insights</span>
-            <h3>Your business at a glance</h3>
-            <p>Revenue charts, profit &amp; loss, GST summaries, Day Close, and a smart daily insight that tells you what to do next.</p>
-          </div>
-        </article>
-
-        <article class="sc-slide" data-i="6">
-          <div class="sc-art bg-amber"><span class="glyph langGlyph">அ</span></div>
-          <div class="sc-txt">
-            <span class="tag tag-amber"><span class="micon">translate</span> Multilingual</span>
-            <h3>Twelve languages, every festival</h3>
-            <p>Real translations in 12 languages, lakh/crore formatting, and festival greeting cards customers remember you for.</p>
-          </div>
-        </article>
-
-        <article class="sc-slide" data-i="7">
-          <div class="sc-art bg-green"><div class="stack"><span class="pulse"></span><span class="micon t-green" style="font-size:88px">lock</span></div></div>
-          <div class="sc-txt">
-            <span class="tag tag-green"><span class="micon">shield</span> Private by design</span>
-            <h3>Your books, locked to your thumb</h3>
-            <p>App Lock with PIN + fingerprint / Face ID, encrypted local backup, and zero third-party trackers.</p>
-          </div>
-        </article>
-
-      </div>
-
-      <div class="sc-bar"><i></i></div>
-      <div class="sc-dots">
-        <button class="sc-dot is-on" data-i="0"><span class="micon">mic</span> Voice</button>
-        <button class="sc-dot" data-i="1"><span class="micon">qr_code_2</span> UPI</button>
-        <button class="sc-dot" data-i="2"><span class="micon">verified</span> GST</button>
-        <button class="sc-dot" data-i="3"><span class="micon">offline_bolt</span> Offline</button>
-        <button class="sc-dot" data-i="4"><span class="micon">inventory_2</span> Stock</button>
-        <button class="sc-dot" data-i="5"><span class="micon">monitoring</span> Reports</button>
-        <button class="sc-dot" data-i="6"><span class="micon">translate</span> Languages</button>
-        <button class="sc-dot" data-i="7"><span class="micon">shield</span> Security</button>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ─── STATS ────────────────────────────────────────────────────── -->
-<section class="band white">
-  <div class="container">
-    <div class="stats">
-      <div class="stat-card" data-reveal><div class="n" data-count="12">12</div><div class="l">languages</div></div>
-      <div class="stat-card" data-reveal><div class="n">100%</div><div class="l">Works offline</div></div>
-      <div class="stat-card" data-reveal><div class="n">₹0</div><div class="l">Free, forever</div></div>
-      <div class="stat-card" data-reveal><div class="n" data-count="30">30+</div><div class="l">Features &amp; counting</div></div>
-    </div>
-  </div>
-</section>
-
-<!-- ─── STORY INTRO ──────────────────────────────────────────────── -->
-<section class="band cream">
-  <div class="container sec-head" data-reveal>
-    <span class="eyebrow"><span class="dot"></span> The story</span>
-    <h2>Billing software was built for someone else.</h2>
-    <p>Desktop software that dies in a power cut. Cloud apps that freeze without a signal. ₹18,000/year licences for a shop that runs on a ₹8,000 phone. BillZap is the opposite - it opens, it works, it gets out of your way. Here's everything it does, one scroll at a time.</p>
-  </div>
-</section>
-
-<!-- ─── FEATURES (storytelling) ──────────────────────────────────── -->
-<div id="features"></div>
-
-<!-- 1. Voice billing -->
-<section class="band white"><div class="container">
-  <div class="feat">
-    <div class="text" data-reveal>
-      <span class="tag tag-rose"><span class="micon">mic</span> Voice Bill</span>
-      <h3>Speak a bill into existence.</h3>
-      <p>"For Ravi, 2 kg sugar 50 rupees and 1 kg salt 20 rupees." Say it in Tamil, Hindi, Telugu - any of 12 languages - and BillZap turns it into a clean GST invoice. No typing, no menus.</p>
-      <ul>
-        <li><span class="micon">check</span> Works in your mother tongue</li>
-        <li><span class="micon">check</span> Auto-detects items, quantities and rates</li>
-        <li><span class="micon">check</span> Faster than any keyboard</li>
-      </ul>
-    </div>
-    <div class="visual bg-rose" data-reveal data-parallax>
-      <div class="eq"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-    </div>
-  </div>
-</div></section>
-
-<!-- 2. UPI QR -->
-<section class="band cream"><div class="container">
-  <div class="feat">
-    <div class="visual bg-brand" data-reveal data-parallax>
-      <svg class="qrsvg" viewBox="0 0 100 100" role="img" aria-label="UPI QR code"></svg>
-      <div class="paid"><span class="micon">check</span> Paid</div>
-    </div>
-    <div class="text" data-reveal>
-      <span class="tag tag-brand"><span class="micon">bolt</span> Get paid instantly</span>
-      <h3>A UPI QR on every single invoice.</h3>
-      <p>The exact amount, payee and reference are baked into a scannable QR. Your customer scans, pays, and the money's in your account before they leave the counter. Works with PhonePe, GPay, Paytm, BHIM - every UPI app.</p>
-      <ul>
-        <li><span class="micon">check</span> One-tap "Pay now" deep links</li>
-        <li><span class="micon">check</span> Copyable UPI link for WhatsApp</li>
-        <li><span class="micon">check</span> Mark paid &amp; track who still owes you</li>
-      </ul>
-    </div>
-  </div>
-</div></section>
-
-<!-- 3. GST + GSTR-1 -->
-<section class="band white"><div class="container">
-  <div class="feat">
-    <div class="text" data-reveal>
-      <span class="tag tag-green"><span class="micon">verified</span> GST compliant</span>
-      <h3>GST done right - and your CA will love you.</h3>
-      <p>CGST, SGST and IGST split automatically from the customer's state. HSN codes auto-suggested as you type. Then export a ready-to-upload <strong>GSTR-1 JSON</strong> for the GST portal, plus PDF and CSV reports.</p>
-      <ul>
-        <li><span class="micon">check</span> Auto CGST / SGST / IGST</li>
-        <li><span class="micon">check</span> GSTR-1 JSON for the portal</li>
-        <li><span class="micon">check</span> PDF + CSV for your accountant</li>
-      </ul>
-    </div>
-    <div class="visual bg-green" data-reveal data-parallax>
-      <div class="doc">
-        <div class="ln"></div><div class="ln s"></div>
-        <div class="tax"><span>CGST</span><span>SGST</span><span>IGST</span></div>
-        <div class="tot">₹4,720</div>
-        <span class="stamp"><span class="micon">check</span></span>
-      </div>
-    </div>
-  </div>
-</div></section>
-
-<!-- 4. Offline -->
-<section class="band cream"><div class="container">
-  <div class="feat">
-    <div class="visual bg-amber" data-reveal data-parallax>
-      <div class="stack">
-        <span class="ring"></span><span class="ring r2"></span>
-        <span class="micon t-amber" style="font-size:92px">wifi_off</span>
-      </div>
-    </div>
-    <div class="text" data-reveal>
-      <span class="tag tag-amber"><span class="micon">offline_bolt</span> Offline-first</span>
-      <h3>No internet? No problem.</h3>
-      <p>Every byte lives encrypted on your own device. Power cut at 6:42 AM, no signal in the basement godown, patchy village network - BillZap doesn't care. It just works, then syncs when you want it to.</p>
-      <ul>
-        <li><span class="micon">check</span> Bill during outages &amp; dead zones</li>
-        <li><span class="micon">check</span> Your data never leaves your device</li>
-        <li><span class="micon">check</span> Zero third-party trackers</li>
-      </ul>
-    </div>
-  </div>
-</div></section>
-
-<!-- 5. Stock + margin -->
-<section class="band white"><div class="container">
-  <div class="feat">
-    <div class="text" data-reveal>
-      <span class="tag tag-purple"><span class="micon">inventory_2</span> Inventory &amp; profit</span>
-      <h3>Know what's selling - and what's earning.</h3>
-      <p>Track stock that auto-decrements on every sale, with low-stock alerts on your dashboard before you run out. Add a cost price and BillZap shows the profit margin on every product, so you know what actually makes money.</p>
-      <ul>
-        <li><span class="micon">check</span> Live stock + low-stock alerts</li>
-        <li><span class="micon">check</span> Profit margin per product</li>
-        <li><span class="micon">check</span> Catalog with smart GST detection</li>
-      </ul>
-    </div>
-    <div class="visual bg-purple" data-reveal data-parallax>
-      <div class="bars purpv"><i></i><i></i><i></i><i></i><i></i></div>
-      <span class="micon spark">north_east</span>
-    </div>
-  </div>
-</div></section>
-
-<!-- 6. Reports -->
-<section class="band cream"><div class="container">
-  <div class="feat">
-    <div class="visual bg-brand" data-reveal data-parallax>
-      <div class="bars"><i></i><i></i><i></i><i></i><i></i></div>
-    </div>
-    <div class="text" data-reveal>
-      <span class="tag tag-brand"><span class="micon">monitoring</span> Reports &amp; insights</span>
-      <h3>Your business, at a glance.</h3>
-      <p>Monthly revenue charts, profit &amp; loss, GST summaries, top customers, invoice aging - and a daily insight card that tells you what to do next. Numbers your accountant asks for, in the format they want them.</p>
-      <ul>
-        <li><span class="micon">check</span> Revenue, P&amp;L and GST reports</li>
-        <li><span class="micon">check</span> Day Close - cash, UPI &amp; bank</li>
-        <li><span class="micon">check</span> Smart daily business insights</li>
-      </ul>
-    </div>
-  </div>
-</div></section>
-
-<!-- 7. Languages + festivals -->
-<section class="band white"><div class="container">
-  <div class="feat">
-    <div class="text" data-reveal>
-      <span class="tag tag-amber"><span class="micon">translate</span> Multilingual</span>
-      <h3>Twelve languages. Every festival.</h3>
-      <p>Not "internationalised" - built properly from line one. Real translations in 12 languages, lakh/crore number formatting, and festival greeting cards your customers will actually remember you for.</p>
-      <div class="langs" style="justify-content:flex-start;margin-top:8px">
-        <span class="lang">English</span><span class="lang">हिन्दी</span><span class="lang">தமிழ்</span><span class="lang">తెలుగు</span>
-        <span class="lang">ಕನ್ನಡ</span><span class="lang">മലയാളം</span><span class="lang">मराठी</span><span class="lang">ગુજરાતી</span>
-        <span class="lang">বাংলা</span><span class="lang">ਪੰਜਾਬੀ</span><span class="lang">ଓଡ଼ିଆ</span><span class="lang">اردو</span>
-      </div>
-    </div>
-    <div class="visual bg-amber" data-reveal data-parallax>
-      <span class="glyph langGlyph">அ</span>
-    </div>
-  </div>
-</div></section>
-
-<!-- 8. Security -->
-<section class="band cream"><div class="container">
-  <div class="feat">
-    <div class="visual bg-green" data-reveal data-parallax>
-      <div class="stack">
-        <span class="pulse"></span>
-        <span class="micon t-green" style="font-size:92px">lock</span>
-      </div>
-    </div>
-    <div class="text" data-reveal>
-      <span class="tag tag-green"><span class="micon">shield</span> Private by design</span>
-      <h3>Your books, locked to your thumb.</h3>
-      <p>App Lock with PIN and fingerprint / Face ID keeps your business data yours. Encrypted on-device storage, local backup &amp; restore, and absolutely nothing sitting on someone else's server.</p>
-      <ul>
-        <li><span class="micon">check</span> PIN + biometric app lock</li>
-        <li><span class="micon">check</span> Encrypted local backup &amp; restore</li>
-        <li><span class="micon">check</span> No cloud, no leaks, no trackers</li>
-      </ul>
-    </div>
-  </div>
-</div></section>
-
-<!-- ─── DEVICES / DOWNLOAD ───────────────────────────────────────── -->
-<section class="band soft" id="devices">
-  <div class="container">
-    <div class="sec-head" data-reveal>
-      <span class="eyebrow"><span class="dot"></span> One app, every device</span>
-      <h2>Download BillZap free.</h2>
-      <p>Same app, same data model, on the phone in your pocket and the PC at your counter. Pick your platform - the download starts instantly.</p>
-    </div>
-    <div class="devices">
-      <div class="device" data-reveal>
-        <div class="ic bg-green"><span class="micon t-green">android</span></div>
-        <h4>Android</h4>
-        <div class="meta">Phones &amp; tablets. Tap to install.</div>
-        <a class="btn btn-primary" href="https://github.com/dakshu007/billzap/releases/latest/download/BillZap-Android.apk"><span class="micon">download</span>Download APK</a>
-      </div>
-      <div class="device" data-reveal>
-        <div class="ic bg-purple"><span class="micon t-purple">desktop_windows</span></div>
-        <h4>Windows</h4>
-        <div class="meta">One-click installer for your counter PC.</div>
-        <a class="btn btn-dark" href="https://github.com/dakshu007/billzap/releases/latest/download/BillZap-Windows-Setup.exe"><span class="micon">download</span>Download .exe</a>
-      </div>
-      <div class="device" data-reveal>
-        <div class="ic bg-amber"><span class="micon t-amber">laptop_mac</span></div>
-        <h4>macOS</h4>
-        <div class="meta">Liquid Glass desktop app. Drag &amp; drop.</div>
-        <a class="btn btn-dark" href="https://github.com/dakshu007/billzap/releases/latest/download/BillZap-macOS.dmg"><span class="micon">download</span>Download .dmg</a>
-      </div>
-    </div>
-    <p style="text-align:center;color:var(--muted-2);font-size:13px;margin-top:22px">
-      Desktop builds are unsigned for now - a one-time "open anyway" step.
-      <a href="https://github.com/dakshu007/billzap/releases/latest">See all downloads &amp; release notes →</a>
-    </p>
-  </div>
-</section>
-
-<!-- ─── DASHBOARD INTERLINK ──────────────────────────────────────── -->
-<section class="band white">
-  <div class="container dash">
-    <div class="text" data-reveal>
-      <span class="eyebrow"><span class="dot"></span> Big-screen control</span>
-      <h2 style="font-size:clamp(26px,3.8vw,40px)">Run the shop from the counter PC.</h2>
-      <p style="font-size:17px;color:var(--muted)">Heavy data entry, reports and printing feel right at home on a desktop. The BillZap dashboard mirrors the app's clean, cream theme on a big screen - built for the cashier who bills all day.</p>
-      <div class="hero-cta" style="margin-top:8px">
-        <a class="btn btn-primary" href="https://billzap-dashboard.netlify.app/" target="_blank" rel="noopener"><span class="micon">open_in_new</span>Open the dashboard</a>
-      </div>
-    </div>
-    <a class="dash-mock" href="https://billzap-dashboard.netlify.app/" target="_blank" rel="noopener" data-reveal aria-label="Open BillZap dashboard">
-      <div class="bar"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i></div>
-      <div class="body">
-        <div class="side">
-          <div class="row on"></div><div class="row"></div><div class="row"></div><div class="row"></div><div class="row"></div>
+  <!-- ── HERO ─────────────────────────────────────────────────── -->
+  <section class="hero" id="top">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z" /></svg> Free forever · No sign-up</p>
+        <h1>GST bills in <span class="hl">30 seconds</span>, even with no signal.</h1>
+        <p class="hero-sub">
+          BillZap is a free GST billing app built for Indian shops. Make a
+          proper tax invoice at the counter, put a UPI QR on it so the
+          customer pays before they leave, and send it on WhatsApp — all
+          without internet.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#download"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 15V3" /> <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /> <path d="m7 10 5 5 5-5" /></svg> Download for Android</a>
+          <a class="btn btn-ghost" href="#how"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14" /> <path d="m12 5 7 7-7 7" /></svg> See how it works</a>
         </div>
-        <div class="main">
-          <div class="hero"></div>
-          <div class="cards"><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div></div>
+        <ul class="hero-trust">
+          <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 20h.01" /> <path d="M8.5 16.429a5 5 0 0 1 7 0" /> <path d="M5 12.859a10 10 0 0 1 5.17-2.69" /> <path d="M19 12.859a10 10 0 0 0-2.007-1.523" /> <path d="M2 8.82a15 15 0 0 1 4.177-2.643" /> <path d="M22 8.82a15 15 0 0 0-11.288-3.764" /> <path d="m2 2 20 20" /></svg> Works offline</li>
+          <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /> <path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg> Data stays on your phone</li>
+          <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 3h12" /> <path d="M6 8h12" /> <path d="m6 13 8.5 8" /> <path d="M6 13h3" /> <path d="M9 13c6.667 0 6.667-10 0-10" /></svg> No subscription</li>
+          <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m5 8 6 6" /> <path d="m4 14 6-6 2-3" /> <path d="M2 5h12" /> <path d="M7 2h1" /> <path d="m22 22-5-10-5 10" /> <path d="M14 18h6" /></svg> 12 Indian languages</li>
+        </ul>
+      </div>
+
+      <div class="device-stage">
+        <div class="chip chip-a float"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z" /></svg> <span>Bill made in <b>28s</b></span></div>
+        <div class="chip chip-b float"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect width="5" height="5" x="3" y="3" rx="1" /> <rect width="5" height="5" x="16" y="3" rx="1" /> <rect width="5" height="5" x="3" y="16" rx="1" /> <path d="M21 16h-3a2 2 0 0 0-2 2v3" /> <path d="M21 21v.01" /> <path d="M12 7v3a2 2 0 0 1-2 2H7" /> <path d="M3 12h.01" /> <path d="M12 3h.01" /> <path d="M12 16v.01" /> <path d="M16 12h1" /> <path d="M21 12v.01" /> <path d="M12 21v-1" /></svg> <span>Paid by <b>UPI</b></span></div>
+        <div class="chip chip-c float"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 20h.01" /> <path d="M8.5 16.429a5 5 0 0 1 7 0" /> <path d="M5 12.859a10 10 0 0 1 5.17-2.69" /> <path d="M19 12.859a10 10 0 0 0-2.007-1.523" /> <path d="M2 8.82a15 15 0 0 1 4.177-2.643" /> <path d="M22 8.82a15 15 0 0 0-11.288-3.764" /> <path d="m2 2 20 20" /></svg> <span><b>0</b> bars of signal</span></div>
+        <div class="device">
+          <img src="assets/shots/home-786.webp"
+               srcset="assets/shots/home-393.webp 393w, assets/shots/home-786.webp 786w"
+               sizes="(max-width:940px) 78vw, 290px"
+               width="786" height="1704" fetchpriority="high" decoding="async"
+               alt="BillZap home screen showing total revenue of ₹2,56,688, pending payments and quick actions">
         </div>
       </div>
-    </a>
-  </div>
-</section>
+    </div>
+  </section>
 
-<!-- ─── FAQ ──────────────────────────────────────────────────────── -->
-<section class="band cream" id="faq">
-  <div class="container">
-    <div class="sec-head" data-reveal>
-      <span class="eyebrow"><span class="dot"></span> Questions</span>
-      <h2>Everything you might ask.</h2>
+  <!-- ── STATS ────────────────────────────────────────────────── -->
+  <section class="stats" aria-label="BillZap at a glance">
+    <div class="wrap stats-grid">
+      <div class="stat rv"><b>30s</b><span>To a finished GST bill</span></div>
+      <div class="stat rv rv-d1"><b>100%</b><span>Works without internet</span></div>
+      <div class="stat rv rv-d2"><b>12</b><span>Indian languages</span></div>
+      <div class="stat rv rv-d3"><b>₹0</b><span>Forever. No trial, no tier</span></div>
     </div>
-    <div class="faq" data-reveal>
-      <details open><summary>Is BillZap really free? <span class="micon">add</span></summary><div class="a">Yes - free forever. No sign-up, no ads, no paywall. Every feature you use today stays free.</div></details>
-      <details><summary>Does it work without internet? <span class="micon">add</span></summary><div class="a">100%. BillZap is offline-first: your data is encrypted on your own device, so it works during power cuts and in dead zones.</div></details>
-      <details><summary>Which languages are supported? <span class="micon">add</span></summary><div class="a">Twelve languages - English, Hindi, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati, Bengali, Punjabi, Odia and Urdu - including voice billing.</div></details>
-      <details><summary>Can I file GST returns? <span class="micon">add</span></summary><div class="a">BillZap auto-calculates CGST/SGST/IGST and exports a GSTR-1 JSON for the GST portal, plus PDF and CSV reports for your CA.</div></details>
-      <details><summary>Is my business data safe? <span class="micon">add</span></summary><div class="a">Your data never leaves your device. App Lock adds PIN + biometric protection, and there are zero third-party trackers.</div></details>
-    </div>
-  </div>
-</section>
+  </section>
 
-<!-- ─── FINAL CTA ────────────────────────────────────────────────── -->
-<section class="band white">
-  <div class="container">
-    <div class="cta" data-reveal>
-      <h2>Start billing in the next 60 seconds.</h2>
-      <p>Download once, work forever. The best free GST billing app - no internet, no sign-up, no surprises.</p>
-      <div class="hero-cta">
-        <a class="btn btn-light" href="#devices"><span class="micon">download</span>Download free</a>
-        <a class="btn btn-outline" href="https://billzap-dashboard.netlify.app/" target="_blank" rel="noopener"><span class="micon">grid_view</span>Try the dashboard</a>
+  <!-- ── PROBLEM ──────────────────────────────────────────────── -->
+  <section class="sec" id="why">
+    <div class="wrap">
+      <div class="sec-head rv">
+        <p class="eyebrow"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 21v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5" /> <path d="M17.774 10.31a1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.451 0 1.12 1.12 0 0 0-1.548 0 2.5 2.5 0 0 1-3.452 0 1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.77-3.248l2.889-4.184A2 2 0 0 1 7 2h10a2 2 0 0 1 1.653.873l2.895 4.192a2.5 2.5 0 0 1-3.774 3.244" /> <path d="M4 10.95V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8.05" /></svg> Built for the counter</p>
+        <h2>Most billing apps were not made for a shop.</h2>
+        <p>
+          They ask you to sign up, then to subscribe, then to be online.
+          Meanwhile there is a customer standing in front of you holding
+          cash. BillZap is built the other way round.
+        </p>
+      </div>
+      <div class="grid g3">
+        <article class="card rv">
+          <div class="badge b-coral"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 20h.01" /> <path d="M8.5 16.429a5 5 0 0 1 7 0" /> <path d="M5 12.859a10 10 0 0 1 5.17-2.69" /> <path d="M19 12.859a10 10 0 0 0-2.007-1.523" /> <path d="M2 8.82a15 15 0 0 1 4.177-2.643" /> <path d="M22 8.82a15 15 0 0 0-11.288-3.764" /> <path d="m2 2 20 20" /></svg></div>
+          <h3>The signal drops mid-bill</h3>
+          <p>
+            A cloud app freezes the moment the network does. BillZap keeps
+            every invoice, customer and product on the phone itself, so
+            the basement shop and the village market work the same as a
+            fibre line.
+          </p>
+        </article>
+        <article class="card rv rv-d1">
+          <div class="badge b-amber"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 3h12" /> <path d="M6 8h12" /> <path d="m6 13 8.5 8" /> <path d="M6 13h3" /> <path d="M9 13c6.667 0 6.667-10 0-10" /></svg></div>
+          <h3>The free plan runs out</h3>
+          <p>
+            Twenty invoices, then a paywall. BillZap has no invoice limit,
+            no trial clock and no paid tier — the app you install is the
+            whole app.
+          </p>
+        </article>
+        <article class="card rv rv-d2">
+          <div class="badge b-violet"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect width="16" height="20" x="4" y="2" rx="2" /> <line x1="8" x2="16" y1="6" y2="6" /> <line x1="16" x2="16" y1="14" y2="18" /> <path d="M16 10h.01" /> <path d="M12 10h.01" /> <path d="M8 10h.01" /> <path d="M12 14h.01" /> <path d="M8 14h.01" /> <path d="M12 18h.01" /> <path d="M8 18h.01" /></svg></div>
+          <h3>The tax split goes wrong</h3>
+          <p>
+            CGST and SGST for your own state, IGST for another. BillZap
+            reads it from your place of supply and says which one it is
+            picking, on the bill screen, before you save.
+          </p>
+        </article>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ─── FOOTER ───────────────────────────────────────────────────── -->
-<footer>
-  <div class="container">
-    <div class="foot">
-      <div class="foot-brand">
-        <a class="brand" href="#top"><img class="mark" src="logo.png" alt="BillZap logo" width="40" height="40" />BillZap</a>
-        <p>The free, offline-first GST billing app for millions of small shops.</p>
+  <!-- ── FEATURES ─────────────────────────────────────────────── -->
+  <section class="sec" id="features" style="background:var(--paper);border-block:1px solid var(--hairline)">
+    <div class="wrap">
+      <div class="sec-head rv">
+        <p class="eyebrow"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /> <path d="M20 2v4" /> <path d="M22 4h-4" /> <circle cx="4" cy="20" r="2" /></svg> Everything included</p>
+        <h2>One app, the whole shop.</h2>
+        <p>
+          Billing, customers, stock, expenses and the numbers your
+          accountant asks for — without paying for a single add-on.
+        </p>
       </div>
-      <div class="col">
-        <h5>Product</h5>
-        <a href="#features">Features</a>
-        <a href="#devices">Download</a>
-        <a href="https://billzap-dashboard.netlify.app/" target="_blank" rel="noopener">Dashboard</a>
-        <a href="case-study.html">Case study</a>
-      </div>
-      <div class="col">
-        <h5>Platforms</h5>
-        <a href="https://github.com/dakshu007/billzap/releases/latest/download/BillZap-Android.apk">Android (APK)</a>
-        <a href="https://github.com/dakshu007/billzap/releases/latest/download/BillZap-Windows-Setup.exe">Windows (.exe)</a>
-        <a href="https://github.com/dakshu007/billzap/releases/latest/download/BillZap-macOS.dmg">macOS (.dmg)</a>
-      </div>
-      <div class="col">
-        <h5>More</h5>
-        <a href="#faq">FAQ</a>
-        <a href="https://github.com/dakshu007/billzap" target="_blank" rel="noopener">GitHub</a>
-        <a href="https://github.com/dakshu007/billzap/releases/latest" target="_blank" rel="noopener">Releases</a>
+      <div class="grid g3">
+        <article class="card rv">
+          <div class="badge b-jade"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13 16H8" /> <path d="M14 8H8" /> <path d="M16 12H8" /> <path d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z" /></svg></div>
+          <h3>GST invoices that hold up</h3>
+          <p>HSN codes, per-item GST rates, CGST/SGST/IGST worked out for
+             you, and your GSTIN on every bill.</p>
+        </article>
+        <article class="card rv rv-d1">
+          <div class="badge b-violet"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect width="5" height="5" x="3" y="3" rx="1" /> <rect width="5" height="5" x="16" y="3" rx="1" /> <rect width="5" height="5" x="3" y="16" rx="1" /> <path d="M21 16h-3a2 2 0 0 0-2 2v3" /> <path d="M21 21v.01" /> <path d="M12 7v3a2 2 0 0 1-2 2H7" /> <path d="M3 12h.01" /> <path d="M12 3h.01" /> <path d="M12 16v.01" /> <path d="M16 12h1" /> <path d="M21 12v.01" /> <path d="M12 21v-1" /></svg></div>
+          <h3>UPI QR on every bill</h3>
+          <p>The customer scans and pays before leaving the shop. No
+             card machine, no "I'll transfer it tonight".</p>
+        </article>
+        <article class="card rv rv-d2">
+          <div class="badge b-amber"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19v3" /> <path d="M19 10v2a7 7 0 0 1-14 0v-2" /> <rect x="9" y="2" width="6" height="13" rx="3" /></svg></div>
+          <h3>Bill by speaking</h3>
+          <p>Say the item and the amount in your own language and the
+             invoice fills itself in. Hands stay on the goods.</p>
+        </article>
+        <article class="card rv">
+          <div class="badge b-jade"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" /> <path d="M14 2v5a1 1 0 0 0 1 1h5" /> <path d="M10 9H8" /> <path d="M16 13H8" /> <path d="M16 17H8" /></svg></div>
+          <h3>Clean PDF, straight to WhatsApp</h3>
+          <p>A proper tax invoice with your shop's name on it, shared in
+             two taps — with a real ₹ symbol, not "Rs."</p>
+        </article>
+        <article class="card rv rv-d1">
+          <div class="badge b-ink"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 3v16a2 2 0 0 0 2 2h16" /> <path d="M18 17V9" /> <path d="M13 17V5" /> <path d="M8 17v-3" /></svg></div>
+          <h3>Reports your accountant wants</h3>
+          <p>Monthly revenue, GST summary for GSTR-1, profit and loss,
+             and who still owes you — as PDF or CSV.</p>
+        </article>
+        <article class="card rv rv-d2">
+          <div class="badge b-violet"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z" /> <path d="m7 16.5-4.74-2.85" /> <path d="m7 16.5 5-3" /> <path d="M7 16.5v5.17" /> <path d="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z" /> <path d="m17 16.5-5-3" /> <path d="m17 16.5 4.74-2.85" /> <path d="M17 16.5v5.17" /> <path d="M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z" /> <path d="M12 8 7.26 5.15" /> <path d="m12 8 4.74-2.85" /> <path d="M12 13.5V8" /></svg></div>
+          <h3>Catalogue and stock</h3>
+          <p>Save what you sell once, then pick it. Low-stock and
+             out-of-stock warnings sit on the home screen.</p>
+        </article>
+        <article class="card rv">
+          <div class="badge b-amber"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 7V5a2 2 0 0 1 2-2h2" /> <path d="M17 3h2a2 2 0 0 1 2 2v2" /> <path d="M21 17v2a2 2 0 0 1-2 2h-2" /> <path d="M7 21H5a2 2 0 0 1-2-2v-2" /> <path d="M7 12h10" /></svg></div>
+          <h3>Day close</h3>
+          <p>End the day with cash in, UPI in, expenses out and what the
+             drawer should hold — in one screen.</p>
+        </article>
+        <article class="card rv rv-d1">
+          <div class="badge b-coral"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /> <path d="M16 3.128a4 4 0 0 1 0 7.744" /> <path d="M22 21v-2a4 4 0 0 0-3-3.87" /> <circle cx="9" cy="7" r="4" /></svg></div>
+          <h3>Customers and dues</h3>
+          <p>Every buyer's history and outstanding balance, with the
+             oldest unpaid bills listed first so you know who to call.</p>
+        </article>
+        <article class="card rv rv-d2">
+          <div class="badge b-jade"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /> <path d="m9 12 2 2 4-4" /></svg></div>
+          <h3>Locked and backed up</h3>
+          <p>PIN or fingerprint on the app, and a backup file you own —
+             restore it on a new phone in a minute.</p>
+        </article>
       </div>
     </div>
-    <div class="foot-bottom">
-      © 2026 BillZap · Best free GST billing app · Made with ⚡
+  </section>
+
+  <!-- ── HOW IT WORKS ─────────────────────────────────────────── -->
+  <section class="sec" id="how">
+    <div class="wrap">
+      <div class="sec-head rv">
+        <p class="eyebrow"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z" /></svg> Three steps</p>
+        <h2>From install to first bill in a minute.</h2>
+      </div>
+      <div class="steps">
+        <div class="step rv">
+          <h3>Put in your shop</h3>
+          <p>Name, GSTIN and UPI ID. That is the setup — it takes about a
+             minute and every bill you send afterwards carries it.</p>
+        </div>
+        <div class="step rv rv-d1">
+          <h3>Make the bill</h3>
+          <p>Pick the customer, add what they bought. GST is applied per
+             item and the total climbs as you go.</p>
+        </div>
+        <div class="step rv rv-d2">
+          <h3>Get paid</h3>
+          <p>Show the UPI QR, or send the PDF on WhatsApp. Mark it paid
+             and it lands in your reports.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── DEEP DIVES ───────────────────────────────────────────── -->
+  <section class="sec" id="billing" style="background:var(--paper);border-block:1px solid var(--hairline)">
+    <div class="wrap">
+
+      <div class="split">
+        <div class="rv">
+          <p class="eyebrow"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13 16H8" /> <path d="M14 8H8" /> <path d="M16 12H8" /> <path d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z" /></svg> Billing</p>
+          <h3>A tax invoice you would be happy to hand over.</h3>
+          <p>
+            The bill is laid out like a document, not a database screen:
+            your shop at the top, the buyer's GSTIN, every line with its
+            HSN code and rate, and the tax split spelled out underneath.
+          </p>
+          <ul class="ticks">
+            <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10" /> <path d="m16 9-5.5 5.5L8 12" /></svg> <span>Per-item GST — 0%, 5%, 12%, 18%, 28% and 40%</span></li>
+            <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10" /> <path d="m16 9-5.5 5.5L8 12" /></svg> <span>Place of supply decides CGST + SGST against IGST</span></li>
+            <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10" /> <path d="m16 9-5.5 5.5L8 12" /></svg> <span>Discounts and delivery charges, applied before tax</span></li>
+            <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10" /> <path d="m16 9-5.5 5.5L8 12" /></svg> <span>Your bank details and UPI QR printed on the bill</span></li>
+          </ul>
+        </div>
+        <div class="shot rv rv-d1">
+          <div class="device">
+            <img src="assets/shots/doc-786.webp"
+                 srcset="assets/shots/doc-393.webp 393w, assets/shots/doc-786.webp 786w"
+                 sizes="(max-width:900px) 72vw, 272px"
+                 width="786" height="1704" loading="lazy" decoding="async"
+                 alt="A BillZap tax invoice showing line items with HSN codes, CGST and SGST at 6% each, and a total due of ₹21,672">
+          </div>
+        </div>
+      </div>
+
+      <div class="split">
+        <div class="shot rv">
+          <div class="device">
+            <img src="assets/shots/ledger-786.webp"
+                 srcset="assets/shots/ledger-393.webp 393w, assets/shots/ledger-786.webp 786w"
+                 sizes="(max-width:900px) 72vw, 272px"
+                 width="786" height="1704" loading="lazy" decoding="async"
+                 alt="The BillZap invoice list with paid, sent and overdue bills, each showing the customer name and amount">
+          </div>
+        </div>
+        <div class="rv rv-d1">
+          <p class="eyebrow"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect width="20" height="12" x="2" y="6" rx="2" /> <circle cx="12" cy="12" r="2" /> <path d="M6 12h.01M18 12h.01" /></svg> Getting paid</p>
+          <h3>Know exactly who still owes you.</h3>
+          <p>
+            Every bill is colour-coded the moment its due date passes.
+            The ledger sorts by what is most overdue, so the call you
+            make is the one worth making.
+          </p>
+          <ul class="ticks">
+            <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10" /> <path d="m16 9-5.5 5.5L8 12" /></svg> <span>Paid, sent, pending and overdue at a glance</span></li>
+            <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10" /> <path d="m16 9-5.5 5.5L8 12" /></svg> <span>Ageing buckets — 0–30, 31–60, 61–90, 90+ days</span></li>
+            <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10" /> <path d="m16 9-5.5 5.5L8 12" /></svg> <span>A WhatsApp reminder with the UPI link attached</span></li>
+            <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10" /> <path d="m16 9-5.5 5.5L8 12" /></svg> <span>Search by customer, number or amount</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="split">
+        <div class="rv">
+          <p class="eyebrow"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 3v16a2 2 0 0 0 2 2h16" /> <path d="M18 17V9" /> <path d="M13 17V5" /> <path d="M8 17v-3" /></svg> Numbers</p>
+          <h3>What you earned, what you owe, what is left.</h3>
+          <p>
+            Revenue by month, GST collected split into CGST, SGST and
+            IGST, and profit after expenses. Export any of it as a clean
+            PDF or a CSV your accountant can open.
+          </p>
+          <ul class="ticks">
+            <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10" /> <path d="m16 9-5.5 5.5L8 12" /></svg> <span>Month-by-month GST breakdown for GSTR-1</span></li>
+            <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10" /> <path d="m16 9-5.5 5.5L8 12" /></svg> <span>Profit and loss on a cash basis</span></li>
+            <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10" /> <path d="m16 9-5.5 5.5L8 12" /></svg> <span>Your biggest customers, ranked</span></li>
+            <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10" /> <path d="m16 9-5.5 5.5L8 12" /></svg> <span>Indian digit grouping — ₹12,34,567, never ₹1,234,567</span></li>
+          </ul>
+        </div>
+        <div class="shot rv rv-d1">
+          <div class="device">
+            <img src="assets/shots/reports-786.webp"
+                 srcset="assets/shots/reports-393.webp 393w, assets/shots/reports-786.webp 786w"
+                 sizes="(max-width:900px) 72vw, 272px"
+                 width="786" height="1704" loading="lazy" decoding="async"
+                 alt="BillZap reports screen with a monthly revenue chart, GST summary and profit and loss">
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── GST ──────────────────────────────────────────────────── -->
+  <section class="sec" id="gst">
+    <div class="wrap">
+      <div class="sec-head rv">
+        <p class="eyebrow"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /> <path d="m9 12 2 2 4-4" /></svg> Compliance</p>
+        <h2>GST handled properly, not approximately.</h2>
+        <p>
+          Getting the tax wrong means reissuing the bill. BillZap does the
+          parts that are easy to get wrong, and shows its working.
+        </p>
+      </div>
+      <div class="grid g2">
+        <article class="card rv">
+          <div class="badge b-jade"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect width="16" height="20" x="4" y="2" rx="2" /> <line x1="8" x2="16" y1="6" y2="6" /> <line x1="16" x2="16" y1="14" y2="18" /> <path d="M16 10h.01" /> <path d="M12 10h.01" /> <path d="M8 10h.01" /> <path d="M12 14h.01" /> <path d="M8 14h.01" /> <path d="M12 18h.01" /> <path d="M8 18h.01" /></svg></div>
+          <h3>The right tax, automatically</h3>
+          <p>
+            Same state as your shop and it charges CGST + SGST. Different
+            state and it switches to IGST. The invoice screen tells you
+            which one it has chosen and why, so a wrong place of supply
+            cannot slip past you.
+          </p>
+        </article>
+        <article class="card rv rv-d1">
+          <div class="badge b-violet"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" /> <path d="M14 2v5a1 1 0 0 0 1 1h5" /> <path d="M10 9H8" /> <path d="M16 13H8" /> <path d="M16 17H8" /></svg></div>
+          <h3>Ready for GSTR-1</h3>
+          <p>
+            A month-by-month summary of taxable value, CGST, SGST and
+            IGST, exportable as PDF or CSV. It is supporting data for
+            your filing, laid out the way your accountant reads it.
+          </p>
+        </article>
+        <article class="card rv">
+          <div class="badge b-amber"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z" /> <path d="M12 22V12" /> <polyline points="3.29 7 12 12 20.71 7" /> <path d="m7.5 4.27 9 5.15" /></svg></div>
+          <h3>HSN and SAC on every line</h3>
+          <p>
+            Save the code once against the item in your catalogue and it
+            prints on every bill that includes it, with the GST rate
+            suggested from the item name.
+          </p>
+        </article>
+        <article class="card rv rv-d1">
+          <div class="badge b-ink"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /> <path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6" /> <rect x="6" y="14" width="12" height="8" rx="1" /></svg></div>
+          <h3>Print or share</h3>
+          <p>
+            Send the PDF on WhatsApp, or print to a WiFi or Bluetooth
+            printer from the same screen. The rupee symbol renders
+            correctly in both.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── LANGUAGES ────────────────────────────────────────────── -->
+  <section class="sec" id="languages" style="background:var(--paper);border-block:1px solid var(--hairline)">
+    <div class="wrap">
+      <div class="sec-head rv">
+        <p class="eyebrow"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m5 8 6 6" /> <path d="m4 14 6-6 2-3" /> <path d="M2 5h12" /> <path d="M7 2h1" /> <path d="m22 22-5-10-5 10" /> <path d="M14 18h6" /></svg> Your language</p>
+        <h2>The whole app, in the language you think in.</h2>
+        <p>Not just the menus — the voice billing understands them too.</p>
+      </div>
+      <ul class="langs rv">
+        <li class="lang">English</li>
+        <li class="lang">हिन्दी <i>Hindi</i></li>
+        <li class="lang">தமிழ் <i>Tamil</i></li>
+        <li class="lang">తెలుగు <i>Telugu</i></li>
+        <li class="lang">ಕನ್ನಡ <i>Kannada</i></li>
+        <li class="lang">മലയാളം <i>Malayalam</i></li>
+        <li class="lang">मराठी <i>Marathi</i></li>
+        <li class="lang">ગુજરાતી <i>Gujarati</i></li>
+        <li class="lang">বাংলা <i>Bengali</i></li>
+        <li class="lang">ਪੰਜਾਬੀ <i>Punjabi</i></li>
+        <li class="lang">ଓଡ଼ିଆ <i>Odia</i></li>
+        <li class="lang">اردو <i>Urdu</i></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── COMPARE ──────────────────────────────────────────────── -->
+  <section class="sec" id="compare">
+    <div class="wrap">
+      <div class="sec-head rv">
+        <p class="eyebrow"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M16 7h6v6" /> <path d="m22 7-8.5 8.5-5-5L2 17" /></svg> Side by side</p>
+        <h2>What you usually get, and what you get here.</h2>
+      </div>
+      <div class="cmp-scroll rv">
+        <table class="cmp">
+          <caption>Typical free tiers of cloud billing apps, compared with BillZap.</caption>
+          <thead>
+            <tr>
+              <th scope="col">What matters at the counter</th>
+              <th scope="col">Typical billing app</th>
+              <th scope="col">BillZap</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Works with no internet</th><td class="no">Needs a connection</td><td>Fully offline</td></tr>
+            <tr><th scope="row">Invoices per month</th><td class="no">Capped on the free plan</td><td>Unlimited</td></tr>
+            <tr><th scope="row">Cost</th><td class="no">Free trial, then monthly</td><td>Free, with no paid tier</td></tr>
+            <tr><th scope="row">Sign-up required</th><td class="no">Account and phone number</td><td>None — open and bill</td></tr>
+            <tr><th scope="row">Where your data lives</th><td class="no">On someone else's server</td><td>On your phone</td></tr>
+            <tr><th scope="row">Voice billing</th><td class="no">Rare, usually English only</td><td>12 Indian languages</td></tr>
+            <tr><th scope="row">UPI QR on the invoice</th><td class="no">Often a paid add-on</td><td>Included</td></tr>
+            <tr><th scope="row">GSTR-1 summary export</th><td class="no">Usually a higher plan</td><td>Included</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PRIVACY ──────────────────────────────────────────────── -->
+  <section class="sec" id="privacy" style="background:var(--paper);border-block:1px solid var(--hairline)">
+    <div class="wrap split">
+      <div class="rv">
+        <p class="eyebrow"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /> <path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg> Privacy</p>
+        <h3>Your books are nobody else's business.</h3>
+        <p>
+          BillZap has no account, no server and no analytics on your
+          invoices. What you bill stays in the app's own storage on your
+          phone. There is nothing for us to read, sell or lose, because
+          nothing is sent anywhere.
+        </p>
+        <ul class="ticks">
+          <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10" /> <path d="m16 9-5.5 5.5L8 12" /></svg> <span>No sign-up, no phone number, no email</span></li>
+          <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10" /> <path d="m16 9-5.5 5.5L8 12" /></svg> <span>Invoices never leave the device unless you share them</span></li>
+          <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10" /> <path d="m16 9-5.5 5.5L8 12" /></svg> <span>App lock with a PIN or your fingerprint</span></li>
+          <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10" /> <path d="m16 9-5.5 5.5L8 12" /></svg> <span>Your own backup file, restorable on a new phone</span></li>
+        </ul>
+      </div>
+      <div class="shot rv rv-d1">
+        <div class="device">
+          <img src="assets/shots/create-786.webp"
+               srcset="assets/shots/create-393.webp 393w, assets/shots/create-786.webp 786w"
+               sizes="(max-width:900px) 72vw, 272px"
+               width="786" height="1704" loading="lazy" decoding="async"
+               alt="The new invoice screen in BillZap, showing the customer, dates and place of supply with the CGST and SGST split">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FAQ ──────────────────────────────────────────────────── -->
+  <section class="sec" id="faq">
+    <div class="wrap">
+      <div class="sec-head rv">
+        <p class="eyebrow"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" /> <path d="M20 2v4" /> <path d="M22 4h-4" /> <circle cx="4" cy="20" r="2" /></svg> Questions</p>
+        <h2>The things people ask first.</h2>
+      </div>
+      <div class="faq rv">
+        <details><summary>Is BillZap really free?<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6" /></svg></summary><p class="a">Yes. There is no paid tier, no trial that expires and no cap on how many invoices you can make. The app you install is the whole app.</p></details>
+        <details><summary>Does it work without internet?<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6" /></svg></summary><p class="a">Completely. Every invoice, customer, product and expense is stored on the phone itself. You can bill all day with the network off and nothing is queued up waiting to sync.</p></details>
+        <details><summary>Are the invoices GST compliant?<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6" /></svg></summary><p class="a">They carry your GSTIN, the buyer's GSTIN, HSN or SAC codes per line, the GST rate on each item, and the tax split shown separately as CGST and SGST or as IGST. Place of supply decides which split applies, and the app tells you which one it has picked before you save.</p></details>
+        <details><summary>Do I need to create an account?<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6" /></svg></summary><p class="a">No. There is no sign-up, no phone number and no email. Open the app and start billing. Because there is no account there is also no server holding your books.</p></details>
+        <details><summary>Can I send the bill on WhatsApp?<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6" /></svg></summary><p class="a">Yes — the invoice becomes a clean PDF with your shop's name on it, shared in two taps. If the bill is unpaid the message includes a UPI payment link as well.</p></details>
+        <details><summary>How does the UPI QR work?<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6" /></svg></summary><p class="a">Put your UPI ID in settings once. Every unpaid invoice then carries a QR code the customer scans with any UPI app to pay you directly. The money goes straight to your bank; BillZap is not in the middle of the payment.</p></details>
+        <details><summary>What is voice billing?<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6" /></svg></summary><p class="a">Speak the item and the amount in your own language and the invoice fills itself in, so your hands can stay on the goods. It understands all twelve of the languages the app is translated into.</p></details>
+        <details><summary>Can my accountant get what they need?<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6" /></svg></summary><p class="a">Yes. Export a month-by-month GST summary laid out for GSTR-1, a profit and loss statement, a revenue report and an invoice status report — as PDF, or as CSV they can open in a spreadsheet.</p></details>
+        <details><summary>What happens if I change phones?<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6" /></svg></summary><p class="a">Take a backup from settings — it is a single file you keep — and restore it on the new phone. Your invoices, customers, products and expenses come back.</p></details>
+        <details><summary>Which Android versions are supported?<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6" /></svg></summary><p class="a">Android 7.0 (Nougat) and above. The download is about 13 MB for the version matched to your phone.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── DOWNLOAD ─────────────────────────────────────────────── -->
+  <section class="sec" id="download" style="padding-top:0">
+    <div class="wrap">
+      <div class="cta rv">
+        <h2>Start billing in the next five minutes.</h2>
+        <p>
+          Free to download, free to use, and it keeps working when the
+          network does not. No account, no card, no trial running out.
+        </p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://github.com/dakshu007/billzap/releases"
+             rel="noopener"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect width="14" height="20" x="5" y="2" rx="2" ry="2" /> <path d="M12 18h.01" /></svg> Get it for Android</a>
+          <a class="btn btn-ghost" href="#features"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14" /> <path d="m12 5 7 7-7 7" /></svg> See the features again</a>
+        </div>
+        <p class="cta-note">Android 7.0 and above · about 13 MB · works offline from the first launch</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="ftr">
+  <div class="wrap">
+    <div class="ftr-grid">
+      <div>
+        <div class="brand">
+          <img src="assets/icon-68.png" alt="" width="34" height="34" loading="lazy" decoding="async">
+          BillZap
+        </div>
+        <p>Free GST billing for Indian shops. Made for the counter, not
+           the boardroom.</p>
+      </div>
+      <div>
+        <h3>Product</h3>
+        <ul>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#how">How it works</a></li>
+          <li><a href="#languages">Languages</a></li>
+          <li><a href="#download">Download</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>GST</h3>
+        <ul>
+          <li><a href="#gst">Compliance</a></li>
+          <li><a href="#gst">GSTR-1 export</a></li>
+          <li><a href="#billing">Tax invoices</a></li>
+          <li><a href="#compare">Compare</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>More</h3>
+        <ul>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#privacy">Privacy</a></li>
+          <li><a href="/llms.txt">llms.txt</a></li>
+          <li><a href="https://github.com/dakshu007/billzap" rel="noopener">Source</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="ftr-btm">
+      <span>© <span id="yr">2026</span> BillZap · Free GST billing for Indian MSMEs</span>
+      <span>Works offline · No account · No subscription</span>
     </div>
   </div>
 </footer>
 
-<!-- ─── Scripts: icon-load guard, smart download, Lenis + GSAP ──────── -->
 <script>
-/* 1) Hide Material icons until the font is ready → no shortcode flash. */
+/* Progressive enhancement only. The page is complete and readable with
+   this script blocked; it adds the scroll reveal and the header's
+   shadow, nothing more. `js` is set first so the reveal styles only
+   apply when something can un-apply them. */
 (function(){
-  function reveal(){ document.documentElement.classList.add('icons-ready'); }
-  if (document.fonts && document.fonts.load){
-    Promise.race([
-      Promise.all([
-        document.fonts.load("400 24px 'Material Symbols Rounded'"),
-        document.fonts.load("400 48px 'Material Symbols Rounded'")
-      ]),
-      new Promise(function(r){ setTimeout(r, 2500); })  /* fallback */
-    ]).then(reveal).catch(reveal);
-  } else { reveal(); }
-})();
-
-/* 2) Smart hero button - auto-detect the visitor's OS and set the
-   label + link. iPhone is excluded (no direct install on iOS), so
-   iOS visitors get a neutral "Download free" → the platforms section. */
-(function(){
-  var ua = navigator.userAgent || '';
-  var base = 'https://github.com/dakshu007/billzap/releases/latest/download/';
-  var os = null;
-  if (/android/i.test(ua)) os = {label:'Download for Android', file:'BillZap-Android.apk'};
-  else if (/windows/i.test(ua)) os = {label:'Download for Windows', file:'BillZap-Windows-Setup.exe'};
-  else if (/macintosh|mac os x/i.test(ua) && !/iphone|ipad|ipod/i.test(ua)) os = {label:'Download for Mac', file:'BillZap-macOS.dmg'};
-  if (os){
-    var b = document.getElementById('smartDownload');
-    document.getElementById('smartLabel').textContent = os.label;
-    b.setAttribute('href', base + os.file);
-  }
-})();
-
-/* 3) Language illustration - cycle the glyph through regional scripts.
-   Targets every .langGlyph (hero showcase + the deep-dive section). */
-(function(){
-  var els = document.querySelectorAll('.langGlyph');
-  if (!els.length) return;
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  var glyphs = ['அ','अ','ক','ಕ','అ','ગ','ਪ','ଓ','ا','മ','ਬ','A'];
-  var i = 0;
-  setInterval(function(){
-    i = (i + 1) % glyphs.length;
-    els.forEach(function(el){ el.style.opacity='0'; el.style.transform='translateY(8px) scale(.9)'; });
-    setTimeout(function(){
-      els.forEach(function(el){ el.textContent=glyphs[i]; el.style.opacity='1'; el.style.transform='none'; });
-    }, 220);
-  }, 1400);
-})();
-
-/* 4) Clean QR - draw tidy rounded modules + 3 finder patterns into every
-   .qrsvg (decorative, not a real code). Replaces the messy checkerboard. */
-(function(){
-  var NS='http://www.w3.org/2000/svg', DARK='#0A1426', N=11, cell=100/N;
-  function mod(svg,x,y){ var p=cell*0.16, e=document.createElementNS(NS,'rect');
-    e.setAttribute('x',(x*cell+p).toFixed(2)); e.setAttribute('y',(y*cell+p).toFixed(2));
-    e.setAttribute('width',(cell-2*p).toFixed(2)); e.setAttribute('height',(cell-2*p).toFixed(2));
-    e.setAttribute('rx',((cell-2*p)*0.34).toFixed(2)); e.setAttribute('fill',DARK); svg.appendChild(e); }
-  function finder(svg,ox,oy){
-    var o=document.createElementNS(NS,'rect');
-    o.setAttribute('x',(ox*cell+cell*0.2).toFixed(2)); o.setAttribute('y',(oy*cell+cell*0.2).toFixed(2));
-    o.setAttribute('width',(cell*3-cell*0.4).toFixed(2)); o.setAttribute('height',(cell*3-cell*0.4).toFixed(2));
-    o.setAttribute('rx',(cell*0.78).toFixed(2)); o.setAttribute('fill','none');
-    o.setAttribute('stroke',DARK); o.setAttribute('stroke-width',(cell*0.5).toFixed(2)); svg.appendChild(o);
-    var c=document.createElementNS(NS,'rect');
-    c.setAttribute('x',(ox*cell+cell).toFixed(2)); c.setAttribute('y',(oy*cell+cell).toFixed(2));
-    c.setAttribute('width',cell.toFixed(2)); c.setAttribute('height',cell.toFixed(2));
-    c.setAttribute('rx',(cell*0.42).toFixed(2)); c.setAttribute('fill',DARK); svg.appendChild(c);
-  }
-  var pts=[[4,2],[5,2],[6,2],[2,3],[9,3],[10,3],[3,4],[4,4],[6,4],[8,4],[9,4],
-           [2,5],[5,5],[7,5],[10,5],[4,6],[6,6],[9,6],[3,7],[5,7],[7,7],[8,7],[10,7],
-           [4,9],[6,9],[7,9],[9,9],[5,10],[8,10],[10,10]];
-  document.querySelectorAll('.qrsvg').forEach(function(svg){
-    if (svg.childNodes.length) return;
-    finder(svg,0,0); finder(svg,8,0); finder(svg,0,8);
-    pts.forEach(function(p){ mod(svg,p[0],p[1]); });
-  });
-})();
-
-/* 5) Auto-rotating feature showcase - advances every 4s, with a
-   progress bar, clickable tabs, and pause-on-hover. */
-(function(){
-  var sc = document.getElementById('showcase'); if(!sc) return;
-  var slides = sc.querySelectorAll('.sc-slide');
-  var dots = sc.querySelectorAll('.sc-dot');
-  var bar = sc.querySelector('.sc-bar > i');
-  var i = 0, timer = null, DUR = 4000;
-  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  function paint(){
-    slides.forEach(function(s,n){ s.classList.toggle('is-on', n===i); });
-    dots.forEach(function(d,n){ d.classList.toggle('is-on', n===i); });
-    if (bar && !reduce){
-      bar.style.transition='none'; bar.style.width='0%';
-      requestAnimationFrame(function(){ requestAnimationFrame(function(){
-        bar.style.transition='width '+DUR+'ms linear'; bar.style.width='100%'; }); });
-    }
-  }
-  function go(n){ i=(n+slides.length)%slides.length; paint(); }
-  function start(){ if(reduce) return; stop(); timer=setInterval(function(){ go(i+1); }, DUR); }
-  function stop(){ if(timer){ clearInterval(timer); timer=null; } }
-  dots.forEach(function(d,n){ d.addEventListener('click', function(){ go(n); start(); }); });
-  sc.addEventListener('mouseenter', stop);
-  sc.addEventListener('mouseleave', start);
-  paint(); start();
-})();
-</script>
-
-<!-- Lenis (buttery smooth scroll) + GSAP (scroll reveals). Deferred so
-     they never block first paint. prefers-reduced-motion is respected. -->
-<script defer src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-<script defer>
-window.addEventListener('load', function(){
-  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (reduce || !window.gsap){
-    document.querySelectorAll('[data-reveal]').forEach(function(el){ el.style.opacity=1; el.style.transform='none'; });
-    return;
-  }
-  document.documentElement.classList.add('gsap-ready');
-  gsap.registerPlugin(ScrollTrigger);
-
-  /* Lenis smooth scroll - lerp-based so it stays connected to the input
-     (snappy, not floaty). Touch keeps native momentum. */
-  if (window.Lenis){
-    var lenis = new Lenis({ lerp:0.1, wheelMultiplier:1, smoothWheel:true, smoothTouch:false });
-    lenis.on('scroll', ScrollTrigger.update);
-    gsap.ticker.add(function(t){ lenis.raf(t*1000); });
-    gsap.ticker.lagSmoothing(0);
-    document.querySelectorAll('a[href^="#"]').forEach(function(a){
-      a.addEventListener('click', function(e){
-        var id = a.getAttribute('href');
-        if (id.length>1){ var t=document.querySelector(id); if(t){ e.preventDefault(); lenis.scrollTo(t,{offset:-72}); } }
+  var d=document, r=d.documentElement;
+  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if('IntersectionObserver' in window && !reduce){
+    r.className+=' js';
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
       });
-    });
+    },{rootMargin:'0px 0px -8% 0px',threshold:0.06});
+    d.querySelectorAll('.rv').forEach(function(n){io.observe(n);});
   }
-
-  /* Reveal on scroll - fade + rise, snappy. Parallax elements get
-     opacity only (parallax owns their y, so we don't fight over it). */
-  gsap.utils.toArray('[data-reveal]').forEach(function(el){
-    var vars = { opacity:1, duration:.7, ease:'power3.out',
-      scrollTrigger:{ trigger:el, start:'top 88%', once:true } };
-    if (!el.hasAttribute('data-parallax')) vars.y = 0;
-    gsap.to(el, vars);
-  });
-
-  /* Scroll-linked parallax - feature visuals drift as you scroll past,
-     giving the page a living, depth-y feel. */
-  gsap.utils.toArray('[data-parallax]').forEach(function(el){
-    gsap.fromTo(el, { y:46 }, {
-      y:-46, ease:'none',
-      scrollTrigger:{ trigger:el, start:'top bottom', end:'bottom top', scrub:0.6 }
-    });
-  });
-
-  /* Flowing ribbons drift independently with scroll, so the waves
-     travel around the page as you go down (each svg keeps its idle CSS
-     animation; GSAP moves the wrapper, so no transform clash). */
-  [['.w1',-11,46],['.w2',14,-36],['.w3',-9,58]].forEach(function(m){
-    var el=document.querySelector(m[0]); if(!el) return;
-    gsap.to(el,{ xPercent:m[1], yPercent:m[2], ease:'none',
-      scrollTrigger:{ trigger:document.body, start:'top top', end:'bottom bottom', scrub:1 } });
-  });
-
-  /* Count-up for the stat numbers that have data-count. */
-  gsap.utils.toArray('[data-count]').forEach(function(el){
-    var end = parseInt(el.getAttribute('data-count'),10);
-    var suffix = el.textContent.replace(/[0-9]/g,'');
-    var obj = { v:0 };
-    gsap.to(obj, {
-      v:end, duration:1.4, ease:'power2.out',
-      scrollTrigger:{ trigger:el, start:'top 90%', once:true },
-      onUpdate:function(){ el.textContent = Math.round(obj.v) + suffix; }
-    });
-  });
-});
+  var h=d.getElementById('hdr');
+  var onScroll=function(){ h.classList.toggle('stuck', window.scrollY>8); };
+  addEventListener('scroll',onScroll,{passive:true}); onScroll();
+  d.getElementById('yr').textContent=new Date().getFullYear();
+})();
 </script>
 </body>
 </html>
