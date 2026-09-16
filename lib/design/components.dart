@@ -133,6 +133,20 @@ class AppWell extends StatelessWidget {
 
 enum AppButtonKind { primary, neutral, outline, ghost, danger }
 
+/// Whichever of white / near-black reads better on [fill], by WCAG
+/// contrast ratio. Used for fills that flip lightness between themes.
+Color _readableOn(Color fill) {
+  double ratio(Color a, Color b) {
+    final la = a.computeLuminance(), lb = b.computeLuminance();
+    final hi = la > lb ? la : lb, lo = la > lb ? lb : la;
+    return (hi + 0.05) / (lo + 0.05);
+  }
+
+  return ratio(Colors.white, fill) >= ratio(AppColor.ink900, fill)
+      ? Colors.white
+      : AppColor.ink900;
+}
+
 /// The app's button. Primary carries a jade glow — the one place an
 /// accent is allowed to bleed past its own edge, which is what makes the
 /// main action on a screen unmistakable.
@@ -233,9 +247,11 @@ class AppButton extends StatelessWidget {
           shadow: AppElevation.none
         );
       case AppButtonKind.danger:
+        // Dark mode lifts `overdue` to a soft red, where white text only
+        // clears 2.6:1. Pick whichever foreground actually contrasts.
         return (
           bg: AppColor.overdue,
-          fg: Colors.white,
+          fg: _readableOn(AppColor.overdue),
           border: null,
           shadow: AppElevation.glow(AppColor.overdue)
         );
