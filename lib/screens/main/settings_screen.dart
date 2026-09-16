@@ -13,6 +13,7 @@ import '../../theme/app_theme.dart';
 import '../../theme/app_spacing.dart';
 import '../../design/components.dart';
 import '../../design/tokens.dart';
+import '../../design/motion.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../i18n/translations.dart';
@@ -152,78 +153,176 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
   Widget build(BuildContext context) {
     final stateNames = kStates.map((s) => s.split(' (')[0]).toList();
     final currentState = stateNames.contains(_state) ? _state : 'Tamil Nadu';
-    final dropdownItems = kStates.map((s) {
-      final n = s.split(' (')[0];
-      return DropdownMenuItem<String>(
-        value: n,
-        child: Text(s, style: AppFont.sans(fontSize: 13)));
-    }).toList();
 
-    final saveBtn = SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: _saving ? null : _save,
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 15)),
-        child: _saving
-          ? const SizedBox(
-              width: 20, height: 20,
-              child: CircularProgressIndicator(
-                color: Colors.white, strokeWidth: 2))
-          : Text(tr('set.save_business', ref),
-              style: AppFont.sans(
-                fontSize: 14, fontWeight: FontWeight.w700))));
+    // What the page is *about*, at the top: the identity every invoice
+    // this shop sends will carry. A form with no subject is just nine
+    // grey boxes.
+    final filled = [
+      _name.text.trim().isNotEmpty,
+      _gstin.text.trim().isNotEmpty,
+      _phone.text.trim().isNotEmpty,
+      _email.text.trim().isNotEmpty,
+      _addr.text.trim().isNotEmpty,
+      _city.text.trim().isNotEmpty,
+      _pin.text.trim().isNotEmpty,
+    ];
+    final done = filled.where((x) => x).length;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.screenH, 4, AppSpacing.screenH, AppSpacing.bottomNavSafe),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _Sec(tr('set.business_profile', ref)),
-          _F(tr('set.business_name', ref) + ' *', _name, hint: 'e.g. Ravi Electronics'),
-          _F(tr('cust.gstin', ref), _gstin,
-            hint: '33RAAAA1234B1Z5', caps: true,
-            errorText: _gstinErr,
-            onChanged: (v) => setState(() => _gstinErr = Validators.gstin(v))),
-          Row(children: [
-            Expanded(child: _F(tr('cust.phone', ref), _phone,
-              hint: '+91 98765 43210', type: TextInputType.phone,
-              errorText: _phoneErr,
-              onChanged: (v) => setState(() => _phoneErr = Validators.phone(v)))),
-            const Gap(10),
-            Expanded(child: _F(tr('cust.email', ref), _email,
-              hint: 'you@email.com', type: TextInputType.emailAddress,
-              errorText: _emailErr,
-              onChanged: (v) => setState(() => _emailErr = Validators.email(v)))),
-          ]),
-          _F(tr('cust.address', ref), _addr, hint: 'Street, Area'),
-          Row(children: [
-            Expanded(child: _F(tr('set.city', ref), _city, hint: 'Coimbatore')),
-            const Gap(10),
-            Expanded(child: _F(tr('set.pincode', ref), _pin,
-              hint: '641001', type: TextInputType.number, max: 6,
-              errorText: _pinErr,
-              onChanged: (v) => setState(() => _pinErr = Validators.pincode(v)))),
-          ]),
-          _Label(tr('set.state', ref)),
-          DropdownButtonFormField<String>(
-            value: currentState,
-            decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10)),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: AppColors.border)),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 14, vertical: 13)),
-            items: dropdownItems,
-            onChanged: (v) => setState(() => _state = v ?? _state)),
-          const Gap(20),
-          saveBtn,
-        ],
+    return Stack(children: [
+      SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.screenH, 4, AppSpacing.screenH, AppSpacing.bottomNavSafe),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _IdentityCard(
+              name: _name.text.trim(),
+              gstin: _gstin.text.trim(),
+              city: _city.text.trim(),
+              done: done,
+              total: filled.length,
+            ),
+            const Gap(AppSpace.lg),
+
+            FieldGroup(
+              title: tr('set.business_profile', ref),
+              subtitle: 'Printed at the top of every bill',
+              icon: Symbols.storefront,
+              children: [
+                AppField(
+                  label: tr('set.business_name', ref),
+                  controller: _name,
+                  icon: Symbols.storefront,
+                  hint: 'e.g. Ravi Electronics',
+                  onChanged: (_) => setState(() {}),
+                ),
+                AppField(
+                  label: tr('cust.gstin', ref),
+                  controller: _gstin,
+                  icon: Symbols.verified,
+                  hint: '33RAAAA1234B1Z5',
+                  caps: true,
+                  errorText: _gstinErr,
+                  helper: 'Leave blank if you are not registered',
+                  onChanged: (v) =>
+                      setState(() => _gstinErr = Validators.gstin(v)),
+                ),
+              ],
+            ),
+
+            FieldGroup(
+              title: 'How customers reach you',
+              subtitle: 'Shown on the bill and the WhatsApp message',
+              icon: Symbols.phone,
+              tone: AppColor.info,
+              children: [
+                AppField(
+                  label: tr('cust.phone', ref),
+                  controller: _phone,
+                  icon: Symbols.phone,
+                  hint: '+91 98765 43210',
+                  keyboardType: TextInputType.phone,
+                  errorText: _phoneErr,
+                  onChanged: (v) =>
+                      setState(() => _phoneErr = Validators.phone(v)),
+                ),
+                AppField(
+                  label: tr('cust.email', ref),
+                  controller: _email,
+                  icon: Symbols.mail,
+                  hint: 'you@email.com',
+                  keyboardType: TextInputType.emailAddress,
+                  errorText: _emailErr,
+                  onChanged: (v) =>
+                      setState(() => _emailErr = Validators.email(v)),
+                ),
+              ],
+            ),
+
+            FieldGroup(
+              title: 'Where you trade from',
+              subtitle: 'State decides CGST/SGST against IGST',
+              icon: Symbols.location_on,
+              tone: AppColor.pending,
+              children: [
+                AppField(
+                  label: tr('cust.address', ref),
+                  controller: _addr,
+                  icon: Symbols.location_on,
+                  hint: 'Street, area',
+                  maxLines: 2,
+                  validatable: false,
+                  onChanged: (_) => setState(() {}),
+                ),
+                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Expanded(
+                    flex: 3,
+                    child: AppField(
+                      label: tr('set.city', ref),
+                      controller: _city,
+                      hint: 'Coimbatore',
+                      onChanged: (_) => setState(() {}),
+                    ),
+                  ),
+                  const Gap(AppSpace.md),
+                  Expanded(
+                    flex: 2,
+                    child: AppField(
+                      label: tr('set.pincode', ref),
+                      controller: _pin,
+                      hint: '641001',
+                      keyboardType: TextInputType.number,
+                      maxLength: 6,
+                      errorText: _pinErr,
+                      onChanged: (v) =>
+                          setState(() => _pinErr = Validators.pincode(v)),
+                    ),
+                  ),
+                ]),
+                _StatePicker(
+                  value: currentState,
+                  onChanged: (v) => setState(() => _state = v),
+                ),
+              ],
+            ),
+            const Gap(AppSpace.xxl),
+          ],
+        ),
       ),
-    );
+
+      // Pinned, not at the tail of the scroll. Somebody correcting a
+      // GSTIN should not have to scroll past four groups to commit it.
+      Positioned(
+        left: 0,
+        right: 0,
+        bottom: 0,
+        child: IgnorePointer(
+          ignoring: false,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(
+                AppSpacing.screenH, AppSpace.md, AppSpacing.screenH, 96),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  AppColor.canvas.withValues(alpha: 0),
+                  AppColor.canvas,
+                  AppColor.canvas,
+                ],
+                stops: const [0, 0.42, 1],
+              ),
+            ),
+            child: AppButton(
+              label: tr('set.save_business', ref),
+              icon: Symbols.check,
+              busy: _saving,
+              onPressed: _saving ? null : _save,
+            ),
+          ),
+        ),
+      ),
+    ]);
   }
 
   Future<void> _save() async {
@@ -924,4 +1023,261 @@ Widget _F(String label, TextEditingController ctrl,
         style: AppFont.sans(
           fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.t1)),
     ]));
+}
+
+
+/// The header of the business panel: who this profile is, and how much
+/// of it is done. It is the only thing on the page that is not an input,
+/// which is exactly why the page now reads as being *about* something.
+class _IdentityCard extends StatelessWidget {
+  final String name, gstin, city;
+  final int done, total;
+
+  const _IdentityCard({
+    required this.name,
+    required this.gstin,
+    required this.city,
+    required this.done,
+    required this.total,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final complete = done >= total;
+    final label = name.isEmpty ? 'Your business' : name;
+
+    return AppSurface(
+      padding: const EdgeInsets.all(AppSpace.lg),
+      child: Column(children: [
+        Row(children: [
+          AppAvatar(label: label, tone: AppColor.primary, size: 54),
+          const Gap(AppSpace.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppFont.style(AppType.titleS,
+                        color: name.isEmpty
+                            ? AppColor.textTertiary
+                            : AppColor.textPrimary)),
+                const Gap(3),
+                Row(children: [
+                  if (gstin.isNotEmpty) ...[
+                    Icon(Symbols.verified, size: 13, color: AppColor.primary),
+                    const Gap(4),
+                    Flexible(
+                      child: Text(gstin,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppFont.style(AppType.bodyS,
+                              color: AppColor.textSecondary)),
+                    ),
+                  ] else
+                    Text('No GSTIN yet',
+                        style: AppFont.style(AppType.bodyS,
+                            color: AppColor.textTertiary)),
+                  if (city.isNotEmpty) ...[
+                    Text('  \u00B7  ',
+                        style: AppFont.style(AppType.bodyS,
+                            color: AppColor.textTertiary)),
+                    Text(city,
+                        style: AppFont.style(AppType.bodyS,
+                            color: AppColor.textTertiary)),
+                  ],
+                ]),
+              ],
+            ),
+          ),
+        ]),
+        const Gap(AppSpace.lg),
+        // Progress, stated plainly. A percentage is a score; "2 details
+        // left" is an instruction.
+        Row(children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(99),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: total == 0 ? 0 : done / total),
+                duration: AppMotion.slow,
+                curve: AppMotion.standard,
+                builder: (_, v, __) => LinearProgressIndicator(
+                  value: v,
+                  minHeight: 5,
+                  backgroundColor: AppColor.sunken,
+                  valueColor: AlwaysStoppedAnimation(AppColor.primary),
+                ),
+              ),
+            ),
+          ),
+          const Gap(AppSpace.md),
+          Text(
+            complete
+                ? 'All set'
+                : '${total - done} to go',
+            style: AppFont.style(AppType.labelS,
+                color: complete ? AppColor.primary : AppColor.textTertiary),
+          ),
+        ]),
+      ]),
+    );
+  }
+}
+
+/// State picker. A bottom sheet with a search box rather than a 36-entry
+/// dropdown — the list is long enough that scrolling a menu to find
+/// "Uttar Pradesh" is genuinely annoying, and this is the field that
+/// decides whether a bill charges CGST/SGST or IGST.
+class _StatePicker extends StatelessWidget {
+  final String value;
+  final ValueChanged<String> onChanged;
+  const _StatePicker({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final code = kStateMap[value] ?? '';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('STATE',
+            style:
+                AppFont.style(AppType.labelS, color: AppColor.textTertiary)),
+        const Gap(AppSpace.xs),
+        PressScale(
+          onTap: () => _open(context),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(
+                AppSpace.md, AppSpace.md, AppSpace.md, AppSpace.md),
+            decoration: BoxDecoration(
+              color: AppColor.sunken,
+              borderRadius: AppRadius.all(AppRadius.md),
+              border: Border.all(color: AppColor.hairline),
+            ),
+            child: Row(children: [
+              Icon(Symbols.location_city,
+                  size: 18, color: AppColor.textTertiary),
+              const Gap(AppSpace.md),
+              Expanded(
+                child: Text(value,
+                    style: AppFont.style(AppType.bodyL,
+                        color: AppColor.textPrimary)),
+              ),
+              if (code.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpace.sm, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColor.wash(AppColor.primary),
+                    borderRadius: AppRadius.all(AppRadius.xs),
+                  ),
+                  child: Text(code,
+                      style: AppFont.style(AppType.labelS,
+                          color: AppColor.primary)),
+                ),
+              const Gap(AppSpace.sm),
+              Icon(Symbols.expand_more, size: 18, color: AppColor.textTertiary),
+            ]),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _open(BuildContext context) {
+    final search = TextEditingController();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(builder: (ctx, ss) {
+        final q = search.text.trim().toLowerCase();
+        final list = kStates
+            .where((s) => q.isEmpty || s.toLowerCase().contains(q))
+            .toList();
+        return Container(
+          height: MediaQuery.of(ctx).size.height * 0.78,
+          decoration: BoxDecoration(
+            color: AppColor.canvas,
+            borderRadius: BorderRadius.vertical(
+                top: Radius.circular(AppRadius.sheet)),
+          ),
+          padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom),
+          child: Column(children: [
+            const Gap(AppSpace.md),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColor.hairline,
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(AppSpace.gutter,
+                  AppSpace.lg, AppSpace.gutter, AppSpace.md),
+              child: Row(children: [
+                Expanded(
+                  child: Text('Place of business',
+                      style: AppFont.style(AppType.titleS,
+                          color: AppColor.textPrimary)),
+                ),
+                AppIconButton(
+                    icon: Symbols.close, onTap: () => Navigator.pop(ctx)),
+              ]),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpace.gutter),
+              child: AppSearchField(
+                controller: search,
+                hint: 'Search states',
+                hasValue: q.isNotEmpty,
+                onChanged: (_) => ss(() {}),
+                onClear: () {
+                  search.clear();
+                  ss(() {});
+                },
+              ),
+            ),
+            const Gap(AppSpace.md),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.fromLTRB(AppSpace.gutter, 0,
+                    AppSpace.gutter, AppSpace.xxl),
+                itemCount: list.length,
+                itemBuilder: (_, i) {
+                  final full = list[i];
+                  final n = full.split(' (')[0];
+                  final c = kStateMap[n] ?? '';
+                  final on = n == value;
+                  return AppListRow(
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      onChanged(n);
+                      Navigator.pop(ctx);
+                    },
+                    leading: AppAvatar(
+                      label: c.isEmpty ? n : c,
+                      tone: on ? AppColor.primary : AppColor.textTertiary,
+                      size: 38,
+                    ),
+                    title: n,
+                    subtitle: c.isEmpty ? null : 'State code $c',
+                    trailing: on
+                        ? Icon(Symbols.check_circle,
+                            size: 20, color: AppColor.primary)
+                        : const SizedBox.shrink(),
+                  );
+                },
+              ),
+            ),
+          ]),
+        );
+      }),
+    );
+  }
 }

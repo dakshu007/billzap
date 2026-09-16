@@ -3,6 +3,7 @@
 // Fully translated
 // GST auto-classify on item name change
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../utils/smart_amount.dart';
 import 'package:billzap/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +12,7 @@ import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
 import '../../design/components.dart';
+import '../../design/motion.dart';
 import '../../design/money.dart';
 import '../../design/tokens.dart';
 import '../../providers/providers.dart';
@@ -32,6 +34,11 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
   final _custGstin = TextEditingController();
   final _custAddr  = TextEditingController();
   final _notes     = TextEditingController();
+  // Backed by controllers so the fields keep their value when a toggle
+  // hides and re-shows them, instead of silently reverting to 0 while
+  // the total still counted the old figure.
+  final _discountCtrl = TextEditingController();
+  final _shippingCtrl = TextEditingController();
 
   DateTime _date = DateTime.now();
   DateTime _due  = DateTime.now().add(const Duration(days: 30));
@@ -91,6 +98,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
     _custName.removeListener(_onNameChanged);
     _custName.dispose(); _custPhone.dispose();
     _custGstin.dispose(); _custAddr.dispose(); _notes.dispose();
+    _discountCtrl.dispose(); _shippingCtrl.dispose();
     super.dispose();
   }
 
@@ -171,165 +179,292 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
         padding: const EdgeInsets.fromLTRB(
             AppSpace.gutter, AppSpace.md, AppSpace.gutter, AppSpace.xl),
         children: [
-          // Customer
-          _Section(tr('cust.title', ref), children: [
-            _LF(tr('cust.name', ref) + ' *'),
-            Stack(clipBehavior: Clip.none, children: [
-              _TextField(_custName, tr('create.search_customer', ref)),
-              if (_acShow) Positioned(top: 46, left: 0, right: 0, child: Material(
-                elevation: 6, borderRadius: BorderRadius.circular(14),
-                child: ListView(
-                  shrinkWrap: true, padding: EdgeInsets.zero,
-                  children: _acSugg.map((cust) => ListTile(
-                    dense: true,
-                    title: Text(cust.name, style: AppFont.sans(fontWeight: FontWeight.w600, fontSize: 13)),
-                    subtitle: cust.phone.isNotEmpty ? Text(cust.phone, style: AppFont.sans(fontSize: 11, color: AppColors.t3)) : null,
-                    onTap: () => _fillCust(cust),
-                  )).toList(),
+          // ── Who ────────────────────────────────────────────────
+          _Section(
+            tr('cust.title', ref),
+            subtitle: 'Who this bill is for',
+            icon: Symbols.person,
+            children: [
+              Stack(clipBehavior: Clip.none, children: [
+                AppField(
+                  label: tr('cust.name', ref),
+                  controller: _custName,
+                  icon: Symbols.person,
+                  hint: tr('create.search_customer', ref),
+                  helper: 'Start typing to pull up a saved customer',
+                  onChanged: (_) => setState(() {}),
                 ),
-              )),
-            ]),
-            const Gap(10),
-            Row(children: [
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                _LF(tr('cust.phone', ref)), _TextField(_custPhone, '+91 98765 43210', type: TextInputType.phone)])),
-              const Gap(10),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                _LF(tr('cust.gstin', ref) + ' (' + tr('create.optional', ref) + ')'), _TextField(_custGstin, '33RAAAA...', caps: true)])),
-            ]),
-            const Gap(10),
-            _LF(tr('cust.address', ref)), _TextField(_custAddr, 'Street, Area, City'),
-          ]),
+                // The suggestion list hangs off the field rather than
+                // pushing the form down, so the layout does not jump
+                // under the thumb while typing.
+                if (_acShow)
+                  Positioned(
+                    top: 74,
+                    left: 0,
+                    right: 0,
+                    child: AppSurface(
+                      padding: EdgeInsets.zero,
+                      shadow: AppElevation.lifted,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: _acSugg
+                            .map((cust) => PressScale(
+                                  onTap: () => _fillCust(cust),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: AppSpace.md,
+                                        vertical: AppSpace.md),
+                                    child: Row(children: [
+                                      AppAvatar(label: cust.name, size: 34),
+                                      const Gap(AppSpace.md),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(cust.name,
+                                                maxLines: 1,
+                                                overflow:
+                                                    TextOverflow.ellipsis,
+                                                style: AppFont.style(
+                                                    AppType.labelM,
+                                                    color: AppColor
+                                                        .textPrimary)),
+                                            if (cust.phone.isNotEmpty)
+                                              Text(cust.phone,
+                                                  style: AppFont.style(
+                                                      AppType.bodyS,
+                                                      color: AppColor
+                                                          .textTertiary)),
+                                          ],
+                                        ),
+                                      ),
+                                      Icon(Symbols.arrow_forward,
+                                          size: 15,
+                                          color: AppColor.textTertiary),
+                                    ]),
+                                  ),
+                                ))
+                            .toList(),
+                      ),
+                    ),
+                  ),
+              ]),
+              const Gap(AppSpace.md),
+              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Expanded(
+                  child: AppField(
+                    label: tr('cust.phone', ref),
+                    controller: _custPhone,
+                    hint: '98765 43210',
+                    keyboardType: TextInputType.phone,
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+                const Gap(AppSpace.md),
+                Expanded(
+                  child: AppField(
+                    label: tr('cust.gstin', ref),
+                    controller: _custGstin,
+                    hint: '33RAAAA...',
+                    caps: true,
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+              ]),
+              const Gap(AppSpace.md),
+              AppField(
+                label: tr('cust.address', ref),
+                controller: _custAddr,
+                icon: Symbols.location_on,
+                hint: 'Street, area, city',
+                validatable: false,
+                onChanged: (_) => setState(() {}),
+              ),
+            ],
+          ),
 
-          // Invoice info
-          _Section(tr('create.invoice_details', ref), children: [
-            Row(children: [
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                _LF(tr('create.invoice_date', ref)), _DateBtn(_date, (d) => setState(() => _date = d))])),
-              const Gap(10),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                _LF(tr('create.due_date', ref)), _DateBtn(_due, (d) => setState(() => _due = d))])),
-            ]),
-            const Gap(10),
-            _LF(tr('create.place_of_supply', ref)),
-            DropdownButtonFormField<String>(
-              value: kStates.contains(_place) ? _place : kStates.first,
-              decoration: InputDecoration(isDense: true,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: AppColors.border)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13)),
-              items: kStates.map((s) => DropdownMenuItem(value: s,
-                child: Text(s, style: AppFont.sans(fontSize: 13)))).toList(),
-              onChanged: (v) => setState(() {
-                    _place = v ?? _place;
-                    // Intra-state -> CGST+SGST, inter-state -> IGST.
-                    final biz = ref.read(businessProvider);
-                    final code = biz?.stateCode.trim() ?? '';
-                    if (code.isNotEmpty) {
-                      _gstType = _place.endsWith('(\$code)')
-                          ? GstType.cgstSgst
-                          : GstType.igst;
-                    }
-                  })),
-          ]),
+          // ── When, and where the supply happens ─────────────────
+          _Section(
+            tr('create.invoice_details', ref),
+            subtitle: 'Dates, and the state that sets the tax split',
+            icon: Symbols.calendar_today,
+            tone: AppColor.info,
+            children: [
+              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Expanded(
+                    child: _DateBtn(tr('create.invoice_date', ref), _date,
+                        (d) => setState(() => _date = d))),
+                const Gap(AppSpace.md),
+                Expanded(
+                    child: _DateBtn(tr('create.due_date', ref), _due,
+                        (d) => setState(() => _due = d))),
+              ]),
+              const Gap(AppSpace.md),
+              _PlaceOfSupply(
+                value: _place,
+                intraState: _gstType == GstType.cgstSgst,
+                onChanged: (v) => setState(() {
+                  _place = v;
+                  // Intra-state -> CGST+SGST, inter-state -> IGST.
+                  final biz = ref.read(businessProvider);
+                  final code = biz?.stateCode.trim() ?? '';
+                  if (code.isNotEmpty) {
+                    _gstType = _place.endsWith('($code)')
+                        ? GstType.cgstSgst
+                        : GstType.igst;
+                  }
+                }),
+              ),
+            ],
+          ),
 
-          // Line items
-          _Section(tr('create.line_items', ref),
-            trailing: TextButton.icon(
+          // ── What is being sold ─────────────────────────────────
+          _Section(
+            tr('create.line_items', ref),
+            subtitle: '${_lines.length} ${_lines.length == 1 ? "line" : "lines"} on this bill',
+            icon: Symbols.inventory,
+            tone: AppColor.pending,
+            trailing: AppButton.ghost(
+              label: tr('cat.from_catalog', ref),
+              icon: Symbols.add,
               onPressed: _showCatalogPicker,
-              icon: const Icon(Symbols.add, size: 16),
-              label: Text(tr('cat.from_catalog', ref), style: AppFont.sans(fontSize: 12, fontWeight: FontWeight.w600))),
+            ),
             children: [
               ..._lines.asMap().entries.map((e) => _LineRow(
-              item: e.value, index: e.key,
-                onRemove: _lines.length > 1 ? () => setState(() => _lines.removeAt(e.key)) : null,
-                onChange: () => setState(() {}))),
-              const Gap(4),
-              OutlinedButton.icon(
+                  item: e.value,
+                  index: e.key,
+                  onRemove: _lines.length > 1
+                      ? () => setState(() => _lines.removeAt(e.key))
+                      : null,
+                  onChange: () => setState(() {}))),
+              const Gap(AppSpace.sm),
+              AppButton.outline(
+                label: tr('create.add_line_item', ref),
+                icon: Symbols.add,
                 onPressed: () => setState(() => _lines.add(_LineItem())),
-                icon: const Icon(Symbols.add, size: 16),
-                label: Text(tr('create.add_line_item', ref), style: AppFont.sans(fontSize: 13, fontWeight: FontWeight.w600))),
-            ]),
-
-          // Tax
-          _Section(tr('create.tax_adjustments', ref), children: [
-            _TogRow(tr('create.apply_gst', ref), tr('create.gst_auto_calc', ref), _applyGst,
-              (v) => setState(() => _applyGst = v)),
-            if (_applyGst) ...[
-              const Gap(8),
-              _LF(tr('create.gst_type', ref)),
-              Row(children: [
-                _TypeBtn(tr('create.cgst_sgst', ref), _gstType == GstType.cgstSgst,
-                  () => setState(() => _gstType = GstType.cgstSgst)),
-                const Gap(8),
-                _TypeBtn(tr('create.igst', ref), _gstType == GstType.igst,
-                  () => setState(() => _gstType = GstType.igst)),
-              ]),
+              ),
             ],
-            const Divider(height: 20),
-            _TogRow(tr('create.apply_discount', ref), tr('create.flat_discount', ref), _applyDiscount,
-              (v) => setState(() => _applyDiscount = v)),
-            if (_applyDiscount) ...[
-              const Gap(8),
-              _LF(tr('create.discount', ref) + ' (\u20b9)'),
-              TextField(
-                keyboardType: TextInputType.number, onChanged: (v) => setState(() => _discount = double.tryParse(v) ?? 0),
-                decoration: InputDecoration(hintText: '0',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(color: AppColors.border)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13)),
-                style: AppFont.sans(fontSize: 13.5)),
-            ],
-            const Divider(height: 20),
-            _TogRow(tr('create.add_shipping', ref), tr('create.delivery_charges', ref), _applyShipping,
-              (v) => setState(() => _applyShipping = v)),
-            if (_applyShipping) ...[
-              const Gap(8),
-              _LF(tr('create.shipping', ref) + ' (\u20b9)'),
-              TextField(
-                keyboardType: TextInputType.number, onChanged: (v) => setState(() => _shipping = double.tryParse(v) ?? 0),
-                decoration: InputDecoration(hintText: '0',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(color: AppColors.border)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13)),
-                style: AppFont.sans(fontSize: 13.5)),
-            ],
-          ]),
+          ),
 
-          // Summary
-          _Section(tr('create.summary', ref), children: [
-            _SRow(tr('create.subtotal', ref), _sub),
-            if (_cgst > 0) _SRow('CGST', _cgst),
-            if (_sgst > 0) _SRow('SGST', _sgst),
-            if (_igst > 0) _SRow('IGST', _igst),
-            if (_applyShipping && _shipping > 0) _SRow(tr('create.shipping', ref), _shipping),
-            if (_applyDiscount && _discount > 0) _SRow(tr('create.discount', ref), -_discount),
-            const Divider(height: 18),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text(tr('create.grand_total', ref),
-                  style: AppFont.style(AppType.titleS,
-                      color: AppColor.textPrimary)),
-              Money(_grand,
-                  style: AppType.amountL,
-                  compact: false,
-                  color: AppColor.paid),
-            ]),
-          ]),
+          // ── Tax and adjustments ────────────────────────────────
+          _Section(
+            tr('create.tax_adjustments', ref),
+            subtitle: 'GST, discount and delivery',
+            icon: Symbols.calculate,
+            tone: AppColor.info,
+            children: [
+              _TogRow(tr('create.apply_gst', ref),
+                  tr('create.gst_auto_calc', ref), _applyGst,
+                  (v) => setState(() => _applyGst = v)),
+              if (_applyGst) ...[
+                const Gap(AppSpace.md),
+                SegmentedTabs(
+                  index: _gstType == GstType.cgstSgst ? 0 : 1,
+                  onSelect: (i) => setState(() => _gstType =
+                      i == 0 ? GstType.cgstSgst : GstType.igst),
+                  labels: [
+                    tr('create.cgst_sgst', ref),
+                    tr('create.igst', ref),
+                  ],
+                ),
+              ],
+              Divider(height: 28, color: AppColor.hairline),
+              _TogRow(tr('create.apply_discount', ref),
+                  tr('create.flat_discount', ref), _applyDiscount,
+                  (v) => setState(() => _applyDiscount = v)),
+              if (_applyDiscount) ...[
+                const Gap(AppSpace.md),
+                AppField(
+                  label: tr('create.discount', ref),
+                  controller: _discountCtrl,
+                  icon: Symbols.percent,
+                  hint: '0',
+                  suffix: '\u20B9',
+                  validatable: false,
+                  keyboardType: TextInputType.number,
+                  onChanged: (v) =>
+                      setState(() => _discount = double.tryParse(v) ?? 0),
+                ),
+              ],
+              Divider(height: 28, color: AppColor.hairline),
+              _TogRow(tr('create.add_shipping', ref),
+                  tr('create.delivery_charges', ref), _applyShipping,
+                  (v) => setState(() => _applyShipping = v)),
+              if (_applyShipping) ...[
+                const Gap(AppSpace.md),
+                AppField(
+                  label: tr('create.shipping', ref),
+                  controller: _shippingCtrl,
+                  icon: Symbols.local_shipping,
+                  hint: '0',
+                  suffix: '\u20B9',
+                  validatable: false,
+                  keyboardType: TextInputType.number,
+                  onChanged: (v) =>
+                      setState(() => _shipping = double.tryParse(v) ?? 0),
+                ),
+              ],
+            ],
+          ),
 
-          // Notes
-          _Section(tr('create.notes', ref), children: [
-            TextField(controller: _notes, maxLines: 3,
-              decoration: InputDecoration(hintText: tr('create.notes_hint', ref),
-                hintStyle: AppFont.sans(fontSize: 13, color: AppColors.t4),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide(color: AppColors.border)),
-                contentPadding: const EdgeInsets.all(13)),
-              style: AppFont.sans(fontSize: 13.5)),
-          ]),
+          // ── What it comes to ───────────────────────────────────
+          _Section(
+            tr('create.summary', ref),
+            subtitle: 'What the customer pays',
+            icon: Symbols.receipt_long,
+            children: [
+              _SRow(tr('create.subtotal', ref), _sub),
+              if (_cgst > 0) _SRow('CGST', _cgst),
+              if (_sgst > 0) _SRow('SGST', _sgst),
+              if (_igst > 0) _SRow('IGST', _igst),
+              if (_applyShipping && _shipping > 0)
+                _SRow(tr('create.shipping', ref), _shipping),
+              if (_applyDiscount && _discount > 0)
+                _SRow(tr('create.discount', ref), -_discount),
+              const Gap(AppSpace.md),
+              // The grand total sits in a jade well, the same shape the
+              // finished invoice uses for TOTAL DUE — so the number the
+              // customer will see is already recognisable here.
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpace.lg, vertical: AppSpace.md),
+                decoration: BoxDecoration(
+                  color: AppColor.wash(AppColor.primary),
+                  borderRadius: AppRadius.all(AppRadius.md),
+                ),
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(tr('create.grand_total', ref).toUpperCase(),
+                          style: AppFont.style(AppType.labelS,
+                              color: AppColor.primary)),
+                      Money(_grand,
+                          style: AppType.amountL,
+                          compact: false,
+                          color: AppColor.primary),
+                    ]),
+              ),
+            ],
+          ),
+
+          // ── Anything else ──────────────────────────────────────
+          _Section(
+            tr('create.notes', ref),
+            subtitle: 'Prints at the foot of the bill',
+            icon: Symbols.edit,
+            tone: AppColor.textTertiary,
+            children: [
+              AppField(
+                label: tr('create.notes', ref),
+                controller: _notes,
+                hint: tr('create.notes_hint', ref),
+                maxLines: 3,
+                validatable: false,
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -594,32 +729,70 @@ Widget _QtyBtn(String label, VoidCallback onTap) => GestureDetector(
       color: AppColors.onBrand, fontSize: 16, fontWeight: FontWeight.bold)))));
 
 // ── Shared helpers ──────────────────────────────────────────────────────────
+/// One step of the bill, on its own surface with a tinted mark.
+///
+/// Making a bill is five decisions — who, when, what, tax, note — and
+/// the icons let a person scrolling back find the one they want by
+/// shape, before reading a word of it.
 class _Section extends StatelessWidget {
-  final String title; final Widget? trailing; final List<Widget> children;
-  const _Section(this.title, {this.trailing, required this.children});
+  final String title;
+  final String? subtitle;
+  final IconData icon;
+  final Color? tone;
+  final Widget? trailing;
+  final List<Widget> children;
+
+  const _Section(
+    this.title, {
+    required this.icon,
+    this.subtitle,
+    this.tone,
+    this.trailing,
+    required this.children,
+  });
+
   @override
-  Widget build(BuildContext context) => AppSurface(
-        margin: const EdgeInsets.only(bottom: AppSpace.md),
-        padding: EdgeInsets.zero,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-                AppSpace.lg, AppSpace.lg, AppSpace.md, AppSpace.md),
-            child: Row(children: [
-              Text(title,
-                  style: AppFont.style(AppType.titleS,
-                      color: AppColor.textPrimary)),
-              if (trailing != null) ...[const Spacer(), trailing!],
-            ]),
+  Widget build(BuildContext context) {
+    final accent = tone ?? AppColor.primary;
+    return AppSurface(
+      margin: const EdgeInsets.only(bottom: AppSpace.lg),
+      padding: const EdgeInsets.all(AppSpace.lg),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: AppColor.wash(accent),
+              borderRadius: AppRadius.all(AppRadius.sm),
+            ),
+            child: Icon(icon, size: 16, color: accent),
           ),
-          Divider(height: 1, color: AppColor.hairline),
-          Padding(
-            padding: const EdgeInsets.all(AppSpace.lg),
+          const Gap(AppSpace.md),
+          Expanded(
             child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: children),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(title,
+                    style: AppFont.style(AppType.labelL,
+                        color: AppColor.textPrimary)),
+                if (subtitle != null) ...[
+                  const Gap(1),
+                  Text(subtitle!,
+                      style: AppFont.style(AppType.bodyS,
+                          color: AppColor.textTertiary)),
+                ],
+              ],
+            ),
           ),
-        ]));
+          if (trailing != null) trailing!,
+        ]),
+        const Gap(AppSpace.lg),
+        ...children,
+      ]),
+    );
+  }
 }
 
 Widget _LF(String t) => Padding(
@@ -640,25 +813,51 @@ Widget _TextField(TextEditingController ctrl, String hint,
       contentPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13)),
     style: AppFont.sans(fontSize: 13.5, color: AppColors.t1));
 
-Widget _DateBtn(DateTime date, ValueChanged<DateTime> onPick) =>
-  Builder(builder: (ctx) => GestureDetector(
-    onTap: () async {
-      final picked = await showDatePicker(context: ctx,
-        initialDate: date, firstDate: DateTime(2020), lastDate: DateTime(2035));
-      if (picked != null) onPick(picked);
-    },
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      // Use theme-aware card colour so the Invoice/Due Date picker flips
-      // with dark mode instead of staying white forever.
-      decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border)),
-      child: Row(children: [
-        Icon(Symbols.calendar_today, size: 15, color: AppColors.t3),
-        const Gap(7),
-        Text(DateFormat('dd MMM yyyy').format(date),
-          style: AppFont.sans(fontSize: 13.5, color: AppColors.t1)),
-      ]))));
+/// A date, in the same shape as a text field so the row reads as one
+/// set of inputs rather than a field next to a button.
+Widget _DateBtn(String label, DateTime date, ValueChanged<DateTime> onPick) =>
+    Builder(
+      builder: (ctx) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label.toUpperCase(),
+              style: AppFont.style(AppType.labelS,
+                  color: AppColor.textTertiary)),
+          const Gap(AppSpace.xs),
+          PressScale(
+            onTap: () async {
+              final picked = await showDatePicker(
+                context: ctx,
+                initialDate: date,
+                firstDate: DateTime(2020),
+                lastDate: DateTime(2035),
+              );
+              if (picked != null) onPick(picked);
+            },
+            child: Container(
+              padding: const EdgeInsets.all(AppSpace.md),
+              decoration: BoxDecoration(
+                color: AppColor.sunken,
+                borderRadius: AppRadius.all(AppRadius.md),
+                border: Border.all(color: AppColor.hairline),
+              ),
+              child: Row(children: [
+                Icon(Symbols.calendar_today,
+                    size: 17, color: AppColor.textTertiary),
+                const Gap(AppSpace.md),
+                Expanded(
+                  child: Text(DateFormat('d MMM yyyy').format(date),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppFont.style(AppType.bodyL,
+                          color: AppColor.textPrimary)),
+                ),
+              ]),
+            ),
+          ),
+        ],
+      ),
+    );
 
 Widget _TogRow(String label, String sub, bool value, ValueChanged<bool> onChange) =>
   GestureDetector(
@@ -778,4 +977,177 @@ class _TotalBar extends StatelessWidget {
           ),
         ]),
       );
+}
+
+/// Place of supply.
+///
+/// This is the most consequential field on the form and the one people
+/// skip, because it looks like a dropdown of state names. It decides
+/// whether the bill charges CGST+SGST or IGST, and getting it wrong
+/// means reissuing. So it says what it is about to do — "Same state,
+/// CGST + SGST" — rather than only naming a state, and it opens a
+/// searchable sheet instead of a 36-entry menu.
+class _PlaceOfSupply extends StatelessWidget {
+  final String value;
+  final bool intraState;
+  final ValueChanged<String> onChanged;
+
+  const _PlaceOfSupply({
+    required this.value,
+    required this.intraState,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final tone = intraState ? AppColor.primary : AppColor.info;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('PLACE OF SUPPLY',
+            style:
+                AppFont.style(AppType.labelS, color: AppColor.textTertiary)),
+        const Gap(AppSpace.xs),
+        PressScale(
+          onTap: () => _open(context),
+          child: Container(
+            padding: const EdgeInsets.all(AppSpace.md),
+            decoration: BoxDecoration(
+              color: AppColor.sunken,
+              borderRadius: AppRadius.all(AppRadius.md),
+              border: Border.all(color: AppColor.hairline),
+            ),
+            child: Row(children: [
+              Icon(Symbols.location_city, size: 18, color: tone),
+              const Gap(AppSpace.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(value,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppFont.style(AppType.bodyL,
+                            color: AppColor.textPrimary)),
+                    const Gap(1),
+                    Text(
+                        intraState
+                            ? 'Same state · CGST + SGST'
+                            : 'Other state · IGST',
+                        style: AppFont.style(AppType.bodyS, color: tone)),
+                  ],
+                ),
+              ),
+              Icon(Symbols.expand_more, size: 18, color: AppColor.textTertiary),
+            ]),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _open(BuildContext context) {
+    final search = TextEditingController();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(builder: (ctx, ss) {
+        final q = search.text.trim().toLowerCase();
+        final list = kStates
+            .where((s) => q.isEmpty || s.toLowerCase().contains(q))
+            .toList();
+        return Container(
+          height: MediaQuery.of(ctx).size.height * 0.78,
+          decoration: BoxDecoration(
+            color: AppColor.canvas,
+            borderRadius:
+                BorderRadius.vertical(top: Radius.circular(AppRadius.sheet)),
+          ),
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+          child: Column(children: [
+            const Gap(AppSpace.md),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColor.hairline,
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  AppSpace.gutter, AppSpace.lg, AppSpace.gutter, AppSpace.sm),
+              child: Row(children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Place of supply',
+                          style: AppFont.style(AppType.titleS,
+                              color: AppColor.textPrimary)),
+                      Text('Sets the tax split on this bill',
+                          style: AppFont.style(AppType.bodyS,
+                              color: AppColor.textTertiary)),
+                    ],
+                  ),
+                ),
+                AppIconButton(
+                    icon: Symbols.close, onTap: () => Navigator.pop(ctx)),
+              ]),
+            ),
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: AppSpace.gutter),
+              child: AppSearchField(
+                controller: search,
+                hint: 'Search states',
+                hasValue: q.isNotEmpty,
+                onChanged: (_) => ss(() {}),
+                onClear: () {
+                  search.clear();
+                  ss(() {});
+                },
+              ),
+            ),
+            const Gap(AppSpace.md),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.fromLTRB(
+                    AppSpace.gutter, 0, AppSpace.gutter, AppSpace.xxl),
+                itemCount: list.length,
+                itemBuilder: (_, i) {
+                  final full = list[i];
+                  final n = full.split(' (')[0];
+                  final code = kStateMap[n] ?? '';
+                  final on = full == value;
+                  return AppListRow(
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      onChanged(full);
+                      Navigator.pop(ctx);
+                    },
+                    leading: AppAvatar(
+                      label: code.isEmpty ? n : code,
+                      tone: on ? AppColor.primary : AppColor.textTertiary,
+                      size: 38,
+                    ),
+                    title: n,
+                    subtitle: code.isEmpty ? null : 'State code $code',
+                    trailing: on
+                        ? Icon(Symbols.check_circle,
+                            size: 20, color: AppColor.primary)
+                        : const SizedBox.shrink(),
+                  );
+                },
+              ),
+            ),
+          ]),
+        );
+      }),
+    );
+  }
 }

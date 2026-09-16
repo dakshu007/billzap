@@ -76,6 +76,8 @@ class Symbols {
   static const IconData location_city = LucideIcons.building2;
   static const IconData location_on = LucideIcons.mapPin;
   static const IconData lock = LucideIcons.lock;
+  static const IconData percent = LucideIcons.percent;
+  static const IconData local_shipping = LucideIcons.truck;
   static const IconData lock_open = LucideIcons.lockOpen;
   static const IconData mail = LucideIcons.mail;
   static const IconData mic = LucideIcons.mic;
@@ -110,6 +112,7 @@ class Symbols {
   static const IconData translate = LucideIcons.languages;
   static const IconData trending_up = LucideIcons.trendingUp;
   static const IconData undo = LucideIcons.undo2;
+  static const IconData verified = LucideIcons.badgeCheck;
   static const IconData upload_file = LucideIcons.fileUp;
   static const IconData warning = LucideIcons.triangleAlert;
   static const IconData wifi_off = LucideIcons.wifiOff;

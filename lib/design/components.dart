@@ -7,6 +7,7 @@
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:billzap/theme/app_icons.dart';
 
 import 'money.dart';
 import 'motion.dart';
@@ -1423,6 +1424,338 @@ class _SegmentedTabsState extends State<SegmentedTabs>
             },
           );
         },
+      ),
+    );
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// FIELDS
+// ═════════════════════════════════════════════════════════════════════
+
+/// The app's text field.
+///
+/// Material's default is a box that sits there. This one responds: at
+/// rest it is a recessed well, on focus it lifts to the surface tone,
+/// draws a jade keyline and picks up the same glow the primary button
+/// has — so the field you are typing into is the brightest thing on the
+/// screen. The label and the leading icon travel with it.
+///
+/// Validation is shown on the field rather than only under it: a quiet
+/// jade check once the value is good, a coral ring and an inline reason
+/// when it is not. A shopkeeper filling in a GSTIN at a counter should
+/// not have to hunt for which of nine fields is unhappy.
+class AppField extends StatefulWidget {
+  final String label;
+  final TextEditingController controller;
+  final String? hint;
+  final String? helper;
+  final IconData? icon;
+  final TextInputType? keyboardType;
+  final bool caps;
+  final int? maxLength;
+  final int maxLines;
+  final String? errorText;
+
+  /// Show the jade tick once the field has a value and no error. Off for
+  /// fields where "filled in" is not the same as "correct".
+  final bool validatable;
+  final bool enabled;
+  final bool autofocus;
+  final String? suffix;
+  final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
+  final List<TextInputFormatter>? inputFormatters;
+  final TextAlign textAlign;
+  final VoidCallback? onTap;
+  final bool readOnly;
+
+  const AppField({
+    super.key,
+    required this.label,
+    required this.controller,
+    this.hint,
+    this.helper,
+    this.icon,
+    this.keyboardType,
+    this.caps = false,
+    this.maxLength,
+    this.maxLines = 1,
+    this.errorText,
+    this.validatable = true,
+    this.enabled = true,
+    this.autofocus = false,
+    this.suffix,
+    this.onChanged,
+    this.onSubmitted,
+    this.inputFormatters,
+    this.textAlign = TextAlign.start,
+    this.onTap,
+    this.readOnly = false,
+  });
+
+  @override
+  State<AppField> createState() => _AppFieldState();
+}
+
+class _AppFieldState extends State<AppField> {
+  late final FocusNode _focus;
+  bool _focused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _focus = FocusNode()
+      ..addListener(() {
+        if (_focus.hasFocus != _focused) {
+          setState(() => _focused = _focus.hasFocus);
+        }
+      });
+  }
+
+  @override
+  void dispose() {
+    _focus.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final err = widget.errorText;
+    final hasError = err != null && err.isNotEmpty;
+    final filled = widget.controller.text.trim().isNotEmpty;
+    final good = widget.validatable && filled && !hasError;
+
+    final accent = hasError
+        ? AppColor.overdue
+        : _focused
+            ? AppColor.primary
+            : AppColor.hairline;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // The label takes the accent while the field is live, so the eye
+        // can find the active row without reading any of them.
+        AnimatedDefaultTextStyle(
+          duration: AppMotion.fast,
+          curve: AppMotion.standard,
+          style: AppFont.style(
+            AppType.labelS,
+            color: hasError
+                ? AppColor.overdue
+                : _focused
+                    ? AppColor.primary
+                    : AppColor.textTertiary,
+          ),
+          child: Text(widget.label.toUpperCase()),
+        ),
+        const SizedBox(height: AppSpace.xs),
+        AnimatedContainer(
+          duration: AppMotion.fast,
+          curve: AppMotion.standard,
+          decoration: BoxDecoration(
+            color: _focused ? AppColor.surface : AppColor.sunken,
+            borderRadius: AppRadius.all(AppRadius.md),
+            border: Border.all(
+              color: accent,
+              width: _focused || hasError ? 1.5 : 1,
+            ),
+            boxShadow: _focused && !hasError
+                ? AppElevation.glow(AppColor.primary)
+                : AppElevation.none,
+          ),
+          padding: EdgeInsets.fromLTRB(
+            widget.icon != null ? AppSpace.md : AppSpace.lg,
+            widget.maxLines > 1 ? AppSpace.md : 2,
+            AppSpace.md,
+            widget.maxLines > 1 ? AppSpace.md : 2,
+          ),
+          child: Row(
+            crossAxisAlignment: widget.maxLines > 1
+                ? CrossAxisAlignment.start
+                : CrossAxisAlignment.center,
+            children: [
+              if (widget.icon != null) ...[
+                AnimatedContainer(
+                  duration: AppMotion.fast,
+                  padding: const EdgeInsets.only(right: AppSpace.md),
+                  child: Icon(
+                    widget.icon,
+                    size: 18,
+                    color: hasError
+                        ? AppColor.overdue
+                        : _focused
+                            ? AppColor.primary
+                            : AppColor.textTertiary,
+                  ),
+                ),
+              ],
+              Expanded(
+                child: TextField(
+                  controller: widget.controller,
+                  focusNode: _focus,
+                  enabled: widget.enabled,
+                  readOnly: widget.readOnly,
+                  autofocus: widget.autofocus,
+                  onTap: widget.onTap,
+                  keyboardType: widget.keyboardType,
+                  maxLength: widget.maxLength,
+                  maxLines: widget.maxLines,
+                  minLines: widget.maxLines > 1 ? widget.maxLines : null,
+                  textAlign: widget.textAlign,
+                  onChanged: (v) {
+                    widget.onChanged?.call(v);
+                    // Repaint for the tick: whether the value is good is
+                    // read from the controller, not from an onChanged
+                    // the caller may not have passed.
+                    setState(() {});
+                  },
+                  onSubmitted: widget.onSubmitted,
+                  inputFormatters: widget.inputFormatters,
+                  textCapitalization: widget.caps
+                      ? TextCapitalization.characters
+                      : TextCapitalization.sentences,
+                  style: AppFont.style(AppType.bodyL,
+                      color: AppColor.textPrimary),
+                  cursorColor: AppColor.primary,
+                  cursorWidth: 2,
+                  cursorRadius: const Radius.circular(2),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    border: InputBorder.none,
+                    counterText: '',
+                    contentPadding: EdgeInsets.symmetric(
+                        vertical: widget.maxLines > 1 ? 0 : AppSpace.md),
+                    hintText: widget.hint,
+                    hintStyle: AppFont.style(AppType.bodyL,
+                        color: AppColor.textTertiary),
+                  ),
+                ),
+              ),
+              if (widget.suffix != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: AppSpace.sm),
+                  child: Text(widget.suffix!,
+                      style: AppFont.style(AppType.labelM,
+                          color: AppColor.textTertiary)),
+                ),
+              // The state mark. It fades rather than popping, so a field
+              // going valid mid-typing does not flash at you.
+              AnimatedSwitcher(
+                duration: AppMotion.fast,
+                transitionBuilder: (c, a) =>
+                    FadeTransition(opacity: a, child: ScaleTransition(scale: a, child: c)),
+                child: hasError
+                    ? Icon(Symbols.warning,
+                        key: const ValueKey('err'),
+                        size: 17,
+                        color: AppColor.overdue)
+                    : good
+                        ? Icon(Symbols.check_circle,
+                            key: const ValueKey('ok'),
+                            size: 17,
+                            color: AppColor.primary)
+                        : const SizedBox(
+                            key: ValueKey('none'), width: 0, height: 17),
+              ),
+            ],
+          ),
+        ),
+        // Reserved space would leave a gap under every field; instead the
+        // message animates its own height in.
+        AnimatedSize(
+          duration: AppMotion.fast,
+          curve: AppMotion.standard,
+          alignment: Alignment.topLeft,
+          child: (hasError || widget.helper != null)
+              ? Padding(
+                  padding: const EdgeInsets.only(
+                      top: AppSpace.xs, left: AppSpace.xs),
+                  child: Text(
+                    hasError ? err : widget.helper!,
+                    style: AppFont.style(
+                      AppType.bodyS,
+                      color: hasError
+                          ? AppColor.overdue
+                          : AppColor.textTertiary,
+                    ),
+                  ),
+                )
+              : const SizedBox(width: double.infinity, height: 0),
+        ),
+      ],
+    );
+  }
+}
+
+/// A group of fields under one heading, on one surface.
+///
+/// Nine fields as nine separate grey blobs is a form; the same nine in
+/// three labelled groups is a page about a business. The heading carries
+/// a tinted icon so the groups are findable by shape when scrolling.
+class FieldGroup extends StatelessWidget {
+  final String title;
+  final String? subtitle;
+  final IconData icon;
+  final Color? tone;
+  final List<Widget> children;
+  final EdgeInsetsGeometry? margin;
+
+  const FieldGroup({
+    super.key,
+    required this.title,
+    required this.icon,
+    required this.children,
+    this.subtitle,
+    this.tone,
+    this.margin,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = tone ?? AppColor.primary;
+    return AppSurface(
+      margin: margin ?? const EdgeInsets.only(bottom: AppSpace.lg),
+      padding: const EdgeInsets.all(AppSpace.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: AppColor.wash(accent),
+                borderRadius: AppRadius.all(AppRadius.sm),
+              ),
+              child: Icon(icon, size: 16, color: accent),
+            ),
+            const SizedBox(width: AppSpace.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(title,
+                      style: AppFont.style(AppType.labelL,
+                          color: AppColor.textPrimary)),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 1),
+                    Text(subtitle!,
+                        style: AppFont.style(AppType.bodyS,
+                            color: AppColor.textTertiary)),
+                  ],
+                ],
+              ),
+            ),
+          ]),
+          const SizedBox(height: AppSpace.lg),
+          for (var i = 0; i < children.length; i++) ...[
+            if (i > 0) const SizedBox(height: AppSpace.md),
+            children[i],
+          ],
+        ],
       ),
     );
   }
