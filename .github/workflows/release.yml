@@ -1,15 +1,26 @@
-name: Release (Android + Windows + iPhone + Mac)
+name: Release (Android APK)
 
-# One workflow → one public GitHub Release holding every platform's
-# installer, with direct download links (no GitHub login, no double-zip).
+# One workflow → one public GitHub Release carrying the Android APK,
+# as a direct download (no GitHub login, no unzip).
+#
+# The release used to publish five files — APK, AAB, .exe, .dmg and an
+# unsigned .ipa. BillZap ships as an Android app; its own site says
+# "Android 7.0 and above". Handing a shopkeeper who tapped "Download
+# for Android" a page with a disk image, a Windows installer and an
+# unsigned iOS package makes them pick, and four of the five choices
+# are wrong. The release is the APK.
+#
+# Nothing is lost: macos-build.yml, windows-build.yml and ios-build.yml
+# still build those platforms on demand and keep the binaries as
+# workflow artifacts. They just no longer sit on the download page.
+#
+# The AAB comes off the release page too: it is a Play Console upload,
+# not something an end user downloads. It is still built here and kept
+# as a workflow artifact, so it is one click away when you need it.
 #
 # Trigger it two ways:
-#   * Actions tab → "Release (Android + macOS + Windows)" → Run workflow
+#   * Actions tab → "Release (Android APK)" → Run workflow
 #   * push a tag:  git tag v1.0.1 && git push origin v1.0.1
-#
-# It does NOT run on every push to main — the per-platform CI workflows
-# (build.yml / macos-build.yml / windows-build.yml) already do that.
-# This one is for cutting a shareable release on demand.
 
 on:
   workflow_dispatch:
@@ -92,136 +103,27 @@ jobs:
           name: release-android
           path: out/*
 
-  # ─── macOS — .dmg ─────────────────────────────────────────────────
-  macos:
-    needs: version
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with: { flutter-version: '3.47.4', channel: 'stable', cache: true }
-      - run: flutter config --enable-macos-desktop
-      - run: flutter pub get
-      - name: pod install
-        working-directory: macos
-        run: pod install --repo-update
-      - run: flutter build macos --release
-      - name: Package .dmg
-        run: |
-          brew install create-dmg
-          mkdir -p out
-          create-dmg \
-            --volname "BillZap ${{ needs.version.outputs.name }}" \
-            --window-pos 200 120 --window-size 600 360 --icon-size 120 \
-            --icon "BillZap.app" 160 180 --hide-extension "BillZap.app" \
-            --app-drop-link 440 180 --no-internet-enable \
-            "out/BillZap-${{ needs.version.outputs.name }}.dmg" \
-            "build/macos/Build/Products/Release/BillZap.app" || true
-          ls out/*.dmg
-      - uses: actions/upload-artifact@v4
-        with:
-          name: release-macos
-          path: out/*.dmg
-
-  # ─── Windows — installer .exe ─────────────────────────────────────
-  windows:
-    needs: version
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with: { flutter-version: '3.47.4', channel: 'stable', cache: true }
-      - run: flutter config --enable-windows-desktop
-      - run: flutter pub get
-      - run: flutter build windows --release
-      - name: Locate Release folder
-        id: rel
-        shell: bash
-        run: |
-          if [ -d "build/windows/x64/runner/Release" ]; then
-            echo "dir=build/windows/x64/runner/Release" >> $GITHUB_OUTPUT
-          else
-            echo "dir=build/windows/runner/Release" >> $GITHUB_OUTPUT
-          fi
-      - name: Build installer
-        shell: pwsh
-        run: |
-          choco install innosetup --no-progress -y
-          $src = Resolve-Path "${{ steps.rel.outputs.dir }}"
-          New-Item -ItemType Directory -Force -Path out | Out-Null
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" `
-            "/DSourceDir=$src" `
-            "/DAppVersion=${{ needs.version.outputs.name }}" `
-            "/Oout" `
-            "windows\installer\billzap.iss"
-          Rename-Item "out\BillZap-Setup.exe" "BillZap-${{ needs.version.outputs.name }}-Setup.exe"
-          Get-ChildItem out
-      - uses: actions/upload-artifact@v4
-        with:
-          name: release-windows
-          path: out/*.exe
-
-  # ─── iOS — unsigned .ipa ──────────────────────────────────────────
-  ios:
-    needs: version
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with: { flutter-version: '3.47.4', channel: 'stable', cache: true }
-      - run: flutter pub get
-      - name: Generate Xcode config (no build)
-        run: flutter build ios --release --no-codesign --config-only
-      - name: pod install
-        working-directory: ios
-        run: pod install --repo-update
-      - name: Build unsigned device .app
-        run: |
-          xcodebuild \
-            -workspace ios/Runner.xcworkspace \
-            -scheme Runner -configuration Release -sdk iphoneos \
-            -derivedDataPath build/ios_dd build \
-            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO DEVELOPMENT_TEAM="" \
-            PROVISIONING_PROFILE_SPECIFIER="" -quiet
-          APP="build/ios_dd/Build/Products/Release-iphoneos/Runner.app"
-          [ -d "$APP" ] || { echo "::error::Runner.app missing"; exit 1; }
-      - name: Pack unsigned .ipa
-        run: |
-          APP="build/ios_dd/Build/Products/Release-iphoneos/Runner.app"
-          mkdir -p build/ipa/Payload out
-          cp -R "$APP" build/ipa/Payload/
-          ( cd build/ipa && zip -qry "BillZap-${{ needs.version.outputs.name }}-unsigned.ipa" Payload )
-          mv "build/ipa/BillZap-${{ needs.version.outputs.name }}-unsigned.ipa" out/
-          ls out/*.ipa
-      - uses: actions/upload-artifact@v4
-        with:
-          name: release-ios
-          path: out/*.ipa
-
-  # ─── Publish the GitHub Release with all platform binaries ────────
+  # ─── Publish the GitHub Release ───────────────────────────────────
   release:
-    needs: [version, android, macos, windows, ios]
+    needs: [version, android]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Download all platform artifacts
+      - name: Download the Android artifact
         uses: actions/download-artifact@v4
         with:
+          name: release-android
           path: dist
-      - name: Flatten + give every asset a STABLE name
-        # Stable, version-less filenames so the landing page can link to
-        # github.com/.../releases/latest/download/<name> and never break
-        # when the app version bumps.
+      - name: Give the APK a STABLE name
+        # Version-less filename so the landing page can link to
+        # github.com/.../releases/latest/download/BillZap-Android.apk
+        # and never break when the app version bumps.
         run: |
           mkdir -p release
           find dist -name "*.apk" -exec cp {} release/BillZap-Android.apk \;
-          find dist -name "*.aab" -exec cp {} release/BillZap-Android-PlayStore.aab \;
-          find dist -name "*Setup*.exe" -exec cp {} release/BillZap-Windows-Setup.exe \;
-          find dist -name "*.dmg" -exec cp {} release/BillZap-macOS.dmg \;
-          find dist -name "*.ipa" -exec cp {} release/BillZap-iPhone.ipa \;
-          echo "Files to publish:"
+          test -f release/BillZap-Android.apk || {
+            echo "::error::no APK was produced"; exit 1; }
           ls -lah release/
 
       - name: Publish GitHub Release
@@ -232,19 +134,18 @@ jobs:
           body: |
             ## BillZap ${{ needs.version.outputs.name }} — build ${{ needs.version.outputs.build }}
 
-            One release, every platform. Direct downloads below — no login, no unzip needed.
+            **[Download BillZap-Android.apk](https://github.com/dakshu007/billzap/releases/latest/download/BillZap-Android.apk)** — Android 7.0 and above.
 
-            | Platform | File | Notes |
-            |---|---|---|
-            | Android | `BillZap-Android.apk` | Sideload-ready. Tap to install (allow "unknown sources"). |
-            | Android | `BillZap-Android-PlayStore.aab` | For Play Store upload. |
-            | Windows | `BillZap-Windows-Setup.exe` | Run the installer. SmartScreen → More info → Run anyway (unsigned). |
-            | macOS | `BillZap-macOS.dmg` | Drag to Applications. First launch: right-click → Open (unsigned). |
-            | iPhone | `BillZap-iPhone.ipa` | **Unsigned** — sign with your Apple ID to install (Xcode + USB, or Sideloadly/AltStore). See `ios/README-ios.md`. iPhone gets the Liquid Glass floating menu. |
+            Tap the file on your phone to install. Android will ask you to
+            allow installs from this source the first time; that is normal
+            for an app installed outside the Play Store.
 
-            Filenames are stable across releases so download links never break.
-            Built from the same Flutter codebase. 100% offline, no sign-up, free forever.
-          files: release/*
+            The filename never changes, so the link above always points at
+            the newest build.
+
+            Free forever. Works fully offline — no account, no sign-up, no
+            subscription, no limit on invoices.
+          files: release/BillZap-Android.apk
           draft: false
           prerelease: false
           fail_on_unmatched_files: true

@@ -41,6 +41,12 @@ SITE = 'https://billzap.netlify.app'
 # Bump it when the wording changes.
 UPDATED = '2026-09-16'
 
+# Google Search Console site verification. It goes in the shared head so
+# every page carries it: Search Console checks the exact URL you ask it
+# to verify, and a tag that lives only on the home page silently fails
+# the moment you verify a different one. Harmless everywhere else.
+GSC_VERIFY = '4N5b9mUevn2OzdIqgR_kUHPo2D-JTpIfd1gN0cCx03s'
+
 # ── SEO ─────────────────────────────────────────────────────────────
 # Focus keyword:      free GST billing app
 # Primary keywords:   GST billing app, offline billing app,
@@ -429,6 +435,7 @@ def document(*, title, desc, canonical, css, ld, body, head_extra='',
 <meta name="description" content="{desc}">
 <meta name="author" content="BillZap">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">
+<meta name="google-site-verification" content="{GSC_VERIFY}">
 <link rel="canonical" href="{canonical}">
 <meta name="theme-color" content="#F6F7F9">
 <meta name="color-scheme" content="light">

@@ -1,0 +1,99 @@
+name: Prune release assets
+
+# Strips everything except the Android APK off a published release.
+#
+# release.yml only ever attaches the APK now, but releases cut before
+# that change still carry the AAB, the Windows installer, the macOS
+# disk image and an unsigned .ipa. Somebody who taps "Download for
+# Android" on the site lands on that page and has to pick the right one
+# out of five. This deletes the other four and rewrites the notes.
+#
+# Dispatch-only, and deliberately so: it deletes published binaries,
+# which cannot be undone. It prints what it will remove, keeps anything
+# ending in .apk, and refuses to run if the release has no APK at all —
+# so it can never empty a release.
+#
+# Leave `tag` blank to act on the latest release.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (blank = latest release)'
+        required: false
+        default: ''
+      rewrite_notes:
+        description: 'Also replace the release notes with APK-only text'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  prune:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prune
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ inputs.tag }}
+          REWRITE: ${{ inputs.rewrite_notes }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$TAG" ]; then
+            REL=$(gh api "repos/$REPO/releases/latest")
+          else
+            REL=$(gh api "repos/$REPO/releases/tags/$TAG")
+          fi
+
+          ID=$(jq -r '.id'       <<<"$REL")
+          TAG=$(jq -r '.tag_name' <<<"$REL")
+          NAME=$(jq -r '.name'    <<<"$REL")
+          echo "Release $TAG (id $ID) — $NAME"
+
+          echo "Assets currently attached:"
+          jq -r '.assets[] | "  \(.name)  \(.size) bytes  \(.download_count) downloads"' <<<"$REL"
+
+          # Never leave a release with nothing to download.
+          if ! jq -e '[.assets[] | select(.name | endswith(".apk"))] | length > 0' <<<"$REL" >/dev/null; then
+            echo "::error::$TAG has no .apk asset — refusing to prune."
+            exit 1
+          fi
+
+          DOOMED=$(jq -r '.assets[] | select(.name | endswith(".apk") | not) | "\(.id) \(.name)"' <<<"$REL")
+          if [ -z "$DOOMED" ]; then
+            echo "Nothing to remove; the APK is already the only asset."
+          else
+            while read -r aid aname; do
+              [ -n "$aid" ] || continue
+              echo "Deleting $aname (id $aid)"
+              gh api -X DELETE "repos/$REPO/releases/assets/$aid"
+            done <<<"$DOOMED"
+          fi
+
+          if [ "$REWRITE" = "true" ]; then
+            VERSION=$(jq -r '.name' <<<"$REL")
+            cat > notes.md <<EOF
+          ## $VERSION
+
+          **[Download BillZap-Android.apk](https://github.com/$REPO/releases/latest/download/BillZap-Android.apk)** — Android 7.0 and above.
+
+          Tap the file on your phone to install. Android will ask you to
+          allow installs from this source the first time; that is normal
+          for an app installed outside the Play Store.
+
+          The filename never changes, so the link above always points at
+          the newest build.
+
+          Free forever. Works fully offline — no account, no sign-up, no
+          subscription, no limit on invoices.
+          EOF
+            gh release edit "$TAG" --repo "$REPO" --notes-file notes.md
+            echo "Release notes rewritten."
+          fi
+
+          echo "Assets now:"
+          gh api "repos/$REPO/releases/$ID" --jq '.assets[] | "  \(.name)"'
