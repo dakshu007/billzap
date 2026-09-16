@@ -1,0 +1,79 @@
+name: Deploy landing page
+
+# The landing page is a static folder — there is nothing to compile, so
+# this workflow rebuilds index.html from build/ (to prove the generated
+# file in the repo matches its sources) and then publishes.
+#
+# It exists because the agent sandbox that authored the site has no
+# egress to Netlify; CI does. It is also just a better place for a
+# deploy to live than somebody's laptop.
+#
+# Needs one repository secret:
+#   NETLIFY_AUTH_TOKEN — a personal access token from
+#   https://app.netlify.com/user/applications#personal-access-tokens
+#
+# The site ID is not a secret; it is in the URL of the Netlify project.
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'landing-page/**'
+      - '.github/workflows/landing-page.yml'
+  workflow_dispatch:
+    inputs:
+      production:
+        description: 'Publish to the live URL (otherwise a preview)'
+        type: boolean
+        default: true
+
+env:
+  NETLIFY_SITE_ID: 2ae758e6-68ec-49e7-8364-6237a893b4c4
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install the font subsetter
+        run: pip install --quiet fonttools brotli
+
+      - name: Rebuild index.html from source
+        working-directory: landing-page/build
+        run: python3 build.py
+
+      # index.html and the subset fonts are generated and committed. If
+      # the rebuild changes them, the committed copy was stale — fail
+      # loudly rather than deploying something nobody reviewed.
+      - name: Check the committed build is current
+        run: |
+          if ! git diff --quiet -- landing-page; then
+            echo "::error::landing-page/index.html is out of date with build/."
+            echo "Run 'cd landing-page/build && python3 build.py' and commit the result."
+            git diff --stat -- landing-page
+            exit 1
+          fi
+          echo "Committed build matches its sources."
+
+      - name: Deploy to Netlify
+        if: ${{ secrets.NETLIFY_AUTH_TOKEN != '' }}
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          PROD: ${{ github.event_name != 'workflow_dispatch' || inputs.production }}
+        run: |
+          ARGS="--dir=landing-page --site=$NETLIFY_SITE_ID --message=${GITHUB_SHA::7}"
+          if [ "$PROD" = "true" ]; then ARGS="$ARGS --prod"; fi
+          npx -y netlify-cli@latest deploy $ARGS
+
+      - name: Explain a missing token
+        if: ${{ secrets.NETLIFY_AUTH_TOKEN == '' }}
+        run: |
+          echo "::warning::NETLIFY_AUTH_TOKEN is not set, so nothing was deployed."
+          echo "Add it under Settings -> Secrets and variables -> Actions."
+          echo "Create the token at:"
+          echo "  https://app.netlify.com/user/applications#personal-access-tokens"
