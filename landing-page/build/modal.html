@@ -1,0 +1,47 @@
+<!-- Download gate. Hidden until JS opens it; the button behind it is a
+     plain link to the APK, so with JS off or broken the download still
+     works. Never put a form between somebody and the app. -->
+<div class="modal" id="dlModal" hidden>
+  <div class="modal-scrim" data-close></div>
+  <div class="modal-card" role="dialog" aria-modal="true"
+       aria-labelledby="dlTitle" aria-describedby="dlIntro">
+    <button class="modal-x" type="button" data-close aria-label="Close">{{ico:x}}</button>
+
+    <div class="modal-mark">{{ico:smartphone}}</div>
+    <h2 id="dlTitle">Where should we send update notes?</h2>
+    <p id="dlIntro">
+      Leave your email and the download starts straight away. It is only
+      used to tell you when a new version is out — <strong>the app itself
+      never asks you for anything</strong>, and works with no account at all.
+    </p>
+
+    <form id="dlForm" novalidate>
+      <label class="modal-label" for="dlEmail">Email address</label>
+      <div class="modal-field">
+        <input id="dlEmail" name="email" type="email" inputmode="email"
+               autocomplete="email" spellcheck="false" required
+               placeholder="you@gmail.com" aria-describedby="dlErr">
+      </div>
+      <p class="modal-err" id="dlErr" role="alert"></p>
+
+      <button class="btn btn-primary modal-go" type="submit" id="dlGo">
+        {{ico:download}} <span>Download the APK</span>
+      </button>
+
+      <p class="modal-fine">
+        Android 7.0+ · about 13 MB · we store your address and the date,
+        nothing else. <a href="/privacy/" target="_blank" rel="noopener">How we handle it</a>.
+      </p>
+    </form>
+
+    <!-- Shown after submit, so the download never looks like it failed. -->
+    <div class="modal-done" id="dlDone" hidden>
+      <div class="modal-tick">{{ico:circle-check}}</div>
+      <h3>Your download is starting</h3>
+      <p>
+        If nothing happens,
+        <a id="dlDirect" href="#" rel="noopener">tap here to get the APK</a>.
+      </p>
+    </div>
+  </div>
+</div>

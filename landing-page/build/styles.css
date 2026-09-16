@@ -386,3 +386,60 @@ h1 .hl{color:var(--jade-600);position:relative;white-space:nowrap}
   border-left:3px solid var(--jade-600);border-radius:var(--r-md);padding:20px 22px}
 .callout p{margin-top:0;color:var(--ink-700)}
 .callout p + p{margin-top:12px}
+
+/* ── Download gate ─────────────────────────────────────────────────
+   A dialog, so it gets dialog manners: it traps focus, Escape closes
+   it, the scrim closes it, and focus goes back to the button that
+   opened it. The card is capped in height and scrolls internally so a
+   short landscape phone can still reach the submit button. */
+.modal{position:fixed;inset:0;z-index:200;display:grid;place-items:center;
+  padding:var(--gutter)}
+.modal[hidden]{display:none}
+.modal-scrim{position:absolute;inset:0;background:rgba(12,16,20,.52);
+  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.modal-card{position:relative;width:min(460px,100%);max-height:calc(100dvh - 2*var(--gutter));
+  overflow-y:auto;background:var(--paper);border-radius:var(--r-xl);
+  padding:clamp(26px,4vw,34px);box-shadow:var(--shadow-lg);text-align:center}
+@media (prefers-reduced-motion:no-preference){
+  .modal-card{animation:modal-in .3s var(--ease) both}
+  @keyframes modal-in{from{opacity:0;transform:translateY(14px) scale(.97)}}
+}
+.modal-x{position:absolute;top:12px;right:12px;width:38px;height:38px;
+  display:grid;place-items:center;border:0;border-radius:50%;cursor:pointer;
+  background:transparent;color:var(--text-3);font-size:19px;
+  transition:background .18s,color .18s}
+.modal-x:hover{background:var(--sunken);color:var(--ink-900)}
+.modal-mark{width:56px;height:56px;margin:2px auto 18px;display:grid;
+  place-items:center;border-radius:var(--r-md);background:var(--jade-50);
+  color:var(--jade-700);font-size:26px}
+.modal-card h2{font-size:clamp(21px,3.2vw,25px);font-weight:800;letter-spacing:-.02em}
+.modal-card #dlIntro{margin-top:12px;color:var(--text-2);font-size:15.5px;line-height:1.62}
+.modal-label{display:block;margin-top:24px;margin-bottom:8px;text-align:left;
+  font-size:13px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;
+  color:var(--text-3)}
+/* One outline, one glow. The well is the field. */
+.modal-field input{width:100%;padding:14px 16px;font:inherit;font-size:16px;
+  color:var(--text);background:var(--canvas);border:1.5px solid var(--hairline);
+  border-radius:var(--r-md);outline:none;transition:border-color .18s,box-shadow .18s,background .18s}
+.modal-field input::placeholder{color:var(--ink-300)}
+.modal-field input:focus{background:var(--paper);border-color:var(--jade-500);
+  box-shadow:0 0 0 4px rgba(16,165,111,.16)}
+.modal-field input[aria-invalid="true"]{border-color:var(--coral)}
+.modal-field input[aria-invalid="true"]:focus{box-shadow:0 0 0 4px rgba(197,52,52,.15)}
+.modal-err{margin-top:9px;text-align:left;font-size:14px;color:var(--coral);
+  min-height:0;line-height:1.5}
+.modal-err:empty{display:none}
+.modal-err button{background:none;border:0;padding:0;font:inherit;color:var(--jade-700);
+  text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.modal-go{width:100%;margin-top:18px;padding:15px 22px}
+.modal-go[disabled]{opacity:.62;pointer-events:none}
+.modal-fine{margin-top:16px;font-size:13.5px;color:var(--text-3);line-height:1.6}
+.modal-fine a{color:var(--text-2);text-decoration:underline;text-underline-offset:3px}
+.modal-fine a:hover{color:var(--ink-900)}
+.modal-done .modal-tick{width:60px;height:60px;margin:4px auto 16px;display:grid;
+  place-items:center;border-radius:50%;background:var(--jade-50);
+  color:var(--jade-600);font-size:30px}
+.modal-done h3{font-size:21px;font-weight:700}
+.modal-done p{margin-top:10px;color:var(--text-2);font-size:15px}
+.modal-done a{color:var(--jade-700);text-decoration:underline;text-underline-offset:3px}
+body.modal-open{overflow:hidden}

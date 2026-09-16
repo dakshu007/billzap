@@ -9,8 +9,9 @@
         Not a softened version of that sentence — there is no account to
         sign into, no server holding your books and no analytics reading
         your invoices. This page explains what that means in practice,
-        what the app asks Android for, and the one case where something
-        does leave your phone.
+        what the app asks Android for, the one case where something does
+        leave your phone, and — separately — the two things this
+        <em>website</em> collects, which the app does not.
       </p>
       <p class="legal-meta">
         <span>{{ico:calendar}} Last updated {{updated}}</span>
@@ -27,6 +28,7 @@
         <li>{{ico:circle-check}} <span>Your invoices, customers, products and expenses live in the app's own storage <strong>on your phone</strong>.</span></li>
         <li>{{ico:circle-check}} <span>There is <strong>no analytics, no advertising and no tracking</strong> of any kind in the app.</span></li>
         <li>{{ico:circle-check}} <span>The only data that ever leaves your phone is what <strong>you</strong> send — a PDF you share, or a voice command you speak.</span></li>
+        <li>{{ico:circle-check}} <span>This <strong>website</strong> is a separate matter: it has analytics, and it asks for your email before the download. Neither touches the app. <a href="#site">The details are below</a>, and the download is also on GitHub with nothing to fill in.</span></li>
       </ul>
 
       <h2>What BillZap stores, and where</h2>
@@ -159,18 +161,68 @@
         of it.
       </p>
 
-      <h2>This website</h2>
+      <h2 id="site">This website</h2>
       <p>
-        billzap.netlify.app serves a static page. It sets no cookies,
-        embeds no third-party scripts, loads no external fonts or
-        trackers, and has no comment box or sign-up form. Netlify, which
-        hosts it, keeps standard server access logs — see
-        <a href="https://www.netlify.com/privacy/" rel="noopener">Netlify's
-        privacy policy</a>.
+        Everything above is about the app. This website is a separate
+        thing and it does collect two pieces of information. Keeping
+        that distinction clear matters more than a tidy claim, so:
+        <strong>the app collects nothing; the website has analytics and
+        asks for your email before the download.</strong> Nothing the
+        website learns is ever sent to the app, and nothing the app
+        holds is ever sent to the website.
+      </p>
+
+      <h3>Your email address, when you download</h3>
+      <p>
+        The download button asks for an email address. It is used to
+        tell you when a new version is out, and for nothing else. We
+        store the address, the domain part of it, and the date — no
+        name, no IP address, no device details — in a private Google
+        spreadsheet.
       </p>
       <p>
-        If analytics are ever added to this website, this page will say
-        so before they go live, and they will not extend to the app.
+        It is never sold, never passed to anyone else, and never used
+        to message you about anything but BillZap. To have it removed,
+        open an issue at the link at the bottom of this page and it
+        will be deleted from the sheet.
+      </p>
+      <p>
+        <strong>You do not have to give it.</strong> The same file is on
+        the public releases page at
+        <a href="https://github.com/dakshu007/billzap/releases/latest" rel="noopener">github.com/dakshu007/billzap/releases</a>,
+        with nothing to fill in. It is the identical APK.
+      </p>
+
+      <h3>Analytics</h3>
+      <p>
+        This site uses Google Analytics to count visits and see which
+        pages people read. It records the usual things a web analytics
+        tool records — pages viewed, roughly where in the world the
+        visit came from, what kind of device and browser — and it sets
+        cookies to recognise a returning browser. Google processes that
+        data under
+        <a href="https://policies.google.com/privacy" rel="noopener">its own privacy policy</a>.
+      </p>
+      <p>
+        It runs on this website only. <strong>There is no analytics of
+        any kind inside the app</strong>, which is the part that holds
+        your invoices, and there is no way for the two to meet.
+      </p>
+      <p>
+        Analytics loads only after the page is up and you have started
+        reading, so blocking it with a content blocker, a tracking
+        protection setting, or Do Not Track costs you nothing here —
+        the site works identically without it.
+      </p>
+
+      <h3>Hosting</h3>
+      <p>
+        Netlify serves the site and keeps standard server access logs —
+        see
+        <a href="https://www.netlify.com/privacy/" rel="noopener">Netlify's
+        privacy policy</a>. The pages themselves load no external fonts,
+        no CDN scripts and no embeds; a strict content security policy
+        blocks anything that is not listed here from loading at all.
       </p>
 
       <h2>Changes to this policy</h2>

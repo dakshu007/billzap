@@ -47,6 +47,26 @@ UPDATED = '2026-09-16'
 # the moment you verify a different one. Harmless everywhere else.
 GSC_VERIFY = '4N5b9mUevn2OzdIqgR_kUHPo2D-JTpIfd1gN0cCx03s'
 
+# Google Analytics 4. Loaded lazily — see SCRIPT below for why.
+GA_ID = 'G-M8M91YZVCT'
+
+# The APK. This filename never changes, so the link survives every
+# version bump; release.yml is what guarantees that.
+APK_URL = ('https://github.com/dakshu007/billzap/releases/latest/'
+           'download/BillZap-Android.apk')
+
+# Where the download form posts the email address.
+#
+# This is a Google Apps Script web app bound to the sheet — see
+# ../google-sheet/README.md for the script and how to deploy it. Paste
+# the /exec URL it gives you here and rebuild.
+#
+# Until it is set, the form still validates the address and still hands
+# over the download; it just has nowhere to file the address. That is
+# the right way round: a misconfigured spreadsheet must never stand
+# between somebody and the app.
+SHEET_ENDPOINT = ''
+
 # ── SEO ─────────────────────────────────────────────────────────────
 # Focus keyword:      free GST billing app
 # Primary keywords:   GST billing app, offline billing app,
@@ -384,10 +404,14 @@ def render(fragment, *, home):
 
 
 # The bit of progressive enhancement both pages carry. The page is
-# complete and readable with it blocked; it adds the scroll reveal and
-# the header's shadow, nothing more. `js` is set first so the reveal
-# styles only apply when something can un-apply them.
-SCRIPT = """
+# complete and readable with it blocked: the reveal and the header
+# shadow are decoration, and the download button is a plain link to the
+# APK that works whether or not any of this runs.
+#
+# Placeholders are substituted rather than f-string interpolated —
+# this is mostly braces, and doubling every one of them would make it
+# unreadable.
+SCRIPT_TMPL = """
 (function(){
   var d=document, r=d.documentElement;
   var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -404,8 +428,180 @@ SCRIPT = """
   var onScroll=function(){ h.classList.toggle('stuck', window.scrollY>8); };
   addEventListener('scroll',onScroll,{passive:true}); onScroll();
   var y=d.getElementById('yr'); if(y){ y.textContent=new Date().getFullYear(); }
+
+  /* ── Analytics, kept off the critical path ──────────────────────
+     gtag.js is ~100 KB of third-party JavaScript. Dropped in <head>
+     the way Google's snippet does it, it competes with the page for
+     the first second and costs real points on Performance. Nothing
+     here needs it to render, so it loads when the browser goes idle
+     or on the visitor's first interaction, whichever comes first.
+     That is later than the measurement window and earlier than any
+     visitor has done something worth recording. */
+  var gaOn=false;
+  function loadGA(){
+    if(gaOn) return; gaOn=true;
+    window.dataLayer=window.dataLayer||[];
+    window.gtag=function(){dataLayer.push(arguments);};
+    gtag('js', new Date());
+    gtag('config','__GA_ID__');
+    var s=d.createElement('script');
+    s.async=true; s.src='https://www.googletagmanager.com/gtag/js?id=__GA_ID__';
+    d.head.appendChild(s);
+  }
+  ['pointerdown','keydown','touchstart','scroll'].forEach(function(ev){
+    addEventListener(ev, loadGA, {once:true, passive:true});
+  });
+  if('requestIdleCallback' in window){ requestIdleCallback(loadGA,{timeout:3500}); }
+  else { setTimeout(loadGA, 2500); }
+
+  /* ── Download gate ─────────────────────────────────────────────── */
+  var APK='__APK_URL__', ENDPOINT='__SHEET__';
+  var modal=d.getElementById('dlModal');
+  if(!modal) return;
+  var card=modal.querySelector('.modal-card'),
+      form=d.getElementById('dlForm'),
+      input=d.getElementById('dlEmail'),
+      err=d.getElementById('dlErr'),
+      go=d.getElementById('dlGo'),
+      done=d.getElementById('dlDone'),
+      direct=d.getElementById('dlDirect'),
+      opener=null;
+  direct.href=APK;
+
+  /* Throwaway inboxes. Somebody using one will never read the update
+     notes the address was asked for, so the address is worthless to
+     collect and the friction is worthless to impose. */
+  var BURNER=['mailinator.com','guerrillamail.com','guerrillamail.net',
+    '10minutemail.com','tempmail.com','temp-mail.org','throwawaymail.com',
+    'yopmail.com','fakeinbox.com','trashmail.com','sharklasers.com',
+    'getnada.com','dispostable.com','maildrop.cc','mailnesia.com',
+    'spam4.me','grr.la','mohmal.com','emailondeck.com','moakt.com'];
+
+  /* Real misspellings of real providers, not a spellchecker. */
+  var TYPO={'gmial.com':'gmail.com','gmai.com':'gmail.com','gmil.com':'gmail.com',
+    'gnail.com':'gmail.com','gmaill.com':'gmail.com','gmail.co':'gmail.com',
+    'gmail.con':'gmail.com','gmail.cm':'gmail.com','gamil.com':'gmail.com',
+    'yahho.com':'yahoo.com','yaho.com':'yahoo.com','yahoo.co':'yahoo.com',
+    'yahoo.con':'yahoo.com','hotmial.com':'hotmail.com','hotmai.com':'hotmail.com',
+    'hotmail.co':'hotmail.com','outlok.com':'outlook.com','outloo.com':'outlook.com',
+    'rediffmail.co':'rediffmail.com'};
+
+  /* Local part may not start, end or double a dot; every domain label
+     is a real label; the TLD is alphabetic. This rejects the shapes
+     people actually type when they are making one up. */
+  var RE=/^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,24}$/;
+
+  function domainOf(v){ return v.slice(v.lastIndexOf('@')+1).toLowerCase(); }
+
+  function check(v){
+    if(!v) return {msg:'Enter your email address and the download will start.'};
+    if(v.length>254 || !RE.test(v))
+      return {msg:'That is not a complete email address — it needs a name, an @ and a domain.'};
+    var dom=domainOf(v);
+    if(TYPO[dom]) return {msg:'Did you mean', fix:v.slice(0,v.lastIndexOf('@')+1)+TYPO[dom]};
+    if(BURNER.indexOf(dom)>-1)
+      return {msg:'That is a temporary inbox, so the update notes would never reach you. Please use an address you read.'};
+    return null;
+  }
+
+  function showErr(p){
+    input.setAttribute('aria-invalid','true');
+    if(p.fix){
+      err.textContent=p.msg+' ';
+      var b=d.createElement('button');
+      b.type='button'; b.textContent=p.fix;
+      b.addEventListener('click',function(){
+        input.value=p.fix; clearErr(); input.focus();
+      });
+      err.appendChild(b); err.appendChild(d.createTextNode('?'));
+    } else {
+      err.textContent=p.msg;
+    }
+  }
+  function clearErr(){ err.textContent=''; input.removeAttribute('aria-invalid'); }
+  input.addEventListener('input', clearErr);
+
+  function record(email){
+    if(!ENDPOINT) return;
+    /* text/plain keeps this a "simple" request so the browser does not
+       preflight it — an Apps Script web app does not answer OPTIONS.
+       no-cors makes the response opaque, which is fine: nothing waits
+       on it, and the download must not depend on a spreadsheet. */
+    try{
+      fetch(ENDPOINT,{method:'POST',mode:'no-cors',keepalive:true,
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({email:email,at:new Date().toISOString(),
+                             source:location.hostname})});
+    }catch(e){}
+  }
+
+  function fire(){
+    loadGA();
+    if(window.gtag) gtag('event','download',{method:'apk'});
+    var a=d.createElement('a');
+    a.href=APK; a.rel='noopener';
+    d.body.appendChild(a); a.click(); a.remove();
+  }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var v=input.value.trim();
+    var p=check(v);
+    if(p){ showErr(p); input.focus(); return; }
+    clearErr();
+    go.disabled=true;
+    record(v);
+    fire();
+    form.hidden=true; done.hidden=false;
+    direct.focus();
+  });
+
+  function onKey(e){
+    if(e.key==='Escape'){ shut(); return; }
+    if(e.key!=='Tab') return;
+    var all=card.querySelectorAll('a[href],button:not([disabled]),input:not([disabled])');
+    var vis=[].filter.call(all,function(n){ return n.offsetParent!==null; });
+    if(!vis.length) return;
+    var first=vis[0], last=vis[vis.length-1];
+    if(e.shiftKey && d.activeElement===first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && d.activeElement===last){ e.preventDefault(); first.focus(); }
+  }
+
+  function show(trigger){
+    opener=trigger||null;
+    form.hidden=false; done.hidden=true; go.disabled=false;
+    clearErr();
+    modal.hidden=false;
+    d.body.classList.add('modal-open');
+    d.addEventListener('keydown', onKey);
+    setTimeout(function(){ input.focus(); }, 40);
+  }
+  function shut(){
+    modal.hidden=true;
+    d.body.classList.remove('modal-open');
+    d.removeEventListener('keydown', onKey);
+    if(opener){ opener.focus(); opener=null; }
+  }
+
+  [].forEach.call(d.querySelectorAll('[data-gate]'), function(a){
+    a.addEventListener('click', function(e){
+      /* Let a middle-click or ctrl-click through to the real link. */
+      if(e.metaKey||e.ctrlKey||e.shiftKey||e.button!==0) return;
+      e.preventDefault(); show(a);
+    });
+  });
+  [].forEach.call(modal.querySelectorAll('[data-close]'), function(n){
+    n.addEventListener('click', shut);
+  });
 })();
 """
+
+
+def script():
+    return (SCRIPT_TMPL
+            .replace('__GA_ID__', GA_ID)
+            .replace('__APK_URL__', APK_URL)
+            .replace('__SHEET__', SHEET_ENDPOINT))
 
 
 def document(*, title, desc, canonical, css, ld, body, head_extra='',
@@ -450,7 +646,7 @@ def document(*, title, desc, canonical, css, ld, body, head_extra='',
 </head>
 <body>
 {shell}
-<script>{SCRIPT}</script>
+<script>{script()}</script>
 </body>
 </html>
 """
@@ -497,7 +693,8 @@ def main():
     index_body = render(
         open(os.path.join(HERE, 'page.html')).read().replace(
             '{{faq}}', faq_html(ICONS)),
-        home='#top')
+        home='#top') + '\n' + render(
+        open(os.path.join(HERE, 'modal.html')).read(), home='#top')
     index_html = document(
         title=TITLE, desc=DESC, canonical=f'{SITE}/', css=css,
         ld=jsonld(), body=index_body, head_extra=INDEX_HEAD)
