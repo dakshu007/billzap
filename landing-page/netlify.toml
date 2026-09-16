@@ -119,3 +119,23 @@
   from = "/privacy.html"
   to = "/privacy/"
   status = 301
+
+# Earlier deploys published the whole landing-page folder, so the page
+# templates, the build script and the Apps Script source were briefly
+# reachable at these paths. They are no longer deployed at all; these
+# send anything that got crawled in the meantime to the real page
+# rather than to a 404.
+[[redirects]]
+  from = "/build/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/google-sheet/*"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/README.md"
+  to = "/"
+  status = 301

@@ -45,3 +45,6 @@ app.*.map.json
 local.properties
 main_demo.dart
 main_fresh.dart
+
+# Staging folder the landing-page deploy builds; never committed.
+landing-page/dist/

@@ -78,9 +78,32 @@ jobs:
       # the CLI hunt for a build command in a Flutter repo can only go
       # wrong. CI=true keeps it non-interactive, so a prompt fails the
       # step instead of hanging the runner until the job times out.
+      # `netlify deploy --dir=X` publishes everything in X. Pointed at
+      # landing-page/ that meant the page templates, the build script
+      # and the Apps Script source all went live — and /build/page.html
+      # and /build/privacy.html are head-less HTML fragments a crawler
+      # can index as thin duplicates of the real pages, which is a
+      # direct tax on the SEO the rest of this is for.
+      #
+      # So the deploy gets an explicit list instead of a directory:
+      # anything not named here does not reach the internet. netlify.toml
+      # comes along because the CLI reads config from its working
+      # directory, which is now this staging folder.
+      - name: Stage exactly what the site serves
+        working-directory: landing-page
+        run: |
+          rm -rf dist && mkdir -p dist
+          for item in index.html privacy assets llms.txt llms-full.txt \
+                      robots.txt sitemap.xml site.webmanifest netlify.toml; do
+            [ -e "$item" ] || { echo "::error::missing $item"; exit 1; }
+            cp -r "$item" dist/
+          done
+          echo "Publishing:"
+          find dist -type f | sort | sed 's/^/  /'
+
       - name: Deploy to Netlify
         if: env.HAS_TOKEN == 'true'
-        working-directory: landing-page
+        working-directory: landing-page/dist
         timeout-minutes: 12
         env:
           CI: 'true'
