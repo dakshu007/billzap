@@ -27,6 +27,20 @@ OUT = os.path.join(HERE, '..')
 
 SITE = 'https://billzap.netlify.app'
 
+# The date the content last actually changed — deliberately a constant,
+# not the date of the build.
+#
+# Two reasons. A privacy policy's "last updated" is a statement about
+# the policy, and it should not move because someone fixed a CSS typo.
+# And the deploy workflow proves the committed index.html matches these
+# sources by rebuilding and diffing it: with the build date baked in,
+# that check passes on the day of the commit and fails every day after,
+# blocking the deploy for a reason that has nothing to do with the
+# build.
+#
+# Bump it when the wording changes.
+UPDATED = '2026-09-16'
+
 # ── SEO ─────────────────────────────────────────────────────────────
 # Focus keyword:      free GST billing app
 # Primary keywords:   GST billing app, offline billing app,
@@ -92,6 +106,11 @@ FAQ = [
 ]
 
 
+def _human(iso):
+    """'2026-09-16' -> '16 September 2026', the way a policy reads."""
+    return date.fromisoformat(iso).strftime('%-d %B %Y')
+
+
 def icons():
     with open(os.path.join(HERE, 'lucide.json')) as f:
         return json.load(f)
@@ -123,7 +142,7 @@ def faq_html(ic):
 
 
 def jsonld():
-    today = date.today().isoformat()
+    today = UPDATED
     graph = [
         {
             "@type": "SoftwareApplication",
@@ -223,6 +242,48 @@ def jsonld():
                       separators=(',', ':'), ensure_ascii=False)
 
 
+# ── Privacy page ────────────────────────────────────────────────────
+# A standalone policy page, not just the marketing section on the home
+# page. The Play Store listing needs a stable URL for one, and /privacy
+# was already a live, indexed URL before this rebuild — dropping it
+# would 404 the link people arrive on.
+P_TITLE = 'Privacy Policy — BillZap GST Billing App'
+P_DESC = (
+    'BillZap has no accounts, no server and no analytics. Your invoices '
+    'stay on your phone. What each Android permission is used for, what '
+    'voice billing sends, and what this website stores.'
+)
+
+
+def privacy_jsonld():
+    today = UPDATED
+    graph = [
+        {
+            "@type": "PrivacyPolicy",
+            "@id": f"{SITE}/privacy/#policy",
+            "url": f"{SITE}/privacy/",
+            "name": P_TITLE,
+            "description": P_DESC,
+            "inLanguage": "en",
+            "dateModified": today,
+            "isPartOf": {"@id": f"{SITE}/#site"},
+            "about": {"@id": f"{SITE}/#app"},
+            "publisher": {"@id": f"{SITE}/#org"},
+        },
+        {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {"@type": "ListItem", "position": 1, "name": "BillZap",
+                 "item": f"{SITE}/"},
+                {"@type": "ListItem", "position": 2, "name": "Privacy policy",
+                 "item": f"{SITE}/privacy/"},
+            ],
+        },
+    ]
+    return json.dumps({"@context": "https://schema.org", "@graph": graph},
+                      separators=(',', ':'), ensure_ascii=False)
+
+
 SRC_FONTS = {
     'plus-jakarta-sans-600-latin.woff2': 'Jakarta 600',
     'plus-jakarta-sans-700-latin.woff2': 'Jakarta 700',
@@ -301,37 +362,94 @@ def minify_css(css):
     return css.strip()
 
 
-def main():
-    ic = icons()
-    page = open(os.path.join(HERE, 'page.html')).read()
-    css = minify_css(open(os.path.join(HERE, 'styles.css')).read())
+ICONS = icons()
 
-    page = page.replace('{{faq}}', faq_html(ic))
+
+def render(fragment, *, home):
+    """Resolve {{ico:…}} and {{home}} in a markup fragment."""
+    fragment = fragment.replace('{{home}}', home)
 
     def sub(m):
         name = m.group(1)
-        if name not in ic:
+        if name not in ICONS:
             raise SystemExit(f'unknown icon: {name}')
-        return svg(name, ic[name])
-    page = re.sub(r'\{\{ico:([a-z0-9-]+)\}\}', sub, page)
+        return svg(name, ICONS[name])
+    return re.sub(r'\{\{ico:([a-z0-9-]+)\}\}', sub, fragment)
 
-    if '{{' in page:
-        raise SystemExit('unreplaced placeholder: ' +
-                         re.search(r'\{\{[^}]*\}\}', page).group(0))
 
-    html = f'''<!doctype html>
+# The bit of progressive enhancement both pages carry. The page is
+# complete and readable with it blocked; it adds the scroll reveal and
+# the header's shadow, nothing more. `js` is set first so the reveal
+# styles only apply when something can un-apply them.
+SCRIPT = """
+(function(){
+  var d=document, r=d.documentElement;
+  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if('IntersectionObserver' in window && !reduce){
+    r.className+=' js';
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    },{rootMargin:'0px 0px -8% 0px',threshold:0.06});
+    d.querySelectorAll('.rv').forEach(function(n){io.observe(n);});
+  }
+  var h=d.getElementById('hdr');
+  var onScroll=function(){ h.classList.toggle('stuck', window.scrollY>8); };
+  addEventListener('scroll',onScroll,{passive:true}); onScroll();
+  var y=d.getElementById('yr'); if(y){ y.textContent=new Date().getFullYear(); }
+})();
+"""
+
+
+def document(*, title, desc, canonical, css, ld, body, head_extra='',
+             asset_prefix=''):
+    """Assemble one complete HTML document.
+
+    Both pages share the header, the footer, the inlined stylesheet and
+    the script, so a change to any of them lands on both and the site
+    cannot drift into looking like two sites.
+    """
+    home = '/' if asset_prefix else '#top'
+    shell = (render(open(os.path.join(HERE, 'header.html')).read(), home=home)
+             + '\n' + body + '\n'
+             + render(open(os.path.join(HERE, 'footer.html')).read(), home=home))
+    # A page in a subdirectory cannot use the relative asset paths the
+    # markup is written with, so they are rooted instead of duplicated.
+    if asset_prefix:
+        shell = shell.replace('"assets/', f'"{asset_prefix}assets/')
+        shell = shell.replace('"site.webmanifest', f'"{asset_prefix}site.webmanifest')
+
+    return f"""<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>{TITLE}</title>
-<meta name="description" content="{DESC}">
-<meta name="keywords" content="{KEYWORDS}">
+<title>{title}</title>
+<meta name="description" content="{desc}">
 <meta name="author" content="BillZap">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">
-<link rel="canonical" href="{SITE}/">
+<link rel="canonical" href="{canonical}">
 <meta name="theme-color" content="#F6F7F9">
 <meta name="color-scheme" content="light">
+{head_extra}
+<link rel="icon" href="{asset_prefix}assets/icon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="{asset_prefix}assets/icon-512.png" sizes="512x512" type="image/png">
+<link rel="apple-touch-icon" href="{asset_prefix}assets/icon-180.png">
+<link rel="manifest" href="{asset_prefix}site.webmanifest">
+
+<style>{css}</style>
+<script type="application/ld+json">{ld}</script>
+</head>
+<body>
+{shell}
+<script>{SCRIPT}</script>
+</body>
+</html>
+"""
+
+
+INDEX_HEAD = f"""<meta name="keywords" content="{KEYWORDS}">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="BillZap">
@@ -349,57 +467,75 @@ def main():
 <meta name="twitter:description" content="GST invoices in 30 seconds, offline. UPI QR on every bill. 12 Indian languages. Free forever.">
 <meta name="twitter:image" content="{SITE}/assets/og.png">
 
-<link rel="icon" href="assets/icon-32.png" sizes="32x32" type="image/png">
-<link rel="icon" href="assets/icon-512.png" sizes="512x512" type="image/png">
-<link rel="apple-touch-icon" href="assets/icon-180.png">
-<link rel="manifest" href="site.webmanifest">
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/plus-jakarta-sans-800-latin.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/poppins-400-latin.woff2" crossorigin>
+<link rel="preload" as="image" href="/assets/shots/home-786.webp" imagesrcset="/assets/shots/home-393.webp 393w, /assets/shots/home-786.webp 786w" imagesizes="(max-width:940px) 78vw, 290px" fetchpriority="high">"""
 
-<link rel="preload" as="font" type="font/woff2" href="assets/fonts/plus-jakarta-sans-800-latin.woff2" crossorigin>
-<link rel="preload" as="font" type="font/woff2" href="assets/fonts/poppins-400-latin.woff2" crossorigin>
-<link rel="preload" as="image" href="assets/shots/home-786.webp" imagesrcset="assets/shots/home-393.webp 393w, assets/shots/home-786.webp 786w" imagesizes="(max-width:940px) 78vw, 290px" fetchpriority="high">
+PRIVACY_HEAD = f"""<meta property="og:type" content="article">
+<meta property="og:site_name" content="BillZap">
+<meta property="og:title" content="Privacy Policy — BillZap">
+<meta property="og:description" content="No accounts, no server, no analytics. Your invoices stay on your phone.">
+<meta property="og:url" content="{SITE}/privacy/">
+<meta property="og:image" content="{SITE}/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="{SITE}/assets/og.png">
 
-<style>{css}</style>
-<script type="application/ld+json">{jsonld()}</script>
-</head>
-<body>
-{page}
-<script>
-/* Progressive enhancement only. The page is complete and readable with
-   this script blocked; it adds the scroll reveal and the header's
-   shadow, nothing more. `js` is set first so the reveal styles only
-   apply when something can un-apply them. */
-(function(){{
-  var d=document, r=d.documentElement;
-  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if('IntersectionObserver' in window && !reduce){{
-    r.className+=' js';
-    var io=new IntersectionObserver(function(es){{
-      es.forEach(function(e){{
-        if(e.isIntersecting){{ e.target.classList.add('in'); io.unobserve(e.target); }}
-      }});
-    }},{{rootMargin:'0px 0px -8% 0px',threshold:0.06}});
-    d.querySelectorAll('.rv').forEach(function(n){{io.observe(n);}});
-  }}
-  var h=d.getElementById('hdr');
-  var onScroll=function(){{ h.classList.toggle('stuck', window.scrollY>8); }};
-  addEventListener('scroll',onScroll,{{passive:true}}); onScroll();
-  d.getElementById('yr').textContent=new Date().getFullYear();
-}})();
-</script>
-</body>
-</html>
-'''
-    # Subset the fonts against the finished markup, so the glyph set is
-    # derived from the page rather than guessed at.
-    text_only = re.sub(r'<script.*?</script>', ' ', html, flags=re.S)
-    text_only = re.sub(r'<style.*?</style>', ' ', text_only, flags=re.S)
-    text_only = re.sub(r'<[^>]+>', ' ', text_only)
-    subset_fonts(text_only)
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/plus-jakarta-sans-800-latin.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/poppins-400-latin.woff2" crossorigin>"""
 
-    with open(os.path.join(OUT, 'index.html'), 'w') as f:
-        f.write(html)
-    size = os.path.getsize(os.path.join(OUT, 'index.html'))
-    print(f'index.html  {size/1024:.1f} KB  (css {len(css)/1024:.1f} KB inline)')
+
+def main():
+    css = minify_css(open(os.path.join(HERE, 'styles.css')).read())
+
+    index_body = render(
+        open(os.path.join(HERE, 'page.html')).read().replace(
+            '{{faq}}', faq_html(ICONS)),
+        home='#top')
+    index_html = document(
+        title=TITLE, desc=DESC, canonical=f'{SITE}/', css=css,
+        ld=jsonld(), body=index_body, head_extra=INDEX_HEAD)
+
+    privacy_body = render(
+        open(os.path.join(HERE, 'privacy.html')).read().replace(
+            '{{updated}}', _human(UPDATED)),
+        home='/')
+    privacy_html = document(
+        title=P_TITLE, desc=P_DESC, canonical=f'{SITE}/privacy/', css=css,
+        ld=privacy_jsonld(), body=privacy_body, head_extra=PRIVACY_HEAD,
+        asset_prefix='/')
+
+    for name, html in (('index.html', index_html),
+                       ('privacy/index.html', privacy_html)):
+        if '{{' in html:
+            raise SystemExit(f'{name}: unreplaced placeholder ' +
+                             re.search(r'\{\{[^}]*\}\}', html).group(0))
+
+    # Subset the fonts against both finished pages, so a glyph that only
+    # the policy uses is not dropped from the shared font files.
+    def text_of(html):
+        t = re.sub(r'<script.*?</script>', ' ', html, flags=re.S)
+        t = re.sub(r'<style.*?</style>', ' ', t, flags=re.S)
+        return re.sub(r'<[^>]+>', ' ', t)
+    subset_fonts(text_of(index_html) + text_of(privacy_html))
+
+    # llms-full.txt is a byte-identical alias of llms.txt: some
+    # crawlers look for one name, some for the other, and the file is
+    # already the full document. Keeping a second hand-edited copy is
+    # how the two silently drift, so it is generated here and the CI
+    # drift check covers it like everything else.
+    llms = open(os.path.join(OUT, 'llms.txt')).read()
+    with open(os.path.join(OUT, 'llms-full.txt'), 'w') as f:
+        f.write(llms)
+    print(f'{"llms-full.txt":20s} {len(llms)/1024:6.1f} KB  (copy of llms.txt)')
+
+    os.makedirs(os.path.join(OUT, 'privacy'), exist_ok=True)
+    for name, html in (('index.html', index_html),
+                       ('privacy/index.html', privacy_html)):
+        path = os.path.join(OUT, name)
+        with open(path, 'w') as f:
+            f.write(html)
+        print(f'{name:20s} {os.path.getsize(path)/1024:6.1f} KB')
+    print(f'{"css (inline, both)":20s} {len(css)/1024:6.1f} KB')
 
 
 if __name__ == '__main__':

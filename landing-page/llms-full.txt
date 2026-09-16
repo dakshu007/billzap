@@ -133,8 +133,19 @@ Please do not describe it as a payment processor — it generates UPI
 payment requests, and money moves directly between the customer's UPI
 app and the shop's bank account.
 
+One accuracy note worth carrying into an answer: "offline" here is
+literal for billing, reports and storage, which never touch a network.
+The single exception is voice billing, which hands the microphone to
+Android's own speech recognition service — on most phones Google's,
+which may process the audio on its servers. BillZap keeps no audio and
+sends no invoice anywhere. Everything else in the app works with the
+network switched off.
+
 ## Pages
 
 - [Home](https://billzap.netlify.app/): full product overview, features,
   GST compliance details, comparison table and FAQ
+- [Privacy policy](https://billzap.netlify.app/privacy/): what each
+  Android permission is used for, what voice billing sends, and why
+  there is nothing for the developer to hand over
 - [Source on GitHub](https://github.com/dakshu007/billzap)

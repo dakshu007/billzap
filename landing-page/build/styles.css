@@ -8,11 +8,11 @@
    Self-hosted latin subsets. Google's CDN costs two extra connections
    and a render-blocking stylesheet; at this size self-hosting is
    strictly cheaper. swap so text is readable on the first paint.      */
-@font-face{font-family:'Jakarta';src:url(assets/fonts/plus-jakarta-sans-800-latin.woff2) format('woff2');font-weight:800;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-@font-face{font-family:'Jakarta';src:url(assets/fonts/plus-jakarta-sans-700-latin.woff2) format('woff2');font-weight:700;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-@font-face{font-family:'Jakarta';src:url(assets/fonts/plus-jakarta-sans-600-latin.woff2) format('woff2');font-weight:600;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-@font-face{font-family:'Poppins';src:url(assets/fonts/poppins-400-latin.woff2) format('woff2');font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
-@font-face{font-family:'Poppins';src:url(assets/fonts/poppins-500-latin.woff2) format('woff2');font-weight:500;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Jakarta';src:url(/assets/fonts/plus-jakarta-sans-800-latin.woff2) format('woff2');font-weight:800;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Jakarta';src:url(/assets/fonts/plus-jakarta-sans-700-latin.woff2) format('woff2');font-weight:700;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Jakarta';src:url(/assets/fonts/plus-jakarta-sans-600-latin.woff2) format('woff2');font-weight:600;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Poppins';src:url(/assets/fonts/poppins-400-latin.woff2) format('woff2');font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Poppins';src:url(/assets/fonts/poppins-500-latin.woff2) format('woff2');font-weight:500;font-style:normal;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 
 /* ── Tokens ─────────────────────────────────────────────────────────
    The app's Ink & Jade system, light mode only. Jade is the single
@@ -333,3 +333,56 @@ h1 .hl{color:var(--jade-600);position:relative;white-space:nowrap}
 .ftr-btm{margin-top:clamp(36px,5vw,56px);padding-top:26px;
   border-top:1px solid rgba(255,255,255,.1);display:flex;flex-wrap:wrap;gap:12px;
   justify-content:space-between;font-size:13.5px}
+
+/* ── Legal prose (the privacy policy page) ─────────────────────────
+   A policy is read, not skimmed, so it gets a single narrow measure
+   rather than the marketing page's grid. Everything else — colours,
+   type, the header and footer — is shared, so the page reads as part
+   of the site and not as a PDF somebody bolted on. */
+.legal{padding-block:clamp(48px,7vw,84px) clamp(64px,9vw,110px)}
+.legal-head{max-width:760px;margin-bottom:clamp(32px,5vw,48px)}
+.legal-head h1{font-size:clamp(34px,5.2vw,52px)}
+.legal-head .lead{margin-top:18px}
+.legal-meta{margin-top:20px;font-size:14.5px;color:var(--text-3);
+  display:flex;flex-wrap:wrap;gap:8px 22px}
+/* Each item is its own flex line, or the icon gets treated as a
+   shrinkable box and drops above its label. */
+.legal-meta span{display:inline-flex;align-items:center;gap:7px}
+.legal-meta .ico{font-size:16px;flex:none}
+.prose{max-width:760px}
+.prose h2{font-size:clamp(21px,2.6vw,26px);font-weight:700;letter-spacing:-.02em;
+  margin-top:clamp(40px,5vw,56px);padding-top:clamp(28px,3.5vw,36px);
+  border-top:1px solid var(--hairline)}
+.prose h2:first-of-type{margin-top:0;padding-top:0;border-top:0}
+.prose h3{font-size:17.5px;font-weight:700;margin-top:30px}
+.prose p{margin-top:15px;color:var(--text-2);font-size:16.5px;line-height:1.72}
+.prose ul{margin-top:15px;display:grid;gap:11px}
+.prose li{display:flex;gap:11px;color:var(--text-2);font-size:16.5px;line-height:1.66}
+.prose li .ico{font-size:19px;color:var(--jade-600);margin-top:3px}
+.prose strong{color:var(--text);font-weight:600}
+/* Links in running text are underlined; a button is already a button
+   and an underline through it just looks like a mistake. */
+.prose a:not(.btn){color:var(--jade-700);text-decoration:underline;
+  text-underline-offset:3px}
+.prose a:not(.btn):hover{color:var(--jade-900)}
+
+/* The permission table. Each row says what Android grants, what
+   BillZap does with it, and whether anything leaves the phone —
+   that third column is the only one most people are looking for. */
+.perms{margin-top:22px;display:grid;gap:12px}
+.perm{background:var(--paper);border:1px solid var(--hairline);
+  border-radius:var(--r-md);padding:18px 20px;box-shadow:var(--shadow-sm)}
+.perm-h{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15.5px}
+.perm-h .ico{font-size:19px;color:var(--jade-600)}
+.perm p{margin-top:9px;font-size:15.5px}
+.perm .tag{margin-left:auto;font-size:12.5px;font-weight:600;letter-spacing:.01em;
+  padding:4px 10px;border-radius:999px;white-space:nowrap}
+.tag-local{background:var(--jade-50);color:var(--jade-700)}
+.tag-out{background:#FDF3E3;color:#8A5A12}
+
+/* A single callout for the one thing on this page that genuinely
+   surprises people: speech recognition is Android's, not ours. */
+.callout{margin-top:22px;background:var(--jade-50);border:1px solid var(--jade-100);
+  border-left:3px solid var(--jade-600);border-radius:var(--r-md);padding:20px 22px}
+.callout p{margin-top:0;color:var(--ink-700)}
+.callout p + p{margin-top:12px}

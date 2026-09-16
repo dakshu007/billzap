@@ -1,0 +1,200 @@
+<main id="main">
+<section class="legal">
+  <div class="wrap">
+
+    <div class="legal-head">
+      <p class="eyebrow">{{ico:lock}} Privacy policy</p>
+      <h1>BillZap does not collect your data.</h1>
+      <p class="lead">
+        Not a softened version of that sentence — there is no account to
+        sign into, no server holding your books and no analytics reading
+        your invoices. This page explains what that means in practice,
+        what the app asks Android for, and the one case where something
+        does leave your phone.
+      </p>
+      <p class="legal-meta">
+        <span>{{ico:calendar}} Last updated {{updated}}</span>
+        <span>{{ico:smartphone}} Applies to the BillZap Android app and this website</span>
+      </p>
+    </div>
+
+    <div class="prose">
+
+      <h2>The short version</h2>
+      <ul>
+        <li>{{ico:circle-check}} <span>BillZap has <strong>no user accounts</strong>. You are never asked for a name, phone number or email.</span></li>
+        <li>{{ico:circle-check}} <span>BillZap has <strong>no backend server</strong>. There is nowhere for us to store your invoices, because we do not run anything to store them on.</span></li>
+        <li>{{ico:circle-check}} <span>Your invoices, customers, products and expenses live in the app's own storage <strong>on your phone</strong>.</span></li>
+        <li>{{ico:circle-check}} <span>There is <strong>no analytics, no advertising and no tracking</strong> of any kind in the app.</span></li>
+        <li>{{ico:circle-check}} <span>The only data that ever leaves your phone is what <strong>you</strong> send — a PDF you share, or a voice command you speak.</span></li>
+      </ul>
+
+      <h2>What BillZap stores, and where</h2>
+      <p>
+        Everything you enter is written to a local database inside the
+        app's private storage area on your device. That includes your
+        business profile and GSTIN, your bank and UPI details, your
+        customers, your product catalogue, every invoice you make, your
+        expenses, and your settings.
+      </p>
+      <p>
+        No copy of any of it is sent to us or to anyone else. We could
+        not produce your invoices if a court asked us to, because we do
+        not have them.
+      </p>
+      <p>
+        Uninstalling the app deletes this storage, and with it
+        everything above. <strong>Take a backup first if you want to keep
+        it</strong> — settings has a backup option that writes a single
+        file you choose the location of. That file is yours; it is not
+        uploaded anywhere.
+      </p>
+
+      <h2>What the app asks Android for</h2>
+      <p>
+        Android lists every permission an app declares. Here is each one
+        BillZap asks for and what it is actually used for.
+      </p>
+
+      <div class="perms">
+        <div class="perm">
+          <div class="perm-h">{{ico:mic}} Microphone <span class="tag tag-out">Leaves the phone</span></div>
+          <p>
+            Used only by voice billing, and only while you are holding
+            the button. BillZap does not record, keep or transmit audio
+            itself — it hands the microphone to Android's own speech
+            recognition service and receives text back. See the note
+            below, because on most phones that service is Google's.
+          </p>
+        </div>
+        <div class="perm">
+          <div class="perm-h">{{ico:fingerprint}} Fingerprint and biometrics <span class="tag tag-local">Stays on the phone</span></div>
+          <p>
+            Used for the optional app lock. The check happens inside
+            Android; BillZap receives only a yes or a no. Your
+            fingerprint is never exposed to the app and never stored by
+            it. Your PIN, if you set one, is stored on the device as a
+            hash, not as the number you typed.
+          </p>
+        </div>
+        <div class="perm">
+          <div class="perm-h">{{ico:folder}} Files and storage <span class="tag tag-local">Stays on the phone</span></div>
+          <p>
+            Used when you save an invoice PDF, export a report, or write
+            and read back a backup file. BillZap does not browse your
+            storage or read files you have not picked.
+          </p>
+        </div>
+        <div class="perm">
+          <div class="perm-h">{{ico:wifi}} Network access <span class="tag tag-local">Not used for your data</span></div>
+          <p>
+            Declared so the app can print to a printer on your WiFi and
+            open a link when you tap one. No invoice, customer, report or
+            setting is ever uploaded. The app's fonts and everything else
+            it draws are bundled inside the download, so BillZap makes no
+            call of its own on startup or at any other time.
+          </p>
+        </div>
+      </div>
+
+      <h2>Voice billing, in plain terms</h2>
+      <div class="callout">
+        <p>
+          <strong>Speech recognition is Android's, not ours.</strong> When
+          you use voice billing, the audio goes to whichever recognition
+          service your phone is set up to use. On most Android phones
+          that is Google's, and Google may process the audio on its
+          servers under Google's own privacy policy — the same as when
+          you dictate a message in any other app.
+        </p>
+        <p>
+          BillZap receives only the recognised text, uses it to fill in
+          the invoice, and keeps no audio. If you would rather nothing
+          left the phone at all, simply do not use voice billing — every
+          other part of the app works with the network off.
+        </p>
+      </div>
+
+      <h2>Sharing an invoice</h2>
+      <p>
+        When you share a bill, BillZap makes a PDF and hands it to
+        Android's share sheet. You choose where it goes — WhatsApp,
+        email, a printer, your own files. From that point the invoice is
+        in that app's hands and its privacy policy applies, not ours.
+        Nothing is shared unless you tap share.
+      </p>
+
+      <h2>UPI payments</h2>
+      <p>
+        The QR code on an unpaid invoice encodes your own UPI ID and the
+        amount due. Your customer scans it and pays you from their UPI
+        app, straight into your bank account.
+      </p>
+      <p>
+        <strong>BillZap is not a payment processor and is not a party to
+        the payment.</strong> We do not see, hold, route or take a cut of
+        any money. We have no way of knowing whether an invoice was paid
+        unless you mark it paid yourself.
+      </p>
+
+      <h2>Children</h2>
+      <p>
+        BillZap is a tool for running a business and is not directed at
+        children. Because the app collects nothing, it collects nothing
+        from children either.
+      </p>
+
+      <h2>Your rights over your data</h2>
+      <p>
+        Data protection law gives you rights to access, correct, export
+        and delete personal data a company holds about you — including
+        under India's Digital Personal Data Protection Act, 2023 and the
+        GDPR where it applies.
+      </p>
+      <p>
+        We hold none, so there is nothing to request from us. In
+        practice those rights are already in your hands: the data is on
+        your device, you can edit or delete any of it in the app, you can
+        export it as PDF or CSV at any time, and uninstalling removes all
+        of it.
+      </p>
+
+      <h2>This website</h2>
+      <p>
+        billzap.netlify.app serves a static page. It sets no cookies,
+        embeds no third-party scripts, loads no external fonts or
+        trackers, and has no comment box or sign-up form. Netlify, which
+        hosts it, keeps standard server access logs — see
+        <a href="https://www.netlify.com/privacy/" rel="noopener">Netlify's
+        privacy policy</a>.
+      </p>
+      <p>
+        If analytics are ever added to this website, this page will say
+        so before they go live, and they will not extend to the app.
+      </p>
+
+      <h2>Changes to this policy</h2>
+      <p>
+        If the app's behaviour changes in a way that affects your
+        privacy, this page changes with it and the date at the top is
+        updated. The app is open source, so any change is visible in the
+        commit history as well.
+      </p>
+
+      <h2>Contact</h2>
+      <p>
+        Questions about this policy, or something here that does not
+        match what you see in the app? Open an issue at
+        <a href="https://github.com/dakshu007/billzap/issues" rel="noopener">github.com/dakshu007/billzap/issues</a>
+        — it is a public, tracked channel and the fastest way to reach a
+        real answer.
+      </p>
+
+      <p style="margin-top:34px">
+        <a class="btn btn-ghost" href="/">{{ico:arrow-left}} Back to BillZap</a>
+      </p>
+
+    </div>
+  </div>
+</section>
+</main>
