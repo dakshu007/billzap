@@ -1247,3 +1247,183 @@ Future<void> notify(
     ),
   );
 }
+
+// ═════════════════════════════════════════════════════════════════════
+// SEGMENTED TABS
+// ═════════════════════════════════════════════════════════════════════
+
+/// A segmented control whose indicator *travels*.
+///
+/// The obvious build — an AnimatedContainer per segment, fading a pill in
+/// on the selected one and out on the last — reads as a cut, because
+/// nothing actually moves between the two positions. Here a single pill
+/// slides, and it carries the dock's physics: it stretches along its
+/// direction of travel and thins slightly mid-flight, then settles.
+class SegmentedTabs extends StatefulWidget {
+  final List<String> labels;
+  final int index;
+  final ValueChanged<int> onSelect;
+
+  const SegmentedTabs({
+    super.key,
+    required this.labels,
+    required this.index,
+    required this.onSelect,
+  });
+
+  @override
+  State<SegmentedTabs> createState() => _SegmentedTabsState();
+}
+
+class _SegmentedTabsState extends State<SegmentedTabs>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c;
+
+  /// Where the pill is travelling from and to, in slot units. The
+  /// indicator is drawn at lerp(_from, _to, curve), which is what lets
+  /// an interrupted tap continue from wherever it had reached.
+  late double _from;
+  late double _to;
+  int? _pressed;
+
+  @override
+  void initState() {
+    super.initState();
+    _from = _to = widget.index.toDouble();
+    _c = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 380),
+      value: 1,
+    );
+  }
+
+  @override
+  void didUpdateWidget(SegmentedTabs old) {
+    super.didUpdateWidget(old);
+    if (widget.index != old.index) {
+      // Start from the pill's *current* position, not from the previous
+      // slot: tapping through three tabs quickly should look like one
+      // continuous slide, not three restarts.
+      _from = _position;
+      _to = widget.index.toDouble();
+      _c
+        ..value = 0
+        ..forward();
+    }
+  }
+
+  double get _position {
+    final t = Curves.easeOutCubic.transform(_c.value);
+    return _from + (_to - _from) * t;
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  void _tap(int i) {
+    if (i == widget.index) return;
+    HapticFeedback.selectionClick();
+    widget.onSelect(i);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final n = widget.labels.length;
+
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: AppColor.sunken,
+        borderRadius: AppRadius.all(AppRadius.pill),
+      ),
+      child: LayoutBuilder(
+        builder: (context, box) {
+          final slot = (box.maxWidth - 8) / n;
+          return AnimatedBuilder(
+            animation: _c,
+            builder: (context, _) {
+              final pos = _position;
+
+              // Distance from the nearest slot centre — 0 at rest, 0.5
+              // mid-flight. Exactly the number the dock's bubble uses.
+              final travel = (pos - pos.roundToDouble()).abs() * 2;
+              final stretch = 1 + travel * 0.16;
+              final squash = 1 - travel * 0.08;
+
+              return Stack(children: [
+                Positioned(
+                  left: slot * pos,
+                  top: 0,
+                  bottom: 0,
+                  width: slot,
+                  child: Center(
+                    child: Transform.scale(
+                      scaleX: stretch,
+                      scaleY: squash,
+                      child: Container(
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: AppColor.surface,
+                          borderRadius: AppRadius.all(AppRadius.pill),
+                          boxShadow: AppElevation.card,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Row(
+                  children: List.generate(n, (i) {
+                    // Continuous, like the dock: the label's weight and
+                    // colour blend across the pill's travel rather than
+                    // flipping when it arrives.
+                    final t = (1 - (pos - i).abs()).clamp(0.0, 1.0);
+                    return Expanded(
+                      child: Semantics(
+                        button: true,
+                        selected: t > 0.5,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTapDown: (_) => setState(() => _pressed = i),
+                          onTapUp: (_) => setState(() => _pressed = null),
+                          onTapCancel: () => setState(() => _pressed = null),
+                          onTap: () => _tap(i),
+                          child: AnimatedScale(
+                            scale: _pressed == i ? 0.94 : 1.0,
+                            duration: AppMotion.fast,
+                            curve: AppMotion.standard,
+                            child: SizedBox(
+                              height: 34,
+                              child: Center(
+                                child: Text(
+                                  widget.labels[i],
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppFont.style(
+                                    AppType.labelM,
+                                    color: Color.lerp(AppColor.textTertiary,
+                                        AppColor.textPrimary, t),
+                                  ).copyWith(
+                                    fontWeight: FontWeight.lerp(
+                                        FontWeight.w500, FontWeight.w700, t),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ]);
+            },
+          );
+        },
+      ),
+    );
+  }
+}

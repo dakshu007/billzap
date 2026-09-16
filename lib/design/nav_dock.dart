@@ -28,7 +28,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'motion.dart';
-import 'theme.dart';
 import 'tokens.dart';
 
 class NavDestination {
@@ -185,7 +184,7 @@ class _DockContents extends StatelessWidget {
     final stretch = 1 + travel * 0.42;
     final squash = 1 - travel * 0.13;
 
-    final bubbleW = math.min(slot - 10, 62.0);
+    final bubbleW = math.min(slot - 14, 52.0);
 
     // The bubble is centred on its slot, but the stretch would push its
     // leading edge past the pill's rounded end on the first and last
@@ -209,10 +208,10 @@ class _DockContents extends StatelessWidget {
             scaleX: stretch,
             scaleY: squash,
             child: Container(
-              // Tall enough that the icon and the label sit inside it
-              // with air around them; at 46 the label's descenders ran
-              // right up against the edge.
-              height: 50,
+              // A disc around the glyph now that there is no label under
+              // it — at 50 the capsule was sized for two lines of content
+              // and looked like a slot with something missing from it.
+              height: 46,
               decoration: BoxDecoration(
                 color: AppColor.wash(AppColor.primary),
                 borderRadius: AppRadius.all(AppRadius.pill),
@@ -244,36 +243,21 @@ class _DockContents extends StatelessWidget {
                 scale: held ? 0.9 : 1.0,
                 duration: AppMotion.fast,
                 curve: AppMotion.standard,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Transform.scale(
-                      scale: 1 + t * 0.08,
-                      child: Icon(
-                        t > 0.5 ? d.activeIcon : d.icon,
-                        size: 22,
-                        color: Color.lerp(
-                            AppColor.textTertiary, AppColor.primary, t),
-                      ),
+                // Glyph only. Four labels on a 393pt bar forced type down
+                // to a size that is hard to read in sunlight anyway, and
+                // these four destinations are the most conventional icons
+                // in the category — a house, a receipt, a bar chart, a
+                // person. The name is in the screen title one line up.
+                child: Center(
+                  child: Transform.scale(
+                    scale: 1 + t * 0.10,
+                    child: Icon(
+                      t > 0.5 ? d.activeIcon : d.icon,
+                      size: 23,
+                      color: Color.lerp(
+                          AppColor.textTertiary, AppColor.primary, t),
                     ),
-                    // The label occupies reserved height at all times, so
-                    // fading it in never nudges the icons.
-                    SizedBox(
-                      height: 14,
-                      child: Opacity(
-                        // Sharpened so only the arriving label is legible;
-                        // a linear fade leaves two ghosts mid-swipe.
-                        opacity: (t * t * t).clamp(0.0, 1.0),
-                        child: Text(
-                          d.label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppFont.style(AppType.labelS,
-                              color: AppColor.primary),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),

@@ -1,35 +1,72 @@
 // lib/utils/report_pdf_builder.dart
-// Builds beautifully branded PDFs for the 4 report types.
-// Reuses the same blue (0xFF1557FF) as your invoice PDF for visual consistency.
+//
+// The four exported reports: Monthly Revenue, Profit & Loss, GST Summary
+// and Invoice Status.
+//
+// These are the only artefacts of the app that leave the phone and land
+// in someone else's inbox — an accountant's, a bank's, a buyer's — so
+// they are held to the same standard as the invoice itself.
+//
+// Three things the previous version got wrong, all visible the moment
+// you opened one:
+//
+//   • It printed "Rs." because it used a built-in PDF font. Those are
+//     Latin-1 only and carry no rupee glyph. Every em dash came out as a
+//     tofu box for the same reason. Inter is embedded here, so ₹ is ₹.
+//   • Its header pill used a 99pt corner radius on a ~16pt-tall box. At
+//     a radius past half the height the corner arcs self-intersect and
+//     the pdf package draws a bowtie across the page. Radii are clamped.
+//   • It was blue, from a brand the app no longer has.
+//
+// The layout follows the app: ink type, jade for the one figure that
+// matters, hairlines instead of a full table grid, and tabular figures
+// down every money column.
 
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:intl/intl.dart';
 import '../models/models.dart';
 
 class ReportPdfBuilder {
-  // Brand colors
-  static const _brand = PdfColor.fromInt(0xFF1557FF);
-  static const _brandSoft = PdfColor.fromInt(0xFFEEF3FF);
-  static const _green = PdfColor.fromInt(0xFF2E7D32);
-  static const _greenSoft = PdfColor.fromInt(0xFFE8F5E9);
-  static const _red = PdfColor.fromInt(0xFFD32F2F);
-  static const _redSoft = PdfColor.fromInt(0xFFFFEBEE);
-  static const _orange = PdfColor.fromInt(0xFFE65100);
-  static const _orangeSoft = PdfColor.fromInt(0xFFFFF3E0);
-  static const _yellow = PdfColor.fromInt(0xFFF57F17);
-  static const _yellowSoft = PdfColor.fromInt(0xFFFFFDE7);
-  static const _t1 = PdfColor.fromInt(0xFF1A1A1A);
-  static const _t2 = PdfColor.fromInt(0xFF555555);
-  static const _t3 = PdfColor.fromInt(0xFF888888);
-  static const _border = PdfColor.fromInt(0xFFE0E0E0);
+  // ── Print palette ───────────────────────────────────────────────
+  // Deliberately not the screen tokens. Screen colour is emitted light;
+  // print colour is reflected ink, and the jade that reads as precise on
+  // an OLED goes muddy on office paper. These are the print values.
+  static const _ink = PdfColor.fromInt(0xFF12161C);
+  static const _inkSoft = PdfColor.fromInt(0xFF5A6472);
+  static const _inkFaint = PdfColor.fromInt(0xFF98A1AE);
+  static const _rule = PdfColor.fromInt(0xFFE2E6EC);
+  static const _ruleSoft = PdfColor.fromInt(0xFFF1F3F6);
+  static const _jade = PdfColor.fromInt(0xFF0A7F58);
+  static const _jadeWash = PdfColor.fromInt(0xFFEDF7F2);
+  static const _coral = PdfColor.fromInt(0xFFB3322C);
+  static const _amber = PdfColor.fromInt(0xFF8A6212);
+  static const _amberWash = PdfColor.fromInt(0xFFFCF6E8);
+  static const _paper = PdfColor.fromInt(0xFFFFFFFF);
 
-  // Helpers
-  static String _inr(double v) {
-    final isNeg = v < 0;
-    final abs = v.abs();
-    final parts = abs.toStringAsFixed(2).split('.');
-    String integer = parts[0];
+  // Inter carries U+20B9 and has tabular figures, so money columns line
+  // up in print the same way they do on screen. Cached across builds —
+  // a report is often exported several times in a row.
+  static pw.Font? _regular;
+  static pw.Font? _bold;
+
+  static Future<pw.ThemeData> _theme() async {
+    _regular ??= pw.Font.ttf(
+        await rootBundle.load('assets/fonts/Inter-Regular.ttf'));
+    _bold ??= pw.Font.ttf(
+        await rootBundle.load('assets/fonts/Inter-SemiBold.ttf'));
+    return pw.ThemeData.withFont(base: _regular!, bold: _bold!);
+  }
+
+  // ── Money ───────────────────────────────────────────────────────
+  // Indian grouping: the last three digits, then pairs. 12,34,567.00,
+  // never 1,234,567.00 — an accountant reads the wrong number off the
+  // western grouping at a glance.
+  static String _inr(double v, {bool symbol = true}) {
+    final neg = v < 0;
+    final parts = v.abs().toStringAsFixed(2).split('.');
+    var integer = parts[0];
     if (integer.length > 3) {
       final last3 = integer.substring(integer.length - 3);
       final rest = integer.substring(0, integer.length - 3);
@@ -39,145 +76,216 @@ class ReportPdfBuilder {
       }
       integer = '${groups.join(',')},$last3';
     }
-    return '${isNeg ? '-' : ''}Rs.$integer.${parts[1]}';
+    return '${neg ? '-' : ''}${symbol ? '₹' : ''}$integer.${parts[1]}';
   }
 
-  static String _dt(DateTime d) => DateFormat('dd MMM yyyy').format(d);
+  static String _dt(DateTime d) => DateFormat('d MMM yyyy').format(d);
+
+  static String _period(DateTime from, DateTime to) =>
+      '${_dt(from)} – ${_dt(to)}';
 
   // ═══════════════════════════════════════════════════════════════
-  // SHARED COMPONENTS
+  // SHARED PIECES
   // ═══════════════════════════════════════════════════════════════
 
-  static pw.Widget _header(String title, String subtitle, Business? biz) {
-    return pw.Container(
-      padding: const pw.EdgeInsets.all(20),
-      decoration: const pw.BoxDecoration(
-        color: _brand,
-        borderRadius: pw.BorderRadius.all(pw.Radius.circular(10)),
-      ),
-      child: pw.Row(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-        children: [
-          pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Text(
-                biz?.name ?? 'Your Business',
-                style: pw.TextStyle(
-                  color: PdfColors.white,
-                  fontSize: 20,
-                  fontWeight: pw.FontWeight.bold)),
-              pw.SizedBox(height: 4),
-              if ((biz?.gstin ?? '').isNotEmpty)
-                pw.Text(
-                  'GSTIN: ${biz!.gstin}',
-                  style: const pw.TextStyle(color: PdfColors.white, fontSize: 10)),
-              pw.SizedBox(height: 8),
-              pw.Container(
-                padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: pw.BoxDecoration(
-                  color: PdfColors.white,
-                  borderRadius: pw.BorderRadius.all(pw.Radius.circular(99))),
-                child: pw.Text(title.toUpperCase(),
-                  style: pw.TextStyle(
-                    color: _brand, fontSize: 9,
-                    fontWeight: pw.FontWeight.bold,
-                    letterSpacing: 0.6)),
+  /// The masthead. Typography, not a coloured slab: the business name is
+  /// the largest thing on the page because it is whose document this is,
+  /// and a jade rule underneath does the work the blue block was doing.
+  static pw.Widget _masthead(String title, DateTime from, DateTime to,
+      Business? biz) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          children: [
+            pw.Expanded(
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(title.toUpperCase(),
+                      style: pw.TextStyle(
+                          fontSize: 8,
+                          color: _jade,
+                          fontWeight: pw.FontWeight.bold,
+                          letterSpacing: 1.4)),
+                  pw.SizedBox(height: 7),
+                  pw.Text(biz?.name.isNotEmpty == true
+                          ? biz!.name
+                          : 'Your business',
+                      style: pw.TextStyle(
+                          fontSize: 22,
+                          color: _ink,
+                          fontWeight: pw.FontWeight.bold,
+                          letterSpacing: -0.4)),
+                  pw.SizedBox(height: 4),
+                  pw.Text(
+                      [
+                        if ((biz?.gstin ?? '').isNotEmpty) 'GSTIN ${biz!.gstin}',
+                        if ((biz?.city ?? '').isNotEmpty) biz!.city,
+                      ].join('  ·  '),
+                      style: const pw.TextStyle(fontSize: 9, color: _inkFaint)),
+                ],
               ),
-              pw.SizedBox(height: 8),
-              pw.Text(subtitle,
-                style: const pw.TextStyle(color: PdfColors.white, fontSize: 11)),
-            ],
-          ),
-          pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.end,
-            children: [
-              pw.Text('BillZap',
-                style: pw.TextStyle(
-                  color: PdfColors.white, fontSize: 14,
-                  fontWeight: pw.FontWeight.bold)),
-              pw.SizedBox(height: 2),
-              pw.Text('Generated ${_dt(DateTime.now())}',
-                style: const pw.TextStyle(color: PdfColors.white, fontSize: 9)),
-            ],
-          ),
-        ],
-      ),
+            ),
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
+                pw.Text('BillZap',
+                    style: pw.TextStyle(
+                        fontSize: 12,
+                        color: _ink,
+                        fontWeight: pw.FontWeight.bold,
+                        letterSpacing: -0.2)),
+                pw.SizedBox(height: 3),
+                pw.Text('Generated ${_dt(DateTime.now())}',
+                    style: const pw.TextStyle(fontSize: 8, color: _inkFaint)),
+              ],
+            ),
+          ],
+        ),
+        pw.SizedBox(height: 14),
+        // A short jade rule, then a hairline across — the accent earns
+        // its place by marking where the document starts, not by filling
+        // a fifth of the page.
+        pw.Row(children: [
+          pw.Container(width: 46, height: 2.5, color: _jade),
+          pw.Expanded(child: pw.Container(height: 0.6, color: _rule)),
+        ]),
+        pw.SizedBox(height: 10),
+        pw.Text('Reporting period  ·  ${_period(from, to)}',
+            style: const pw.TextStyle(fontSize: 9.5, color: _inkSoft)),
+      ],
     );
   }
 
-  static pw.Widget _statCard(String label, String value, PdfColor color, PdfColor soft) {
+  /// One figure in the summary strip. Bordered, not filled: four filled
+  /// pastel boxes in a row read as a dashboard screenshot rather than a
+  /// document, and they photocopy badly.
+  static pw.Widget _stat(String label, String value, {bool accent = false}) {
     return pw.Container(
-      padding: const pw.EdgeInsets.all(12),
+      padding: const pw.EdgeInsets.fromLTRB(11, 10, 11, 11),
       decoration: pw.BoxDecoration(
-        color: soft,
-        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8))),
+        color: accent ? _jadeWash : _paper,
+        border: pw.Border.all(color: accent ? _jade : _rule, width: 0.7),
+        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+      ),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Text(label.toUpperCase(),
-            style: pw.TextStyle(
-              fontSize: 9, color: color,
-              fontWeight: pw.FontWeight.bold, letterSpacing: 0.5)),
+              style: pw.TextStyle(
+                  fontSize: 7,
+                  color: accent ? _jade : _inkFaint,
+                  fontWeight: pw.FontWeight.bold,
+                  letterSpacing: 0.9)),
           pw.SizedBox(height: 6),
           pw.Text(value,
-            style: pw.TextStyle(
-              fontSize: 14, color: color, fontWeight: pw.FontWeight.bold)),
+              style: pw.TextStyle(
+                  fontSize: 13,
+                  color: accent ? _jade : _ink,
+                  fontWeight: pw.FontWeight.bold,
+                  letterSpacing: -0.3)),
         ],
       ),
     );
   }
 
-  static pw.Widget _sectionTitle(String text) {
-    return pw.Container(
-      padding: const pw.EdgeInsets.symmetric(vertical: 8),
-      child: pw.Text(text,
-        style: pw.TextStyle(
-          fontSize: 13, color: _t1, fontWeight: pw.FontWeight.bold)),
+  /// The summary strip. Fixed height rather than `stretch`, because a
+  /// MultiPage lays its children out against an unbounded height and a
+  /// stretched cross axis resolves to infinity there — the page then
+  /// refuses to build at all.
+  static pw.Widget _statRow(List<pw.Widget> cards) {
+    final out = <pw.Widget>[];
+    for (var i = 0; i < cards.length; i++) {
+      if (i > 0) out.add(pw.SizedBox(width: 7));
+      out.add(pw.Expanded(child: cards[i]));
+    }
+    return pw.SizedBox(
+      height: 54,
+      child: pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch, children: out),
     );
   }
 
-  static pw.Widget _table(List<String> headers, List<List<String>> rows,
-      {List<int>? rightAlignCols}) {
-    rightAlignCols ??= [];
+  static pw.Widget _section(String text) => pw.Padding(
+        padding: const pw.EdgeInsets.only(top: 20, bottom: 8),
+        child: pw.Text(text,
+            style: pw.TextStyle(
+                fontSize: 11,
+                color: _ink,
+                fontWeight: pw.FontWeight.bold,
+                letterSpacing: -0.1)),
+      );
+
+  /// A table without a grid.
+  ///
+  /// Ruling every cell puts more ink into the lines than the figures. A
+  /// tinted header band, a rule under it, and hairlines between rows is
+  /// enough structure to read a column down — and it stays legible on a
+  /// fax, which is still how some of these get filed.
+  static pw.Widget _table(
+    List<String> headers,
+    List<List<String>> rows, {
+    List<int> numeric = const [],
+    List<double>? widths,
+    bool emphasiseLast = false,
+  }) {
+    pw.TextAlign align(int i) =>
+        numeric.contains(i) ? pw.TextAlign.right : pw.TextAlign.left;
+
+    final columnWidths = <int, pw.TableColumnWidth>{
+      for (var i = 0; i < headers.length; i++)
+        i: pw.FlexColumnWidth(widths != null && i < widths.length
+            ? widths[i]
+            : (i == 0 ? 1.6 : 1.0)),
+    };
+
     return pw.Table(
-      border: pw.TableBorder.all(color: _border, width: 0.5),
-      columnWidths: {
-        for (int i = 0; i < headers.length; i++) i: const pw.FlexColumnWidth(1),
-      },
+      columnWidths: columnWidths,
       children: [
-        // Header row
         pw.TableRow(
-          decoration: const pw.BoxDecoration(color: _brandSoft),
+          decoration: const pw.BoxDecoration(
+            color: _ruleSoft,
+            border: pw.Border(bottom: pw.BorderSide(color: _rule, width: 0.8)),
+          ),
           children: [
-            for (int i = 0; i < headers.length; i++)
+            for (var i = 0; i < headers.length; i++)
               pw.Padding(
-                padding: const pw.EdgeInsets.all(8),
-                child: pw.Text(
-                  headers[i],
-                  textAlign: rightAlignCols.contains(i)
-                    ? pw.TextAlign.right : pw.TextAlign.left,
-                  style: pw.TextStyle(
-                    fontSize: 10, color: _brand,
-                    fontWeight: pw.FontWeight.bold)),
+                padding: const pw.EdgeInsets.fromLTRB(9, 7, 9, 7),
+                child: pw.Text(headers[i].toUpperCase(),
+                    textAlign: align(i),
+                    style: pw.TextStyle(
+                        fontSize: 7,
+                        color: _inkSoft,
+                        fontWeight: pw.FontWeight.bold,
+                        letterSpacing: 0.7)),
               ),
           ],
         ),
-        // Data rows
-        for (int r = 0; r < rows.length; r++)
+        for (var r = 0; r < rows.length; r++)
           pw.TableRow(
-            decoration: pw.BoxDecoration(
-              color: r % 2 == 0 ? PdfColors.white : const PdfColor.fromInt(0xFFFAFBFC)),
+            decoration: const pw.BoxDecoration(
+              border:
+                  pw.Border(bottom: pw.BorderSide(color: _ruleSoft, width: 0.6)),
+            ),
             children: [
-              for (int i = 0; i < headers.length; i++)
+              for (var i = 0; i < headers.length; i++)
                 pw.Padding(
-                  padding: const pw.EdgeInsets.all(7),
+                  padding: const pw.EdgeInsets.fromLTRB(9, 7, 9, 7),
                   child: pw.Text(
                     i < rows[r].length ? rows[r][i] : '',
-                    textAlign: rightAlignCols.contains(i)
-                      ? pw.TextAlign.right : pw.TextAlign.left,
-                    style: const pw.TextStyle(fontSize: 9.5, color: _t1)),
+                    textAlign: align(i),
+                    style: pw.TextStyle(
+                      fontSize: 9,
+                      color: _ink,
+                      fontWeight: (emphasiseLast && i == headers.length - 1) ||
+                              i == 0
+                          ? pw.FontWeight.bold
+                          : pw.FontWeight.normal,
+                    ),
+                  ),
                 ),
             ],
           ),
@@ -185,23 +293,95 @@ class ReportPdfBuilder {
     );
   }
 
-  static pw.Widget _footer() {
+  /// A note. A left keyline rather than a filled yellow box — the reader
+  /// should be able to skip it, and a highlighter block insists.
+  static pw.Widget _note(String title, String body, {bool amber = true}) {
     return pw.Container(
-      margin: const pw.EdgeInsets.only(top: 24),
-      padding: const pw.EdgeInsets.only(top: 12),
-      decoration: const pw.BoxDecoration(
-        border: pw.Border(top: pw.BorderSide(color: _border, width: 0.5))),
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+      margin: const pw.EdgeInsets.only(top: 14),
+      padding: const pw.EdgeInsets.fromLTRB(12, 10, 12, 11),
+      decoration: pw.BoxDecoration(
+        color: amber ? _amberWash : _jadeWash,
+        border: pw.Border(
+            left: pw.BorderSide(color: amber ? _amber : _jade, width: 2.5)),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text('Generated by BillZap',
-            style: const pw.TextStyle(fontSize: 9, color: _t3)),
-          pw.Text('Free GST billing for Indian MSMEs',
-            style: const pw.TextStyle(fontSize: 9, color: _t3)),
+          if (title.isNotEmpty) ...[
+            pw.Text(title.toUpperCase(),
+                style: pw.TextStyle(
+                    fontSize: 7,
+                    color: amber ? _amber : _jade,
+                    fontWeight: pw.FontWeight.bold,
+                    letterSpacing: 0.9)),
+            pw.SizedBox(height: 4),
+          ],
+          pw.Text(body,
+              style: const pw.TextStyle(
+                  fontSize: 8.5, color: _inkSoft, lineSpacing: 2)),
         ],
       ),
     );
   }
+
+  static pw.Widget _footer(pw.Context ctx) => pw.Container(
+        margin: const pw.EdgeInsets.only(top: 18),
+        padding: const pw.EdgeInsets.only(top: 9),
+        decoration: const pw.BoxDecoration(
+            border: pw.Border(top: pw.BorderSide(color: _rule, width: 0.6))),
+        child: pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          children: [
+            pw.Text('Generated by BillZap',
+                style: const pw.TextStyle(fontSize: 7.5, color: _inkFaint)),
+            pw.Text('Page ${ctx.pageNumber} of ${ctx.pagesCount}',
+                style: const pw.TextStyle(fontSize: 7.5, color: _inkFaint)),
+          ],
+        ),
+      );
+
+  /// Every report is the same page: A4, generous margins, Inter, the
+  /// masthead at the top and the rule-and-page-number at the bottom.
+  static Future<pw.Document> _page({
+    required String title,
+    required DateTime from,
+    required DateTime to,
+    required Business? biz,
+    required List<pw.Widget> body,
+  }) async {
+    final doc = pw.Document(theme: await _theme());
+    doc.addPage(pw.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.fromLTRB(38, 38, 38, 30),
+      footer: _footer,
+      build: (_) => [
+        _masthead(title, from, to, biz),
+        pw.SizedBox(height: 20),
+        ...body,
+      ],
+    ));
+    return doc;
+  }
+
+  /// A label and its figure on one line, label quiet, figure in ink.
+  static pw.Widget _kv(String label, String value) => pw.Row(
+        mainAxisSize: pw.MainAxisSize.min,
+        children: [
+          pw.Text('$label  ',
+              style: const pw.TextStyle(fontSize: 9, color: _inkSoft)),
+          pw.Text(value,
+              style: pw.TextStyle(
+                  fontSize: 9.5,
+                  color: _ink,
+                  fontWeight: pw.FontWeight.bold)),
+        ],
+      );
+
+  static pw.Widget _empty(String text) => pw.Padding(
+        padding: const pw.EdgeInsets.symmetric(vertical: 6),
+        child: pw.Text(text,
+            style: const pw.TextStyle(fontSize: 9, color: _inkFaint)),
+      );
 
   // ═══════════════════════════════════════════════════════════════
   // 1. MONTHLY REVENUE PDF
@@ -212,8 +392,6 @@ class ReportPdfBuilder {
     required DateTime to,
     required Business? biz,
   }) async {
-    final doc = pw.Document();
-
     final filtered = invoices.where((i) =>
       i.status == InvoiceStatus.paid &&
       !i.invoiceDate.isBefore(from) &&
@@ -246,58 +424,63 @@ class ReportPdfBuilder {
         return bSum.compareTo(aSum);
       });
 
-    doc.addPage(pw.MultiPage(
-      pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.all(28),
-      build: (_) => [
-        _header('Monthly Revenue', '${_dt(from)} — ${_dt(to)}', biz),
-        pw.SizedBox(height: 18),
-        // Stat row
-        pw.Row(children: [
-          pw.Expanded(child: _statCard('Total Revenue', _inr(totalRevenue), _brand, _brandSoft)),
-          pw.SizedBox(width: 8),
-          pw.Expanded(child: _statCard('Invoices', '$invoiceCount', _green, _greenSoft)),
-          pw.SizedBox(width: 8),
-          pw.Expanded(child: _statCard('Tax Collected', _inr(totalTax), _orange, _orangeSoft)),
-          pw.SizedBox(width: 8),
-          pw.Expanded(child: _statCard('Avg Invoice', _inr(avg.toDouble()), _yellow, _yellowSoft)),
+    return _page(
+      title: 'Monthly Revenue',
+      from: from,
+      to: to,
+      biz: biz,
+      body: [
+        _statRow([
+          _stat('Total revenue', _inr(totalRevenue), accent: true),
+          _stat('Invoices', '$invoiceCount'),
+          _stat('Tax collected', _inr(totalTax)),
+          _stat('Average invoice', _inr(avg.toDouble())),
         ]),
-        pw.SizedBox(height: 16),
-        _sectionTitle('Month-wise Breakdown'),
-        _table(
-          ['Month', 'Invoices', 'Subtotal', 'Tax', 'Total'],
-          monthRows.map((e) {
-            final invs = e.value;
-            final dt = DateFormat('yyyy-MM').parse(e.key);
-            return [
-              DateFormat('MMM yyyy').format(dt),
-              '${invs.length}',
-              _inr(invs.fold<double>(0, (s, i) => s + i.subtotal)),
-              _inr(invs.fold<double>(0, (s, i) => s + i.totalTax)),
-              _inr(invs.fold<double>(0, (s, i) => s + i.grandTotal)),
-            ];
-          }).toList(),
-          rightAlignCols: [1, 2, 3, 4],
-        ),
-        pw.SizedBox(height: 16),
-        _sectionTitle('Top Customers (Top 10)'),
-        _table(
-          ['Rank', 'Customer', 'Invoices', 'Revenue'],
-          topCusts.take(10).toList().asMap().entries.map((e) {
-            final total = e.value.value.fold<double>(0, (s, i) => s + i.grandTotal);
-            return [
-              '#${e.key + 1}',
-              e.value.key,
-              '${e.value.value.length}',
-              _inr(total),
-            ];
-          }).toList(),
-          rightAlignCols: [2, 3],
-        ),
-        _footer(),
+        _section('Month by month'),
+        if (monthRows.isEmpty)
+          _empty('No paid invoices in this period.')
+        else
+          _table(
+            ['Month', 'Invoices', 'Taxable', 'Tax', 'Total'],
+            monthRows.map((e) {
+              final invs = e.value;
+              final dt = DateFormat('yyyy-MM').parse(e.key);
+              return [
+                DateFormat('MMM yyyy').format(dt),
+                '${invs.length}',
+                _inr(invs.fold<double>(0, (s, i) => s + i.subtotal),
+                    symbol: false),
+                _inr(invs.fold<double>(0, (s, i) => s + i.totalTax),
+                    symbol: false),
+                _inr(invs.fold<double>(0, (s, i) => s + i.grandTotal)),
+              ];
+            }).toList(),
+            numeric: const [1, 2, 3, 4],
+            widths: const [1.4, 0.9, 1.2, 1.0, 1.3],
+            emphasiseLast: true,
+          ),
+        _section('Your biggest customers'),
+        if (topCusts.isEmpty)
+          _empty('No customers billed in this period.')
+        else
+          _table(
+            ['#', 'Customer', 'Invoices', 'Revenue'],
+            topCusts.take(10).toList().asMap().entries.map((e) {
+              final total =
+                  e.value.value.fold<double>(0, (s, i) => s + i.grandTotal);
+              return [
+                '${e.key + 1}',
+                e.value.key,
+                '${e.value.value.length}',
+                _inr(total),
+              ];
+            }).toList(),
+            numeric: const [2, 3],
+            widths: const [0.4, 3.0, 1.0, 1.4],
+            emphasiseLast: true,
+          ),
       ],
-    ));
-    return doc;
+    );
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -310,8 +493,6 @@ class ReportPdfBuilder {
     required DateTime to,
     required Business? biz,
   }) async {
-    final doc = pw.Document();
-
     final paidInvs = invoices.where((i) =>
       i.status == InvoiceStatus.paid &&
       !i.invoiceDate.isBefore(from) &&
@@ -340,98 +521,89 @@ class ReportPdfBuilder {
         return bSum.compareTo(aSum);
       });
 
-    doc.addPage(pw.MultiPage(
-      pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.all(28),
-      build: (_) => [
-        _header('Profit & Loss', '${_dt(from)} — ${_dt(to)}', biz),
-        pw.SizedBox(height: 18),
-        // Hero P&L card
+    return _page(
+      title: 'Profit & Loss',
+      from: from,
+      to: to,
+      biz: biz,
+      body: [
+        // The one number the reader opened this for. It gets the width
+        // of the page and the only large type on it.
         pw.Container(
-          padding: const pw.EdgeInsets.all(16),
+          padding: const pw.EdgeInsets.fromLTRB(16, 14, 16, 16),
           decoration: pw.BoxDecoration(
-            color: isProfit ? _greenSoft : _redSoft,
-            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(10)),
+            color: isProfit ? _jadeWash : _paper,
             border: pw.Border.all(
-              color: isProfit ? _green : _red, width: 1)),
+                color: isProfit ? _jade : _coral, width: 0.9),
+            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(7)),
+          ),
           child: pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
               pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   pw.Text(isProfit ? 'NET PROFIT' : 'NET LOSS',
-                    style: pw.TextStyle(
-                      fontSize: 11, color: isProfit ? _green : _red,
-                      fontWeight: pw.FontWeight.bold, letterSpacing: 0.6)),
-                  pw.SizedBox(height: 4),
+                      style: pw.TextStyle(
+                          fontSize: 8,
+                          color: isProfit ? _jade : _coral,
+                          fontWeight: pw.FontWeight.bold,
+                          letterSpacing: 1.2)),
+                  pw.SizedBox(height: 6),
                   pw.Text(_inr(profit.abs()),
-                    style: pw.TextStyle(
-                      fontSize: 26, color: isProfit ? _green : _red,
-                      fontWeight: pw.FontWeight.bold)),
+                      style: pw.TextStyle(
+                          fontSize: 28,
+                          color: isProfit ? _jade : _coral,
+                          fontWeight: pw.FontWeight.bold,
+                          letterSpacing: -0.9)),
                 ],
               ),
               pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.end,
                 children: [
-                  pw.Text('Revenue: ${_inr(revenue)}',
-                    style: const pw.TextStyle(fontSize: 11, color: _t2)),
-                  pw.SizedBox(height: 4),
-                  pw.Text('Expenses: ${_inr(expTotal)}',
-                    style: const pw.TextStyle(fontSize: 11, color: _t2)),
+                  _kv('Revenue', _inr(revenue)),
+                  pw.SizedBox(height: 5),
+                  _kv('Less expenses', _inr(expTotal)),
                 ],
               ),
             ],
           ),
         ),
         pw.SizedBox(height: 16),
-        // Stat cards
-        pw.Row(children: [
-          pw.Expanded(child: _statCard(
-            'Total Revenue', _inr(revenue), _green, _greenSoft)),
-          pw.SizedBox(width: 8),
-          pw.Expanded(child: _statCard(
-            'Total Expenses', _inr(expTotal), _red, _redSoft)),
-          pw.SizedBox(width: 8),
-          pw.Expanded(child: _statCard(
-            'Paid Invoices', '${paidInvs.length}', _brand, _brandSoft)),
-          pw.SizedBox(width: 8),
-          pw.Expanded(child: _statCard(
-            'Expense Records', '${periodExps.length}', _orange, _orangeSoft)),
+        _statRow([
+          _stat('Total revenue', _inr(revenue)),
+          _stat('Total expenses', _inr(expTotal)),
+          _stat('Paid invoices', '${paidInvs.length}'),
+          _stat('Expense records', '${periodExps.length}'),
         ]),
-        pw.SizedBox(height: 16),
-        _sectionTitle('Expense Breakdown by Category'),
+        _section('Where the money went'),
         if (sortedCats.isEmpty)
-          pw.Text('No expenses recorded in this period.',
-            style: const pw.TextStyle(color: _t3, fontSize: 11))
+          _empty('No expenses recorded in this period.')
         else
           _table(
-            ['Category', 'Count', 'Amount', '% of Expenses'],
+            ['Category', 'Entries', 'Amount', 'Share'],
             sortedCats.map((e) {
               final sum = e.value.fold<double>(0, (s, x) => s + x.amount);
               final pct = expTotal > 0 ? (sum / expTotal * 100) : 0;
               return [
-                e.key, '${e.value.length}', _inr(sum),
+                e.key,
+                '${e.value.length}',
+                _inr(sum),
                 '${pct.toStringAsFixed(1)}%',
               ];
             }).toList(),
-            rightAlignCols: [1, 2, 3],
+            numeric: const [1, 2, 3],
+            widths: const [2.4, 0.9, 1.4, 0.9],
           ),
-        pw.SizedBox(height: 12),
-        pw.Container(
-          padding: const pw.EdgeInsets.all(10),
-          decoration: pw.BoxDecoration(
-            color: _yellowSoft,
-            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6))),
-          child: pw.Text(
-            'Note: This P&L uses cash basis accounting — only PAID invoices count as revenue. '
-            'Pending invoices are not included until marked paid.',
-            style: const pw.TextStyle(fontSize: 9, color: _t2)),
+        _note(
+          'How this is calculated',
+          'Cash basis: only invoices you have marked paid count as '
+          'revenue. Invoices still pending are excluded until they are '
+          'settled, so this figure tracks money actually received.',
         ),
-        _footer(),
       ],
-    ));
-    return doc;
+    );
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -443,8 +615,6 @@ class ReportPdfBuilder {
     required DateTime to,
     required Business? biz,
   }) async {
-    final doc = pw.Document();
-
     final filtered = invoices.where((i) =>
       i.status == InvoiceStatus.paid &&
       !i.invoiceDate.isBefore(from) &&
@@ -466,70 +636,53 @@ class ReportPdfBuilder {
     final monthEntries = byMonth.entries.toList()
       ..sort((a, b) => a.key.compareTo(b.key));
 
-    doc.addPage(pw.MultiPage(
-      pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.all(28),
-      build: (_) => [
-        _header('GST Summary', '${_dt(from)} — ${_dt(to)}', biz),
-        pw.SizedBox(height: 18),
-        // Stat cards
-        pw.Row(children: [
-          pw.Expanded(child: _statCard('Total Taxable', _inr(totalTaxable), _t2, _border)),
-          pw.SizedBox(width: 8),
-          pw.Expanded(child: _statCard('Total GST', _inr(totalGst), _brand, _brandSoft)),
-          pw.SizedBox(width: 8),
-          pw.Expanded(child: _statCard('CGST + SGST', _inr(totalCgst + totalSgst), _orange, _orangeSoft)),
-          pw.SizedBox(width: 8),
-          pw.Expanded(child: _statCard('IGST', _inr(totalIgst), _green, _greenSoft)),
+    return _page(
+      title: 'GST Summary',
+      from: from,
+      to: to,
+      biz: biz,
+      body: [
+        _statRow([
+          _stat('Taxable value', _inr(totalTaxable)),
+          _stat('Total GST', _inr(totalGst), accent: true),
+          _stat('CGST + SGST', _inr(totalCgst + totalSgst)),
+          _stat('IGST', _inr(totalIgst)),
         ]),
-        pw.SizedBox(height: 16),
-        _sectionTitle('Month-wise GST Breakdown (for GSTR-1 filing)'),
-        _table(
-          ['Month', 'Invoices', 'Taxable', 'CGST', 'SGST', 'IGST', 'Total Tax'],
-          monthEntries.map((e) {
-            final invs = e.value;
-            final dt = DateFormat('yyyy-MM').parse(e.key);
-            final taxable = invs.fold<double>(0, (s, i) => s + i.subtotal);
-            final c = invs.fold<double>(0, (s, i) => s + i.totalCgst);
-            final s = invs.fold<double>(0, (sum, i) => sum + i.totalSgst);
-            final ig = invs.fold<double>(0, (sum, i) => sum + i.totalIgst);
-            return [
-              DateFormat('MMM yyyy').format(dt),
-              '${invs.length}',
-              _inr(taxable),
-              _inr(c),
-              _inr(s),
-              _inr(ig),
-              _inr(c + s + ig),
-            ];
-          }).toList(),
-          rightAlignCols: [1, 2, 3, 4, 5, 6],
-        ),
-        pw.SizedBox(height: 14),
-        pw.Container(
-          padding: const pw.EdgeInsets.all(12),
-          decoration: pw.BoxDecoration(
-            color: _yellowSoft,
-            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6))),
-          child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Text('GST FILING REMINDER',
-                style: pw.TextStyle(
-                  fontSize: 10, color: _yellow,
-                  fontWeight: pw.FontWeight.bold, letterSpacing: 0.6)),
-              pw.SizedBox(height: 4),
-              pw.Text(
-                'GSTR-1 due monthly by 11th. GSTR-3B due monthly by 20th. '
-                'Use this summary as supporting data — verify with your accountant before filing.',
-                style: const pw.TextStyle(fontSize: 10, color: _t2)),
-            ],
+        _section('Month by month, for GSTR-1'),
+        if (monthEntries.isEmpty)
+          _empty('No paid invoices in this period.')
+        else
+          _table(
+            ['Month', 'Inv', 'Taxable', 'CGST', 'SGST', 'IGST', 'Total tax'],
+            monthEntries.map((e) {
+              final invs = e.value;
+              final dt = DateFormat('yyyy-MM').parse(e.key);
+              final taxable = invs.fold<double>(0, (s, i) => s + i.subtotal);
+              final c = invs.fold<double>(0, (s, i) => s + i.totalCgst);
+              final sg = invs.fold<double>(0, (sum, i) => sum + i.totalSgst);
+              final ig = invs.fold<double>(0, (sum, i) => sum + i.totalIgst);
+              return [
+                DateFormat('MMM yyyy').format(dt),
+                '${invs.length}',
+                _inr(taxable, symbol: false),
+                _inr(c, symbol: false),
+                _inr(sg, symbol: false),
+                _inr(ig, symbol: false),
+                _inr(c + sg + ig),
+              ];
+            }).toList(),
+            numeric: const [1, 2, 3, 4, 5, 6],
+            widths: const [1.2, 0.5, 1.2, 1.0, 1.0, 1.0, 1.3],
+            emphasiseLast: true,
           ),
+        _note(
+          'Before you file',
+          'GSTR-1 is due by the 11th of each month, GSTR-3B by the 20th. '
+          'Treat this as supporting data and check it against your books '
+          'with your accountant before filing.',
         ),
-        _footer(),
       ],
-    ));
-    return doc;
+    );
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -541,8 +694,6 @@ class ReportPdfBuilder {
     required DateTime to,
     required Business? biz,
   }) async {
-    final doc = pw.Document();
-
     final filtered = invoices.where((i) =>
       !i.invoiceDate.isBefore(from) && !i.invoiceDate.isAfter(to)
     ).toList();
@@ -591,24 +742,23 @@ class ReportPdfBuilder {
     // Sort outstanding by oldest due first
     outstanding.sort((a, b) => a.dueDate.compareTo(b.dueDate));
 
-    doc.addPage(pw.MultiPage(
-      pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.all(28),
-      build: (_) => [
-        _header('Invoice Status', '${_dt(from)} — ${_dt(to)}', biz),
-        pw.SizedBox(height: 18),
-        // Status summary cards
-        pw.Row(children: [
-          pw.Expanded(child: _statCard('Paid', '$paidCount', _green, _greenSoft)),
-          pw.SizedBox(width: 8),
-          pw.Expanded(child: _statCard('Pending', '$pendingCount', _orange, _orangeSoft)),
-          pw.SizedBox(width: 8),
-          pw.Expanded(child: _statCard('Overdue', '$overdueCount', _red, _redSoft)),
-          pw.SizedBox(width: 8),
-          pw.Expanded(child: _statCard('Total', '${filtered.length}', _brand, _brandSoft)),
+    final outstandingTotal =
+        outstanding.fold<double>(0, (s, i) => s + i.grandTotal);
+
+    return _page(
+      title: 'Invoice Status',
+      from: from,
+      to: to,
+      biz: biz,
+      body: [
+        _statRow([
+          _stat('Still owed', _inr(outstandingTotal),
+              accent: outstandingTotal > 0),
+          _stat('Paid', '$paidCount'),
+          _stat('Pending', '$pendingCount'),
+          _stat('Overdue', '$overdueCount'),
         ]),
-        pw.SizedBox(height: 16),
-        _sectionTitle('Status Summary'),
+        _section('By status'),
         _table(
           ['Status', 'Count', 'Amount'],
           [
@@ -618,47 +768,47 @@ class ReportPdfBuilder {
             ['Cancelled', '$cancelledCount', _inr(cancelledAmt)],
             ['Draft', '$draftCount', _inr(draftAmt)],
           ],
-          rightAlignCols: [1, 2],
+          numeric: const [1, 2],
+          widths: const [2.0, 1.0, 1.6],
+          emphasiseLast: true,
         ),
-        pw.SizedBox(height: 16),
-        _sectionTitle('Aging Analysis (Outstanding Invoices)'),
+        _section('How long it has been owed'),
         _table(
-          ['Age', 'Count', 'Outstanding Amount'],
+          ['Age', 'Invoices', 'Outstanding'],
           agingBuckets.entries.map((e) {
             final amt = e.value.fold<double>(0, (s, i) => s + i.grandTotal);
             return [e.key, '${e.value.length}', _inr(amt)];
           }).toList(),
-          rightAlignCols: [1, 2],
+          numeric: const [1, 2],
+          widths: const [2.0, 1.0, 1.6],
+          emphasiseLast: true,
         ),
         if (outstanding.isNotEmpty) ...[
-          pw.SizedBox(height: 16),
-          _sectionTitle('Outstanding Invoices (Detail)'),
+          _section('Who to chase, oldest first'),
           _table(
-            ['Invoice', 'Customer', 'Due Date', 'Days Overdue', 'Amount'],
+            ['Invoice', 'Customer', 'Due', 'Days late', 'Amount'],
             outstanding.take(50).map((inv) {
-              final daysOverdue = now.difference(inv.dueDate).inDays;
+              final late = now.difference(inv.dueDate).inDays;
               return [
                 inv.invoiceNumber,
                 inv.customerName,
                 _dt(inv.dueDate),
-                daysOverdue > 0 ? '$daysOverdue' : '-',
+                late > 0 ? '$late' : '\u2014',
                 _inr(inv.grandTotal),
               ];
             }).toList(),
-            rightAlignCols: [3, 4],
+            numeric: const [3, 4],
+            widths: const [1.3, 2.2, 1.2, 0.9, 1.4],
+            emphasiseLast: true,
           ),
           if (outstanding.length > 50)
-            pw.Padding(
-              padding: const pw.EdgeInsets.only(top: 8),
-              child: pw.Text(
-                'Showing first 50 of ${outstanding.length} outstanding invoices. '
-                'Export CSV for full list.',
-                style: const pw.TextStyle(fontSize: 9, color: _t3, fontStyle: pw.FontStyle.italic)),
+            _note(
+              '',
+              'Showing the 50 oldest of ${outstanding.length} outstanding '
+              'invoices. Export the CSV for the full list.',
             ),
         ],
-        _footer(),
       ],
-    ));
-    return doc;
+    );
   }
 }

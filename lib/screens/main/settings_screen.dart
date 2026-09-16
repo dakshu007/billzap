@@ -59,17 +59,16 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(
             AppSpace.gutter, 0, AppSpace.gutter, AppSpace.lg),
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: AppColor.sunken,
-              borderRadius: AppRadius.all(AppRadius.pill)),
-            child: Row(children: [
-              _TabBtn(tr('set.business', ref), 0, _tab, _selectTab),
-              _TabBtn(tr('set.bank', ref), 1, _tab, _selectTab),
-              _TabBtn(tr('set.invoice', ref), 2, _tab, _selectTab),
-              _TabBtn(tr('set.about', ref), 3, _tab, _selectTab),
-            ]))),
+          child: SegmentedTabs(
+            index: _tab,
+            onSelect: _selectTab,
+            labels: [
+              tr('set.business', ref),
+              tr('set.bank', ref),
+              tr('set.invoice', ref),
+              tr('set.about', ref),
+            ],
+          )),
         Expanded(
           child: AnimatedSwitcher(
             duration: AppMotion.base,
@@ -109,39 +108,6 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
           )),
       ]))),
     );
-  }
-}
-
-class _TabBtn extends StatelessWidget {
-  final String label;
-  final int idx, cur;
-  final ValueChanged<int> onTap;
-  const _TabBtn(this.label, this.idx, this.cur, this.onTap);
-  @override
-  Widget build(BuildContext context) {
-    final on = idx == cur;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          HapticFeedback.selectionClick();
-          onTap(idx);
-        },
-        behavior: HitTestBehavior.opaque,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: on ? AppColor.surface : Colors.transparent,
-            borderRadius: AppRadius.all(AppRadius.pill),
-            boxShadow: on ? AppShadow.card : null),
-          child: Text(label,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppFont.sans(
-              fontSize: 12.5, fontWeight: FontWeight.w600,
-              color: on ? AppColors.t1 : AppColors.t3)))));
   }
 }
 
