@@ -65,7 +65,8 @@ APK_URL = ('https://github.com/dakshu007/billzap/releases/latest/'
 # over the download; it just has nowhere to file the address. That is
 # the right way round: a misconfigured spreadsheet must never stand
 # between somebody and the app.
-SHEET_ENDPOINT = ''
+SHEET_ENDPOINT = ('https://script.google.com/macros/s/AKfycbwQ8NWU7L9FwCcUyWufzry0_'
+                  'Mu3jSdurgWxLea_LG-z0qcOy39P3isKZaZEJbNU9MHq4g/exec')
 
 # ── SEO ─────────────────────────────────────────────────────────────
 # Focus keyword:      free GST billing app
