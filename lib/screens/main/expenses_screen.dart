@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
+import '../../design/tokens.dart';
 import '../../design/components.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
@@ -72,7 +73,36 @@ class ExpensesScreen extends ConsumerWidget {
                 itemCount: expenses.length,
                 itemBuilder: (ctx, i) {
                   final e = expenses[i];
-                  return Container(
+                  return Dismissible(
+                    key: ValueKey('exp-${e.id}'),
+                    direction: DismissDirection.endToStart,
+                    background: Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: AppColor.overdue,
+                        borderRadius: BorderRadius.circular(18)),
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        const Icon(Symbols.delete, color: Colors.white, size: 19),
+                        const Gap(8),
+                        Text(trGlobal('common.delete'),
+                            style: AppFont.style(AppType.labelM,
+                                color: Colors.white)),
+                      ]),
+                    ),
+                    confirmDismiss: (_) => confirm(context,
+                        title: 'Delete ${e.title}?',
+                        message: 'This expense comes straight out of your '
+                            'profit figure, so removing it changes your '
+                            'reports.',
+                        icon: Symbols.delete,
+                        destructive: true,
+                        confirmLabel: trGlobal('common.delete'),
+                        cancelLabel: trGlobal('common.cancel')),
+                    onDismissed: (_) =>
+                        ref.read(expenseProvider.notifier).delete(e.id),
+                    child: Container(
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
@@ -102,14 +132,9 @@ class ExpensesScreen extends ConsumerWidget {
                         Text(formatCurrency(e.amount), style: AppFont.sans(
                           fontSize: 14, fontWeight: FontWeight.w600,
                           color: AppColors.t1)),
-                        const Gap(4),
-                        GestureDetector(
-                          onTap: () => ref.read(expenseProvider.notifier).delete(e.id),
-                          child: Icon(Symbols.delete, size: 15,
-                            color: AppColors.red)),
                       ]),
                     ]),
-                  );
+                  ));
                 }),
         ),
       ]),

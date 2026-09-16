@@ -119,10 +119,28 @@ jobs:
           path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
           retention-days: 30
 
+      # The artifacts are already built and uploaded by this point, so a
+      # failure here must not fail the run. It races with anyone pushing
+      # during the ~6 minutes the build takes: the bump commit is then
+      # non-fast-forward and the push is rejected, which used to mark a
+      # perfectly good build red. Rebase onto whatever landed, retry a
+      # few times, and give up quietly rather than lose the build.
       - name: Commit version bump
+        continue-on-error: true
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add pubspec.yaml
-          git commit -m "ci: bump build to ${{ steps.bump.outputs.build }} [skip ci]" || echo "Nothing to commit"
-          git push
+          git commit -m "ci: bump build to ${{ steps.bump.outputs.build }} [skip ci]" \
+            || { echo "Nothing to commit"; exit 0; }
+          for attempt in 1 2 3; do
+            if git push; then
+              echo "Pushed version bump on attempt $attempt"
+              exit 0
+            fi
+            echo "Push rejected; rebasing onto origin/$GITHUB_REF_NAME and retrying"
+            git pull --rebase origin "$GITHUB_REF_NAME" || break
+            sleep $((attempt * 3))
+          done
+          echo "::warning::Could not push the version bump. The build artifacts above are unaffected."
+          exit 0

@@ -162,15 +162,9 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                               Text('HSN: ${p.hsnCode}', style: AppFont.sans(
                                 fontSize: 10.5, color: AppColors.t4)),
                           ])),
-                          IconButton(
-                            icon: Icon(Symbols.delete, size: 18, color: AppColors.red),
-                            tooltip: tr('common.delete', ref),
-                            onPressed: () async {
-                              if (await _confirmDelete(p)) {
-                                await _doDelete(p);
-                              }
-                            },
-                          ),
+                          // Swipe the row to delete, as in the ledger —
+                          // a red trash on every card turned the whole
+                          // list into a wall of warnings.
                         ]),
                       ),
                     ),

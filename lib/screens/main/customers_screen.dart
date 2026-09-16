@@ -172,18 +172,10 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
                           Text('${ci.length} ${tr('cust.inv_short', ref)}',
                             style: AppFont.sans(
                               fontSize: 10.5, color: AppColors.t3)),
-                          const Gap(4),
-                          IconButton(
-                            icon: Icon(Symbols.delete, size: 18, color: AppColors.red),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            tooltip: tr('common.delete', ref),
-                            onPressed: () async {
-                              if (await _confirmDelete(c)) {
-                                await _doDelete(c);
-                              }
-                            },
-                          ),
+                          // No trash button here. The row already swipes
+                          // to delete, like the ledger does, and a red
+                          // icon repeated down every card made a list of
+                          // customers read as a list of warnings.
                         ]),
                       ]),
                     ),
