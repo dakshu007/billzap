@@ -65,8 +65,8 @@ APK_URL = ('https://github.com/dakshu007/billzap/releases/latest/'
 # over the download; it just has nowhere to file the address. That is
 # the right way round: a misconfigured spreadsheet must never stand
 # between somebody and the app.
-SHEET_ENDPOINT = ('https://script.google.com/macros/s/AKfycbwQ8NWU7L9FwCcUyWufzry0_'
-                  'Mu3jSdurgWxLea_LG-z0qcOy39P3isKZaZEJbNU9MHq4g/exec')
+SHEET_ENDPOINT = ('https://script.google.com/macros/s/AKfycbyxqSup-003VXxU65Fq3dj22man'
+                  'MSNqxo0aMg3UE4utJonP9_-pMe-k1B4U60tm42bX6w/exec')
 
 # ── SEO ─────────────────────────────────────────────────────────────
 # Focus keyword:      free GST billing app
@@ -128,8 +128,9 @@ FAQ = [
      "restore it on the new phone. Your invoices, customers, products and "
      "expenses come back."),
     ("Which Android versions are supported?",
-     "Android 7.0 (Nougat) and above. The download is about 13 MB for the "
-     "version matched to your phone."),
+     "Android 7.0 (Nougat) and above. The download is about 32 MB — one "
+     "file that installs on any Android phone, so there is nothing to "
+     "choose between."),
 ]
 
 
@@ -392,9 +393,21 @@ def minify_css(css):
 ICONS = icons()
 
 
-def render(fragment, *, home):
-    """Resolve {{ico:…}} and {{home}} in a markup fragment."""
-    fragment = fragment.replace('{{home}}', home)
+def render(fragment, *, home, base=''):
+    """Resolve {{ico:…}}, {{home}} and {{base}} in a markup fragment.
+
+    Two different jobs, deliberately two placeholders:
+
+      {{home}}  the brand link's destination — '#top' on the home page,
+                '/' anywhere else.
+      {{base}}  the prefix that makes a section anchor work from any
+                page — '' on the home page, '/' anywhere else.
+
+    Collapsing them into one is what produced href="#top#features",
+    which is not a fragment at all, so every nav link and the header's
+    download button silently did nothing.
+    """
+    fragment = fragment.replace('{{home}}', home).replace('{{base}}', base)
 
     def sub(m):
         name = m.group(1)
@@ -614,9 +627,12 @@ def document(*, title, desc, canonical, css, ld, body, head_extra='',
     cannot drift into looking like two sites.
     """
     home = '/' if asset_prefix else '#top'
-    shell = (render(open(os.path.join(HERE, 'header.html')).read(), home=home)
+    base = '/' if asset_prefix else ''
+    shell = (render(open(os.path.join(HERE, 'header.html')).read(),
+                    home=home, base=base)
              + '\n' + body + '\n'
-             + render(open(os.path.join(HERE, 'footer.html')).read(), home=home))
+             + render(open(os.path.join(HERE, 'footer.html')).read(),
+                      home=home, base=base))
     # A page in a subdirectory cannot use the relative asset paths the
     # markup is written with, so they are rooted instead of duplicated.
     if asset_prefix:

@@ -7,7 +7,7 @@
 > subscription, no invoice limit.
 
 **Site:** https://billzap.netlify.app
-**Platform:** Android 7.0 and above (~13 MB)
+**Platform:** Android 7.0 and above (~32 MB)
 **Price:** Free. There is no paid tier, no trial period and no cap on
 invoices. This is the complete app, not a limited edition of it.
 **Source:** https://github.com/dakshu007/billzap

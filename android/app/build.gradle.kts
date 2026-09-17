@@ -75,8 +75,19 @@ android {
             )
 
             // Ship native debug symbols in the AAB so Play can symbolicate
-            // native crashes and ANRs. Stripped from user-facing APKs, so it
-            // costs no download size.
+            // native crashes and ANRs.
+            //
+            // This is NOT free for APKs, despite what this comment used to
+            // claim. A universal APK assembled before the bundle task has
+            // run packages the unstripped .so files and comes out at
+            // 67.7 MB instead of 32.1 MB — verified on one commit built
+            // both ways. Play still gets its symbols either way, because
+            // the bundle is what carries them.
+            //
+            // release.yml therefore builds the appbundle before the APK and
+            // fails the run if the APK exceeds 45 MB. If you reorder those
+            // steps, or drop that check, sideloaders get a download twice
+            // the size it should be and nothing will say so.
             ndk {
                 debugSymbolLevel = "SYMBOL_TABLE"
             }

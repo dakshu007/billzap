@@ -88,8 +88,43 @@ jobs:
           storeFile=upload-keystore.jks
           EOF
 
-      - run: flutter build apk --release
+      # Order matters, which it should not, but does.
+      #
+      # release.yml built the APK first and shipped 67.7 MB.
+      # build.yml builds the bundle first and gets 32.1 MB from the
+      # exact same commit. The difference is native debug symbols:
+      # android/app/build.gradle.kts sets ndk.debugSymbolLevel =
+      # "SYMBOL_TABLE" for Play, and when the APK is assembled cold it
+      # packages the unstripped .so files. Building the bundle first
+      # leaves stripped libraries in the shared intermediates and the
+      # APK picks those up.
+      #
+      # The comment on that gradle setting claims it "costs no download
+      # size" for APKs. It does — 35 MB of it, on a download aimed at
+      # shopkeepers on slow connections.
+      #
+      # The ordering is the fix; the size check below is the guarantee,
+      # because ordering is exactly the kind of thing a later edit
+      # quietly reverses.
       - run: flutter build appbundle --release
+      - run: flutter build apk --release
+
+      - name: Refuse to ship an unstripped APK
+        run: |
+          APK=build/app/outputs/flutter-apk/app-release.apk
+          BYTES=$(stat -c%s "$APK")
+          MB=$(( BYTES / 1000000 ))
+          echo "Universal APK: ${MB} MB (${BYTES} bytes)"
+          # A correctly stripped universal build is ~32 MB. 45 leaves
+          # room to grow and still catches a doubling.
+          if [ "$BYTES" -gt 45000000 ]; then
+            echo "::error::APK is ${MB} MB — that is the unstripped build."
+            echo "Native debug symbols have leaked into the APK. Check that"
+            echo "'flutter build appbundle' runs before 'flutter build apk',"
+            echo "and see ndk.debugSymbolLevel in android/app/build.gradle.kts."
+            exit 1
+          fi
+          echo "APK_MB=${MB}" >> $GITHUB_ENV
 
       - name: Stage Android files
         run: |
