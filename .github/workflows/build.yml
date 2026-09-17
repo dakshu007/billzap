@@ -73,7 +73,13 @@ jobs:
           storeFile=upload-keystore.jks
           EOF
 
-      - name: Build App Bundle (AAB)
+      # Symbols go to Play via the bundle. The APK steps below leave
+      # BILLZAP_PLAY_SYMBOLS unset so they ship stripped native
+      # libraries — it is the difference between a 25 MB arm64 APK and
+      # a ~9 MB one. See android/app/build.gradle.kts.
+      - name: Build App Bundle (AAB, with Play symbols)
+        env:
+          BILLZAP_PLAY_SYMBOLS: '1'
         run: flutter build appbundle --release
 
       # Universal APK — installs on any device, no guessing which one to

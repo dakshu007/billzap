@@ -74,22 +74,27 @@ android {
                 "proguard-rules.pro",
             )
 
-            // Ship native debug symbols in the AAB so Play can symbolicate
-            // native crashes and ANRs.
+            // Native debug symbols, for Play's crash symbolication — but
+            // only when the build asks for them.
             //
-            // This is NOT free for APKs, despite what this comment used to
-            // claim. A universal APK assembled before the bundle task has
-            // run packages the unstripped .so files and comes out at
-            // 67.7 MB instead of 32.1 MB — verified on one commit built
-            // both ways. Play still gets its symbols either way, because
-            // the bundle is what carries them.
+            // An earlier comment here claimed this was "stripped from
+            // user-facing APKs, so it costs no download size". It is not.
+            // Setting it on the release buildType applies to every output,
+            // and the unstripped .so files take the universal APK from
+            // ~28 MB to 67.7 MB, and the arm64 one to 25.0 MB. The app is
+            // for shopkeepers on slow connections; that is 40 MB of symbol
+            // tables nobody installing the APK can use.
             //
-            // release.yml therefore builds the appbundle before the APK and
-            // fails the run if the APK exceeds 45 MB. If you reorder those
-            // steps, or drop that check, sideloaders get a download twice
-            // the size it should be and nothing will say so.
-            ndk {
-                debugSymbolLevel = "SYMBOL_TABLE"
+            // So it is opt-in. The appbundle build sets
+            // BILLZAP_PLAY_SYMBOLS=1 and Play still gets everything it
+            // needs; APK builds leave it unset and ship stripped
+            // libraries. release.yml also fails the run if the APK comes
+            // out over 45 MB, because this is the kind of thing that comes
+            // back silently.
+            if (System.getenv("BILLZAP_PLAY_SYMBOLS") == "1") {
+                ndk {
+                    debugSymbolLevel = "SYMBOL_TABLE"
+                }
             }
         }
     }

@@ -88,25 +88,15 @@ jobs:
           storeFile=upload-keystore.jks
           EOF
 
-      # Order matters, which it should not, but does.
-      #
-      # release.yml built the APK first and shipped 67.7 MB.
-      # build.yml builds the bundle first and gets 32.1 MB from the
-      # exact same commit. The difference is native debug symbols:
-      # android/app/build.gradle.kts sets ndk.debugSymbolLevel =
-      # "SYMBOL_TABLE" for Play, and when the APK is assembled cold it
-      # packages the unstripped .so files. Building the bundle first
-      # leaves stripped libraries in the shared intermediates and the
-      # APK picks those up.
-      #
-      # The comment on that gradle setting claims it "costs no download
-      # size" for APKs. It does — 35 MB of it, on a download aimed at
-      # shopkeepers on slow connections.
-      #
-      # The ordering is the fix; the size check below is the guarantee,
-      # because ordering is exactly the kind of thing a later edit
-      # quietly reverses.
-      - run: flutter build appbundle --release
+      # The bundle carries the native debug symbols Play wants, so it
+      # is the only build that asks for them. The APK build leaves
+      # BILLZAP_PLAY_SYMBOLS unset and ships stripped libraries — see
+      # android/app/build.gradle.kts for what that is worth in MB.
+      - name: Build App Bundle (with Play symbols)
+        env:
+          BILLZAP_PLAY_SYMBOLS: '1'
+        run: flutter build appbundle --release
+
       - run: flutter build apk --release
 
       - name: Refuse to ship an unstripped APK
@@ -115,13 +105,13 @@ jobs:
           BYTES=$(stat -c%s "$APK")
           MB=$(( BYTES / 1000000 ))
           echo "Universal APK: ${MB} MB (${BYTES} bytes)"
-          # A correctly stripped universal build is ~32 MB. 45 leaves
-          # room to grow and still catches a doubling.
+          # A stripped universal build is under 30 MB. 45 leaves room
+          # to grow and still catches symbols coming back.
           if [ "$BYTES" -gt 45000000 ]; then
-            echo "::error::APK is ${MB} MB — that is the unstripped build."
-            echo "Native debug symbols have leaked into the APK. Check that"
-            echo "'flutter build appbundle' runs before 'flutter build apk',"
-            echo "and see ndk.debugSymbolLevel in android/app/build.gradle.kts."
+            echo "::error::APK is ${MB} MB — the unstripped build."
+            echo "Native debug symbols are in the APK. BILLZAP_PLAY_SYMBOLS"
+            echo "must be set for the appbundle step only — see"
+            echo "ndk.debugSymbolLevel in android/app/build.gradle.kts."
             exit 1
           fi
           echo "APK_MB=${MB}" >> $GITHUB_ENV
