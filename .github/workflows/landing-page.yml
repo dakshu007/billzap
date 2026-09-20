@@ -149,6 +149,7 @@ jobs:
             && echo "  ok    /blog rendered from the database" \
             || { echo "  FAIL  /blog did not render"
                  grep -o '<!-- diag:[^>]*-->' /tmp/body || echo "  (no diagnostic in the body)"
+                 grep -o '<!-- env:[^>]*-->' /tmp/body || true
                  fail=1; }
 
           echo "── blog extras ──"
@@ -163,6 +164,10 @@ jobs:
           check "GET /s/studio"        404 "$(code $SITE/s/studio)"
 
           echo "── auth ──"
+          # Note: a wrong password is refused whether or not
+          # ADMIN_PASSWORD is set, so this proves the route exists and
+          # is closed — not that the environment is configured. The
+          # env line printed above /blog's failure is what shows that.
           check "POST /api/login (wrong password)" 401 \
             "$(code -X POST -H 'Content-Type: application/json' -d '{"password":"nope"}' $SITE/api/login)"
           check "GET /api/posts (no session)"      401 "$(code $SITE/api/posts)"

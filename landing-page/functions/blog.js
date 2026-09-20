@@ -67,7 +67,9 @@ export async function handler(event) {
                <h1>The blog is having a moment</h1>
                <p class="lead">It could not be loaded just now. Please try again shortly.</p>
              </div></div></section>
-             <!-- diag: ${esc(redact(err))} -->`,
+             <!-- diag: ${esc(redact(err))} -->
+             <!-- env: ${['DATABASE_URL','ADMIN_PATH','ADMIN_PASSWORD','SESSION_SECRET']
+                   .map((k) => `${k}=${process.env[k] ? 'set' : 'MISSING'}`).join(' ')} -->`,
     }));
   }
 }
