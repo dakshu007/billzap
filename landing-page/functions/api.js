@@ -60,10 +60,10 @@ export async function handler(event) {
       const [row] = await sql`
         INSERT INTO posts (slug, title, excerpt, body_html, cover_url, cover_alt,
                            tags, meta_title, meta_desc, focus_keyword,
-                           secondary_keywords, status, published_at)
+                           secondary_keywords, author, status, published_at)
         VALUES (${slug}, ${p.title}, ${p.excerpt}, ${p.body_html}, ${p.cover_url},
                 ${p.cover_alt}, ${p.tags}, ${p.meta_title}, ${p.meta_desc},
-                ${p.focus_keyword}, ${p.secondary_keywords},
+                ${p.focus_keyword}, ${p.secondary_keywords}, ${p.author},
                 ${p.status}, ${p.status === 'published' ? new Date() : null})
         RETURNING *`;
       return json(200, { post: row });
@@ -87,7 +87,7 @@ export async function handler(event) {
           cover_alt = ${p.cover_alt}, tags = ${p.tags},
           meta_title = ${p.meta_title}, meta_desc = ${p.meta_desc},
           focus_keyword = ${p.focus_keyword},
-          secondary_keywords = ${p.secondary_keywords},
+          secondary_keywords = ${p.secondary_keywords}, author = ${p.author},
           status = ${p.status}, published_at = ${publishedAt}, updated_at = now()
         WHERE id = ${id} RETURNING *`;
       return json(200, { post: row });
@@ -152,6 +152,7 @@ function normalise(p) {
     secondary_keywords: Array.isArray(p.secondary_keywords)
       ? p.secondary_keywords.map((k) => String(k).trim()).filter(Boolean).slice(0, 10)
       : [],
+    author: String(p.author || '').trim().slice(0, 60) || 'BillZap',
     status: p.status === 'published' ? 'published' : 'draft',
   };
 }

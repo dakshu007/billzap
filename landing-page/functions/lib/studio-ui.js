@@ -267,6 +267,11 @@ export const DASHBOARD = `<!doctype html><html lang="en"><head>
           </div>
           <p class="hint" id="statusHint">Only you can see a draft.</p>
         </div>
+        <div class="field">
+          <label for="author">Author</label>
+          <input id="author" type="text" placeholder="BillZap">
+          <p class="hint">Shown in the byline on the post.</p>
+        </div>
         <div class="field" style="margin-bottom:0">
           <label for="tags">Tags</label>
           <input id="tags" type="text" placeholder="GST, invoicing">
@@ -387,7 +392,8 @@ window.openEditor=async function(id){
   $('secondaryKw').value=(cur.secondary_keywords||[]).join(', ');
   $('excerpt').value=cur.excerpt||''; $('metaTitle').value=cur.meta_title||'';
   $('metaDesc').value=cur.meta_desc||''; $('tags').value=(cur.tags||[]).join(', ');
-  $('coverAlt').value=cur.cover_alt||''; setCover(cur.cover_url||'');
+  $('author').value=cur.author||''; $('coverAlt').value=cur.cover_alt||'';
+  setCover(cur.cover_url||'');
   setStatus(cur.status||'draft');
   $('edTitle').textContent=id?'Edit post':'New post';
   $('edSub').textContent=id?('Last saved '+when(cur.updated_at)):'Not saved yet';
@@ -424,7 +430,7 @@ $('title').addEventListener('input',()=>{
       .replace(/[^a-z0-9\\s-]/g,'').replace(/\\s+/g,'-').replace(/-+/g,'-').slice(0,80);
   }
 });
-['excerpt','metaTitle','metaDesc','tags','coverAlt','focusKw','secondaryKw'].forEach(id=>
+['excerpt','metaTitle','metaDesc','tags','coverAlt','focusKw','secondaryKw','author'].forEach(id=>
   $(id).addEventListener('input',()=>{dirty=true;if(id==='metaDesc')countMeta();
     if(id==='focusKw')checkKeyword();}));
 
@@ -533,7 +539,7 @@ async function save(st){
     focus_keyword:$('focusKw').value,
     secondary_keywords:$('secondaryKw').value.split(',').map(s=>s.trim()).filter(Boolean),
     tags:$('tags').value.split(',').map(s=>s.trim()).filter(Boolean),
-    cover_url, cover_alt:$('coverAlt').value, status:st,
+    cover_url, cover_alt:$('coverAlt').value, author:$('author').value, status:st,
   };
   if(!payload.title.trim()) return toast('Give it a title first.',true);
   const btn = st==='published' ? $('publish') : $('saveDraft');

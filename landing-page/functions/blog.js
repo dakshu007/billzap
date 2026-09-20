@@ -160,6 +160,11 @@ async function renderPost(slugRaw) {
   }
 
   const desc = p.meta_desc || p.excerpt || textOf(p.body_html, 160);
+  const { html: bodyHtml, items } = outline(p.body_html);
+  const mins = readingTime(p.body_html);
+  const keywords = [p.focus_keyword, ...(p.secondary_keywords || []), ...(p.tags || [])]
+    .filter(Boolean);
+
   const ld = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
@@ -169,12 +174,13 @@ async function renderPost(slugRaw) {
     url: `${SITE}/blog/${p.slug}`,
     datePublished: iso(p.published_at),
     dateModified: iso(p.updated_at),
-    author: { '@type': 'Organization', name: p.author || 'BillZap', url: SITE },
+    author: { '@type': 'Person', name: p.author || 'BillZap' },
     publisher: { '@id': `${SITE}/#org` },
     mainEntityOfPage: `${SITE}/blog/${p.slug}`,
+    wordCount: textOf(p.body_html).split(/\s+/).filter(Boolean).length,
+    timeRequired: `PT${mins}M`,
     ...(p.cover_url ? { image: abs(p.cover_url) } : {}),
-    keywords: [p.focus_keyword, ...(p.secondary_keywords || []), ...(p.tags || [])]
-      .filter(Boolean).join(', '),
+    keywords: keywords.join(', '),
   };
 
   return page(200, shell({
@@ -187,24 +193,55 @@ async function renderPost(slugRaw) {
     ogType: 'article',
     ld,
     body: `
-      <section class="legal">
+      <article class="bpage">
         <div class="wrap">
-          <div class="legal-head">
-            <p class="eyebrow"><a href="/blog" style="color:inherit">Blog</a></p>
+          <a class="bback" href="/blog">${ICON_BACK} All posts</a>
+
+          <header class="bhead">
+            <p class="bpill">Blog</p>
             <h1>${esc(p.title)}</h1>
-            ${p.excerpt ? `<p class="lead">${esc(p.excerpt)}</p>` : ''}
-            <p class="legal-meta">
-              <span><time datetime="${iso(p.published_at)}">${human(p.published_at)}</time></span>
-              ${p.tags?.length ? `<span>${p.tags.map((t) => esc(t)).join(' · ')}</span>` : ''}
+            <p class="bby">
+              By <strong>${esc(p.author || 'BillZap')}</strong>
+              · <time datetime="${iso(p.published_at)}">${human(p.published_at)}</time>
+              · ${mins} min read
             </p>
-          </div>
+            ${keywords.length ? `<ul class="bkw">${keywords.slice(0, 6)
+              .map((k) => `<li>${esc(k)}</li>`).join('')}</ul>` : ''}
+            <div class="bcta">
+              <a class="btn btn-primary" href="/#download">Download BillZap free</a>
+              <p>Free forever · no sign-up · works offline</p>
+            </div>
+          </header>
+
           ${p.cover_url ? `<figure class="bcover">
             <img src="${esc(p.cover_url)}" alt="${esc(p.cover_alt || '')}" decoding="async">
           </figure>` : ''}
-          <div class="prose bprose">${p.body_html}</div>
-          <p style="margin-top:40px"><a class="btn btn-ghost" href="/blog">← All posts</a></p>
+
+          <div class="blayout">
+            <div class="bcard">
+              ${p.excerpt ? `<p class="blede">${esc(p.excerpt)}</p>` : ''}
+              <div class="prose bprose">${bodyHtml}</div>
+              <div class="bend">
+                <h2>Billing taking longer than it should?</h2>
+                <p>
+                  BillZap makes a GST invoice in about 30 seconds, works with
+                  no signal, and costs nothing.
+                </p>
+                <a class="btn btn-primary" href="/#download">Get it for Android</a>
+              </div>
+            </div>
+
+            ${items.length > 2 ? `<aside class="btoc">
+              <p class="btoc-h">Table of contents</p>
+              <ol>${items.map((it) => `
+                <li class="lvl${it.level}"><a href="#${it.id}">${esc(it.text)}</a></li>`).join('')}
+              </ol>
+            </aside>` : ''}
+          </div>
+
+          <p class="bfoot"><a class="btn btn-ghost" href="/blog">${ICON_BACK} All posts</a></p>
         </div>
-      </section>`,
+      </article>`,
   }));
 }
 
@@ -292,6 +329,37 @@ async function serveMedia(idRaw) {
   };
 }
 
+/** Give every heading an anchor and collect them into a contents list.
+ *
+ * Done at render time rather than on save: the sanitiser strips id
+ * attributes (an author has no business setting them), and anchors
+ * generated here stay correct if a heading is later edited.
+ */
+function outline(html) {
+  const items = [];
+  const used = new Set();
+  const out = String(html || '').replace(
+    /<(h[23])(\s[^>]*)?>([\s\S]*?)<\/\1>/gi,
+    (m, tag, attrs, inner) => {
+      const text = textOf(inner);
+      if (!text) return m;
+      let id = text.toLowerCase().replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'section';
+      let n = 1;
+      while (used.has(id)) id = `${id}-${++n}`;
+      used.add(id);
+      items.push({ id, text, level: tag.toLowerCase() === 'h2' ? 2 : 3 });
+      return `<${tag} id="${id}">${inner}</${tag}>`;
+    });
+  return { html: out, items };
+}
+
+/** Minutes to read, at the 200 words a minute everybody uses. */
+function readingTime(html) {
+  const words = textOf(html).split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 200));
+}
+
 function shell({ title, desc, canonical, body, ld, image, keywords,
                  ogType = 'website',
                  robots = 'index,follow,max-image-preview:large,max-snippet:-1' }) {
@@ -318,11 +386,41 @@ ${footer({ base: '/' })}
   if(h){var s=function(){h.classList.toggle('stuck',window.scrollY>8);};
     addEventListener('scroll',s,{passive:true});s();}
   var y=d.getElementById('yr'); if(y){y.textContent=new Date().getFullYear();}
+
+  /* Light up the contents entry for whatever is on screen. Reading
+     position, not click state — somebody who scrolled here without
+     touching the list should still see where they are. */
+  var toc=d.querySelector('.btoc');
+  if(toc && 'IntersectionObserver' in window){
+    var links={};
+    toc.querySelectorAll('a[href^="#"]').forEach(function(a){
+      links[decodeURIComponent(a.getAttribute('href').slice(1))]=a;
+    });
+    var seen=[];
+    var spy=new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        var id=e.target.id, i=seen.indexOf(id);
+        if(e.isIntersecting){ if(i<0) seen.push(id); }
+        else if(i>-1){ seen.splice(i,1); }
+      });
+      var current=seen[0];
+      for(var k in links) links[k].classList.toggle('on', k===current);
+      if(current && links[current]){
+        var a=links[current], box=toc.getBoundingClientRect(), r=a.getBoundingClientRect();
+        if(r.top<box.top||r.bottom>box.bottom) a.scrollIntoView({block:'nearest'});
+      }
+    },{rootMargin:'-88px 0px -68% 0px'});
+    d.querySelectorAll('.bprose h2[id], .bprose h3[id]').forEach(function(h){spy.observe(h);});
+  }
 })();
 </script>
 </body>
 </html>`;
 }
+
+const ICON_BACK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+  + 'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+  + '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>';
 
 const abs = (u) => (/^https?:\/\//i.test(u) ? u : `${SITE}${u.startsWith('/') ? '' : '/'}${u}`);
 const iso = (d) => (d ? new Date(d).toISOString() : '');

@@ -490,3 +490,83 @@ body.modal-open{overflow:hidden}
 .bprose th,.bprose td{padding:11px 14px;border:1px solid var(--hairline);text-align:left}
 .bprose th{background:var(--canvas);font-weight:600}
 .bprose hr{margin:34px 0;border:0;border-top:1px solid var(--hairline)}
+
+/* ── Blog post page ────────────────────────────────────────────────
+   Centred masthead, the article in a card, contents pinned beside it.
+   The contents column is the reason for the asymmetric grid: a reader
+   who lands from search wants to know what is in a long post before
+   committing to it. */
+.bpage{padding-block:clamp(26px,4vw,40px) clamp(64px,9vw,110px)}
+.bback{display:inline-flex;align-items:center;gap:8px;font-size:14.5px;
+  font-weight:600;color:var(--text-2);padding:8px 14px 8px 10px;border-radius:999px;
+  transition:background .18s,color .18s}
+.bback:hover{background:var(--sunken);color:var(--ink-900)}
+.bback svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
+
+.bhead{max-width:860px;margin:clamp(22px,4vw,38px) auto 0;text-align:center}
+.bpill{display:inline-block;padding:6px 15px;border-radius:999px;background:var(--jade-100);
+  color:var(--jade-700);font-size:12px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase}
+.bhead h1{margin-top:20px;font-size:clamp(32px,5.4vw,58px);font-weight:800;
+  letter-spacing:-.035em;line-height:1.06}
+.bby{margin-top:22px;font-size:15.5px;color:var(--text-2)}
+.bby strong{color:var(--ink-900);font-weight:700}
+.bkw{margin-top:18px;display:flex;flex-wrap:wrap;gap:9px;justify-content:center;
+  list-style:none}
+.bkw li{padding:6px 13px;border-radius:999px;background:var(--jade-50);
+  border:1px solid var(--jade-100);color:var(--jade-700);
+  font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.bcta{margin-top:30px}
+.bcta p{margin-top:11px;font-size:13.5px;color:var(--text-3)}
+
+.blayout{display:grid;grid-template-columns:minmax(0,1fr) 288px;
+  gap:clamp(20px,3vw,34px);align-items:start;margin-top:clamp(28px,4vw,44px)}
+@media (max-width:980px){.blayout{grid-template-columns:1fr}}
+.bcard{background:var(--paper);border:1px solid var(--hairline);
+  border-radius:var(--r-2xl);padding:clamp(24px,4vw,52px);box-shadow:var(--shadow-sm);
+  min-width:0}
+.blede{font-size:clamp(17px,2vw,19.5px);line-height:1.6;color:var(--text-2);
+  padding-bottom:22px;border-bottom:1px solid var(--hairline)}
+.bcard .bprose{margin-top:8px}
+/* .prose drops the rule and the space above its first h2, which is
+   right when a heading opens the page and wrong here, where a lede
+   and an opening paragraph come first. */
+.bprose h2:first-of-type:not(:first-child){
+  margin-top:clamp(40px,5vw,56px);padding-top:clamp(28px,3.5vw,36px);
+  border-top:1px solid var(--hairline)}
+.bcard .prose{max-width:none}
+
+/* Contents. Sticky, and scrollable in itself so a long list on a
+   short screen does not run off the bottom. */
+.btoc{position:sticky;top:96px;background:var(--paper);border:1px solid var(--hairline);
+  border-radius:var(--r-xl);padding:22px 20px;box-shadow:var(--shadow-sm);
+  max-height:calc(100dvh - 130px);overflow-y:auto}
+@media (max-width:980px){.btoc{position:static;max-height:none}}
+.btoc-h{font-size:11.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--text-3);margin-bottom:14px}
+.btoc ol{list-style:none;counter-reset:toc;display:grid;gap:3px}
+.btoc li{counter-increment:toc}
+.btoc li a{display:grid;grid-template-columns:22px 1fr;gap:8px;padding:7px 8px;
+  border-radius:10px;font-size:14px;line-height:1.45;color:var(--text-2);
+  transition:background .16s,color .16s}
+.btoc li a::before{content:counter(toc) ".";color:var(--ink-300);font-variant-numeric:tabular-nums}
+.btoc li a:hover{background:var(--jade-50);color:var(--jade-700)}
+.btoc li a.on{background:var(--jade-50);color:var(--jade-700);font-weight:600}
+/* Sub-headings are nested, not numbered — otherwise they consume a
+   number and the visible list reads 1, 3, 5. */
+.btoc li.lvl3{counter-increment:none}
+.btoc li.lvl3 a{grid-template-columns:14px 1fr;padding-left:22px;font-size:13.5px}
+.btoc li.lvl3 a::before{content:'—';color:var(--ink-300)}
+
+/* Headings need to clear the sticky header when jumped to. */
+.bprose h2,.bprose h3{scroll-margin-top:92px}
+
+.bend{margin-top:clamp(36px,5vw,52px);padding:clamp(24px,3.5vw,34px);
+  background:var(--jade-50);border:1px solid var(--jade-100);border-radius:var(--r-xl);
+  text-align:center}
+.bend h2{font-size:clamp(20px,2.6vw,25px);font-weight:800;letter-spacing:-.02em;
+  margin:0;padding:0;border:0}
+.bend p{margin-top:11px;color:var(--text-2);font-size:16px}
+.bend .btn{margin-top:20px}
+.bfoot{margin-top:clamp(30px,4vw,44px);text-align:center}
