@@ -158,6 +158,33 @@ jobs:
           check "GET /blog/feed.xml"    200 "$(code $SITE/blog/feed.xml)"
           check "GET /blog/no-such-post" 404 "$(code $SITE/blog/no-such-post)"
 
+          # Both of these shipped broken and the smoke test said "all
+          # checks passed", because a page that renders is not the same
+          # as a page whose images load. A 200 on /blog proves neither.
+          echo "── blog images ──"
+          # The header is shared with the static pages, which are written
+          # with relative asset paths. A relative path is wrong here:
+          # /blog/<slug> is one level deep and "assets/…" 404s there.
+          code $SITE/blog >/dev/null
+          if grep -qo 'src="assets/' /tmp/body; then
+            echo "  FAIL  relative asset path in the blog header"; fail=1
+          else
+            echo "  ok    blog asset paths are root-absolute"
+          fi
+          # Post images are rows in the database served by the function.
+          # Take one the live page actually asks for and fetch it.
+          MEDIA=$(grep -o '/media/[0-9]*' /tmp/body | head -1)
+          if [ -n "$MEDIA" ]; then
+            mt=$(curl -s -o /dev/null -w '%{http_code} %{content_type}' --max-time 45 "$SITE$MEDIA")
+            case "$mt" in
+              "200 image/"*) printf '  ok    GET %-40s %s\n' "$MEDIA" "$mt" ;;
+              *) printf '  FAIL  GET %-40s got %s\n' "$MEDIA" "$mt"; fail=1 ;;
+            esac
+          else
+            echo "  --    no post image on /blog to check"
+          fi
+          check "GET /media/999999"    404 "$(code $SITE/media/999999)"
+
           echo "── the studio must not be findable ──"
           check "GET /s/admin"         404 "$(code $SITE/s/admin)"
           check "GET /s/"              404 "$(code $SITE/s/)"
