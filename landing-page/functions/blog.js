@@ -5,11 +5,30 @@
 // build would need a redeploy first. It returns real HTML, not a
 // shell that fetches JSON, so a crawler and a reader see the same
 // thing on the first response.
-import { sql, ready } from './lib/db.js';
+import { sql, ready, redact } from './lib/db.js';
 import { CSS, header, footer, head } from './lib/shell.js';
 import { esc, textOf } from './lib/html.js';
 
 const SITE = 'https://billzap.netlify.app';
+
+// netlify.toml's [[headers]] apply to files Netlify serves, not to
+// what a function returns — a rendered page would otherwise go out
+// with none of the site's security headers. So they are set here,
+// matching the static pages.
+const SECURITY = {
+  'Content-Security-Policy':
+    "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; " +
+    "style-src 'self' 'unsafe-inline'; img-src 'self' data: https://www.google-analytics.com " +
+    "https://www.googletagmanager.com; font-src 'self'; connect-src 'self' " +
+    "https://www.google-analytics.com https://*.google-analytics.com " +
+    "https://*.analytics.google.com https://www.googletagmanager.com; " +
+    "form-action 'self'; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; " +
+    'upgrade-insecure-requests',
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'SAMEORIGIN',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+};
 
 const page = (status, body, extra = {}) => ({
   statusCode: status,
@@ -18,6 +37,7 @@ const page = (status, body, extra = {}) => ({
     // Short public cache: a new post should show up quickly, but a
     // burst of readers should not each wake the database.
     'Cache-Control': 'public, max-age=0, s-maxage=60, must-revalidate',
+    ...SECURITY,
     ...extra,
   },
   body,
@@ -34,14 +54,20 @@ export async function handler(event) {
     return slug ? await renderPost(slug) : await renderIndex();
   } catch (err) {
     console.error('blog error', err);
+    // The reader gets a plain apology. The cause goes in a comment,
+    // scrubbed of host, user and password — without it a failure here
+    // is invisible from outside, and outside is the only place this
+    // can be observed.
     return page(500, shell({
       title: 'Blog — BillZap',
       desc: 'The BillZap blog.',
       canonical: `${SITE}/blog`,
+      robots: 'noindex,follow',
       body: `<section class="legal"><div class="wrap"><div class="legal-head">
                <h1>The blog is having a moment</h1>
                <p class="lead">It could not be loaded just now. Please try again shortly.</p>
-             </div></div></section>`,
+             </div></div></section>
+             <!-- diag: ${esc(redact(err))} -->`,
     }));
   }
 }

@@ -9,13 +9,39 @@ import { neon } from '@neondatabase/serverless';
 
 let _sql = null;
 
+/** Strip options the HTTP driver has no use for.
+ *
+ * A Neon connection string is written for libpq and carries options
+ * that only mean something to a TCP client — channel_binding is the
+ * one that bites, since there is no TLS channel to bind to over
+ * HTTP. Passing the string through untouched is what a connection
+ * error at startup usually turns out to be.
+ */
+export function normaliseUrl(raw) {
+  const u = new URL(raw);
+  const keep = new URLSearchParams();
+  const ssl = u.searchParams.get('sslmode');
+  if (ssl) keep.set('sslmode', ssl);
+  u.search = keep.toString();
+  return u.toString();
+}
+
 export function sql(...args) {
   if (!_sql) {
     const url = process.env.DATABASE_URL;
     if (!url) throw new Error('DATABASE_URL is not set');
-    _sql = neon(url);
+    _sql = neon(normaliseUrl(url));
   }
   return _sql(...args);
+}
+
+/** An error worth putting on a page: no host, no user, no password. */
+export function redact(err) {
+  return String(err?.message || err || 'unknown')
+    .replace(/postgres(?:ql)?:\/\/[^\s'"]*/gi, '[connection string]')
+    .replace(/\b[\w.-]+\.neon\.tech\b/gi, '[host]')
+    .replace(/npg_[A-Za-z0-9]+/g, '[password]')
+    .slice(0, 200);
 }
 
 // The schema, applied on demand.

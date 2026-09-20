@@ -147,7 +147,9 @@ jobs:
           check "GET /blog"            200 "$(code $SITE/blog)"
           grep -q 'Running a shop' /tmp/body \
             && echo "  ok    /blog rendered from the database" \
-            || { echo "  FAIL  /blog did not render"; fail=1; }
+            || { echo "  FAIL  /blog did not render"
+                 grep -o '<!-- diag:[^>]*-->' /tmp/body || echo "  (no diagnostic in the body)"
+                 fail=1; }
 
           echo "── blog extras ──"
           check "GET /sitemap-blog.xml" 200 "$(code $SITE/sitemap-blog.xml)"
