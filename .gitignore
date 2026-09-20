@@ -48,3 +48,6 @@ main_fresh.dart
 
 # Staging folder the landing-page deploy builds; never committed.
 landing-page/dist/
+
+# Function dependencies; installed in CI, never committed.
+landing-page/node_modules/

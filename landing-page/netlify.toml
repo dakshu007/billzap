@@ -2,7 +2,13 @@
 # Publish directory: landing-page/
 
 [build]
-  publish = "."
+  publish = "dist"
+
+# The blog, the studio and their API are Netlify functions. The static
+# pages are still static — only the parts that need a database are not.
+[functions]
+  directory = "functions"
+  node_bundler = "esbuild"
 
 # ── Caching ────────────────────────────────────────────────────────
 # The HTML must revalidate so a deploy is visible immediately. Fonts,
@@ -12,6 +18,21 @@
   for = "/index.html"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
+
+# The studio must never be indexed, cached or sent as a referrer —
+# the path is half of what keeps it private.
+[[headers]]
+  for = "/s/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow, noarchive"
+    Cache-Control = "no-store"
+    Referrer-Policy = "no-referrer"
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-store"
 
 [[headers]]
   for = "/privacy/index.html"
@@ -72,6 +93,37 @@
   for = "/sitemap.xml"
   [headers.values]
     Content-Type = "application/xml; charset=utf-8"
+
+# ── Dynamic routes ─────────────────────────────────────────────────
+# A rewrite (200), not a redirect: the address bar keeps /blog/<slug>
+# and the crawler sees a real page at a real URL, which is the whole
+# point of rendering it server-side.
+[[redirects]]
+  from = "/blog"
+  to = "/.netlify/functions/blog"
+  status = 200
+
+[[redirects]]
+  from = "/blog/*"
+  to = "/.netlify/functions/blog"
+  status = 200
+
+[[redirects]]
+  from = "/sitemap-blog.xml"
+  to = "/.netlify/functions/blog"
+  status = 200
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api"
+  status = 200
+
+# The studio. /s/<secret>; every other /s/… is a 404 from the function
+# itself, so this rule gives nothing away.
+[[redirects]]
+  from = "/s/*"
+  to = "/.netlify/functions/studio"
+  status = 200
 
 [[redirects]]
   from = "/download"

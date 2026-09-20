@@ -443,3 +443,50 @@ h1 .hl{color:var(--jade-600);position:relative;white-space:nowrap}
 .modal-done p{margin-top:10px;color:var(--text-2);font-size:15px}
 .modal-done a{color:var(--jade-700);text-decoration:underline;text-underline-offset:3px}
 body.modal-open{overflow:hidden}
+
+/* ── Blog ──────────────────────────────────────────────────────────
+   Rendered by a Netlify function, styled from this same sheet, so
+   /blog is the site rather than something that resembles it. */
+.blist{max-width:820px;display:grid;gap:clamp(20px,3vw,28px)}
+.bpost{background:var(--paper);border:1px solid var(--hairline);
+  border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-sm);
+  transition:box-shadow .22s var(--ease),transform .22s var(--ease)}
+.bpost:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.bpost-img{display:block;aspect-ratio:16/9;overflow:hidden;background:var(--sunken)}
+.bpost-img img{width:100%;height:100%;object-fit:cover;display:block}
+.bpost-body{padding:clamp(20px,3vw,26px)}
+.bpost-tags{font-size:12.5px;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--jade-700)}
+.bpost h2{font-size:clamp(20px,2.7vw,25px);font-weight:700;letter-spacing:-.02em;
+  margin-top:8px;line-height:1.24}
+.bpost h2 a{color:var(--text)}
+.bpost h2 a:hover{color:var(--jade-700)}
+.bpost-body p{margin-top:11px;color:var(--text-2);font-size:16px;line-height:1.65}
+.bpost-meta{font-size:14px;color:var(--text-3);margin-top:14px}
+.bempty{background:var(--paper);border:1px dashed var(--hairline);
+  border-radius:var(--r-lg);padding:clamp(34px,6vw,54px);text-align:center}
+.bempty h2{font-size:22px;font-weight:700}
+.bempty p{margin-top:12px;color:var(--text-2)}
+.bempty p:last-child{margin-top:22px}
+
+.bcover{max-width:820px;margin:clamp(28px,4vw,40px) 0 0;border-radius:var(--r-lg);
+  overflow:hidden;box-shadow:var(--shadow-md)}
+.bcover img{width:100%;height:auto;display:block}
+
+/* Post body. .prose carries the measure and rhythm; these are the
+   elements a written post uses that a policy page never does. */
+.bprose{margin-top:clamp(28px,4vw,40px)}
+.bprose h2{font-size:clamp(23px,3vw,29px)}
+.bprose img{max-width:100%;height:auto;border-radius:var(--r-md);margin-top:22px}
+.bprose blockquote{margin-top:22px;padding:4px 0 4px 22px;
+  border-left:3px solid var(--jade-500);color:var(--ink-700);font-size:17.5px}
+.bprose blockquote p{margin-top:0;color:inherit}
+.bprose pre{margin-top:20px;padding:18px 20px;background:var(--ink-900);
+  color:#E8EDF2;border-radius:var(--r-md);overflow-x:auto;font-size:14.5px;line-height:1.6}
+.bprose pre code{background:none;padding:0;color:inherit;font-size:inherit}
+.bprose code{background:var(--sunken);padding:2px 6px;border-radius:6px;
+  font-size:.92em;color:var(--ink-800)}
+.bprose table{width:100%;margin-top:22px;border-collapse:collapse;font-size:15.5px}
+.bprose th,.bprose td{padding:11px 14px;border:1px solid var(--hairline);text-align:left}
+.bprose th{background:var(--canvas);font-weight:600}
+.bprose hr{margin:34px 0;border:0;border-top:1px solid var(--hairline)}

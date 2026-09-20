@@ -67,11 +67,10 @@ jobs:
           fi
           echo "Committed build matches its sources."
 
-      # Run from landing-page/, not the repo root. The CLI reads
-      # netlify.toml from its working directory, and ours lives beside
-      # the files it describes — from the root it finds nothing and the
-      # deploy silently ships with no redirects, no cache headers and no
-      # CSP. The step prints the rule counts Netlify reports back so a
+      # Run from landing-page/, not the repo root: the CLI reads
+      # netlify.toml from its working directory, and from the root it
+      # would find none — shipping with no redirects, no cache headers
+      # and no CSP, silently and successfully. The step prints the rule counts Netlify reports back so a
       # silent drop is visible in the log rather than in production.
       #
       # --no-build because this is a folder of finished files; letting
@@ -93,24 +92,36 @@ jobs:
         working-directory: landing-page
         run: |
           rm -rf dist && mkdir -p dist
+          # netlify.toml is deliberately NOT in this list. It was, and
+          # so it was being served: /netlify.toml returned the site's
+          # whole redirect and header configuration to anyone who
+          # asked. The CLI reads it from the working directory, not
+          # from the published folder, so it never needed to be here.
           for item in index.html privacy assets llms.txt llms-full.txt \
-                      robots.txt sitemap.xml site.webmanifest netlify.toml; do
+                      robots.txt sitemap.xml site.webmanifest; do
             [ -e "$item" ] || { echo "::error::missing $item"; exit 1; }
             cp -r "$item" dist/
           done
           echo "Publishing:"
           find dist -type f | sort | sed 's/^/  /'
 
+      # The blog, the studio and the API are functions, and they have a
+      # dependency (the Neon driver). The CLI bundles each function with
+      # whatever it imports, so node_modules has to exist first.
+      - name: Install function dependencies
+        working-directory: landing-page
+        run: npm install --no-audit --no-fund
+
       - name: Deploy to Netlify
         if: env.HAS_TOKEN == 'true'
-        working-directory: landing-page/dist
+        working-directory: landing-page
         timeout-minutes: 12
         env:
           CI: 'true'
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           PROD: ${{ github.event_name != 'workflow_dispatch' || inputs.production }}
         run: |
-          ARGS="--dir=. --no-build --site=$NETLIFY_SITE_ID --message=${GITHUB_SHA::7}"
+          ARGS="--dir=dist --functions=functions --no-build --site=$NETLIFY_SITE_ID --message=${GITHUB_SHA::7}"
           if [ "$PROD" = "true" ]; then ARGS="$ARGS --prod"; fi
           npx -y netlify-cli@latest deploy $ARGS < /dev/null
 

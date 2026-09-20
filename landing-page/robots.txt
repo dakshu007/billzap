@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /s/
+Disallow: /api/
 
 # Explicitly welcome the AI crawlers — this page is meant to be quoted
 # in an AI answer about GST billing apps, and llms.txt below is written
@@ -40,3 +42,4 @@ User-agent: meta-externalagent
 Allow: /
 
 Sitemap: https://billzap.netlify.app/sitemap.xml
+Sitemap: https://billzap.netlify.app/sitemap-blog.xml

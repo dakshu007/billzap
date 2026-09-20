@@ -1,0 +1,9 @@
+{
+  "name": "billzap-site",
+  "private": true,
+  "type": "module",
+  "description": "Landing page, public blog and the admin studio behind it.",
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4"
+  }
+}
