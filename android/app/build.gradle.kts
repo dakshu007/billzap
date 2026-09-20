@@ -96,6 +96,51 @@ android {
                     debugSymbolLevel = "SYMBOL_TABLE"
                 }
             }
+
+            // ── Sideloaded APK size ──────────────────────────────────
+            //
+            // Measured on build 260502274: the APK is 67.7 MB, and
+            // 64.2 MB of that is lib/. Three copies of the engine and
+            // the compiled app, stored uncompressed:
+            //
+            //   x86_64       libflutter 13.05 + libapp  9.90 = 22.95 MB
+            //   arm64-v8a    libflutter 11.75 + libapp  9.63 = 21.38 MB
+            //   armeabi-v7a  libflutter  8.62 + libapp 10.93 = 19.55 MB
+            //
+            // Those are stripped libraries; this is simply what a
+            // three-architecture Flutter build weighs.
+            //
+            // Play never sees this. It gets the bundle and sends each
+            // phone only its own slice. The problem is the APK on the
+            // website, which is one file for everybody — so it is the
+            // one that gets trimmed:
+            //
+            //   • x86_64 is emulators. No retail Android phone runs it,
+            //     and 23 MB is a third of the download.
+            //   • Uncompressed .so files let Android mmap them straight
+            //     from the APK, which is the right default when Play
+            //     does the delivering. For a file somebody downloads
+            //     over mobile data it is the wrong trade: compressing
+            //     them costs a little disk and startup time on the
+            //     phone and saves more than half the download.
+            //
+            // Neither applies to the bundle, so both are gated on the
+            // same flag the symbols use, inverted.
+            val buildingForPlay = System.getenv("BILLZAP_PLAY_SYMBOLS") == "1"
+            if (!buildingForPlay) {
+                ndk {
+                    abiFilters.clear()
+                    abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a"))
+                }
+            }
+        }
+    }
+
+    packaging {
+        jniLibs {
+            // See the note in buildTypes.release: compressed for the
+            // downloadable APK, left alone for the Play bundle.
+            useLegacyPackaging = System.getenv("BILLZAP_PLAY_SYMBOLS") != "1"
         }
     }
 }
