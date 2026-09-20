@@ -108,6 +108,14 @@
   to = "/.netlify/functions/blog"
   status = 200
 
+# Post images live in the database, not on disk, so they are served by
+# the same function that renders the post. Without this rule the static
+# site answers /media/<id> with a 404 and every cover image breaks.
+[[redirects]]
+  from = "/media/*"
+  to = "/.netlify/functions/blog"
+  status = 200
+
 [[redirects]]
   from = "/sitemap-blog.xml"
   to = "/.netlify/functions/blog"
@@ -147,23 +155,15 @@
   status = 301
 
 # ── Inherited URLs ─────────────────────────────────────────────────
-# The site this replaces was a Next.js build with a blog, and those
-# URLs are indexed. Their content is not in this repository, so it
-# cannot be carried over — but a 301 to the page that now covers the
-# same ground keeps the link equity and, more to the point, stops a
-# person who clicks a search result landing on a 404.
+# The site this replaces was a Next.js build, and some of its URLs are
+# indexed. A 301 to the page that now covers the same ground keeps the
+# link equity and stops a person who clicks a search result landing on
+# a 404.
 #
-# If the blog posts are restored, delete the block below rather than
-# editing it: a redirect will happily shadow a real page.
-[[redirects]]
-  from = "/blog"
-  to = "/"
-  status = 301
-
-[[redirects]]
-  from = "/blog/*"
-  to = "/"
-  status = 301
+# The /blog and /blog/* 301s that used to live here are gone: the blog
+# is real now and is served by the function above. They only ever
+# worked because they sat below the rewrites — first match wins — and
+# reordering this file would have silently killed the blog.
 
 # /privacy is a real page again (privacy/index.html), so it is not
 # redirected — this only catches the un-slashed and .html spellings.
