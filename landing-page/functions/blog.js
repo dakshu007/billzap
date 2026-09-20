@@ -49,6 +49,7 @@ export async function handler(event) {
 
   try {
     await ready();
+    if (path.startsWith('/media/')) return await serveMedia(path.slice(7));
     if (path === '/sitemap-blog.xml') return await renderSitemap();
     if (path === '/blog/feed.xml' || path === '/blog/rss.xml') return await renderFeed();
     return slug ? await renderPost(slug) : await renderIndex();
@@ -172,13 +173,16 @@ async function renderPost(slugRaw) {
     publisher: { '@id': `${SITE}/#org` },
     mainEntityOfPage: `${SITE}/blog/${p.slug}`,
     ...(p.cover_url ? { image: abs(p.cover_url) } : {}),
-    keywords: (p.tags || []).join(', '),
+    keywords: [p.focus_keyword, ...(p.secondary_keywords || []), ...(p.tags || [])]
+      .filter(Boolean).join(', '),
   };
 
   return page(200, shell({
     title: p.meta_title || `${p.title} | BillZap`,
     desc,
     canonical: `${SITE}/blog/${p.slug}`,
+    keywords: [p.focus_keyword, ...(p.secondary_keywords || []), ...(p.tags || [])]
+      .filter(Boolean).join(', '),
     image: p.cover_url ? abs(p.cover_url) : `${SITE}/assets/og.png`,
     ogType: 'article',
     ld,
@@ -257,10 +261,43 @@ ${items}
   };
 }
 
-function shell({ title, desc, canonical, body, ld, image, ogType = 'website', robots = 'index,follow,max-image-preview:large,max-snippet:-1' }) {
+/** An uploaded image, as its own response.
+ *
+ * The whole reason this route exists: a function may return at most
+ * 6 MB, and an image inlined into a post as a data URL counted against
+ * that same budget — one photo could take the entire page over the
+ * limit and crash it. Served separately, each image gets its own
+ * response and the HTML stays small.
+ *
+ * Content-addressed by row id and immutable, so a reader fetches each
+ * one once.
+ */
+async function serveMedia(idRaw) {
+  const id = Number(String(idRaw).replace(/[^0-9]/g, ''));
+  if (!id) return { statusCode: 404, body: 'Not found' };
+
+  const [m] = await sql`SELECT mime, data_url FROM media WHERE id = ${id}`;
+  if (!m) return { statusCode: 404, body: 'Not found' };
+
+  const comma = m.data_url.indexOf(',');
+  return {
+    statusCode: 200,
+    headers: {
+      'Content-Type': m.mime || 'image/png',
+      'Cache-Control': 'public, max-age=31536000, immutable',
+      'X-Content-Type-Options': 'nosniff',
+    },
+    body: m.data_url.slice(comma + 1),
+    isBase64Encoded: true,
+  };
+}
+
+function shell({ title, desc, canonical, body, ld, image, keywords,
+                 ogType = 'website',
+                 robots = 'index,follow,max-image-preview:large,max-snippet:-1' }) {
   return `<!doctype html>
 <html lang="en">
-${head({ title, desc, canonical, image, ogType, robots, css: CSS, ld })}
+${head({ title, desc, canonical, image, ogType, robots, keywords, css: CSS, ld })}
 <body>
 ${header({ base: '/' })}
 <main id="main">

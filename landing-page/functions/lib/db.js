@@ -83,6 +83,11 @@ async function migrate() {
       ON posts (published_at DESC)
       WHERE status = 'published'`;
 
+  // Keyword fields. Added after the table existed, so they arrive as
+  // ALTERs rather than in the CREATE above.
+  await sql`ALTER TABLE posts ADD COLUMN IF NOT EXISTS focus_keyword TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE posts ADD COLUMN IF NOT EXISTS secondary_keywords TEXT[] NOT NULL DEFAULT '{}'`;
+
   await sql`
     CREATE TABLE IF NOT EXISTS media (
       id         BIGSERIAL PRIMARY KEY,
@@ -93,5 +98,39 @@ async function migrate() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )`;
 
+  await unInlineImages();
   return true;
+}
+
+/** Move already-published images out of the HTML and behind /media/<id>.
+ *
+ * Images were first stored as data URLs and pasted straight into the
+ * post body. That works until a post is opened: a 2 MB photo is ~2.7 MB
+ * of base64, and a Netlify function may return at most 6 MB, so the
+ * page died with ResponseSizeTooLarge rather than rendering. Images are
+ * served from their own URL now; this repoints anything written before
+ * that change.
+ *
+ * Idempotent, and cheap to skip: the EXISTS check is one indexless
+ * scan of a table with a handful of rows, and after the first run it
+ * finds nothing.
+ */
+async function unInlineImages() {
+  const [{ pending }] = await sql`
+    SELECT EXISTS (
+      SELECT 1 FROM posts
+       WHERE body_html LIKE '%data:image%' OR cover_url LIKE 'data:image%'
+    ) AS pending`;
+  if (!pending) return;
+
+  const rows = await sql`SELECT id, data_url FROM media`;
+  for (const m of rows) {
+    await sql`
+      UPDATE posts
+         SET body_html = replace(body_html, ${m.data_url}, ${'/media/' + m.id}),
+             cover_url = CASE WHEN cover_url = ${m.data_url}
+                              THEN ${'/media/' + m.id} ELSE cover_url END
+       WHERE body_html LIKE '%data:image%' OR cover_url = ${m.data_url}`;
+  }
+  console.log(`unInlineImages: repointed ${rows.length} image(s)`);
 }

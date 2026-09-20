@@ -14,12 +14,13 @@ export const footer = ({ base = "/" } = {}) =>
 
 
 export const head = ({ title, desc, canonical, image, ogType = 'website',
-                       robots, css, ld }) => `<head>
+                       robots, keywords, css, ld }) => `<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>${title}</title>
 <meta name="description" content="${attr(desc)}">
 <meta name="author" content="BillZap">
+${keywords ? `<meta name="keywords" content="${attr(keywords)}">` : ''}
 <meta name="robots" content="${robots}">
 <link rel="canonical" href="${canonical}">
 <meta name="theme-color" content="#F6F7F9">

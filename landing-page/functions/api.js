@@ -59,9 +59,11 @@ export async function handler(event) {
       const slug = await uniqueSlug(p.slug, null);
       const [row] = await sql`
         INSERT INTO posts (slug, title, excerpt, body_html, cover_url, cover_alt,
-                           tags, meta_title, meta_desc, status, published_at)
+                           tags, meta_title, meta_desc, focus_keyword,
+                           secondary_keywords, status, published_at)
         VALUES (${slug}, ${p.title}, ${p.excerpt}, ${p.body_html}, ${p.cover_url},
                 ${p.cover_alt}, ${p.tags}, ${p.meta_title}, ${p.meta_desc},
+                ${p.focus_keyword}, ${p.secondary_keywords},
                 ${p.status}, ${p.status === 'published' ? new Date() : null})
         RETURNING *`;
       return json(200, { post: row });
@@ -84,6 +86,8 @@ export async function handler(event) {
           body_html = ${p.body_html}, cover_url = ${p.cover_url},
           cover_alt = ${p.cover_alt}, tags = ${p.tags},
           meta_title = ${p.meta_title}, meta_desc = ${p.meta_desc},
+          focus_keyword = ${p.focus_keyword},
+          secondary_keywords = ${p.secondary_keywords},
           status = ${p.status}, published_at = ${publishedAt}, updated_at = now()
         WHERE id = ${id} RETURNING *`;
       return json(200, { post: row });
@@ -103,20 +107,22 @@ export async function handler(event) {
       if (!/^data:image\/(png|jpe?g|gif|webp|avif);base64,/.test(String(data_url || '')))
         return json(400, { error: 'Images only.' });
       const bytes = Math.floor(String(data_url).length * 0.75);
-      if (bytes > 2_000_000) return json(400, { error: 'Keep images under 2 MB.' });
+      if (bytes > 1_500_000) return json(400, { error: 'Keep images under 1.5 MB.' });
       const [row] = await sql`
         INSERT INTO media (filename, mime, bytes, data_url)
         VALUES (${String(filename || 'image')}, ${String(mime || 'image/png')},
                 ${bytes}, ${data_url})
-        RETURNING id, filename, data_url`;
-      return json(200, { media: row });
+        RETURNING id, filename, bytes`;
+      // The URL, never the data. Inlining the base64 into a post is
+      // what put a page over the 6 MB a function may return.
+      return json(200, { media: { ...row, url: `/media/${row.id}` } });
     }
 
     if (route === 'media' && method === 'GET') {
       const rows = await sql`
-        SELECT id, filename, data_url, bytes, created_at
+        SELECT id, filename, bytes, created_at
           FROM media ORDER BY created_at DESC LIMIT 60`;
-      return json(200, { media: rows });
+      return json(200, { media: rows.map((r) => ({ ...r, url: `/media/${r.id}` })) });
     }
 
     return json(404, { error: 'No such endpoint.' });
@@ -142,6 +148,10 @@ function normalise(p) {
       : [],
     meta_title: String(p.meta_title || '').trim(),
     meta_desc: String(p.meta_desc || '').trim(),
+    focus_keyword: String(p.focus_keyword || '').trim().slice(0, 120),
+    secondary_keywords: Array.isArray(p.secondary_keywords)
+      ? p.secondary_keywords.map((k) => String(k).trim()).filter(Boolean).slice(0, 10)
+      : [],
     status: p.status === 'published' ? 'published' : 'draft',
   };
 }

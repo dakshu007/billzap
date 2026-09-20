@@ -106,9 +106,13 @@ const APP_CSS = `
   border-right:0;border-radius:var(--r) 0 0 var(--r);white-space:nowrap}
 .slug input{border-radius:0 var(--r) var(--r) 0;border-left:0}
 
-.tb{display:flex;flex-wrap:wrap;gap:3px;padding:8px;background:var(--can);
-  border:1.5px solid var(--line);border-bottom:0;border-radius:var(--r) var(--r) 0 0;
+.ed-panel{overflow:visible}
+.tb{display:flex;flex-wrap:wrap;gap:3px;padding:8px;
+  background:rgba(246,247,249,.94);backdrop-filter:blur(10px);
+  border:1.5px solid var(--line);border-bottom:0;
+  border-radius:var(--r-l) var(--r-l) 0 0;
   position:sticky;top:62px;z-index:20}
+.tb.stuck{border-radius:0;box-shadow:0 6px 18px rgba(12,16,20,.07)}
 .tb button{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;
   color:var(--ink-2);font-size:14px;font-weight:700;transition:.14s}
 .tb button:hover{background:var(--sun)}
@@ -117,7 +121,8 @@ const APP_CSS = `
 .tb svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;
   stroke-linecap:round;stroke-linejoin:round}
 #body{min-height:460px;padding:22px;background:var(--pap);border:1.5px solid var(--line);
-  border-radius:0 0 var(--r) var(--r);outline:0;font-size:17px;line-height:1.75;color:var(--ink-2)}
+  border-radius:0 0 var(--r-l) var(--r-l);outline:0;font-size:17px;line-height:1.75;
+  color:var(--ink-2)}
 #body:focus{border-color:var(--jade)}
 #body:empty::before{content:attr(data-ph);color:var(--mut-2)}
 #body h2{font-size:25px;font-weight:800;margin:28px 0 0;color:var(--ink);letter-spacing:-.02em}
@@ -220,7 +225,12 @@ export const DASHBOARD = `<!doctype html><html lang="en"><head>
         </div>
       </div>
 
-      <div class="panel" style="padding:0;overflow:hidden">
+      <!-- No overflow:hidden here. The toolbar below is position:
+           sticky, and any ancestor with overflow hidden, scroll or
+           auto silently turns that off — the toolbar just scrolls
+           away with no error anywhere. The rounded corners are on the
+           toolbar and the editor instead. -->
+      <div class="panel ed-panel" style="padding:0">
         <div class="tb" id="tb">
           <button data-c="bold" title="Bold (Ctrl+B)">${ICON(I.bold)}</button>
           <button data-c="italic" title="Italic (Ctrl+I)">${ICON(I.italic)}</button>
@@ -274,6 +284,20 @@ export const DASHBOARD = `<!doctype html><html lang="en"><head>
           <p class="hint">Read aloud to people using a screen reader.</p>
         </div>
         <button class="btn btn-g" id="coverClear" style="width:100%;margin-top:12px">Remove cover</button>
+      </div>
+
+      <div class="panel">
+        <h2>Keywords</h2>
+        <div class="field">
+          <label for="focusKw">Primary keyword</label>
+          <input id="focusKw" type="text" placeholder="free gst billing app">
+          <p class="hint" id="kwHint">The one phrase this post should rank for.</p>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label for="secondaryKw">Secondary keywords</label>
+          <input id="secondaryKw" type="text" placeholder="gst invoice format, hsn code">
+          <p class="hint">Comma separated. Up to ten.</p>
+        </div>
       </div>
 
       <div class="panel">
@@ -359,6 +383,8 @@ window.openEditor=async function(id){
   if(id){ try{ cur=(await api('posts/'+id)).post; }catch(e){ return toast(e.message,true); } }
   $('title').value=cur.title||''; $('slug').value=cur.slug||'';
   $('body').innerHTML=cur.body_html||'';
+  $('focusKw').value=cur.focus_keyword||'';
+  $('secondaryKw').value=(cur.secondary_keywords||[]).join(', ');
   $('excerpt').value=cur.excerpt||''; $('metaTitle').value=cur.meta_title||'';
   $('metaDesc').value=cur.meta_desc||''; $('tags').value=(cur.tags||[]).join(', ');
   $('coverAlt').value=cur.cover_alt||''; setCover(cur.cover_url||'');
@@ -369,7 +395,7 @@ window.openEditor=async function(id){
   $('del').classList.toggle('hidden',!id);
   $('view-list').classList.add('hidden'); $('view-edit').classList.remove('hidden');
   $('bar').classList.remove('hidden');
-  dirty=false; countMeta(); $('title').focus();
+  dirty=false; countMeta(); checkKeyword(); $('title').focus();
 };
 $('new').onclick=()=>openEditor();
 $('back').onclick=()=>{
@@ -398,8 +424,24 @@ $('title').addEventListener('input',()=>{
       .replace(/[^a-z0-9\\s-]/g,'').replace(/\\s+/g,'-').replace(/-+/g,'-').slice(0,80);
   }
 });
-['excerpt','metaTitle','metaDesc','tags','coverAlt'].forEach(id=>
-  $(id).addEventListener('input',()=>{dirty=true;if(id==='metaDesc')countMeta();}));
+['excerpt','metaTitle','metaDesc','tags','coverAlt','focusKw','secondaryKw'].forEach(id=>
+  $(id).addEventListener('input',()=>{dirty=true;if(id==='metaDesc')countMeta();
+    if(id==='focusKw')checkKeyword();}));
+
+${'/* A primary keyword is only useful if it is actually in the post. */'}
+function checkKeyword(){
+  const k=$('focusKw').value.trim().toLowerCase();
+  const h=$('kwHint');
+  if(!k){ h.textContent='The one phrase this post should rank for.';
+          h.style.color='var(--mut)'; return; }
+  const inTitle=$('title').value.toLowerCase().includes(k);
+  const inBody=body.innerText.toLowerCase().includes(k);
+  const bits=[];
+  bits.push(inTitle?'in the title':'not in the title');
+  bits.push(inBody?'in the body':'not in the body');
+  h.textContent=bits.join(' · ');
+  h.style.color=(inTitle&&inBody)?'var(--jade-d)':'var(--amber)';
+}
 function countMeta(){
   const n=$('metaDesc').value.length;$('mdCount').textContent=n;
   $('mdCount').style.color = n>160 ? 'var(--red)' : 'var(--mut)';
@@ -471,14 +513,14 @@ let cover_url='';
 $('coverFile').onchange=async(e)=>{
   const f=e.target.files[0]; e.target.value='';
   if(!f) return;
-  if(f.size>2_000_000) return toast('Keep images under 2 MB.',true);
+  if(f.size>1_500_000) return toast('Keep images under 1.5 MB.',true);
   const data=await new Promise((res,rej)=>{
     const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(f);
   });
   try{
     const d=await api('media',{method:'POST',body:JSON.stringify({filename:f.name,mime:f.type,data_url:data})});
-    if(imgTarget==='cover'){ setCover(d.media.data_url); }
-    else { body.focus(); document.execCommand('insertImage',false,d.media.data_url); }
+    if(imgTarget==='cover'){ setCover(d.media.url); }
+    else { body.focus(); document.execCommand('insertImage',false,d.media.url); }
     dirty=true; toast('Image added');
   }catch(err){ toast(err.message,true); }
 };
@@ -488,6 +530,8 @@ async function save(st){
   const payload={
     title:$('title').value, slug:$('slug').value, body_html:body.innerHTML,
     excerpt:$('excerpt').value, meta_title:$('metaTitle').value, meta_desc:$('metaDesc').value,
+    focus_keyword:$('focusKw').value,
+    secondary_keywords:$('secondaryKw').value.split(',').map(s=>s.trim()).filter(Boolean),
     tags:$('tags').value.split(',').map(s=>s.trim()).filter(Boolean),
     cover_url, cover_alt:$('coverAlt').value, status:st,
   };
@@ -516,6 +560,14 @@ $('del').onclick=async()=>{
   catch(e){ toast(e.message,true); }
 };
 $('out').onclick=async()=>{ await fetch('/api/logout'); location.reload(); };
+
+${'/* Square the toolbar off once it meets the header, so it reads as'}
+${'   a bar rather than a card that has slipped its panel. */'}
+const tb=$('tb');
+addEventListener('scroll',()=>{
+  if(!tb.offsetParent) return;
+  tb.classList.toggle('stuck', tb.getBoundingClientRect().top <= 63);
+},{passive:true});
 
 addEventListener('beforeunload',(e)=>{ if(dirty){ e.preventDefault(); e.returnValue=''; } });
 load();
