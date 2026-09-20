@@ -1,0 +1,68 @@
+name: Smoke test the live site
+
+# Checks the deployed site from outside, which is the only place the
+# blog, the studio guard and the database can actually be exercised —
+# the sandbox this was written in cannot reach netlify.app or Neon.
+#
+# Deliberately needs no secrets: every assertion here is about what an
+# anonymous visitor sees. If /blog renders, the function reached Neon
+# and the schema exists; if a wrong password is refused, the auth path
+# and its environment variables are wired up.
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ['Deploy landing page']
+    types: [completed]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the live site
+        env:
+          SITE: https://billzap.netlify.app
+        run: |
+          fail=0
+          check() {                       # name, expected, actual
+            if [ "$2" = "$3" ]; then printf '  ok    %-44s %s\n' "$1" "$3"
+            else printf '  FAIL  %-44s got %s, wanted %s\n' "$1" "$3" "$2"; fail=1; fi
+          }
+          code() { curl -s -o /tmp/body -w '%{http_code}' --max-time 45 "$@"; }
+
+          echo "── pages ──"
+          check "GET /"                200 "$(code $SITE/)"
+          check "GET /privacy/"        200 "$(code $SITE/privacy/)"
+          check "GET /blog"            200 "$(code $SITE/blog)"
+          grep -q 'Running a shop' /tmp/body \
+            && echo "  ok    /blog rendered from the database" \
+            || { echo "  FAIL  /blog did not render"; fail=1; }
+
+          echo "── blog extras ──"
+          check "GET /sitemap-blog.xml" 200 "$(code $SITE/sitemap-blog.xml)"
+          grep -q '<urlset' /tmp/body && echo "  ok    sitemap is xml" || { echo "  FAIL  sitemap"; fail=1; }
+          check "GET /blog/feed.xml"    200 "$(code $SITE/blog/feed.xml)"
+          check "GET /blog/no-such-post" 404 "$(code $SITE/blog/no-such-post)"
+
+          echo "── the studio must not be findable ──"
+          check "GET /s/admin"         404 "$(code $SITE/s/admin)"
+          check "GET /s/"              404 "$(code $SITE/s/)"
+          check "GET /s/studio"        404 "$(code $SITE/s/studio)"
+
+          echo "── auth ──"
+          check "POST /api/login (wrong password)" 401 \
+            "$(code -X POST -H 'Content-Type: application/json' -d '{"password":"nope"}' $SITE/api/login)"
+          check "GET /api/posts (no session)"      401 "$(code $SITE/api/posts)"
+
+          echo "── nothing that should not be served ──"
+          check "GET /netlify.toml"    404 "$(code $SITE/netlify.toml)"
+          check "GET /build/page.html" 301 "$(code $SITE/build/page.html)"
+          check "GET /package.json"    404 "$(code $SITE/package.json)"
+
+          echo "── headers ──"
+          hdr=$(curl -sI --max-time 45 $SITE/blog)
+          echo "$hdr" | grep -qi 'content-security-policy' \
+            && echo "  ok    CSP present on /blog" || { echo "  FAIL  no CSP on /blog"; fail=1; }
+
+          echo
+          [ $fail -eq 0 ] && echo "All checks passed." || { echo "Some checks failed."; exit 1; }
