@@ -124,15 +124,13 @@ android {
             //     them costs a little disk and startup time on the
             //     phone and saves more than half the download.
             //
-            // Neither applies to the bundle, so both are gated on the
-            // same flag the symbols use, inverted.
-            val buildingForPlay = System.getenv("BILLZAP_PLAY_SYMBOLS") == "1"
-            if (!buildingForPlay) {
-                ndk {
-                    abiFilters.clear()
-                    abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a"))
-                }
-            }
+            // Compression is set in packaging{} below. The ABI list is
+            // NOT set here: an ndk.abiFilters block in this file is
+            // silently ignored for `flutter build`, because the Flutter
+            // Gradle plugin writes its own from --target-platform. I
+            // tried it that way first and the x86_64 libraries were
+            // still in the APK. It is a flag on the build command —
+            // see release.yml.
         }
     }
 
