@@ -1,5 +1,24 @@
 <a class="skip" href="#main">Skip to content</a>
 
+<!-- ── Backdrop ──────────────────────────────────────────────────────
+     Lives in the shared header so every page — the landing page,
+     /privacy/ and the blog — sits on the same aurora rather than three
+     slightly different backgrounds.
+
+     Three drifting gradient blobs, then a static film grain over the
+     top to dither the banding that flat near-black shows on 8-bit
+     panels. aria-hidden because none of it is content.               -->
+<div class="bg" aria-hidden="true">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- Reading progress. The script sets --p; the bar is a scaleX, so the
+     one thing that updates on every scroll frame is also the cheapest. -->
+<div class="prog" id="prog" aria-hidden="true"></div>
+
 <header class="hdr" id="hdr">
   <div class="wrap hdr-in">
     <a class="brand" href="{{home}}" aria-label="BillZap home">
