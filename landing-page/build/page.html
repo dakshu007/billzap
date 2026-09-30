@@ -2,47 +2,43 @@
 
   <!-- ── HERO ─────────────────────────────────────────────────── -->
   <section class="hero" id="top">
-    <!-- The perspective grid recedes under the hero only. The aurora
-         behind it is in the shared header, because every page gets it. -->
-    <div class="floor" aria-hidden="true"><div class="floor-in"></div></div>
-
+    <div class="hero-wash" aria-hidden="true"></div>
     <div class="wrap hero-in">
       <div>
-        <p class="eyebrow rv">{{ico:zap}} Free forever · No sign-up</p>
-        <!-- Each word is its own clipped span so the headline rises
-             into place a word at a time. --d staggers them; the values
-             are 70ms apart, which is fast enough not to feel like a
-             loading screen. -->
+        <p class="eyebrow rv">Free forever · No sign-up</p>
+        <!-- Each word is its own clipped span, so the headline rises
+             into place a word at a time. 60ms apart: enough to read as
+             deliberate, not enough to feel like a loading screen. -->
         <h1>
           <span class="wr"><span style="--d:0ms">GST</span></span>
-          <span class="wr"><span style="--d:70ms">bills</span></span>
-          <span class="wr"><span style="--d:140ms">in</span></span>
-          <span class="wr"><span style="--d:210ms"><span class="gx">30&nbsp;seconds</span>,</span></span>
-          <span class="wr"><span style="--d:300ms">even</span></span>
-          <span class="wr"><span style="--d:370ms">with</span></span>
-          <span class="wr"><span style="--d:440ms">no</span></span>
-          <span class="wr"><span style="--d:510ms">signal.</span></span>
+          <span class="wr"><span style="--d:60ms">bills</span></span>
+          <span class="wr"><span style="--d:120ms">in</span></span>
+          <span class="wr"><span style="--d:180ms">30&nbsp;seconds,</span></span>
+          <span class="wr"><span style="--d:240ms">even</span></span>
+          <span class="wr"><span style="--d:300ms">with</span></span>
+          <span class="wr"><span style="--d:360ms">no</span></span>
+          <span class="wr"><span style="--d:420ms">signal</span></span>
         </h1>
-        <p class="lead rv" style="--d:560ms">
+        <p class="lead rv" style="--d:460ms">
           BillZap is a free GST billing app built for Indian shops. Make a
           proper tax invoice at the counter, put a UPI QR on it so the
           customer pays before they leave, and send it on WhatsApp — all
           without internet.
         </p>
-        <div class="hero-cta rv" style="--d:660ms">
-          <a class="btn btn-primary btn-lg" href="#download">{{ico:download}} Download for Android</a>
-          <a class="btn btn-ghost btn-lg" href="#how">{{ico:arrow-right}} See how it works</a>
+        <div class="hero-cta rv" style="--d:540ms">
+          <a class="btn btn-primary btn-lg" href="#download">
+            Download for Android <span class="chip">{{ico:arrow-right}}</span></a>
+          <a class="btn btn-ghost btn-lg" href="#how">See how it works</a>
         </div>
-        <ul class="hero-fine rv" style="--d:760ms">
-          <li><span>{{ico:wifi-off}} Works offline</span></li>
-          <li><span>{{ico:lock}} Data stays on your phone</span></li>
-          <li><span>{{ico:indian-rupee}} No subscription</span></li>
-          <li><span>{{ico:languages}} 12 Indian languages</span></li>
+        <ul class="hero-fine rv" style="--d:620ms">
+          <li>{{ico:wifi-off}} Works offline</li>
+          <li>{{ico:lock}} Data stays on your phone</li>
+          <li>{{ico:indian-rupee}} No subscription</li>
+          <li>{{ico:languages}} 12 Indian languages</li>
         </ul>
       </div>
 
-      <div class="dev-stage rv rv-s" style="--d:300ms">
-        <div class="dev-ring" aria-hidden="true"></div>
+      <div class="dev-stage rv rv-s" style="--d:260ms">
         <div class="dev">
           <img class="dev-scr" src="assets/shots/home-786.webp"
                srcset="assets/shots/home-393.webp 393w, assets/shots/home-786.webp 786w"
@@ -56,211 +52,277 @@
     </div>
   </section>
 
-  <!-- ── MARQUEE ──────────────────────────────────────────────────
-       The track holds the list twice and slides by exactly -50%, so
-       the seam never shows. The second copy is aria-hidden or a screen
-       reader reads all ten items twice. -->
-  <div class="mq" aria-label="What is included">
-    <div class="mq-track">
-      <ul>
-        <li>{{ico:wifi-off}} Offline invoices</li>
-        <li>{{ico:qr-code}} UPI QR on every bill</li>
-        <li>{{ico:mic}} Voice billing</li>
-        <li>{{ico:file-text}} GSTR-1 export</li>
-        <li>{{ico:package}} HSN codes</li>
-        <li>{{ico:receipt-text}} PDF to WhatsApp</li>
-        <li>{{ico:scan-line}} Day close</li>
-        <li>{{ico:boxes}} Stock alerts</li>
-        <li>{{ico:users}} Customer dues</li>
-        <li>{{ico:shield-check}} PIN lock</li>
-      </ul>
-      <ul aria-hidden="true">
-        <li>{{ico:wifi-off}} Offline invoices</li>
-        <li>{{ico:qr-code}} UPI QR on every bill</li>
-        <li>{{ico:mic}} Voice billing</li>
-        <li>{{ico:file-text}} GSTR-1 export</li>
-        <li>{{ico:package}} HSN codes</li>
-        <li>{{ico:receipt-text}} PDF to WhatsApp</li>
-        <li>{{ico:scan-line}} Day close</li>
-        <li>{{ico:boxes}} Stock alerts</li>
-        <li>{{ico:users}} Customer dues</li>
-        <li>{{ico:shield-check}} PIN lock</li>
-      </ul>
+  <!-- ── BAND ─────────────────────────────────────────────────────
+       The quiet strip under the hero, for the one feature that needs
+       showing rather than claiming. -->
+  <div class="band">
+    <div class="wrap band-in">
+      <div class="rv">
+        <h2>Say it in your language and the invoice fills itself in</h2>
+        <a class="tlink" href="#languages">See all 12 languages {{ico:arrow-right}}</a>
+      </div>
+      <div class="band-art rv" style="--d:90ms" aria-label="Example of voice billing">
+        <span>you say</span><br>
+        <b>&ldquo;do kilo chini&rdquo;</b><br>
+        <span>billzap writes</span><br>
+        Sugar &middot; 2 kg &middot; HSN 1701<br>
+        <b>&#8377;96.00</b> <span>+ &#8377;4.80 GST @ 5%</span>
+      </div>
     </div>
   </div>
+
+  <!-- ── TRUST STRIP ──────────────────────────────────────────────
+       The reference puts customer logos here. BillZap has none to
+       show and inventing them would be a lie, so this slot carries
+       what is actually in the app. The track holds the list twice and
+       slides by exactly -50%, which is why the seam never shows; the
+       second copy is aria-hidden or it is read out twice. -->
+  <section class="trust">
+    <div class="wrap">
+      <p class="trust-h">Everything below is in the free app</p>
+    </div>
+    <div class="mq">
+      <div class="mq-track">
+        <ul>
+          <li>{{ico:wifi-off}} Offline invoices</li>
+          <li>{{ico:qr-code}} UPI QR on every bill</li>
+          <li>{{ico:mic}} Voice billing</li>
+          <li>{{ico:file-text}} GSTR-1 export</li>
+          <li>{{ico:package}} HSN codes</li>
+          <li>{{ico:receipt-text}} PDF to WhatsApp</li>
+          <li>{{ico:scan-line}} Day close</li>
+          <li>{{ico:boxes}} Stock alerts</li>
+          <li>{{ico:users}} Customer dues</li>
+          <li>{{ico:shield-check}} PIN lock</li>
+        </ul>
+        <ul aria-hidden="true">
+          <li>{{ico:wifi-off}} Offline invoices</li>
+          <li>{{ico:qr-code}} UPI QR on every bill</li>
+          <li>{{ico:mic}} Voice billing</li>
+          <li>{{ico:file-text}} GSTR-1 export</li>
+          <li>{{ico:package}} HSN codes</li>
+          <li>{{ico:receipt-text}} PDF to WhatsApp</li>
+          <li>{{ico:scan-line}} Day close</li>
+          <li>{{ico:boxes}} Stock alerts</li>
+          <li>{{ico:users}} Customer dues</li>
+          <li>{{ico:shield-check}} PIN lock</li>
+        </ul>
+      </div>
+    </div>
+  </section>
 
   <!-- ── STATS ────────────────────────────────────────────────────
        data-to and data-suffix drive the count-up. The cell's text is
        already the finished value, so with JavaScript off the band is
        correct rather than empty. -->
-  <section class="sec sec-lazy" aria-label="BillZap at a glance" style="padding-block:clamp(48px,6vw,72px)">
+  <section class="sec sec-lazy" aria-label="BillZap at a glance"
+           style="padding-block:0 clamp(64px,8vw,108px)">
     <div class="wrap">
       <div class="stats rv">
         <div class="stat"><b data-to="30" data-suffix="s">30s</b><span>To a finished GST bill</span></div>
         <div class="stat"><b data-to="100" data-suffix="%">100%</b><span>Works without internet</span></div>
         <div class="stat"><b data-to="12">12</b><span>Indian languages</span></div>
-        <div class="stat"><b data-prefix="₹" data-to="0">₹0</b><span>Forever. No trial, no tier</span></div>
+        <div class="stat"><b data-to="0" data-prefix="₹">₹0</b><span>Forever. No trial, no tier</span></div>
       </div>
     </div>
   </section>
 
-  <!-- ── PROBLEM ──────────────────────────────────────────────── -->
-  <section class="sec sec-lazy" id="why">
+  <!-- ── SHOWCASE ─────────────────────────────────────────────── -->
+  <section class="sec sec-lazy sec-paper" id="why">
     <div class="wrap">
-      <div class="sec-h rv">
-        <p class="eyebrow">{{ico:store}} Built for the counter</p>
-        <h2>Most billing apps were not made for a shop.</h2>
+      <div class="sec-h mid rv">
+        <p class="eyebrow">Built for the counter</p>
+        <h2>Most billing apps were not made for a shop</h2>
         <p class="lead">
           They ask you to sign up, then to subscribe, then to be online.
-          Meanwhile there is a customer standing in front of you holding
-          cash. BillZap is built the other way round.
+          Meanwhile there is a customer in front of you holding cash.
         </p>
       </div>
-      <div class="grid g3">
-        <article class="card spot rv">
-          <div class="card-ico">{{ico:wifi-off}}</div>
-          <h3>The signal drops mid-bill</h3>
-          <p>
-            A cloud app freezes the moment the network does. BillZap keeps
-            every invoice, customer and product on the phone itself, so
-            the basement shop and the village market work the same as a
-            fibre line.
-          </p>
+      <div class="show">
+        <article class="rv">
+          <div class="show-art">
+            <img src="assets/shots/home-786.webp"
+                 srcset="assets/shots/home-393.webp 393w, assets/shots/home-786.webp 786w"
+                 sizes="(max-width:860px) 62vw, 250px"
+                 width="786" height="1704" loading="lazy" decoding="async"
+                 alt="The BillZap home screen with revenue, pending payments and stock alerts">
+          </div>
+          <div class="show-body">
+            <h3>The whole shop on one screen</h3>
+            <p>
+              Revenue, what is still unpaid, what is running low and what
+              you took today — without opening four different places to
+              find out.
+            </p>
+            <a class="tlink" href="#features">See every stage {{ico:arrow-right}}</a>
+          </div>
         </article>
-        <article class="card spot rv" style="--d:90ms">
-          <div class="card-ico">{{ico:indian-rupee}}</div>
-          <h3>The free plan runs out</h3>
-          <p>
-            Twenty invoices, then a paywall. BillZap has no invoice limit,
-            no trial clock and no paid tier — the app you install is the
-            whole app.
-          </p>
-        </article>
-        <article class="card spot rv" style="--d:180ms">
-          <div class="card-ico">{{ico:calculator}}</div>
-          <h3>The tax split goes wrong</h3>
-          <p>
-            CGST and SGST for your own state, IGST for another. BillZap
-            reads it from your place of supply and says which one it is
-            picking, on the bill screen, before you save.
-          </p>
+        <article class="rv" style="--d:90ms">
+          <div class="show-art">
+            <img src="assets/shots/create-786.webp"
+                 srcset="assets/shots/create-393.webp 393w, assets/shots/create-786.webp 786w"
+                 sizes="(max-width:860px) 62vw, 250px"
+                 width="786" height="1704" loading="lazy" decoding="async"
+                 alt="The new invoice screen showing the customer, dates, place of supply and the CGST and SGST split">
+          </div>
+          <div class="show-body">
+            <h3>The tax split, decided for you</h3>
+            <p>
+              CGST and SGST inside your state, IGST across a border.
+              BillZap reads it from the place of supply and shows which
+              one it picked, before you save.
+            </p>
+            <a class="tlink" href="#gst">How GST is handled {{ico:arrow-right}}</a>
+          </div>
         </article>
       </div>
     </div>
   </section>
 
-  <!-- ── FEATURES ─────────────────────────────────────────────── -->
+  <!-- ── STAGES ───────────────────────────────────────────────────
+       The centrepiece. Each card sets --c once and the label, the
+       ticks and the connector all follow from it. -->
   <section class="sec sec-lazy" id="features">
-    <hr class="hr-glow">
     <div class="wrap">
       <div class="sec-h mid rv">
-        <p class="eyebrow">{{ico:sparkles}} Everything included</p>
-        <h2>One app, the whole shop.</h2>
+        <p class="eyebrow">One app, no add-ons</p>
+        <h2>One app for every stage of the sale</h2>
         <p class="lead">
-          Billing, customers, stock, expenses and the numbers your
-          accountant asks for — without paying for a single add-on.
+          From setting the shop up to handing your accountant the year —
+          without paying for a single extra module.
         </p>
       </div>
-      <div class="grid g3">
-        <article class="card spot rv">
-          <div class="card-ico">{{ico:receipt-text}}</div>
-          <h3>GST invoices that hold up</h3>
-          <p>HSN codes, per-item GST rates, CGST/SGST/IGST worked out for
-             you, and your GSTIN on every bill.</p>
-        </article>
-        <article class="card spot rv" style="--d:70ms">
-          <div class="card-ico">{{ico:qr-code}}</div>
-          <h3>UPI QR on every bill</h3>
-          <p>The customer scans and pays before leaving the shop. No
-             card machine, no "I'll transfer it tonight".</p>
-        </article>
-        <article class="card spot rv" style="--d:140ms">
-          <div class="card-ico">{{ico:mic}}</div>
-          <h3>Bill by speaking</h3>
-          <p>Say the item and the amount in your own language and the
-             invoice fills itself in. Hands stay on the goods.</p>
-        </article>
-        <article class="card spot rv">
-          <div class="card-ico">{{ico:file-text}}</div>
-          <h3>Clean PDF, straight to WhatsApp</h3>
-          <p>A proper tax invoice with your shop's name on it, shared in
-             two taps — with a real ₹ symbol, not "Rs."</p>
-        </article>
-        <article class="card spot rv" style="--d:70ms">
-          <div class="card-ico">{{ico:chart-column}}</div>
-          <h3>Reports your accountant wants</h3>
-          <p>Monthly revenue, GST summary for GSTR-1, profit and loss,
-             and who still owes you — as PDF or CSV.</p>
-        </article>
-        <article class="card spot rv" style="--d:140ms">
-          <div class="card-ico">{{ico:boxes}}</div>
-          <h3>Catalogue and stock</h3>
-          <p>Save what you sell once, then pick it. Low-stock and
-             out-of-stock warnings sit on the home screen.</p>
-        </article>
-        <article class="card spot rv">
-          <div class="card-ico">{{ico:scan-line}}</div>
-          <h3>Day close</h3>
-          <p>End the day with cash in, UPI in, expenses out and what the
-             drawer should hold — in one screen.</p>
-        </article>
-        <article class="card spot rv" style="--d:70ms">
-          <div class="card-ico">{{ico:users}}</div>
-          <h3>Customers and dues</h3>
-          <p>Every buyer's history and outstanding balance, with the
-             oldest unpaid bills listed first so you know who to call.</p>
-        </article>
-        <article class="card spot rv" style="--d:140ms">
-          <div class="card-ico">{{ico:shield-check}}</div>
-          <h3>Locked and backed up</h3>
-          <p>PIN or fingerprint on the app, and a backup file you own —
-             restore it on a new phone in a minute.</p>
-        </article>
+
+      <div class="stages">
+        <div class="stage rv" style="--c:var(--c-plan)">
+          <p class="stage-h">{{ico:store}} Set up</p>
+          <div class="stage-body">
+            <div>
+              <div class="stage-item">
+                <h3>Your shop, once</h3>
+                <p>Name, GSTIN and UPI ID. Every bill afterwards carries them.</p>
+              </div>
+              <div class="stage-item">
+                <h3>Your catalogue</h3>
+                <p>What you sell, saved with its HSN code and GST rate.</p>
+              </div>
+            </div>
+            <ul class="stage-checks">
+              <li>{{ico:circle-check}} <span>Works from the first launch, with no internet</span></li>
+              <li>{{ico:circle-check}} <span>No account, no phone number, no email</span></li>
+              <li>{{ico:circle-check}} <span>The whole app in 12 Indian languages</span></li>
+              <li>{{ico:circle-check}} <span>GST rate suggested from the item name</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="stage rv" style="--c:var(--c-author)">
+          <p class="stage-h">{{ico:receipt-text}} Billing</p>
+          <div class="stage-body">
+            <div>
+              <div class="stage-item">
+                <h3>Tax invoices that hold up</h3>
+                <p>Per-item GST, worked out and shown as you add lines.</p>
+              </div>
+              <div class="stage-item">
+                <h3>Bill by speaking</h3>
+                <p>Say the item and the amount in your own language.</p>
+              </div>
+            </div>
+            <ul class="stage-checks">
+              <li>{{ico:circle-check}} <span>Place of supply decides CGST + SGST against IGST</span></li>
+              <li>{{ico:circle-check}} <span>0%, 5%, 12%, 18%, 28% and 40% per item</span></li>
+              <li>{{ico:circle-check}} <span>HSN and SAC codes printed on every line</span></li>
+              <li>{{ico:circle-check}} <span>Discounts and delivery, applied before tax</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="stage rv" style="--c:var(--c-run)">
+          <p class="stage-h">{{ico:banknote}} Getting paid</p>
+          <div class="stage-body">
+            <div>
+              <div class="stage-item">
+                <h3>UPI QR on the bill</h3>
+                <p>The customer scans and pays before leaving the shop.</p>
+              </div>
+              <div class="stage-item">
+                <h3>Dues, oldest first</h3>
+                <p>Every buyer's balance, sorted by what is most overdue.</p>
+              </div>
+            </div>
+            <ul class="stage-checks">
+              <li>{{ico:circle-check}} <span>A clean PDF to WhatsApp in two taps</span></li>
+              <li>{{ico:circle-check}} <span>Ageing buckets — 0–30, 31–60, 61–90, 90+ days</span></li>
+              <li>{{ico:circle-check}} <span>Paid, sent, pending and overdue at a glance</span></li>
+              <li>{{ico:circle-check}} <span>Print to a WiFi or Bluetooth printer</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="stage rv" style="--c:var(--c-look)">
+          <p class="stage-h">{{ico:chart-column}} The numbers</p>
+          <div class="stage-body">
+            <div>
+              <div class="stage-item">
+                <h3>Reports your accountant wants</h3>
+                <p>Revenue, GST collected and profit, month by month.</p>
+              </div>
+              <div class="stage-item">
+                <h3>Day close</h3>
+                <p>Cash in, UPI in, expenses out, and what the drawer should hold.</p>
+              </div>
+            </div>
+            <ul class="stage-checks">
+              <li>{{ico:circle-check}} <span>GSTR-1 summary as PDF or CSV</span></li>
+              <li>{{ico:circle-check}} <span>Profit and loss on a cash basis</span></li>
+              <li>{{ico:circle-check}} <span>Your biggest customers, ranked</span></li>
+              <li>{{ico:circle-check}} <span>Indian digit grouping — ₹12,34,567, never ₹1,234,567</span></li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- ── HOW IT WORKS ─────────────────────────────────────────────
-       A scroll-scene, not a scroll-jack. The rail fills from the
-       reader's own scroll position and each step lights as it arrives;
-       the scrollbar is never touched. -->
-  <section class="sec sec-lazy" id="how">
-    <hr class="hr-glow">
+  <!-- ── HOW IT WORKS ─────────────────────────────────────────── -->
+  <section class="sec sec-lazy sec-paper" id="how">
     <div class="wrap">
       <div class="sec-h mid rv">
-        <p class="eyebrow">{{ico:zap}} Three steps</p>
-        <h2>From install to first bill in a minute.</h2>
+        <p class="eyebrow">Three steps</p>
+        <h2>From install to first bill in a minute</h2>
       </div>
-      <div class="steps" id="steps">
-        <div class="steps-fill" aria-hidden="true"></div>
-        <div class="step">
-          <h3>Put in your shop</h3>
-          <p>Name, GSTIN and UPI ID. That is the setup — it takes about a
-             minute and every bill you send afterwards carries it.</p>
-        </div>
-        <div class="step">
-          <h3>Make the bill</h3>
+      <div class="grid g3">
+        <article class="card rv">
+          <div class="card-ico">{{ico:store}}</div>
+          <h3>1 &nbsp;Put in your shop</h3>
+          <p>Name, GSTIN and UPI ID. That is the setup — about a minute,
+             and every bill you send afterwards carries it.</p>
+        </article>
+        <article class="card rv" style="--d:80ms">
+          <div class="card-ico">{{ico:receipt-text}}</div>
+          <h3>2 &nbsp;Make the bill</h3>
           <p>Pick the customer, add what they bought. GST is applied per
              item and the total climbs as you go.</p>
-        </div>
-        <div class="step">
-          <h3>Get paid</h3>
+        </article>
+        <article class="card rv" style="--d:160ms">
+          <div class="card-ico">{{ico:qr-code}}</div>
+          <h3>3 &nbsp;Get paid</h3>
           <p>Show the UPI QR, or send the PDF on WhatsApp. Mark it paid
              and it lands in your reports.</p>
-        </div>
+        </article>
       </div>
     </div>
   </section>
 
   <!-- ── DEEP DIVES ───────────────────────────────────────────── -->
   <section class="sec sec-lazy" id="billing">
-    <hr class="hr-glow">
     <div class="wrap">
 
       <div class="split">
-        <div class="rv rv-l">
-          <p class="eyebrow">{{ico:receipt-text}} Billing</p>
-          <h3 style="margin-top:20px">A tax invoice you would be happy to hand over.</h3>
+        <div class="rv">
+          <p class="eyebrow">Billing</p>
+          <h3>A tax invoice you would be happy to hand over</h3>
           <p class="lead">
             The bill is laid out like a document, not a database screen:
             your shop at the top, the buyer's GSTIN, every line with its
@@ -273,11 +335,11 @@
             <li>{{ico:circle-check}} <span>Your bank details and UPI QR printed on the bill</span></li>
           </ul>
         </div>
-        <div class="dev-stage rv rv-r" style="--d:110ms">
-          <div class="dev" style="width:min(100%,272px)">
+        <div class="dev-stage rv" style="--d:90ms">
+          <div class="dev" style="width:min(100%,262px);animation:none">
             <img class="dev-scr" src="assets/shots/doc-786.webp"
                  srcset="assets/shots/doc-393.webp 393w, assets/shots/doc-786.webp 786w"
-                 sizes="(max-width:900px) 72vw, 272px"
+                 sizes="(max-width:900px) 70vw, 262px"
                  width="786" height="1704" loading="lazy" decoding="async"
                  alt="A BillZap tax invoice showing line items with HSN codes, CGST and SGST at 6% each, and a total due of ₹21,672">
           </div>
@@ -285,18 +347,18 @@
       </div>
 
       <div class="split">
-        <div class="dev-stage rv rv-l rev">
-          <div class="dev" style="width:min(100%,272px)">
+        <div class="dev-stage rv rev">
+          <div class="dev" style="width:min(100%,262px);animation:none">
             <img class="dev-scr" src="assets/shots/ledger-786.webp"
                  srcset="assets/shots/ledger-393.webp 393w, assets/shots/ledger-786.webp 786w"
-                 sizes="(max-width:900px) 72vw, 272px"
+                 sizes="(max-width:900px) 70vw, 262px"
                  width="786" height="1704" loading="lazy" decoding="async"
                  alt="The BillZap invoice list with paid, sent and overdue bills, each showing the customer name and amount">
           </div>
         </div>
-        <div class="rv rv-r" style="--d:110ms">
-          <p class="eyebrow">{{ico:banknote}} Getting paid</p>
-          <h3 style="margin-top:20px">Know exactly who still owes you.</h3>
+        <div class="rv" style="--d:90ms">
+          <p class="eyebrow">Getting paid</p>
+          <h3>Know exactly who still owes you</h3>
           <p class="lead">
             Every bill is colour-coded the moment its due date passes.
             The ledger sorts by what is most overdue, so the call you
@@ -312,9 +374,9 @@
       </div>
 
       <div class="split">
-        <div class="rv rv-l">
-          <p class="eyebrow">{{ico:chart-column}} Numbers</p>
-          <h3 style="margin-top:20px">What you earned, what you owe, what is left.</h3>
+        <div class="rv">
+          <p class="eyebrow">Numbers</p>
+          <h3>What you earned, what you owe, what is left</h3>
           <p class="lead">
             Revenue by month, GST collected split into CGST, SGST and
             IGST, and profit after expenses. Export any of it as a clean
@@ -327,11 +389,11 @@
             <li>{{ico:circle-check}} <span>Indian digit grouping — ₹12,34,567, never ₹1,234,567</span></li>
           </ul>
         </div>
-        <div class="dev-stage rv rv-r" style="--d:110ms">
-          <div class="dev" style="width:min(100%,272px)">
+        <div class="dev-stage rv" style="--d:90ms">
+          <div class="dev" style="width:min(100%,262px);animation:none">
             <img class="dev-scr" src="assets/shots/reports-786.webp"
                  srcset="assets/shots/reports-393.webp 393w, assets/shots/reports-786.webp 786w"
-                 sizes="(max-width:900px) 72vw, 272px"
+                 sizes="(max-width:900px) 70vw, 262px"
                  width="786" height="1704" loading="lazy" decoding="async"
                  alt="BillZap reports screen with a monthly revenue chart, GST summary and profit and loss">
           </div>
@@ -342,19 +404,18 @@
   </section>
 
   <!-- ── GST ──────────────────────────────────────────────────── -->
-  <section class="sec sec-lazy" id="gst">
-    <hr class="hr-glow">
+  <section class="sec sec-lazy sec-paper" id="gst">
     <div class="wrap">
       <div class="sec-h mid rv">
-        <p class="eyebrow">{{ico:shield-check}} Compliance</p>
-        <h2>GST handled properly, not approximately.</h2>
+        <p class="eyebrow">Compliance</p>
+        <h2>GST handled properly, not approximately</h2>
         <p class="lead">
           Getting the tax wrong means reissuing the bill. BillZap does the
           parts that are easy to get wrong, and shows its working.
         </p>
       </div>
       <div class="grid g2">
-        <article class="card spot beam rv">
+        <article class="card rv">
           <div class="card-ico">{{ico:calculator}}</div>
           <h3>The right tax, automatically</h3>
           <p>
@@ -364,7 +425,7 @@
             cannot slip past you.
           </p>
         </article>
-        <article class="card spot beam rv" style="--d:90ms">
+        <article class="card rv" style="--d:80ms">
           <div class="card-ico">{{ico:file-text}}</div>
           <h3>Ready for GSTR-1</h3>
           <p>
@@ -373,7 +434,7 @@
             your filing, laid out the way your accountant reads it.
           </p>
         </article>
-        <article class="card spot beam rv">
+        <article class="card rv">
           <div class="card-ico">{{ico:package}}</div>
           <h3>HSN and SAC on every line</h3>
           <p>
@@ -382,7 +443,7 @@
             suggested from the item name.
           </p>
         </article>
-        <article class="card spot beam rv" style="--d:90ms">
+        <article class="card rv" style="--d:80ms">
           <div class="card-ico">{{ico:printer}}</div>
           <h3>Print or share</h3>
           <p>
@@ -397,14 +458,13 @@
 
   <!-- ── LANGUAGES ────────────────────────────────────────────── -->
   <section class="sec sec-lazy" id="languages">
-    <hr class="hr-glow">
     <div class="wrap">
       <div class="sec-h mid rv">
-        <p class="eyebrow">{{ico:languages}} Your language</p>
-        <h2>The whole app, in the language you think in.</h2>
+        <p class="eyebrow">Your language</p>
+        <h2>The whole app, in the language you think in</h2>
         <p class="lead">Not just the menus — the voice billing understands them too.</p>
       </div>
-      <ul class="langs rv" style="justify-content:center">
+      <ul class="langs rv">
         <li>English</li>
         <li>हिन्दी <i>Hindi</i></li>
         <li>தமிழ் <i>Tamil</i></li>
@@ -422,12 +482,11 @@
   </section>
 
   <!-- ── COMPARE ──────────────────────────────────────────────── -->
-  <section class="sec sec-lazy" id="compare">
-    <hr class="hr-glow">
+  <section class="sec sec-lazy sec-paper" id="compare">
     <div class="wrap">
       <div class="sec-h mid rv">
-        <p class="eyebrow">{{ico:trending-up}} Side by side</p>
-        <h2>What you usually get, and what you get here.</h2>
+        <p class="eyebrow">Side by side</p>
+        <h2>What you usually get, and what you get here</h2>
       </div>
       <div class="cmp-wrap rv">
         <table class="cmp">
@@ -440,14 +499,14 @@
             </tr>
           </thead>
           <tbody>
-            <tr><th scope="row">Works with no internet</th><td class="no">Needs a connection</td><td class="yes col-us">Fully offline</td></tr>
-            <tr><th scope="row">Invoices per month</th><td class="no">Capped on the free plan</td><td class="yes col-us">Unlimited</td></tr>
-            <tr><th scope="row">Cost</th><td class="no">Free trial, then monthly</td><td class="yes col-us">Free, with no paid tier</td></tr>
-            <tr><th scope="row">Sign-up required</th><td class="no">Account and phone number</td><td class="yes col-us">None — open and bill</td></tr>
-            <tr><th scope="row">Where your data lives</th><td class="no">On someone else's server</td><td class="yes col-us">On your phone</td></tr>
-            <tr><th scope="row">Voice billing</th><td class="no">Rare, usually English only</td><td class="yes col-us">12 Indian languages</td></tr>
-            <tr><th scope="row">UPI QR on the invoice</th><td class="no">Often a paid add-on</td><td class="yes col-us">Included</td></tr>
-            <tr><th scope="row">GSTR-1 summary export</th><td class="no">Usually a higher plan</td><td class="yes col-us">Included</td></tr>
+            <tr><th scope="row">Works with no internet</th><td>Needs a connection</td><td class="yes col-us">Fully offline</td></tr>
+            <tr><th scope="row">Invoices per month</th><td>Capped on the free plan</td><td class="yes col-us">Unlimited</td></tr>
+            <tr><th scope="row">Cost</th><td>Free trial, then monthly</td><td class="yes col-us">Free, with no paid tier</td></tr>
+            <tr><th scope="row">Sign-up required</th><td>Account and phone number</td><td class="yes col-us">None — open and bill</td></tr>
+            <tr><th scope="row">Where your data lives</th><td>On someone else's server</td><td class="yes col-us">On your phone</td></tr>
+            <tr><th scope="row">Voice billing</th><td>Rare, usually English only</td><td class="yes col-us">12 Indian languages</td></tr>
+            <tr><th scope="row">UPI QR on the invoice</th><td>Often a paid add-on</td><td class="yes col-us">Included</td></tr>
+            <tr><th scope="row">GSTR-1 summary export</th><td>Usually a higher plan</td><td class="yes col-us">Included</td></tr>
           </tbody>
         </table>
       </div>
@@ -456,43 +515,43 @@
 
   <!-- ── PRIVACY ──────────────────────────────────────────────── -->
   <section class="sec sec-lazy" id="privacy">
-    <hr class="hr-glow">
-    <div class="wrap split">
-      <div class="rv rv-l">
-        <p class="eyebrow">{{ico:lock}} Privacy</p>
-        <h3 style="margin-top:20px">Your books are nobody else's business.</h3>
+    <div class="wrap">
+      <div class="sec-h mid rv">
+        <p class="eyebrow">Privacy</p>
+        <h2>Your books are nobody else's business</h2>
         <p class="lead">
           BillZap has no account, no server and no analytics on your
           invoices. What you bill stays in the app's own storage on your
           phone. There is nothing for us to read, sell or lose, because
           nothing is sent anywhere.
         </p>
-        <ul>
-          <li>{{ico:circle-check}} <span>No sign-up, no phone number, no email</span></li>
-          <li>{{ico:circle-check}} <span>Invoices never leave the device unless you share them</span></li>
-          <li>{{ico:circle-check}} <span>App lock with a PIN or your fingerprint</span></li>
-          <li>{{ico:circle-check}} <span>Your own backup file, restorable on a new phone</span></li>
-        </ul>
       </div>
-      <div class="dev-stage rv rv-r" style="--d:110ms">
-        <div class="dev" style="width:min(100%,272px)">
-          <img class="dev-scr" src="assets/shots/create-786.webp"
-               srcset="assets/shots/create-393.webp 393w, assets/shots/create-786.webp 786w"
-               sizes="(max-width:900px) 72vw, 272px"
-               width="786" height="1704" loading="lazy" decoding="async"
-               alt="The new invoice screen in BillZap, showing the customer, dates and place of supply with the CGST and SGST split">
-        </div>
+      <div class="grid g2 rv" style="max-width:820px;margin-inline:auto">
+        <article class="card">
+          <div class="card-ico">{{ico:wifi-off}}</div>
+          <h3>Nothing leaves the device</h3>
+          <p>Invoices never leave your phone unless you share them
+             yourself, as a PDF you chose to send.</p>
+        </article>
+        <article class="card">
+          <div class="card-ico">{{ico:lock}}</div>
+          <h3>Locked and backed up</h3>
+          <p>App lock with a PIN or your fingerprint, and a backup file
+             you own — restorable on a new phone in a minute.</p>
+        </article>
       </div>
+      <p class="rv" style="margin-top:28px;text-align:center">
+        <a class="tlink" href="/privacy/">Read the full privacy policy {{ico:arrow-right}}</a>
+      </p>
     </div>
   </section>
 
   <!-- ── FAQ ──────────────────────────────────────────────────── -->
-  <section class="sec sec-lazy" id="faq">
-    <hr class="hr-glow">
+  <section class="sec sec-lazy sec-paper" id="faq">
     <div class="wrap">
       <div class="sec-h mid rv">
-        <p class="eyebrow">{{ico:sparkles}} Questions</p>
-        <h2>The things people ask first.</h2>
+        <p class="eyebrow">Questions</p>
+        <h2>The things people ask first</h2>
       </div>
       <div class="faq rv">
         {{faq}}
@@ -501,11 +560,11 @@
   </section>
 
   <!-- ── DOWNLOAD ─────────────────────────────────────────────── -->
-  <section class="sec sec-lazy" id="download" style="padding-top:0">
+  <section class="sec sec-lazy" id="download">
     <div class="wrap">
       <div class="cta rv rv-s">
-        <p class="eyebrow">{{ico:download}} Free download</p>
-        <h2 style="margin-top:22px">Start billing in the next five minutes.</h2>
+        <p class="eyebrow">Free download</p>
+        <h2>Start billing in the next five minutes</h2>
         <p class="lead">
           Free to download, free to use, and it keeps working when the
           network does not. No account, no card, no trial running out.
@@ -513,8 +572,8 @@
         <div class="cta-btns">
           <a class="btn btn-primary btn-lg" data-gate
              href="https://github.com/dakshu007/billzap/releases/latest/download/BillZap-Android.apk"
-             rel="noopener">{{ico:smartphone}} Get it for Android</a>
-          <a class="btn btn-ghost btn-lg" href="#features">{{ico:arrow-right}} See the features again</a>
+             rel="noopener">Get it for Android <span class="chip">{{ico:arrow-right}}</span></a>
+          <a class="btn btn-ghost btn-lg" href="#features">See what is included</a>
         </div>
         <p class="cta-fine">Android 7.0 and above · about 32 MB · works offline from the first launch</p>
       </div>

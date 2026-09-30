@@ -441,79 +441,23 @@ SCRIPT_TMPL = """
   var y=d.getElementById('yr'); if(y){ y.textContent=new Date().getFullYear(); }
 
   /* ── One scroll handler ─────────────────────────────
-     Everything that depends on scroll position is computed in a single
-     rAF-coalesced pass: the header's frosted state, the progress bar,
-     and the rail that fills down the "how it works" steps. Three
-     separate listeners would each read layout on every frame and
-     thrash; this reads once and writes only custom properties that
-     resolve to transforms. */
-  var h=d.getElementById('hdr'), prog=d.getElementById('prog'),
-      steps=d.getElementById('steps'),
-      fill=steps&&steps.querySelector('.steps-fill'),
-      ticking=false;
+     The header's frosted state and the progress bar both depend on
+     scroll position, so they are computed in one rAF-coalesced pass
+     rather than in two listeners that each read layout every frame. */
+  var h=d.getElementById('hdr'), prog=d.getElementById('prog'), ticking=false;
   function frame(){
     ticking=false;
-    var sy=window.scrollY, vh=innerHeight;
+    var sy=window.scrollY;
     h.classList.toggle('stuck', sy>8);
     if(prog){
-      var max=d.documentElement.scrollHeight-vh;
+      var max=d.documentElement.scrollHeight-innerHeight;
       prog.style.setProperty('--p', max>0 ? Math.min(1,sy/max) : 0);
-    }
-    if(fill){
-      /* 0 when the block's top passes the middle of the screen, 1 when
-         its bottom does — so the rail tracks what the reader is
-         actually looking at, not how far down the document they are. */
-      var r=steps.getBoundingClientRect();
-      var f=(vh*0.55-r.top)/r.height;
-      fill.style.setProperty('--f', Math.max(0,Math.min(1,f)));
     }
   }
   function onScroll(){ if(!ticking){ ticking=true; requestAnimationFrame(frame); } }
   addEventListener('scroll',onScroll,{passive:true});
   addEventListener('resize',onScroll,{passive:true});
   frame();
-
-  /* ── The step scene ───────────────────────────────
-     A step lights when it reaches the middle of the screen. The
-     -45%/-45% margin leaves a 10% band in the centre that a step has
-     to be inside, which is what keeps one active at a time instead of
-     all three. Deliberately not gated on reduced motion: this is a
-     colour change, not movement, and it is how the reader knows which
-     step they are on. */
-  if(steps){
-    if('IntersectionObserver' in window){
-      var sio=new IntersectionObserver(function(es){
-        es.forEach(function(e){ e.target.classList.toggle('on', e.isIntersecting); });
-      },{rootMargin:'-45% 0px -45% 0px'});
-      steps.querySelectorAll('.step').forEach(function(n){sio.observe(n);});
-    } else {
-      /* No observer: light all of them rather than leave every step
-         dimmed, which would read as three disabled rows. */
-      steps.querySelectorAll('.step').forEach(function(n){n.classList.add('on');});
-    }
-  }
-
-  /* ── Spotlight ───────────────────────────────────
-     One listener on the window, not one per card, and it writes two
-     custom properties. The gradient is a pseudo-element that only
-     changes opacity, so following the pointer costs a composite
-     instead of a repaint. Skipped on touch, where there is no pointer
-     to follow and the handler would be dead weight. */
-  if(!reduce && matchMedia('(hover:hover)').matches){
-    var sRaf=0, sEv=null;
-    addEventListener('pointermove', function(e){
-      sEv=e;
-      if(sRaf) return;
-      sRaf=requestAnimationFrame(function(){
-        sRaf=0;
-        var el=sEv.target.closest && sEv.target.closest('.spot');
-        if(!el) return;
-        var b=el.getBoundingClientRect();
-        el.style.setProperty('--mx',(sEv.clientX-b.left)+'px');
-        el.style.setProperty('--my',(sEv.clientY-b.top)+'px');
-      });
-    },{passive:true});
-  }
 
   /* ── Stat count-up ───────────────────────────────
      The markup already contains the finished value, so this only ever
@@ -750,8 +694,8 @@ def document(*, title, desc, canonical, css, ld, body, head_extra='',
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">
 <meta name="google-site-verification" content="{GSC_VERIFY}">
 <link rel="canonical" href="{canonical}">
-<meta name="theme-color" content="#05070B">
-<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#F7F8F7">
+<meta name="color-scheme" content="light">
 {head_extra}
 <link rel="icon" href="{asset_prefix}assets/icon-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="{asset_prefix}assets/icon-512.png" sizes="512x512" type="image/png">
@@ -815,8 +759,8 @@ export const head = ({ title, desc, canonical, image, ogType = 'website',
 ${keywords ? `<meta name="keywords" content="${attr(keywords)}">` : ''}
 <meta name="robots" content="${robots}">
 <link rel="canonical" href="${canonical}">
-<meta name="theme-color" content="#05070B">
-<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#F7F8F7">
+<meta name="color-scheme" content="light">
 <meta name="google-site-verification" content="__GSC__">
 
 <meta property="og:type" content="${ogType}">

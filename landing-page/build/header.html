@@ -1,28 +1,14 @@
 <a class="skip" href="#main">Skip to content</a>
 
-<!-- ── Backdrop ──────────────────────────────────────────────────────
-     Lives in the shared header so every page — the landing page,
-     /privacy/ and the blog — sits on the same aurora rather than three
-     slightly different backgrounds.
-
-     Three drifting gradient blobs, then a static film grain over the
-     top to dither the banding that flat near-black shows on 8-bit
-     panels. aria-hidden because none of it is content.               -->
-<div class="bg" aria-hidden="true">
-  <div class="blob blob-1"></div>
-  <div class="blob blob-2"></div>
-  <div class="blob blob-3"></div>
-</div>
-<div class="grain" aria-hidden="true"></div>
-
-<!-- Reading progress. The script sets --p; the bar is a scaleX, so the
-     one thing that updates on every scroll frame is also the cheapest. -->
+<!-- Reading progress. The script sets --p; a scaleX rather than a
+     width keeps the one thing that updates on every scroll frame off
+     the layout path. -->
 <div class="prog" id="prog" aria-hidden="true"></div>
 
 <header class="hdr" id="hdr">
   <div class="wrap hdr-in">
     <a class="brand" href="{{home}}" aria-label="BillZap home">
-      <img src="assets/icon-68.png" alt="" width="34" height="34" decoding="async">
+      <img src="assets/icon-68.png" alt="" width="32" height="32" decoding="async">
       BillZap
     </a>
     <nav class="nav" aria-label="Primary">
@@ -33,6 +19,7 @@
       <a href="{{base}}#faq">FAQ</a>
       <a href="/blog">Blog</a>
     </nav>
-    <a class="btn btn-primary btn-sm" href="{{base}}#download">{{ico:download}} Download free</a>
+    <a class="btn btn-primary btn-sm" href="{{base}}#download">
+      Download free <span class="chip">{{ico:arrow-right}}</span></a>
   </div>
 </header>
