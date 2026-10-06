@@ -99,8 +99,15 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
         },
       );
 
-      // Pick best matching locale based on app's current language
-      final appLang = trGlobal('__lang_code') ?? 'en';
+      // Pick the speech locale from the app's current language.
+      //
+      // This used to read trGlobal('__lang_code'), which is not a
+      // translation key. trGlobal hands back the key when it misses, so
+      // appLang was always the literal '__lang_code', _langToLocale
+      // never matched it, and every user got en_IN no matter which of
+      // the twelve languages they had chosen. The map below was correct
+      // the whole time; nothing could reach it.
+      final appLang = currentLangCode;
       final preferredLocale = _langToLocale[appLang] ?? 'en_IN';
       
       // Verify the device has this locale, else fall back
@@ -130,7 +137,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
   void _toggleListening() async {
     if (!_speechAvailable) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(trGlobal('voice.not_available') ?? 'Voice not available on this device'),
+        content: Text(trGlobal('voice.not_available')),
         backgroundColor: AppColors.red));
       return;
     }

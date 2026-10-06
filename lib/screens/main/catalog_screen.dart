@@ -226,12 +226,17 @@ class _CatalogScreenState extends State<CatalogScreen> {
     final unit = TextEditingController(text: 'Nos');
     int detectedGst = 18;
 
+    // Declared out here on purpose. Inside the StatefulBuilder's builder
+    // it was reset to false on every rebuild — including the rebuild that
+    // setting it to true triggers — so the button re-enabled itself
+    // immediately and the double-submit guard never worked. Two quick
+    // taps made two records.
+    bool saving = false;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(builder: (ctx, ss) {
-        bool saving = false;
         return Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,

@@ -35,6 +35,13 @@ const supportedLanguages = <AppLanguage>[
 
 // ── English (base) ────────────────────────────────────────────
 const _en = <String, String>{
+  // Voice billing.
+  // This key was referenced by voice_invoice_screen.dart and never
+  // defined, so trGlobal fell through to returning the key and the
+  // snackbar showed the user the literal text 'voice.not_available'.
+  // i18n_keys_test.dart now fails the build if that happens again.
+  'voice.not_available': 'Voice billing is not available on this device',
+
   // Navigation
   'nav.home': 'Home',
   'nav.invoices': 'Invoices',
@@ -2825,3 +2832,14 @@ String trGlobal(String key) {
   final dict = _allTranslations[_currentLangCache] ?? _en;
   return dict[key] ?? _en[key] ?? key;
 }
+
+/// The language code currently selected: 'en', 'hi', 'ta' and so on.
+///
+/// Callers that need the code itself rather than a translated string
+/// must use this. Asking trGlobal() for it cannot work: trGlobal
+/// returns the key back when it does not find one, so a lookup of a
+/// non-existent key yields that key as a plausible-looking String and
+/// nothing reports an error. That is exactly what the voice screen did,
+/// and it pinned speech recognition to en_IN for every user in every
+/// language. See voice_invoice_screen.dart.
+String get currentLangCode => _currentLangCache;

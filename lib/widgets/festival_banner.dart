@@ -19,7 +19,7 @@ class FestivalBanner extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final biz = ref.watch(businessProvider);
     // Try to derive state code from business state name (best effort)
-    final stateCode = _stateCodeFor((biz?.state as String?) ?? '');
+    final stateCode = _stateCodeFor(biz?.state ?? '');
     final festival = FestivalData.upcoming(userStateCode: stateCode);
 
     if (festival == null) return const SizedBox.shrink();

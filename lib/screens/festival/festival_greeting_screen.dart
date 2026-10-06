@@ -43,7 +43,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
     if (festival == null) return;
 
     final biz = ref.read(businessProvider);
-    final bizName = (biz?.name as String?)?.isNotEmpty == true ? biz!.name : 'Your Business';
+    final bizName = biz?.name.isNotEmpty == true ? biz!.name : 'Your Business';
 
     // Get user's app language
     final lang = ref.read(languageProvider);

@@ -43,6 +43,11 @@ class _LockSetupState extends State<LockSetupScreen> {
 
   // ─────────── Step 3: Create backup with PIN ───────────
   Future<void> _createBackup() async {
+    // _busy was assigned in four places and read in none, so it guarded
+    // nothing. There is no button to disable here — the backup starts
+    // when the PIN is confirmed — so re-entry is what it can usefully
+    // prevent.
+    if (_busy) return;
     setState(() => _busy = true);
     try {
       final result = await BackupService.createBackup(pin: _pin);
