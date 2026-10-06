@@ -213,10 +213,12 @@ confirmed it.
 ### 2. Signing key rotation — DEFERRED BY THE OWNER
 
 An upload key reset is pending with Google. The owner explicitly said
-"leave the keystore, will do that after the approval is done". Until
-`KEYSTORE_BASE64` and friends are set as repository secrets, `build.yml`
-produces a **debug-signed** APK: fine for sideloading onto your own
-phone, not uploadable to Play.
+"leave the keystore, will do that after the approval is done".
+
+Note that `KEYSTORE_BASE64` **is** already set, so CI signs with the
+existing upload key and the build log says "Keystore decoded — release
+build will be signed". What is outstanding is Google's side of the key
+reset, not anything in this repository.
 
 ### 3. Eleven taglines still say "for India"
 
@@ -339,6 +341,25 @@ artifacts on the run page (30-day retention):
 It also auto-bumps the build number in `pubspec.yaml` and pushes a
 `[skip ci]` commit. **Build numbers must only ever go up** — Play rejects
 a bundle whose build number it has already seen.
+
+### Two warnings in the build log that are not problems
+
+Do not chase either of these; both are expected and the artifacts are
+unaffected.
+
+- **"Could not push the version bump."** The `flutter build` steps
+  rewrite `android/gradle.properties`, so the bump commit's rebase hits
+  "You have unstaged changes" and gives up. The step is
+  `continue-on-error` precisely for this, and the APK and AAB are
+  already uploaded by the time it runs. The build number in `pubspec.yaml`
+  on the branch is therefore sometimes one behind the artifact name.
+- **"No url found for submodule path 'actions-runner/BillZap App/...'"**
+  Leftover from a self-hosted runner that was once checked in. It is a
+  post-job cleanup warning only.
+
+`KEYSTORE_BASE64` and its passwords **are** configured as repository
+secrets, so the artifacts are release-signed, not debug-signed. The
+pending item is Google's upload *key reset*, not the CI setup.
 
 ---
 
