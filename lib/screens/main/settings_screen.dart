@@ -23,7 +23,6 @@ import '../../widgets/language_picker.dart';
 import '../../providers/theme_provider.dart';
 import '../../widgets/country_picker.dart';
 import '../../tax/countries.dart';
-import '../../tax/profiles.dart';
 import '../../tax/tax_profile.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -1280,7 +1279,7 @@ class _StatePicker extends StatelessWidget {
 // be. It is offered for an unconfirmed table rate too, because that is
 // exactly the case where somebody most needs to be able to correct us.
 class _CountryTile extends ConsumerWidget {
-  const _CountryTile({super.key});
+  const _CountryTile();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

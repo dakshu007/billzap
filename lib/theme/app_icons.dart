@@ -112,6 +112,7 @@ class Symbols {
   static const IconData tips_and_updates = LucideIcons.lightbulb;
   static const IconData translate = LucideIcons.languages;
   static const IconData trending_up = LucideIcons.trendingUp;
+  static const IconData tune = LucideIcons.slidersHorizontal;
   static const IconData undo = LucideIcons.undo2;
   static const IconData verified = LucideIcons.badgeCheck;
   static const IconData upload_file = LucideIcons.fileUp;
