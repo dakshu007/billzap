@@ -13,8 +13,41 @@ import 'package:billzap/tax/profiles.dart';
 import 'package:billzap/tax/tax_profile.dart';
 
 void main() {
-  test('the table parses a useful number of countries', () {
-    expect(rateTableCountries.length, greaterThan(40));
+  test('the table covers most of the country picker', () {
+    // 159 of the 177 countries in the picker. The remainder is four
+    // researched profiles plus fourteen small jurisdictions where no
+    // national rate exists to pre-fill, and those correctly fall
+    // through to the shopkeeper's own setting.
+    expect(rateTableCountries.length, 159);
+    expect(rateTableCountries.length / allCountries.length,
+        greaterThan(0.85));
+  });
+
+  test('a tax name is never a sentence about the absence of one', () {
+    // "No VAT" was a real row once. It reached the UI through the
+    // {tax} placeholder as "Apply No VAT", which is nonsense. Where a
+    // country levies nothing the row says "Tax" and offers only zero.
+    for (final code in rateTableCountries) {
+      final r = rateRowFor(code)!;
+      expect(r.taxName.toLowerCase(), isNot(startsWith('no ')),
+          reason: '$code names its tax after not having one');
+      expect(r.taxName.split(' ').length, lessThanOrEqualTo(3),
+          reason: '$code tax name is too long to fit a label');
+    }
+  });
+
+  test('a country with no national rate offers only zero', () {
+    // Not an omission: Hong Kong, Macau, Qatar, Kuwait, Libya and
+    // Bermuda levy no consumption tax, and the USA sets it per state.
+    for (final code in ['HK', 'MO', 'QA', 'KW', 'LY', 'BM']) {
+      expect(rateRowFor(code)!.rates, [0.0], reason: code);
+    }
+    // The USA is the other shape: a real tax with no national figure,
+    // so the bands are offered and nothing is defaulted.
+    final us = rateRowFor('US')!;
+    expect(us.defaultRate, 0);
+    expect(us.rates.length, greaterThan(5),
+        reason: 'a US shop must be able to pick its own combined rate');
   });
 
   test('every row is well-formed', () {
