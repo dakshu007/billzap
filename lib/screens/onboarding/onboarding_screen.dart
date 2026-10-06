@@ -83,11 +83,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     // Same three states as Settings. A rate pre-filled from the table is
     // neither "built in" nor "nothing" and must not be shown as either.
     final (noticeKey, noticeIcon) = switch (profile.confidence) {
-      TaxConfidence.verified => ('onboard.country_known', Icons.verified_outlined),
-      TaxConfidence.unconfirmed => ('set.tax_unconfirmed', Icons.help_outline),
-      TaxConfidence.selfDeclared => ('onboard.country_custom', Icons.tune),
+      TaxConfidence.verified => ('onboard.country_known', Symbols.verified),
+      TaxConfidence.unconfirmed => ('set.tax_unconfirmed', Symbols.help),
+      TaxConfidence.selfDeclared => ('onboard.country_custom', Symbols.tune),
     };
     final known = profile.confidence == TaxConfidence.verified;
+    // The middle state is the only one that asks the shopkeeper to go
+    // and check something, so it is the only one tinted as a warning.
+    final needsConfirming = profile.confidence == TaxConfidence.unconfirmed;
+    final flag = countryFlag(_country);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -117,26 +121,48 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ),
               child: Row(
                 children: [
+                  // The flag, so the shopkeeper can confirm the choice
+                  // at a glance rather than by reading.
+                  Container(
+                    width: 44, height: 44,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.inset,
+                      borderRadius: BorderRadius.circular(14)),
+                    child: flag.isEmpty
+                        ? Icon(Symbols.public,
+                            color: AppColors.t3, size: 22)
+                        : Text(flag, style: const TextStyle(fontSize: 23)),
+                  ),
+                  const Gap(13),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(country?.name ?? 'Select a country',
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w600)),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppFont.sans(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.t1)),
                         const Gap(3),
                         Text(
                           country == null
                               ? ''
-                              : '${country.currencyCode} · '
-                                  '${profile.taxName}',
-                          style:
-                              TextStyle(fontSize: 13, color: AppColors.t3),
+                              : '${country.currencySymbol.trim()} '
+                                  '${country.currencyCode} · '
+                                  '${profile.taxName}'
+                                  '${profile.defaultRate > 0 ? " ${profile.defaultRate}%" : ""}',
+                          style: AppFont.sans(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.t3),
                         ),
                       ],
                     ),
                   ),
-                  Icon(Icons.chevron_right, color: AppColors.t3),
+                  Icon(Symbols.chevron_right, color: AppColors.t3, size: 22),
                 ],
               ),
             ),
@@ -148,20 +174,34 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: known ? AppColors.brandSofter : AppColors.inset,
+              color: known
+                  ? AppColors.brandSofter
+                  : needsConfirming
+                      ? AppColors.orangeSoft
+                      : AppColors.inset,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(noticeIcon, size: 18,
-                    color: known ? AppColors.brand : AppColors.t3),
+                Icon(noticeIcon,
+                    size: 18,
+                    color: known
+                        ? AppColors.brand
+                        : needsConfirming
+                            ? AppColors.orange
+                            : AppColors.t3),
                 const Gap(10),
                 Expanded(
                   child: Text(
                     trGlobal(noticeKey),
-                    style: TextStyle(
-                        fontSize: 13, height: 1.45, color: AppColors.t2),
+                    style: AppFont.sans(
+                        fontSize: 13,
+                        height: 1.45,
+                        fontWeight:
+                            needsConfirming ? FontWeight.w600 : FontWeight.w400,
+                        color:
+                            needsConfirming ? AppColors.orange : AppColors.t2),
                   ),
                 ),
               ],
