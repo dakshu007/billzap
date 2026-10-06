@@ -10,8 +10,13 @@ import 'package:billzap/tax/countries.dart';
 import 'package:billzap/tax/profiles.dart';
 
 void main() {
-  test('the table parses into a plausible number of countries', () {
-    expect(allCountries.length, greaterThan(150));
+  test('the table holds every country on the distribution list', () {
+    // Exact, not "more than 150". Four rows went missing the first time
+    // this file was written — India, Saudi Arabia, Singapore and the
+    // UAE, which is to say precisely the four with researched tax
+    // profiles, because I treated them as handled elsewhere while
+    // transcribing. A loose bound would not have noticed.
+    expect(allCountries.length, 177);
   });
 
   test('every row is complete and well-shaped', () {

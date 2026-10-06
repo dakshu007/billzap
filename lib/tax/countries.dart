@@ -111,6 +111,7 @@ HN|Honduras|HNL|L
 HK|Hong Kong|HKD|HK$
 HU|Hungary|HUF|Ft
 IS|Iceland|ISK|kr
+IN|India|INR|₹
 ID|Indonesia|IDR|Rp
 IR|Iran|IRR|﷼
 IQ|Iraq|IQD|ع.د
@@ -170,10 +171,12 @@ RU|Russia|RUB|₽
 RW|Rwanda|RWF|FRw
 WS|Samoa|WST|T
 SM|San Marino|EUR|€
+SA|Saudi Arabia|SAR|ر.س
 SN|Senegal|XOF|CFA
 RS|Serbia|RSD|дин
 SC|Seychelles|SCR|₨
 SL|Sierra Leone|SLE|Le
+SG|Singapore|SGD|S$
 SK|Slovakia|EUR|€
 SI|Slovenia|EUR|€
 SB|Solomon Islands|SBD|$
@@ -201,6 +204,7 @@ TC|Turks & Caicos Islands|USD|$
 TR|Türkiye|TRY|₺
 UG|Uganda|UGX|USh
 UA|Ukraine|UAH|₴
+AE|United Arab Emirates|AED|د.إ
 GB|United Kingdom|GBP|£
 US|United States|USD|$
 UY|Uruguay|UYU|$U
