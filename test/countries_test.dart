@@ -98,4 +98,30 @@ void main() {
           'Tax');
     });
   });
+
+  group('countryFlag', () {
+    test('a code becomes two regional indicator symbols', () {
+      // 'IN' is U+1F1EE U+1F1F3. Checking the code points rather than
+      // the glyph, because whether a flag *renders* is the platform
+      // font's business and not something a test can assert.
+      expect(countryFlag('IN').runes.toList(), [0x1F1EE, 0x1F1F3]);
+      expect(countryFlag('AE').runes.toList(), [0x1F1E6, 0x1F1EA]);
+      expect(countryFlag('us').runes.toList(), [0x1F1FA, 0x1F1F8],
+          reason: 'lower case must work too');
+    });
+
+    test('every country in the picker produces a flag', () {
+      for (final c in allCountries) {
+        expect(countryFlag(c.code).runes.length, 2, reason: c.code);
+      }
+    });
+
+    test('a malformed code produces nothing, not a broken glyph', () {
+      // The caller draws the ISO letters instead. Returning half a
+      // flag, or a pair of boxes, would look like a rendering bug.
+      for (final bad in ['', 'I', 'IND', '12', 'I1', '\u00e9\u00e9']) {
+        expect(countryFlag(bad), '', reason: 'rejected: "$bad"');
+      }
+    });
+  });
 }

@@ -1298,6 +1298,9 @@ class _CountryTile extends ConsumerWidget {
         ('set.tax_custom', Symbols.tune, AppColors.t3),
     };
     final editable = profile.confidence != TaxConfidence.verified;
+    // Only the middle state is a call to action: the app pre-filled a
+    // rate it has not checked, and the shopkeeper should confirm it.
+    final needsConfirming = profile.confidence == TaxConfidence.unconfirmed;
 
     Future<void> change() async {
       HapticFeedback.lightImpact();
@@ -1328,10 +1331,18 @@ class _CountryTile extends ConsumerWidget {
               child: Row(children: [
                 Container(
                   width: 42, height: 42,
+                  alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: AppColor.wash(AppColor.primary),
                     borderRadius: BorderRadius.circular(11)),
-                  child: Icon(Symbols.public, color: AppColor.primary, size: 22)),
+                  // The flag, where the platform can draw it. A globe
+                  // says "this is the country setting"; the flag says
+                  // which country, which is the thing being checked.
+                  child: countryFlag(profile.countryCode).isEmpty
+                      ? Icon(Symbols.public,
+                          color: AppColor.primary, size: 22)
+                      : Text(countryFlag(profile.countryCode),
+                          style: const TextStyle(fontSize: 22))),
                 const Gap(12),
                 Expanded(child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1360,19 +1371,44 @@ class _CountryTile extends ConsumerWidget {
             ),
           ),
 
-          // Say which of the two situations this country is in. A
-          // shopkeeper has to know whether the rate on their bill is the
-          // app's claim or their own.
-          Container(
-            width: double.infinity,
+          // Say which of the three situations this country is in. A
+          // shopkeeper has to know whether the rate on their bill is
+          // the app's checked claim, its unchecked guess, or their own.
+          //
+          // The unconfirmed case gets a tinted well rather than grey
+          // body text, because it is the only one that asks the
+          // shopkeeper to go and do something. The other two are
+          // statements of fact and should stay quiet.
+          Padding(
             padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Icon(noticeIcon, size: 15, color: noticeTint),
-              const Gap(8),
-              Expanded(child: Text(tr(noticeKey, ref),
-                style: AppFont.sans(fontSize: 11.5, height: 1.4,
-                  color: AppColors.t3))),
-            ]),
+            child: Container(
+              width: double.infinity,
+              padding: needsConfirming
+                  ? const EdgeInsets.symmetric(horizontal: 10, vertical: 9)
+                  : EdgeInsets.zero,
+              decoration: needsConfirming
+                  ? BoxDecoration(
+                      color: AppColors.orangeSoft,
+                      borderRadius: BorderRadius.circular(10))
+                  : null,
+              child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(noticeIcon, size: 15, color: noticeTint),
+                    const Gap(8),
+                    Expanded(
+                        child: Text(tr(noticeKey, ref),
+                            style: AppFont.sans(
+                                fontSize: 11.5,
+                                height: 1.4,
+                                fontWeight: needsConfirming
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                                color: needsConfirming
+                                    ? AppColors.orange
+                                    : AppColors.t3))),
+                  ]),
+            ),
           ),
 
           // Editable for anything not verified — including a table
