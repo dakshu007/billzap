@@ -62,7 +62,12 @@ void main() {
   Future<void> write(String name, Future<dynamic> Function() build) async {
     final doc = await build();
     final bytes = await doc.save();
-    final f = File('/tmp/pdftest/$name.pdf')..writeAsBytesSync(bytes);
+    // The directory has to exist first. This test has been failing with
+    // PathNotFoundException since it was written; nothing noticed
+    // because flutter test never ran in CI until now.
+    final dir = Directory('${Directory.systemTemp.path}/pdftest')
+      ..createSync(recursive: true);
+    final f = File('${dir.path}/$name.pdf')..writeAsBytesSync(bytes);
     // ignore: avoid_print
     print('wrote ${f.path} (${bytes.length} bytes)');
   }

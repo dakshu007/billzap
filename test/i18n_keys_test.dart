@@ -32,9 +32,20 @@ void main() {
     final call = RegExp(r"""trGlobal\(\s*'([^']+)'\s*\)""");
     final missing = <String>{};
 
+    // Comments are stripped first. Without this the test flags its own
+    // documentation: the comment in voice_invoice_screen.dart that
+    // explains the bug necessarily quotes the broken call, and a raw
+    // scan cannot tell an explanation from a use.
+    final lineComment = RegExp(r'//[^\n]*');
+    final blockComment = RegExp(r'/\*.*?\*/', dotAll: true);
+
     for (final f in lib.listSync(recursive: true).whereType<File>()) {
       if (!f.path.endsWith('.dart')) continue;
-      for (final m in call.allMatches(f.readAsStringSync())) {
+      final source = f
+          .readAsStringSync()
+          .replaceAll(blockComment, '')
+          .replaceAll(lineComment, '');
+      for (final m in call.allMatches(source)) {
         final key = m.group(1)!;
         // The fallback IS the key, so a key that resolves to itself is
         // either missing or a tautology. Both are worth failing on.
