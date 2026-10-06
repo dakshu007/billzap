@@ -42,6 +42,19 @@ const _en = <String, String>{
   // i18n_keys_test.dart now fails the build if that happens again.
   'voice.not_available': 'Voice billing is not available on this device',
 
+  // Country / tax setup. The last two are deliberately plain about
+  // what the app does and does not know, because the difference
+  // decides whether the shopkeeper can trust the rate on their bill.
+  'onboard.country_title': 'Where do you trade?',
+  'onboard.country_sub':
+      'This sets your currency and how tax is worked out on every bill.',
+  'onboard.country_known':
+      'Tax rules for this country are built in — rates, the tax split '
+      'and the right name for your tax number.',
+  'onboard.country_custom':
+      'No built-in tax rules for this country yet, so you set the rate '
+      'and what it is called. Check it against your tax authority.',
+
   // Navigation
   'nav.home': 'Home',
   'nav.invoices': 'Invoices',

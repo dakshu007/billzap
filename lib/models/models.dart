@@ -31,6 +31,22 @@ class Business {
   int nextInvoiceNumber;
   String defaultTerms;
 
+  // ── Where this shop trades ────────────────────────────────────────
+  // ISO 3166-1 alpha-2, or 'XX' for a country with no researched tax
+  // profile. Defaults to IN so every install that existed before this
+  // field did keeps behaving exactly as it did: same GST slabs, same
+  // CGST/SGST/IGST split, same rupee formatting.
+  //
+  // The three custom* fields are read only when countryCode is 'XX' —
+  // the shopkeeper tells the app what their tax is called and what it
+  // costs, and the app makes no compliance claim about it. See
+  // lib/tax/profiles.dart for why that is the honest default for the
+  // ~175 countries nobody has researched yet.
+  String countryCode;
+  String customTaxName;
+  double customTaxRate;
+  String customCurrencySymbol;
+
   Business({
     String? id,
     this.name = '',
@@ -49,6 +65,10 @@ class Business {
     this.invoicePrefix = 'INV-',
     this.nextInvoiceNumber = 1001,
     this.defaultTerms = 'Payment due within 30 days.',
+    this.countryCode = 'IN',
+    this.customTaxName = 'Tax',
+    this.customTaxRate = 0,
+    this.customCurrencySymbol = r'$',
   }) : id = id ?? genId();
 
   Business copyWith({
@@ -57,6 +77,8 @@ class Business {
     String? pincode, String? bankName, String? accountNumber,
     String? ifscCode, String? upiId, String? invoicePrefix,
     int? nextInvoiceNumber, String? defaultTerms,
+    String? countryCode, String? customTaxName, double? customTaxRate,
+    String? customCurrencySymbol,
   }) => Business(
     id: id,
     name: name ?? this.name, gstin: gstin ?? this.gstin,
@@ -69,6 +91,10 @@ class Business {
     invoicePrefix: invoicePrefix ?? this.invoicePrefix,
     nextInvoiceNumber: nextInvoiceNumber ?? this.nextInvoiceNumber,
     defaultTerms: defaultTerms ?? this.defaultTerms,
+    countryCode: countryCode ?? this.countryCode,
+    customTaxName: customTaxName ?? this.customTaxName,
+    customTaxRate: customTaxRate ?? this.customTaxRate,
+    customCurrencySymbol: customCurrencySymbol ?? this.customCurrencySymbol,
   );
 
   Map<String, dynamic> toMap() => {
@@ -77,6 +103,9 @@ class Business {
     'pincode': pincode, 'bankName': bankName, 'accountNumber': accountNumber,
     'ifscCode': ifscCode, 'upiId': upiId, 'invoicePrefix': invoicePrefix,
     'nextInvoiceNumber': nextInvoiceNumber, 'defaultTerms': defaultTerms,
+    'countryCode': countryCode, 'customTaxName': customTaxName,
+    'customTaxRate': customTaxRate,
+    'customCurrencySymbol': customCurrencySymbol,
   };
 
   factory Business.fromMap(Map<String, dynamic> m) => Business(
@@ -89,6 +118,10 @@ class Business {
     upiId: m['upiId'] ?? '', invoicePrefix: m['invoicePrefix'] ?? 'INV-',
     nextInvoiceNumber: (m['nextInvoiceNumber'] as int?) ?? 1001,
     defaultTerms: m['defaultTerms'] ?? 'Payment due within 30 days.',
+    countryCode: m['countryCode'] ?? 'IN',
+    customTaxName: m['customTaxName'] ?? 'Tax',
+    customTaxRate: (m['customTaxRate'] as num?)?.toDouble() ?? 0,
+    customCurrencySymbol: m['customCurrencySymbol'] ?? r'$',
   );
 }
 

@@ -155,3 +155,45 @@ TaxProfile profileFor(String countryCode) {
 /// notice, so it must stay honest.
 List<TaxProfile> get verifiedProfiles =>
     allProfiles.where((p) => p.verified).toList();
+
+/// The profile a shop actually trades under.
+///
+/// For a researched country this is simply that country's profile. For
+/// every other country it is [customProfile] with the shopkeeper's own
+/// rate, label and currency filled in — which is why an unresearched
+/// country is a working app rather than a blocked one.
+///
+/// [customRate] is folded into the rate list so the picker offers it,
+/// and 0 is always offered because an exempt line exists everywhere.
+TaxProfile resolveProfile({
+  required String countryCode,
+  String customTaxName = 'Tax',
+  double customTaxRate = 0,
+  String customCurrencySymbol = r'$',
+  String customCurrencyCode = 'USD',
+  String? countryName,
+}) {
+  final base = profileFor(countryCode);
+  if (base.countryCode != 'XX') return base;
+
+  final rates = <double>{0, customTaxRate}.toList()..sort();
+  final label = customTaxName.trim().isEmpty ? 'Tax' : customTaxName.trim();
+
+  return TaxProfile(
+    // Keep the real country code even though the rules are custom, so
+    // the setting round-trips and the UI can name the country.
+    countryCode: countryCode.toUpperCase(),
+    countryName: countryName ?? customProfile.countryName,
+    currencyCode: customCurrencyCode,
+    currencySymbol: customCurrencySymbol,
+    taxName: label,
+    taxIdLabel: 'Tax ID',
+    rates: rates,
+    defaultRate: customTaxRate,
+    intraComponents: [TaxComponent(label, 1.0)],
+    verified: false,
+    source: 'Set by the shopkeeper. No tax authority was consulted and '
+        'the app makes no claim that this rate is correct.',
+    effectiveFrom: DateTime.utc(2020, 1, 1),
+  );
+}

@@ -12,6 +12,11 @@ import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import '../../theme/app_theme.dart';
 import '../../i18n/translations.dart';
 import '../../widgets/language_picker.dart';
+import '../../widgets/country_picker.dart';
+import '../../models/models.dart';
+import '../../providers/providers.dart';
+import '../../tax/countries.dart';
+import '../../tax/profiles.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -31,6 +36,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _addrCtl = TextEditingController();
   final _cityCtl = TextEditingController();
   String _state = 'Tamil Nadu';
+  // Where the shop trades. India by default, which is what every
+  // install had before this question existed.
+  String _country = 'IN';
 
   bool _saving = false;
 
@@ -47,7 +55,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   void _nextStep() {
     HapticFeedback.lightImpact();
-    if (_step < 2) {
+    if (_step < 3) {
       setState(() => _step++);
       _pc.animateToPage(_step,
           duration: const Duration(milliseconds: 320),
@@ -63,6 +71,101 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           duration: const Duration(milliseconds: 280),
           curve: Curves.easeOutCubic);
     }
+  }
+
+  // Asked before the profile step because the answer changes what that
+  // step should say: GSTIN in India, TRN in the UAE, VAT number in
+  // Saudi, nothing at all where no profile exists.
+  Widget _countryStep() {
+    final country = countryFor(_country);
+    final profile = resolveProfile(countryCode: _country);
+    final researched = profile.countryCode != 'XX' && profile.verified ||
+        allProfiles.any((p) => p.countryCode == _country);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Gap(12),
+          Text(trGlobal('onboard.country_title'),
+              style: const TextStyle(
+                  fontSize: 24, fontWeight: FontWeight.w700, height: 1.2)),
+          const Gap(8),
+          Text(trGlobal('onboard.country_sub'),
+              style: TextStyle(fontSize: 14.5, color: AppColors.t3)),
+          const Gap(22),
+          InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: () async {
+              final picked = await pickCountry(context, selected: _country);
+              if (picked != null) setState(() => _country = picked.code);
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                border: Border.all(color: AppColors.border),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(country?.name ?? 'Select a country',
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w600)),
+                        const Gap(3),
+                        Text(
+                          country == null
+                              ? ''
+                              : '${country.currencyCode} · '
+                                  '${profile.taxName}',
+                          style:
+                              TextStyle(fontSize: 13, color: AppColors.t3),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.chevron_right, color: AppColors.t3),
+                ],
+              ),
+            ),
+          ),
+          const Gap(16),
+          // Say plainly which of the two states this country is in. A
+          // shopkeeper deserves to know whether the app knows their tax
+          // law or is about to ask them for it.
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: researched ? AppColors.brandSofter : AppColors.inset,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(researched ? Icons.verified_outlined : Icons.tune,
+                    size: 18,
+                    color: researched ? AppColors.brand : AppColors.t3),
+                const Gap(10),
+                Expanded(
+                  child: Text(
+                    researched
+                        ? trGlobal('onboard.country_known')
+                        : trGlobal('onboard.country_custom'),
+                    style: TextStyle(
+                        fontSize: 13, height: 1.45, color: AppColors.t2),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _finish() async {
@@ -85,6 +188,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       await settings.put('business_address', _addrCtl.text.trim());
       await settings.put('business_city', _cityCtl.text.trim());
       await settings.put('business_state', _state);
+      await settings.put('business_country', _country);
+
+      // Also write a real Business, because that — not these loose
+      // keys — is what taxProfileProvider reads. Without it the country
+      // chosen here would be remembered and never used.
+      final existing = ref.read(businessProvider.notifier);
+      await existing.save((ref.read(businessProvider) ?? Business()).copyWith(
+        name: _nameCtl.text.trim(),
+        phone: _phoneCtl.text.trim(),
+        gstin: _gstinCtl.text.trim().toUpperCase(),
+        address: _addrCtl.text.trim(),
+        city: _cityCtl.text.trim(),
+        state: _state,
+        countryCode: _country,
+        customCurrencySymbol:
+            countryFor(_country)?.currencySymbol ?? r'$',
+      ));
       await settings.put('onboarded', true);
 
       if (!mounted) return;
@@ -116,7 +236,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   // Step indicator
-                  Row(children: List.generate(3, (i) => AnimatedContainer(
+                  Row(children: List.generate(4, (i) => AnimatedContainer(
                     duration: const Duration(milliseconds: 280),
                     margin: const EdgeInsets.only(right: 6),
                     width: i == _step ? 28 : 8,
@@ -146,6 +266,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 onPageChanged: (i) => setState(() => _step = i),
                 children: [
                   _welcomeStep(),
+                  _countryStep(),
                   _profileStep(),
                   _doneStep(),
                 ],
@@ -167,7 +288,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 ElevatedButton(
                   onPressed: _saving
                       ? null
-                      : (_step == 2 ? _finish : _nextStep),
+                      : (_step == 3 ? _finish : _nextStep),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.brand,
                     foregroundColor: AppColors.onBrand,
@@ -184,7 +305,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           child: CircularProgressIndicator(
                               strokeWidth: 2, color: Colors.white))
                       : Row(mainAxisSize: MainAxisSize.min, children: [
-                          Text(_step == 2
+                          Text(_step == 3
                               ? trGlobal('onboard.get_started')
                               : trGlobal('common.next')),
                           const Gap(6),

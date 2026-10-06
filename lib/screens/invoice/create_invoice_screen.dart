@@ -21,6 +21,7 @@ import '../../services/gst_classifier.dart';
 import '../../utils/voice_parser.dart';
 import '../../i18n/translations.dart';
 import '../main/catalog_screen.dart';
+import '../../tax/tax_profile.dart';
 
 class CreateInvoiceScreen extends ConsumerStatefulWidget {
   const CreateInvoiceScreen({super.key});
@@ -152,6 +153,10 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // The country's rules, read once. Everything below — the rate
+    // slabs, the tax labels, whether the intra/inter toggle exists at
+    // all — follows from this rather than from hardcoded GST.
+    final profile = ref.watch(taxProfileProvider);
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
@@ -332,9 +337,13 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
               onPressed: _showCatalogPicker,
             ),
             children: [
+              // One read, used by every line row and by the tax
+              // section below, so the whole screen agrees on which
+              // country's rules it is applying.
               ..._lines.asMap().entries.map((e) => _LineRow(
                   item: e.value,
                   index: e.key,
+                  profile: profile,
                   onRemove: _lines.length > 1
                       ? () => setState(() => _lines.removeAt(e.key))
                       : null,
@@ -358,15 +367,22 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
               _TogRow(tr('create.apply_gst', ref),
                   tr('create.gst_auto_calc', ref), _applyGst,
                   (v) => setState(() => _applyGst = v)),
-              if (_applyGst) ...[
+              // The intra/inter split is India's (CGST+SGST against
+              // IGST) and a few other federal systems'. A flat national
+              // VAT has no such choice, so the toggle is not shown —
+              // asking a shop in Singapore whether a sale is
+              // inter-state is a question with no meaning.
+              if (_applyGst && profile.regionMatters) ...[
                 const Gap(AppSpace.md),
                 SegmentedTabs(
                   index: _gstType == GstType.cgstSgst ? 0 : 1,
                   onSelect: (i) => setState(() => _gstType =
                       i == 0 ? GstType.cgstSgst : GstType.igst),
                   labels: [
-                    tr('create.cgst_sgst', ref),
-                    tr('create.igst', ref),
+                    profile.intraComponents.map((c) => c.label).join(' + '),
+                    profile.interComponents.isEmpty
+                        ? tr('create.igst', ref)
+                        : profile.interComponents.first.label,
                   ],
                 ),
               ],
@@ -601,10 +617,35 @@ class _LineItem {
   _LineItem({this.name='', this.hsn='', this.qty=1, this.rate=0, this.gstRate=18});
 }
 
+/// A rate as the dropdown shows it: '18%' everywhere, with India's
+/// familiar slab names kept because shopkeepers there pick by them.
+///
+/// The names are India-specific and stay India-specific — inventing
+/// equivalents for a country nobody has researched would be a guess
+/// printed next to a number somebody acts on.
+String _rateLabel(TaxProfile profile, double rate) {
+  final pct = rate == rate.roundToDouble()
+      ? rate.toStringAsFixed(0)
+      : rate.toString();
+  final base = '${profile.taxName} $pct%';
+  if (profile.countryCode != 'IN') return base;
+  const slab = {
+    0.0: 'Exempt', 0.25: 'Stones', 5.0: 'Essentials', 12.0: 'Standard',
+    18.0: 'General', 28.0: 'Luxury', 40.0: 'Sin tax',
+  };
+  final name = slab[rate];
+  return name == null ? base : '$base  ·  $name';
+}
+
 class _LineRow extends StatefulWidget {
   final _LineItem item; final int index;
   final VoidCallback? onRemove; final VoidCallback onChange;
-  const _LineRow({required this.item, required this.index, this.onRemove, required this.onChange});
+  /// The active country's rules. Passed down rather than read from a
+  /// provider here so this stays a plain State — the parent already
+  /// has ref, and converting the row would be a larger change than the
+  /// one thing it needs.
+  final TaxProfile profile;
+  const _LineRow({required this.item, required this.index, this.onRemove, required this.onChange, required this.profile});
   @override
   State<_LineRow> createState() => _LineRowState();
 }
@@ -750,10 +791,12 @@ class _LineRowState extends State<_LineRow> {
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<double>(
-                  value: const [0.0, 0.25, 5.0, 12.0, 18.0, 28.0, 40.0]
-                          .contains(widget.item.gstRate)
+                  // The country's own slabs, not India's. A rate held
+                  // over from another country falls back to this
+                  // country's default rather than to a hardcoded 18.
+                  value: widget.profile.rates.contains(widget.item.gstRate)
                       ? widget.item.gstRate
-                      : 18.0,
+                      : widget.profile.defaultRate,
                   isExpanded: true,
                   isDense: true,
                   borderRadius: AppRadius.all(AppRadius.md),
@@ -761,18 +804,10 @@ class _LineRowState extends State<_LineRow> {
                       size: 16, color: AppColor.textTertiary),
                   style: AppFont.style(AppType.labelM,
                       color: AppColor.textPrimary),
-                  items: const [
-                    (r: 0.0, l: 'GST 0%  ·  Exempt'),
-                    (r: 0.25, l: 'GST 0.25%  ·  Stones'),
-                    (r: 5.0, l: 'GST 5%  ·  Essentials'),
-                    (r: 12.0, l: 'GST 12%  ·  Standard'),
-                    (r: 18.0, l: 'GST 18%  ·  General'),
-                    (r: 28.0, l: 'GST 28%  ·  Luxury'),
-                    (r: 40.0, l: 'GST 40%  ·  Sin tax'),
-                  ]
-                      .map((g) => DropdownMenuItem(
-                            value: g.r,
-                            child: Text(g.l,
+                  items: widget.profile.rates
+                      .map((r) => DropdownMenuItem(
+                            value: r,
+                            child: Text(_rateLabel(widget.profile, r),
                                 style: AppFont.style(AppType.labelM,
                                     color: AppColor.textPrimary)),
                           ))

@@ -3,6 +3,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/models.dart';
 import '../services/local_storage.dart';
+import '../tax/countries.dart';
+import '../tax/profiles.dart';
+import '../tax/tax_engine.dart';
+import '../tax/tax_profile.dart';
 
 final storageProvider = Provider<LocalStorage>((_) => LocalStorage.instance);
 
@@ -26,6 +30,36 @@ class BusinessNotifier extends Notifier<Business?> {
 
 final businessProvider =
     NotifierProvider<BusinessNotifier, Business?>(BusinessNotifier.new);
+
+// ─── Tax profile ──────────────────────────────────────────────────────────
+// The single place the app asks "what are the tax rules here?".
+//
+// Derived from the business profile rather than stored separately, so
+// there is one source of truth and no way for the two to disagree. A
+// shop with no profile yet — first launch, before onboarding — gets
+// India, which is what every install had before countries existed.
+//
+// Screens must read this instead of hardcoding GST. The whole point of
+// lib/tax/ is that create_invoice_screen does not know what country it
+// is in.
+final taxProfileProvider = Provider<TaxProfile>((ref) {
+  final biz = ref.watch(businessProvider);
+  if (biz == null) return indiaProfile;
+  return resolveProfile(
+    countryCode: biz.countryCode,
+    countryName: countryFor(biz.countryCode)?.name,
+    customTaxName: biz.customTaxName,
+    customTaxRate: biz.customTaxRate,
+    customCurrencySymbol: biz.customCurrencySymbol,
+    customCurrencyCode:
+        countryFor(biz.countryCode)?.currencyCode ?? 'USD',
+  );
+});
+
+/// The engine bound to the current profile. Screens compute totals
+/// through this so the arithmetic lives in one tested place.
+final taxEngineProvider = Provider<TaxEngine>(
+    (ref) => TaxEngine(ref.watch(taxProfileProvider)));
 
 // ─── Invoices ─────────────────────────────────────────────────────────────
 class InvoiceNotifier extends Notifier<List<Invoice>> {
