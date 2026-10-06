@@ -1,11 +1,13 @@
 # BillZap
 
-**Free GST billing for Indian small businesses — voice billing, UPI QR, 100% offline.**
+**Free billing for small shops, in 177 countries — voice billing, UPI QR, 100% offline.**
 
-BillZap is a free, offline-first, voice-enabled GST billing app built specifically for Indian micro and small businesses. Built in Coimbatore, Tamil Nadu, it lets a shopkeeper create a GST-compliant invoice by *speaking* — in any of 12 Indian languages — generate a UPI QR for instant payment, and share it on WhatsApp, all without an internet connection.
+BillZap is a free, offline-first, voice-enabled billing app for micro and small businesses. Built in Coimbatore, Tamil Nadu, it lets a shopkeeper create a tax-compliant invoice by *speaking* — in any of 12 Indian languages, or in whichever locale their phone supports — generate a UPI QR for instant payment, and share it on WhatsApp, all without an internet connection.
+
+It started as an Indian GST app and still is one: India's arithmetic is unchanged, verified against the authority, and asserted bit-identical by the test suite. What changed is that it is no longer *only* that. A shop anywhere picks its country on first run and bills in that country's currency, grouping and tax name.
 
 - **Package:** `com.billzap.app`
-- **Platform:** Android (iOS planned Q3 2026)
+- **Platform:** Android
 - **Price:** Free forever — no subscription, no premium tier, no ads
 - **Website:** https://billzap.netlify.app
 - **Privacy:** https://billzap.netlify.app/privacy
@@ -18,12 +20,33 @@ India has ~63 million small businesses. Most still bill on paper because the exi
 
 BillZap fills that gap: everything Tally does for daily billing, in your pocket, in your language, for free.
 
+That shopkeeper is not only in India. The same gap — billing software priced and shaped for accountants, not for the person behind the counter — exists in Nairobi, Dhaka, Lagos and Lima. Going worldwide was not a market decision so much as removing the assumptions that had no reason to be there.
+
+### How honest the tax data is
+
+This matters more than a feature list, so it is stated plainly:
+
+| | |
+|---|---|
+| **Verified** | India only. Checked against the authority, and the test suite asserts the arithmetic is bit-identical to what shipped. |
+| **Pre-filled, unconfirmed** | 159 countries have a standard rate offered from a table. **None of it is verified.** The app says so on the screen, shows a "confirm this rate" notice, and keeps the rate editable. |
+| **Self-declared** | The remaining jurisdictions, and any shop that sets its own rate. The app claims nothing. |
+
+A pre-filled rate is a starting point that saves typing, not an answer. The distinction is in the type system (`TaxConfidence`), not just the documentation, and a test fails if a profile claims to be verified without being in the researched list.
+
 ---
 
 ## Features
 
-### 🎙️ Voice billing in 12 Indian languages
-Speak the invoice instead of typing it. Say *"Rameshku 2 kilo sugar 50 rupees, 1 packet biscuits 25 rupees"* and BillZap parses the customer, items, quantities, rates, GST, and total in under 4 seconds. Supports mixed-language commerce speech (e.g. Tamil + English), Indian unit words (dabba, peti, dozen), and Indian amount shortcuts (2k, 1.5L).
+### 🌍 Billing in 177 countries
+Pick your country on first run. Everything follows from it: the currency symbol, whether amounts group as 12,34,567 or 1,234,567, whether the tax is called GST or VAT or Sales Tax, what a tax registration number is called, the rate slabs on offer, and whether the intra/inter-state split exists at all.
+
+An invoice records the country, the split and the symbol it was billed under, so reprinting a bill from before the shop moved shows what was actually charged — not what today's settings say.
+
+### 🎙️ Voice billing in 12 Indian languages, and your phone's own
+Speak the invoice instead of typing it. Say *"Rameshku 2 kilo sugar 50 rupees, 1 packet biscuits 25 rupees"* and BillZap parses the customer, items, quantities, rates, tax, and total in under 4 seconds. Supports mixed-language commerce speech (e.g. Tamil + English), Indian unit words (dabba, peti, dozen), and Indian amount shortcuts (2k, 1.5L).
+
+Outside India it listens in your own locale rather than Indian English, offers whatever speech packs your phone actually has, and recognises around 180 spoken currency words — so *"four hundred shillings"* parses as a price instead of part of the item name.
 
 Supported languages: English, Hindi, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati, Bengali, Punjabi, Odia, Urdu.
 
@@ -43,7 +66,7 @@ A rotating insights system surfaces useful prompts: customer birthday/anniversar
 4-digit PIN plus optional biometric (fingerprint) authentication. PIN is stored as a SHA-256 hash with a unique salt — never as plain text. App auto-re-locks after 60 seconds in the background.
 
 ### 🔢 Smart amount entry
-Indian-style number entry: type `1k` → ₹1,000, `2.5L` → ₹2,50,000, `5cr` → ₹5,00,00,000, `50 hazaar` → ₹50,000.
+Indian-style number entry: type `1k` → ₹1,000, `2.5L` → ₹2,50,000, `5cr` → ₹5,00,00,000, `50 hazaar` → ₹50,000. Outside South Asia the short forms read K / M / B instead, because nobody there reads a crore.
 
 ### 💾 Encrypted backups & CSV export
 Create encrypted `.billzap` backup files locked with the user's PIN — store on Google Drive, email, or local storage. Export invoices, customers, and products as CSV for accountants.
