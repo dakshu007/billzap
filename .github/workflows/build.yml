@@ -49,6 +49,21 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # Nothing verified Dart before this: the workflow went straight
+      # from pub get to building a release, so a type error or a broken
+      # test only ever showed up as a crash on somebody's phone. These
+      # two steps are the gate — they run before anything is built, and
+      # a failure here stops the release rather than shipping it.
+      #
+      # This matters more now than it did: tax arithmetic is the one
+      # part of a billing app where a silent wrong answer is worse than
+      # a crash, because the shopkeeper files it.
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos
+
+      - name: Test
+        run: flutter test --reporter expanded
+
       - name: Decode keystore (if secrets configured)
         id: keystore
         env:

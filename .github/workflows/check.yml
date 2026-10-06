@@ -1,0 +1,42 @@
+name: Check
+
+# Runs on every branch, unlike the release build which only fires on
+# main. Without this there was nowhere a change could be verified before
+# it reached main: no Dart toolchain in review, no analyze, no tests —
+# a type error or a wrong total only showed up once it was already on
+# somebody's phone.
+#
+# Deliberately cheap: no keystore, no signing, no artifacts. It answers
+# one question, fast, on every push — does this compile and do the
+# tests pass.
+on:
+  push:
+    branches: ['**']
+    paths-ignore:
+      - '**.md'
+      - 'landing-page/**'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.4'
+          channel: 'stable'
+          cache: true
+
+      - run: flutter pub get
+
+      # --no-fatal-infos so style hints do not fail the build, but
+      # warnings and errors still do. Tax arithmetic is the reason the
+      # bar is here rather than lower.
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos
+
+      - name: Test
+        run: flutter test --reporter expanded
