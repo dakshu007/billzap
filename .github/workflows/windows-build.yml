@@ -5,16 +5,21 @@ name: Build Windows (.exe installer)
 # * Manual trigger from the Actions tab.
 # * On push to main when something affecting the Windows build changes.
 on:
+  # Android only for now. This used to build on every push to main; it
+  # has been failing since June and nobody saw, because the last green
+  # run predates the Flutter 3.47.4 / AGP 9 toolchain move and nothing
+  # ran in between. Four months of red is worse than no build at all —
+  # it trains you to ignore a failing check.
+  #
+  # Left as workflow_dispatch so it can still be run by hand from the
+  # Actions tab when Windows matters again. Nothing is deleted: the
+  # windows/ project and every step below are untouched.
+  #
+  # Known blocker before it can go green again: the Windows build fails
+  # inside local_auth_windows, whose C++ uses <experimental/coroutine>
+  # headers that current MSVC rejects outright. That is a dependency
+  # problem, not ours. macOS and iOS have not been diagnosed.
   workflow_dispatch:
-  push:
-    branches: [ main, master ]
-    paths:
-      - 'lib/**'
-      - 'windows/**'
-      - 'assets/**'
-      - 'pubspec.yaml'
-      - 'pubspec.lock'
-      - '.github/workflows/windows-build.yml'
 
 jobs:
   build:

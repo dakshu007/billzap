@@ -8,16 +8,21 @@ name: Build macOS (.dmg)
 #   build changes. We skip docs / Android-only paths to save runner
 #   minutes on the free tier (macOS runners cost 10× Linux minutes).
 on:
+  # Android only for now. This used to build on every push to main; it
+  # has been failing since June and nobody saw, because the last green
+  # run predates the Flutter 3.47.4 / AGP 9 toolchain move and nothing
+  # ran in between. Four months of red is worse than no build at all —
+  # it trains you to ignore a failing check.
+  #
+  # Left as workflow_dispatch so it can still be run by hand from the
+  # Actions tab when macOS matters again. Nothing is deleted: the
+  # macos/ project and every step below are untouched.
+  #
+  # Known blocker before it can go green again: the Windows build fails
+  # inside local_auth_windows, whose C++ uses <experimental/coroutine>
+  # headers that current MSVC rejects outright. That is a dependency
+  # problem, not ours. macOS and iOS have not been diagnosed.
   workflow_dispatch:
-  push:
-    branches: [ main, master ]
-    paths:
-      - 'lib/**'
-      - 'macos/**'
-      - 'assets/**'
-      - 'pubspec.yaml'
-      - 'pubspec.lock'
-      - '.github/workflows/macos-build.yml'
 
 jobs:
   build:
