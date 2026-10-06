@@ -96,8 +96,17 @@ class CsvHelper {
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // 2. GST SUMMARY CSV (month-wise, ready for GSTR-1)
+  // 2. TAX SUMMARY CSV (month-wise; in India, ready for GSTR-1)
   // ═══════════════════════════════════════════════════════════════
+  // The three India columns stay where they are so anything already
+  // importing this file keeps working, and read 0 on a bill whose
+  // split is named anything else. Total Tax is what a shop outside
+  // India reads, and it comes off the invoice's own tax rather than
+  // from adding up three components that do not exist there — which
+  // is what used to make a Dubai shop's tax summary read zero.
+  //
+  // Tax Breakdown names the split as text, so a month with both VAT
+  // and a city tax on it is still legible in a spreadsheet.
   static String gstSummaryToCsv(List<Invoice> invoices) {
     final buf = StringBuffer(_bom);
 
@@ -114,7 +123,8 @@ class CsvHelper {
 
     buf.write(_row([
       'Month', 'Invoice Count', 'Taxable Value',
-      'CGST', 'SGST', 'IGST', 'Total Tax', 'Total Sales (Inc Tax)',
+      'CGST', 'SGST', 'IGST',
+      'Total Tax', 'Tax Breakdown', 'Total Sales (Inc Tax)',
     ]));
 
     for (final key in sortedKeys) {
@@ -123,7 +133,13 @@ class CsvHelper {
       final cgst = invs.fold<double>(0, (s, i) => s + i.totalCgst);
       final sgst = invs.fold<double>(0, (s, i) => s + i.totalSgst);
       final igst = invs.fold<double>(0, (s, i) => s + i.totalIgst);
-      final tax = cgst + sgst + igst;
+      final tax = invs.fold<double>(0, (s, i) => s + i.totalTax);
+      final byName = <String, double>{};
+      for (final inv in invs) {
+        inv.taxSplit.forEach((label, amount) {
+          byName[label] = (byName[label] ?? 0) + amount;
+        });
+      }
       final total = invs.fold<double>(0, (s, i) => s + i.grandTotal);
 
       // Display month name
@@ -139,6 +155,9 @@ class CsvHelper {
         _inrNum(sgst),
         _inrNum(igst),
         _inrNum(tax),
+        byName.entries
+            .map((e) => '${e.key}: ${_inrNum(e.value)}')
+            .join(' | '),
         _inrNum(total),
       ]));
     }

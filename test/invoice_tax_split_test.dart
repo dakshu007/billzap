@@ -148,6 +148,43 @@ void main() {
     });
   });
 
+  group('the zero-tax reporting bug', () {
+    // Three reports — the Reports screen, the CSV summary and the PDF
+    // — each computed total tax as totalCgst + totalSgst + totalIgst.
+    // That is correct in India and silently zero everywhere else, on
+    // documents headed "Tax Summary". These assert the invariant that
+    // makes any such sum wrong, so the next person who writes one has
+    // a failing test rather than a plausible-looking report.
+    test('the India getters do not add up to the tax outside India', () {
+      final inv = _bill(rate: 5, components: const {'VAT': 50}, country: 'AE');
+      expect(inv.totalTax, 50);
+      expect(inv.totalCgst + inv.totalSgst + inv.totalIgst, 0,
+          reason: 'this is exactly why that sum must not be used');
+      expect(inv.totalTax, isNot(0),
+          reason: 'the tax is real; only the India names are empty');
+    });
+
+    test('they do add up to it in India, which is why it went unnoticed',
+        () {
+      final inv = _bill();
+      expect(inv.totalCgst + inv.totalSgst + inv.totalIgst, inv.totalTax);
+    });
+
+    test('the split always adds back up to the tax, in any country', () {
+      for (final components in [
+        const <String, double>{},
+        const {'VAT': 180.0},
+        const {'CGST': 90.0, 'SGST': 90.0},
+        const {'State Tax': 100.0, 'City Tax': 80.0},
+      ]) {
+        final inv = _bill(components: components);
+        expect(inv.taxSplit.values.fold<double>(0, (s, v) => s + v),
+            closeTo(inv.totalTax, 1e-9),
+            reason: 'components: $components');
+      }
+    });
+  });
+
   group('a stored amount keeps its own currency', () {
     tearDown(() => setActiveCurrency(
         symbol: '₹', grouping: MoneyGrouping.indian));
