@@ -46,6 +46,29 @@ is why:
   digit grouping. A rupee invoice reprinting as dirhams after the shop
   moves to Dubai would be a **forged document**, not a formatting choice.
 
+### The shape of bug to look for
+
+The invoice migration was careful, and the bug still got through one
+layer above it. Three separate places — the Reports screen, the CSV tax
+summary and the report PDF — computed total tax as:
+
+```dart
+totalCgst + totalSgst + totalIgst   // WRONG
+```
+
+That is correct in India and **silently zero everywhere else**, because
+those three getters read off a split a Dubai bill does not have. A shop
+could bill AED 50 of VAT a hundred times and every tax summary it
+produced would say zero collected, on a document it takes to an
+accountant.
+
+The lesson generalises: **anything that names CGST, SGST or IGST
+directly is India-only by construction.** Use `Invoice.totalTax` for a
+total and `Invoice.taxSplit` / `Invoice.taxRows` for components.
+`invoice_tax_split_test.dart` pins the invariant that makes the sum
+wrong, so the next person who writes one gets a failing test rather
+than a plausible-looking report.
+
 ---
 
 ## The honesty constraint, and why the code looks the way it does
@@ -270,6 +293,11 @@ Each of these cost a CI round. They are all still live hazards.
 - **A `bool` declared inside a `StatefulBuilder` builder resets on every
   rebuild.** This caused double-submits in five separate bottom sheets.
   Declare the flag above `showModalBottomSheet`.
+- **The voice locale has been wrong twice, both times silently.** First
+  it read a non-existent translation key, so every user in all twelve
+  languages got `en_IN`. Then `en` still mapped to `en_IN` for
+  everybody. `voiceLocaleCandidates()` is public and top-level
+  specifically so it can be tested; keep it that way.
 - **A test that picks a country to exercise the fall-through path breaks
   when the rate table grows.** `rate_table_test.dart` now asserts that
   the five countries those tests rely on have no table row, so the
@@ -328,6 +356,7 @@ Thirteen files. The ones that matter most to the international work:
 | `rate_table_test.dart` | Table shape, coverage, and the fall-through countries |
 | `countries_test.dart` | 177 countries exactly, unique, sorted, with flags |
 | `money_format_test.dart` | Both grouping rules, both short-form ladders |
+| `voice_locale_test.dart` | Speech locale follows the shop's country |
 
 ---
 
