@@ -51,3 +51,17 @@ landing-page/dist/
 
 # Function dependencies; installed in CI, never committed.
 landing-page/node_modules/
+
+# ── Signing material ────────────────────────────────────────────────
+# Never commit these. billzap.keystore was tracked in this public repo
+# until 2026-10-06; the upload key has been reset with Google since.
+# Removing a file from tracking does NOT remove it from history, which
+# is why the reset is the fix and this is only hygiene.
+#
+# CI gets the keystore from the KEYSTORE_BASE64 secret and writes it to
+# android/app/upload-keystore.jks at build time — nothing here is
+# needed for a release build.
+*.keystore
+*.jks
+key.properties
+upload_certificate.pem
