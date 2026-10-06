@@ -9,6 +9,7 @@ import 'package:gap/gap.dart';
 import 'package:billzap/theme/app_icons.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../design/money.dart';
+import '../../tax/active_profile.dart';
 import '../../theme/app_theme.dart';
 import '../../i18n/translations.dart';
 import '../../utils/voice_parser.dart';
@@ -17,6 +18,58 @@ class VoiceInvoiceScreen extends ConsumerStatefulWidget {
   const VoiceInvoiceScreen({super.key});
   @override
   ConsumerState<VoiceInvoiceScreen> createState() => _VoiceInvoiceState();
+}
+
+// ── Speech locale selection ───────────────────────────────────
+// The app language's own speech pack. Every one of the twelve is an
+// Indian locale because every one of the twelve is an Indian language;
+// that is not the India assumption this file used to have.
+const Map<String, String> _langToLocale = {
+  'en': 'en_IN',
+  'hi': 'hi_IN',
+  'ta': 'ta_IN',
+  'te': 'te_IN',
+  'kn': 'kn_IN',
+  'ml': 'ml_IN',
+  'mr': 'mr_IN',
+  'gu': 'gu_IN',
+  'bn': 'bn_IN',
+  'pa': 'pa_IN',
+  'or': 'or_IN',
+  'ur': 'ur_IN',
+};
+
+/// Speech locales to try, best first.
+///
+/// The old chain was language -> an `_IN` locale -> `en_IN`, which is
+/// right in India and wrong everywhere else: an English-speaking
+/// shopkeeper in Nairobi was dictating into a recogniser tuned for
+/// Indian English phonetics and Indian number words, which produces a
+/// worse transcript than en_KE for no reason at all.
+///
+/// So the shop's country comes first. `en` + `KE` tries en_KE ahead of
+/// everything; only if the device has no such pack does it walk down
+/// the chain. India's behaviour is unchanged, and not as a special
+/// case — for a shop in India the country-specific candidate simply IS
+/// the `_IN` one.
+///
+/// Public because it is the part that can be wrong, and it has been
+/// wrong twice. See test/voice_locale_test.dart.
+List<String> voiceLocaleCandidates(String lang, String country) {
+  final c = country.toUpperCase();
+  return <String>[
+    // The language as spoken in this country. Hindi in Fiji, Tamil in
+    // Singapore, Arabic in the UAE — all real cases.
+    '${lang}_$c',
+    // The language's own home pack, which is the one that exists.
+    _langToLocale[lang] ?? '',
+    // English where the shop is, then the big English packs almost
+    // every device carries.
+    'en_$c',
+    'en_US',
+    'en_GB',
+    'en_IN',
+  ].where((l) => l.isNotEmpty).toList();
 }
 
 class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
@@ -30,22 +83,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
   late final AnimationController _pulseCtrl;
   String _selectedLocaleId = 'en_IN';
 
-  // Maps app language code → speech-to-text locale ID
-  // Checked at runtime — fall back to en_IN if device doesn't have it
-  static const Map<String, String> _langToLocale = {
-    'en': 'en_IN',
-    'hi': 'hi_IN',
-    'ta': 'ta_IN',
-    'te': 'te_IN',
-    'kn': 'kn_IN',
-    'ml': 'ml_IN',
-    'mr': 'mr_IN',
-    'gu': 'gu_IN',
-    'bn': 'bn_IN',
-    'pa': 'pa_IN',
-    'or': 'or_IN',
-    'ur': 'ur_IN',
-  };
+
 
   static const Map<String, String> _localeDisplay = {
     'en_IN': 'English',
@@ -106,19 +144,21 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
       // translation key. trGlobal hands back the key when it misses, so
       // appLang was always the literal '__lang_code', _langToLocale
       // never matched it, and every user got en_IN no matter which of
-      // the twelve languages they had chosen. The map below was correct
-      // the whole time; nothing could reach it.
+      // the twelve languages they had chosen. _langToLocale was
+      // correct the whole time; nothing could reach it.
       final appLang = currentLangCode;
-      final preferredLocale = _langToLocale[appLang] ?? 'en_IN';
-      
-      // Verify the device has this locale, else fall back
       final available = await _speech.locales();
       final ids = available.map((l) => l.localeId).toSet();
-      if (ids.contains(preferredLocale)) {
-        _selectedLocaleId = preferredLocale;
-      } else if (ids.contains('en_IN')) {
-        _selectedLocaleId = 'en_IN';
-      } else if (available.isNotEmpty) {
+      for (final candidate
+          in voiceLocaleCandidates(appLang, activeProfile.countryCode)) {
+        if (ids.contains(candidate)) {
+          _selectedLocaleId = candidate;
+          break;
+        }
+      }
+      // Nothing matched at all — take whatever the device has rather
+      // than listen in a locale it does not support.
+      if (!ids.contains(_selectedLocaleId) && available.isNotEmpty) {
         _selectedLocaleId = available.first.localeId;
       }
 
@@ -195,6 +235,23 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
     final available = await _speech.locales();
     final supportedIds = available.map((l) => l.localeId).toSet();
 
+    // The list used to be the twelve Indian locales and nothing else,
+    // so a shopkeeper in Nairobi whose phone has en_KE installed could
+    // not choose it: the only English on offer was en_IN. The device's
+    // own installed locales are now listed too, named by the plugin.
+    //
+    // Order: the twelve first, because that is what most users want
+    // and the labels are in their own script; then everything else the
+    // phone actually has, alphabetically.
+    final extra = available
+        .where((l) => !_localeDisplay.containsKey(l.localeId))
+        .toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+    final entries = <({String id, String label})>[
+      for (final e in _localeDisplay.entries) (id: e.key, label: e.value),
+      for (final l in extra) (id: l.localeId, label: l.name),
+    ];
+
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -220,25 +277,25 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
             ConstrainedBox(
               constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.55),
               child: SingleChildScrollView(
-                child: Column(children: _localeDisplay.entries.map((entry) {
-                  final available = supportedIds.contains(entry.key);
-                  final isSelected = _selectedLocaleId == entry.key;
+                child: Column(children: entries.map((entry) {
+                  final installed = supportedIds.contains(entry.id);
+                  final isSelected = _selectedLocaleId == entry.id;
                   return ListTile(
-                    title: Text(entry.value,
+                    title: Text(entry.label,
                       style: AppFont.sans(
                         fontSize: 14,
                         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                        color: available ? AppColors.t1 : AppColors.t4)),
-                    subtitle: !available
+                        color: installed ? AppColors.t1 : AppColors.t4)),
+                    subtitle: !installed
                       ? Text('Not installed on this device',
                           style: AppFont.sans(fontSize: 11, color: AppColors.t4))
                       : null,
                     trailing: isSelected
                       ? Icon(Symbols.check, color: AppColors.brand)
                       : null,
-                    enabled: available,
-                    onTap: available ? () {
-                      setState(() => _selectedLocaleId = entry.key);
+                    enabled: installed,
+                    onTap: installed ? () {
+                      setState(() => _selectedLocaleId = entry.id);
                       Navigator.pop(ctx);
                     } : null,
                   );
@@ -273,7 +330,10 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
             onPressed: _pickLocale,
             icon: Icon(Symbols.language, size: 18, color: AppColors.brand),
             label: Text(
-              _localeDisplay[_selectedLocaleId]?.split(' ').first ?? 'EN',
+              // Unknown locale: show its language code rather than a
+              // hardcoded 'EN' that may well be a lie.
+              _localeDisplay[_selectedLocaleId]?.split(' ').first ??
+                  _selectedLocaleId.split('_').first.toUpperCase(),
               style: AppFont.sans(
                 fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.brand)),
           ),
