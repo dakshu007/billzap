@@ -12,6 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:billzap/theme/app_icons.dart';
+import '../../tax/active_profile.dart';
 import '../../theme/app_theme.dart';
 import '../../i18n/translations.dart';
 import '../../providers/providers.dart';
@@ -391,7 +392,7 @@ class _Sidebar extends ConsumerWidget {
                         color: AppColors.t1)),
                     Text(biz?.gstin.isNotEmpty == true
                         ? biz!.gstin
-                        : 'No GSTIN',
+                        : 'No $activeTaxIdLabel',
                       maxLines: 1, overflow: TextOverflow.ellipsis,
                       style: AppFont.sans(
                         fontSize: 11, color: AppColors.t3)),

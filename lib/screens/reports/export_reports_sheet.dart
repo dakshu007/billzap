@@ -263,6 +263,11 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
   // ═══════════════════════════════════════════════════════════════
   @override
   Widget build(BuildContext context) {
+    // GSTR-1 is an Indian filing and the only country-specific export
+    // here. Everything else is a report any shop can read.
+    final profile = ref.watch(taxProfileProvider);
+    final india = profile.countryCode == 'IN';
+    final activeTaxName = profile.taxName;
     return DraggableScrollableSheet(
       initialChildSize: 0.85,
       minChildSize: 0.5,
@@ -377,15 +382,19 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
                 _ReportRow(
                   icon: Symbols.calculate,
                   iconColor: AppColors.purple,
-                  title: 'GST Summary',
-                  subtitle: 'CGST/SGST/IGST breakdown for GSTR-1 filing',
+                  title: '$activeTaxName Summary',
+                  subtitle: india
+                      ? 'CGST/SGST/IGST breakdown for GSTR-1 filing'
+                      : 'Tax collected and payable, period by period',
                   busy: _busy,
                   onPdf: () => _exportPdf(_ReportKind.gstSummary),
                   onCsv: () => _exportCsv(_ReportKind.gstSummary),
-                  // Extra JSON export: ready-to-upload GSTR-1 file in the
-                  // GST offline-utility schema. Saves your CA the typing.
-                  onJson: _exportGstr1Json,
-                  jsonLabel: 'GSTR-1 JSON',
+                  // The JSON export is the GST offline-utility schema,
+                  // which exists in India and nowhere else. Offering it
+                  // to a Kenyan shopkeeper would produce a file no
+                  // authority on earth accepts, so it is not offered.
+                  onJson: india ? _exportGstr1Json : null,
+                  jsonLabel: india ? 'GSTR-1 JSON' : null,
                 ),
                 const Gap(10),
                 _ReportRow(

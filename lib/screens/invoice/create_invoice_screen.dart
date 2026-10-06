@@ -758,14 +758,21 @@ class _LineRowState extends State<_LineRow> {
         ]),
         const Gap(AppSpace.sm),
         Row(children: [
-          Expanded(
-            flex: 3,
-            // "HSN / SAC" truncated to "HSN / S…" once the stepper
-            // became a pill. HSN is the word shopkeepers actually use,
-            // and the field is unambiguous in this row.
-            child: _LineField(controller: _hsn, hint: 'HSN'),
-          ),
-          const Gap(AppSpace.sm),
+          // HSN is an Indian classification code. Most countries have
+          // no equivalent on a retail bill, so the field is absent
+          // rather than present and meaningless — the profile decides,
+          // and names it in the country's own terms where it exists.
+          if (widget.profile.itemCodeLabel != null) ...[
+            Expanded(
+              flex: 3,
+              // "HSN / SAC" truncated to "HSN / S…" once the stepper
+              // became a pill. HSN is the word shopkeepers actually
+              // use, and the field is unambiguous in this row.
+              child: _LineField(
+                  controller: _hsn, hint: widget.profile.itemCodeLabel!),
+            ),
+            const Gap(AppSpace.sm),
+          ],
           // Stepper as one pill rather than two loose jade squares — it
           // reads as a single control, and the squares were the heaviest
           // thing in a row of quiet wells.

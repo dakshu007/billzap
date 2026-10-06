@@ -15,6 +15,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:barcode/barcode.dart' as bc;
 import 'dart:io';
+import '../../tax/active_profile.dart';
 import '../../theme/app_theme.dart';
 import '../../design/components.dart';
 import '../../design/nav_dock.dart';
@@ -1425,7 +1426,7 @@ class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
             style: AppFont.sans(fontSize: 13.5))),
           const Gap(10),
           Expanded(child: TextField(controller: _custGstin,
-            decoration: InputDecoration(labelText: 'GSTIN',
+            decoration: InputDecoration(labelText: activeTaxIdLabel,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(14))),
             style: AppFont.sans(fontSize: 13.5))),
         ]),
