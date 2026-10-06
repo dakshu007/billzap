@@ -11,6 +11,7 @@ import 'package:gap/gap.dart';
 import 'package:billzap/theme/app_icons.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/app_spacing.dart';
+import '../../app_version.dart';
 import '../../design/components.dart';
 import '../../design/tokens.dart';
 import '../../design/motion.dart';
@@ -781,7 +782,8 @@ Download: $playStoreUrl
             const Gap(16),
             const Divider(),
             const Gap(12),
-            _InfoRow(Symbols.check_circle, tr('set.version', ref), '1.0.0', AppColors.green),
+            _InfoRow(Symbols.check_circle, tr('set.version', ref),
+                appVersionLabel, AppColors.green),
             _InfoRow(Symbols.wifi_off, tr('set.offline', ref), tr('set.no_internet', ref), AppColors.brand),
             _InfoRow(Symbols.lock, tr('set.privacy', ref), tr('set.data_on_device', ref), AppColors.purple),
             const Gap(18),
