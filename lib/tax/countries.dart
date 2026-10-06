@@ -35,7 +35,10 @@ class Country {
 }
 
 /// code|name|currencyCode|symbol, one per line.
-const String _table = '''
+// RAW string. The table carries R$, S$, HK$, NT$, $U and a dozen more
+// dollar symbols; in a normal Dart string every one of those starts an
+// interpolation, and $U was read as a reference to an undefined name U.
+const String _table = r'''
 AL|Albania|ALL|L
 DZ|Algeria|DZD|د.ج
 AO|Angola|AOA|Kz

@@ -629,7 +629,10 @@ String _rateLabel(TaxProfile profile, double rate) {
       : rate.toString();
   final base = '${profile.taxName} $pct%';
   if (profile.countryCode != 'IN') return base;
-  const slab = {
+  // Not const: Dart forbids a constant map keyed by double, because
+  // double overrides ==. The map is seven entries and this runs once
+  // per dropdown item, so building it here costs nothing worth saving.
+  final slab = <double, String>{
     0.0: 'Exempt', 0.25: 'Stones', 5.0: 'Essentials', 12.0: 'Standard',
     18.0: 'General', 28.0: 'Luxury', 40.0: 'Sin tax',
   };
