@@ -85,12 +85,16 @@ void main() {
     test('zero is always offered, for exempt lines', () {
       expect(resolveProfile(countryCode: 'BR', customTaxRate: 20).rates,
           contains(0.0));
-      expect(resolveProfile(countryCode: 'BR', customTaxRate: 0).rates, [0.0],
+      // Gibraltar, deliberately: it is in the picker, has no researched
+      // profile AND no row in the rate table, so a zero custom rate
+      // really does reach the bare custom profile. Using a country the
+      // table covers would test the table instead.
+      expect(resolveProfile(countryCode: 'GI', customTaxRate: 0).rates, [0.0],
           reason: 'a zero custom rate must not produce a duplicate');
     });
 
     test('a blank tax name falls back rather than showing an empty label', () {
-      expect(resolveProfile(countryCode: 'BR', customTaxName: '   ').taxName,
+      expect(resolveProfile(countryCode: 'GI', customTaxName: '   ').taxName,
           'Tax');
     });
   });

@@ -114,8 +114,24 @@ void main() {
   });
 
   test('a country in neither place still works', () {
-    final p = resolveProfile(countryCode: 'ZW', countryName: 'Zimbabwe');
+    // Gibraltar: in the picker, no researched profile, no table row.
+    // This is the fall-through the whole design rests on — an
+    // unresearched country must be a working app, not an error.
+    final p = resolveProfile(countryCode: 'GI', countryName: 'Gibraltar');
     expect(p.confidence, TaxConfidence.selfDeclared);
     expect(p.componentsAreWellFormed, isTrue);
+  });
+
+  test('the fall-through countries really are in neither place', () {
+    // If the table later grows a row for one of these, the two tests
+    // above start testing the table instead of the fall-through and
+    // quietly stop checking what they were written to check.
+    for (final code in ['GI', 'KY', 'VA', 'VG', 'AW']) {
+      expect(rateRowFor(code), isNull,
+          reason: '$code now has a table row; pick another fall-through');
+      expect(resolveProfile(countryCode: code).confidence,
+          TaxConfidence.selfDeclared,
+          reason: code);
+    }
   });
 }
