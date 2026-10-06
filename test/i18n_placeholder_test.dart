@@ -60,7 +60,6 @@ void main() {
     setActiveProfile(uaeProfile);
     for (final key in [
       'rep.gstr1_json',
-      'rep.gst_summary',
       'inv.cgst',
       'inv.sgst',
       'inv.igst',
@@ -70,6 +69,26 @@ void main() {
       expect(trKey(key, 'en'), contains('GST'),
           reason: '$key must keep its Indian name');
     }
+  });
+
+  test('the summary report is named after the country\'s tax', () {
+    // This one was briefly in the India-only list above, which was
+    // wrong: "GST Summary" is a report title, not the name of an
+    // Indian filing, and a shop in Dubai should read "VAT Summary".
+    setActiveProfile(indiaProfile);
+    expect(trKey('rep.gst_summary', 'en'), 'GST Summary');
+    setActiveProfile(uaeProfile);
+    expect(trKey('rep.gst_summary', 'en'), 'VAT Summary');
+  });
+
+  test('the item code label falls back rather than going blank', () {
+    // India names it HSN. Most countries name it nothing at all, and
+    // the profile's itemCodeLabel is null there — which must not reach
+    // the screen as "  Code (optional)".
+    setActiveProfile(indiaProfile);
+    expect(trKey('cat.hsn', 'en'), 'HSN Code (optional)');
+    setActiveProfile(uaeProfile);
+    expect(trKey('cat.hsn', 'en'), 'Item Code (optional)');
   });
 
   test('a shopkeeper-named tax reaches the labels', () {

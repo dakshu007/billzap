@@ -180,7 +180,7 @@ const _en = <String, String>{
   'rep.this_month': 'This Month',
   'rep.last_month': 'Last Month',
   'rep.this_year': 'This Year',
-  'rep.gst_summary': 'GST Summary',
+  'rep.gst_summary': '{tax} Summary',
   'rep.export_csv': 'Export CSV',
 
   // Settings
@@ -250,7 +250,7 @@ const _en = <String, String>{
   'cat.item_hint': 'e.g. Apple, Mobile, Soap',
   'cat.price': 'Price (₹) *',
   'cat.unit': 'Unit',
-  'cat.hsn': 'HSN/SAC Code (optional)',
+  'cat.hsn': '{itemcode} Code (optional)',
   'cat.save': 'Save to Catalog',
   'cat.delete_title': 'Delete from catalog?',
   'cat.from_catalog': 'From Catalog',
@@ -485,7 +485,7 @@ const _hi = <String, String>{
   'rep.this_month': 'इस महीने',
   'rep.last_month': 'पिछला महीना',
   'rep.this_year': 'इस साल',
-  'rep.gst_summary': 'जीएसटी सारांश',
+  'rep.gst_summary': '{tax} सारांश',
   'rep.export_csv': 'CSV निर्यात करें',
 
   'set.title': 'सेटिंग्स',
@@ -550,7 +550,7 @@ const _hi = <String, String>{
   'cat.item_hint': 'जैसे सेब, मोबाइल, साबुन',
   'cat.price': 'मूल्य (₹) *',
   'cat.unit': 'इकाई',
-  'cat.hsn': 'HSN/SAC कोड (वैकल्पिक)',
+  'cat.hsn': '{itemcode} कोड (वैकल्पिक)',
   'cat.save': 'कैटलॉग में सेव करें',
   'cat.delete_title': 'कैटलॉग से हटाएं?',
   'cat.from_catalog': 'कैटलॉग से',
@@ -772,7 +772,7 @@ const _ta = <String, String>{
   'rep.this_month': 'இந்த மாதம்',
   'rep.last_month': 'கடந்த மாதம்',
   'rep.this_year': 'இந்த ஆண்டு',
-  'rep.gst_summary': 'GST சுருக்கம்',
+  'rep.gst_summary': '{tax} சுருக்கம்',
   'rep.export_csv': 'CSV ஏற்றுமதி',
 
   'set.title': 'அமைப்புகள்',
@@ -837,7 +837,7 @@ const _ta = <String, String>{
   'cat.item_hint': 'எ.கா. ஆப்பிள், மொபைல், சோப்பு',
   'cat.price': 'விலை (₹) *',
   'cat.unit': 'அலகு',
-  'cat.hsn': 'HSN/SAC குறியீடு (விருப்பம்)',
+  'cat.hsn': '{itemcode} குறியீடு (விருப்பம்)',
   'cat.save': 'பட்டியலில் சேமி',
   'cat.delete_title': 'பட்டியலிலிருந்து நீக்கவா?',
   'cat.from_catalog': 'பட்டியலிலிருந்து',
@@ -1052,7 +1052,7 @@ const _te = <String, String>{
   'rep.this_month': 'ఈ నెల',
   'rep.last_month': 'గత నెల',
   'rep.this_year': 'ఈ సంవత్సరం',
-  'rep.gst_summary': 'GST సారాంశం',
+  'rep.gst_summary': '{tax} సారాంశం',
   'rep.export_csv': 'CSV ఎగుమతి',
   'set.title': 'సెట్టింగ్‌లు',
   'set.business': 'వ్యాపారం',
@@ -1114,7 +1114,7 @@ const _te = <String, String>{
   'cat.item_hint': 'ఉదా: ఆపిల్, మొబైల్, సబ్బు',
   'cat.price': 'ధర (₹) *',
   'cat.unit': 'యూనిట్',
-  'cat.hsn': 'HSN/SAC కోడ్ (ఐచ్ఛికం)',
+  'cat.hsn': '{itemcode} కోడ్ (ఐచ్ఛికం)',
   'cat.save': 'క్యాటలాగ్‌లో సేవ్',
   'cat.delete_title': 'క్యాటలాగ్ నుండి తొలగించాలా?',
   'cat.from_catalog': 'క్యాటలాగ్ నుండి',
@@ -1290,7 +1290,7 @@ const _kn = <String, String>{
   'rep.title': 'ವರದಿಗಳು', 'rep.revenue': 'ಆದಾಯ',
   'rep.expenses': 'ಖರ್ಚುಗಳು', 'rep.profit': 'ಲಾಭ',
   'rep.this_month': 'ಈ ತಿಂಗಳು', 'rep.last_month': 'ಕಳೆದ ತಿಂಗಳು',
-  'rep.this_year': 'ಈ ವರ್ಷ', 'rep.gst_summary': 'GST ಸಾರಾಂಶ',
+  'rep.this_year': 'ಈ ವರ್ಷ', 'rep.gst_summary': '{tax} ಸಾರಾಂಶ',
   'rep.export_csv': 'CSV ರಫ್ತು',
   'set.title': 'ಸೆಟ್ಟಿಂಗ್‌ಗಳು', 'set.business': 'ವ್ಯಾಪಾರ',
   'set.bank': 'ಬ್ಯಾಂಕ್ & UPI', 'set.invoice': 'ಇನ್ವಾಯ್ಸ್',
@@ -1332,7 +1332,7 @@ const _kn = <String, String>{
   'cat.item_hint': 'ಉದಾ: ಸೇಬು, ಮೊಬೈಲ್, ಸಾಬೂನು',
   'cat.price': 'ಬೆಲೆ (₹) *',
   'cat.unit': 'ಘಟಕ',
-  'cat.hsn': 'HSN/SAC ಕೋಡ್ (ಐಚ್ಛಿಕ)',
+  'cat.hsn': '{itemcode} ಕೋಡ್ (ಐಚ್ಛಿಕ)',
   'cat.save': 'ಕ್ಯಾಟಲಾಗ್‌ನಲ್ಲಿ ಉಳಿಸಿ',
   'cat.delete_title': 'ಕ್ಯಾಟಲಾಗ್‌ನಿಂದ ಅಳಿಸುವುದೇ?',
   'cat.from_catalog': 'ಕ್ಯಾಟಲಾಗ್‌ನಿಂದ',
@@ -1498,7 +1498,7 @@ const _ml = <String, String>{
   'rep.title': 'റിപ്പോർട്ടുകൾ', 'rep.revenue': 'വരുമാനം',
   'rep.expenses': 'ചെലവുകൾ', 'rep.profit': 'ലാഭം',
   'rep.this_month': 'ഈ മാസം', 'rep.last_month': 'കഴിഞ്ഞ മാസം',
-  'rep.this_year': 'ഈ വർഷം', 'rep.gst_summary': 'GST സംഗ്രഹം',
+  'rep.this_year': 'ഈ വർഷം', 'rep.gst_summary': '{tax} സംഗ്രഹം',
   'rep.export_csv': 'CSV കയറ്റുമതി',
   'set.title': 'ക്രമീകരണങ്ങൾ', 'set.business': 'ബിസിനസ്',
   'set.bank': 'ബാങ്ക് & UPI', 'set.invoice': 'ഇൻവോയ്സ്',
@@ -1539,7 +1539,7 @@ const _ml = <String, String>{
   'cat.item_hint': 'ഉദാ: ആപ്പിൾ, മൊബൈൽ, സോപ്പ്',
   'cat.price': 'വില (₹) *',
   'cat.unit': 'യൂണിറ്റ്',
-  'cat.hsn': 'HSN/SAC കോഡ് (ഓപ്ഷണൽ)',
+  'cat.hsn': '{itemcode} കോഡ് (ഓപ്ഷണൽ)',
   'cat.save': 'കാറ്റലോഗിൽ സേവ്',
   'cat.delete_title': 'കാറ്റലോഗിൽ നിന്ന് ഇല്ലാതാക്കണോ?',
   'cat.from_catalog': 'കാറ്റലോഗിൽ നിന്ന്',
@@ -1699,7 +1699,7 @@ const _mr = <String, String>{
   'exp.cat_marketing': 'विपणन', 'exp.cat_equipment': 'उपकरणे', 'exp.cat_other': 'इतर',
   'rep.title': 'अहवाल', 'rep.revenue': 'महसूल', 'rep.expenses': 'खर्च',
   'rep.profit': 'नफा', 'rep.this_month': 'या महिन्यात', 'rep.last_month': 'गेल्या महिन्यात',
-  'rep.this_year': 'या वर्षी', 'rep.gst_summary': 'GST सारांश',
+  'rep.this_year': 'या वर्षी', 'rep.gst_summary': '{tax} सारांश',
   'rep.export_csv': 'CSV निर्यात',
   'set.title': 'सेटिंग्ज', 'set.business': 'व्यवसाय', 'set.bank': 'बँक आणि UPI',
   'set.invoice': 'पावती', 'set.about': 'बद्दल', 'set.language': 'भाषा',
@@ -1735,7 +1735,7 @@ const _mr = <String, String>{
   'cat.item_hint': 'उदा. सफरचंद, मोबाइल, साबण',
   'cat.price': 'किंमत (₹) *',
   'cat.unit': 'एकक',
-  'cat.hsn': 'HSN/SAC कोड (पर्यायी)',
+  'cat.hsn': '{itemcode} कोड (पर्यायी)',
   'cat.save': 'कॅटलॉगमध्ये सेव्ह करा',
   'cat.delete_title': 'कॅटलॉगमधून हटवायचे?',
   'cat.from_catalog': 'कॅटलॉगमधून',
@@ -1880,7 +1880,7 @@ const _gu = <String, String>{
   'exp.cat_equipment': 'ઉપકરણ', 'exp.cat_other': 'અન્ય',
   'rep.title': 'અહેવાલ', 'rep.revenue': 'આવક', 'rep.expenses': 'ખર્ચ',
   'rep.profit': 'નફો', 'rep.this_month': 'આ મહિને', 'rep.last_month': 'ગયા મહિને',
-  'rep.this_year': 'આ વર્ષે', 'rep.gst_summary': 'GST સારાંશ',
+  'rep.this_year': 'આ વર્ષે', 'rep.gst_summary': '{tax} સારાંશ',
   'rep.export_csv': 'CSV નિકાસ',
   'set.title': 'સેટિંગ્સ', 'set.business': 'વ્યવસાય', 'set.bank': 'બેંક અને UPI',
   'set.invoice': 'ઇન્વૉઇસ', 'set.about': 'વિશે', 'set.language': 'ભાષા',
@@ -1919,7 +1919,7 @@ const _gu = <String, String>{
   'cat.item_hint': 'દા.ત. સફરજન, મોબાઇલ, સાબુ',
   'cat.price': 'કિંમત (₹) *',
   'cat.unit': 'એકમ',
-  'cat.hsn': 'HSN/SAC કોડ (વૈકલ્પિક)',
+  'cat.hsn': '{itemcode} કોડ (વૈકલ્પિક)',
   'cat.save': 'કેટલોગમાં સાચવો',
   'cat.delete_title': 'કેટલોગમાંથી હટાવવું?',
   'cat.from_catalog': 'કેટલોગમાંથી',
@@ -2065,7 +2065,7 @@ const _bn = <String, String>{
   'exp.cat_equipment': 'সরঞ্জাম', 'exp.cat_other': 'অন্যান্য',
   'rep.title': 'রিপোর্ট', 'rep.revenue': 'আয়', 'rep.expenses': 'খরচ',
   'rep.profit': 'লাভ', 'rep.this_month': 'এই মাসে', 'rep.last_month': 'গত মাসে',
-  'rep.this_year': 'এই বছর', 'rep.gst_summary': 'GST সারসংক্ষেপ',
+  'rep.this_year': 'এই বছর', 'rep.gst_summary': '{tax} সারসংক্ষেপ',
   'rep.export_csv': 'CSV রপ্তানি',
   'set.title': 'সেটিংস', 'set.business': 'ব্যবসা', 'set.bank': 'ব্যাঙ্ক ও UPI',
   'set.invoice': 'চালান', 'set.about': 'সম্পর্কে', 'set.language': 'ভাষা',
@@ -2105,7 +2105,7 @@ const _bn = <String, String>{
   'cat.item_hint': 'যেমন আপেল, মোবাইল, সাবান',
   'cat.price': 'মূল্য (₹) *',
   'cat.unit': 'একক',
-  'cat.hsn': 'HSN/SAC কোড (ঐচ্ছিক)',
+  'cat.hsn': '{itemcode} কোড (ঐচ্ছিক)',
   'cat.save': 'ক্যাটালগে সংরক্ষণ',
   'cat.delete_title': 'ক্যাটালগ থেকে মুছবেন?',
   'cat.from_catalog': 'ক্যাটালগ থেকে',
@@ -2251,7 +2251,7 @@ const _pa = <String, String>{
   'exp.cat_equipment': 'ਉਪਕਰਣ', 'exp.cat_other': 'ਹੋਰ',
   'rep.title': 'ਰਿਪੋਰਟਾਂ', 'rep.revenue': 'ਆਮਦਨ', 'rep.expenses': 'ਖਰਚੇ',
   'rep.profit': 'ਮੁਨਾਫਾ', 'rep.this_month': 'ਇਸ ਮਹੀਨੇ', 'rep.last_month': 'ਪਿਛਲੇ ਮਹੀਨੇ',
-  'rep.this_year': 'ਇਸ ਸਾਲ', 'rep.gst_summary': 'GST ਸੰਖੇਪ',
+  'rep.this_year': 'ਇਸ ਸਾਲ', 'rep.gst_summary': '{tax} ਸੰਖੇਪ',
   'rep.export_csv': 'CSV ਨਿਰਯਾਤ',
   'set.title': 'ਸੈਟਿੰਗਾਂ', 'set.business': 'ਕਾਰੋਬਾਰ',
   'set.bank': 'ਬੈਂਕ ਅਤੇ UPI', 'set.invoice': 'ਇਨਵਾਇਸ',
@@ -2291,7 +2291,7 @@ const _pa = <String, String>{
   'cat.item_hint': 'ਜਿਵੇਂ ਸੇਬ, ਮੋਬਾਈਲ, ਸਾਬਣ',
   'cat.price': 'ਕੀਮਤ (₹) *',
   'cat.unit': 'ਯੂਨਿਟ',
-  'cat.hsn': 'HSN/SAC ਕੋਡ (ਚੋਣਵਾਂ)',
+  'cat.hsn': '{itemcode} ਕੋਡ (ਚੋਣਵਾਂ)',
   'cat.save': 'ਕੈਟਾਲਾਗ ਵਿੱਚ ਸੇਵ ਕਰੋ',
   'cat.delete_title': 'ਕੈਟਾਲਾਗ ਤੋਂ ਮਿਟਾਉਣਾ?',
   'cat.from_catalog': 'ਕੈਟਾਲਾਗ ਤੋਂ',
@@ -2439,7 +2439,7 @@ const _or = <String, String>{
   'exp.cat_equipment': 'ଉପକରଣ', 'exp.cat_other': 'ଅନ୍ୟାନ୍ୟ',
   'rep.title': 'ରିପୋର୍ଟ', 'rep.revenue': 'ରାଜସ୍ୱ', 'rep.expenses': 'ଖର୍ଚ୍ଚ',
   'rep.profit': 'ଲାଭ', 'rep.this_month': 'ଏହି ମାସରେ', 'rep.last_month': 'ଗତ ମାସରେ',
-  'rep.this_year': 'ଏହି ବର୍ଷ', 'rep.gst_summary': 'GST ସାରାଂଶ',
+  'rep.this_year': 'ଏହି ବର୍ଷ', 'rep.gst_summary': '{tax} ସାରାଂଶ',
   'rep.export_csv': 'CSV ରପ୍ତାନି',
   'set.title': 'ସେଟିଂ', 'set.business': 'ବ୍ୟବସାୟ',
   'set.bank': 'ବ୍ୟାଙ୍କ ଓ UPI', 'set.invoice': 'ଇନଭଏସ',
@@ -2479,7 +2479,7 @@ const _or = <String, String>{
   'cat.item_hint': 'ଯଥା: ଆପଲ, ମୋବାଇଲ, ସାବୁନ',
   'cat.price': 'ମୂଲ୍ୟ (₹) *',
   'cat.unit': 'ଏକକ',
-  'cat.hsn': 'HSN/SAC କୋଡ୍ (ବୈକଳ୍ପିକ)',
+  'cat.hsn': '{itemcode} କୋଡ୍ (ବୈକଳ୍ପିକ)',
   'cat.save': 'କ୍ୟାଟଲଗରେ ସଞ୍ଚୟ',
   'cat.delete_title': 'କ୍ୟାଟଲଗରୁ ବିଲୋପ?',
   'cat.from_catalog': 'କ୍ୟାଟଲଗରୁ',
@@ -2626,7 +2626,7 @@ const _ur = <String, String>{
   'exp.cat_equipment': 'سامان', 'exp.cat_other': 'دیگر',
   'rep.title': 'رپورٹس', 'rep.revenue': 'آمدنی', 'rep.expenses': 'اخراجات',
   'rep.profit': 'منافع', 'rep.this_month': 'اس مہینے', 'rep.last_month': 'گزشتہ مہینے',
-  'rep.this_year': 'اس سال', 'rep.gst_summary': 'GST خلاصہ',
+  'rep.this_year': 'اس سال', 'rep.gst_summary': '{tax} خلاصہ',
   'rep.export_csv': 'CSV ایکسپورٹ',
   'set.title': 'سیٹنگز', 'set.business': 'کاروبار',
   'set.bank': 'بینک اور UPI', 'set.invoice': 'انوائس',
@@ -2666,7 +2666,7 @@ const _ur = <String, String>{
   'cat.item_hint': 'مثلاً سیب، موبائل، صابن',
   'cat.price': 'قیمت (₹) *',
   'cat.unit': 'یونٹ',
-  'cat.hsn': 'HSN/SAC کوڈ (اختیاری)',
+  'cat.hsn': '{itemcode} کوڈ (اختیاری)',
   'cat.save': 'کیٹلاگ میں محفوظ کریں',
   'cat.delete_title': 'کیٹلاگ سے حذف کریں؟',
   'cat.from_catalog': 'کیٹلاگ سے',
@@ -2852,7 +2852,16 @@ String _fillCountry(String value) {
   if (!value.contains('{')) return value;
   return value
       .replaceAll('{tax}', activeTaxName)
-      .replaceAll('{taxid}', activeTaxIdLabel);
+      .replaceAll('{taxid}', activeTaxIdLabel)
+      // Most countries have no item classification code on a retail
+      // bill. Where a field is shown anyway — the catalog's, which is
+      // free-text and harmless — it is labelled generically rather
+      // than left blank.
+      // 'Item', not 'Item code': the strings that use this
+      // placeholder already supply the word "code" around it, so the
+      // label reads "HSN Code (optional)" in India and "Item Code
+      // (optional)" everywhere else.
+      .replaceAll('{itemcode}', activeItemCodeLabel ?? 'Item');
 }
 
 // ── Translate function ────────────────────────────────────────
