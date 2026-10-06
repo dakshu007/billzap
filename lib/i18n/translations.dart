@@ -45,6 +45,20 @@ const _en = <String, String>{
   // Country / tax setup. The last two are deliberately plain about
   // what the app does and does not know, because the difference
   // decides whether the shopkeeper can trust the rate on their bill.
+  'set.country': 'Country & tax',
+  'set.tax_verified':
+      'Tax rules for this country are built into the app.',
+  'set.tax_custom':
+      'No built-in rules for this country, so you set the rate. '
+      'Please confirm it with your tax authority.',
+  'set.tax_unconfirmed':
+      'This rate is a starting point, not a checked figure. '
+      'Please confirm it with your tax authority before billing.',
+  'set.tax_edit': 'Tax rate',
+  'set.tax_name': 'What the tax is called',
+  'set.tax_rate': 'Rate',
+  'set.save': 'Save',
+
   'onboard.country_title': 'Where do you trade?',
   'onboard.country_sub':
       'This sets your currency and how tax is worked out on every bill.',

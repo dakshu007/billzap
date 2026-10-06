@@ -6,9 +6,11 @@
 // shopkeeper will print it on a legal document. So each profile states
 // where its numbers came from and whether a person has checked them.
 //
-//   verified: true   someone has checked these against `source`
-//   verified: false  plausible but UNCONFIRMED — the app must say so
-//                    and must not present the figures as authoritative
+//   TaxConfidence.verified      someone checked these against `source`
+//   TaxConfidence.unconfirmed   pre-filled from rate_table.dart and never
+//                               confirmed — the app says so and keeps the
+//                               rate editable
+//   TaxConfidence.selfDeclared  the shopkeeper typed it; no claim at all
 //
 // Only India is verified here, and only because it is the arithmetic
 // the app has already been shipping; nothing about it changed when it
@@ -18,7 +20,7 @@
 // confident of them, but "reasonably confident" is not a standard to
 // hold tax law to, and rates move — Singapore's GST went 7% → 8% → 9%
 // inside two years, and Saudi's VAT tripled from 5% to 15% overnight in
-// 2020. Confirm each against the revenue authority, set verified: true
+// 2020. Confirm each against the revenue authority, promote it to
 // in the same commit as the evidence, and bump effectiveFrom if the
 // rate has moved since.
 //
@@ -28,6 +30,8 @@
 // on day one, and is a far better position than a table of 180
 // half-remembered percentages.
 
+import 'countries.dart';
+import 'rate_table.dart';
 import 'tax_profile.dart';
 
 /// Where a country has no researched profile, the shopkeeper tells the
@@ -43,7 +47,7 @@ final TaxProfile customProfile = TaxProfile(
   rates: const [0, 5, 10, 15, 20],
   defaultRate: 0,
   intraComponents: const [TaxComponent('Tax', 1.0)],
-  verified: false,
+  confidence: TaxConfidence.selfDeclared,
   source: 'No tax data. The shopkeeper sets the rate and the label.',
   effectiveFrom: DateTime.utc(2020, 1, 1),
 );
@@ -70,7 +74,7 @@ final TaxProfile indiaProfile = TaxProfile(
   regionLabel: 'State',
   intraComponents: const [TaxComponent('CGST', 0.5), TaxComponent('SGST', 0.5)],
   interComponents: const [TaxComponent('IGST', 1.0)],
-  verified: true,
+  confidence: TaxConfidence.verified,
   source: 'The rates and the CGST/SGST/IGST split BillZap already '
       'shipped, moved here unchanged. tax_golden_test.dart asserts the '
       'arithmetic is identical to lib/models/models.dart.',
@@ -88,9 +92,9 @@ final TaxProfile uaeProfile = TaxProfile(
   rates: const [0, 5],
   defaultRate: 5,
   intraComponents: const [TaxComponent('VAT', 1.0)],
-  verified: false,
+  confidence: TaxConfidence.unconfirmed,
   source: 'UNCONFIRMED. Believed 5% standard rate. Check tax.gov.ae '
-      'and set verified: true with the evidence.',
+      'and promote it to TaxConfidence.verified with the evidence.',
   effectiveFrom: DateTime.utc(2018, 1, 1),
 );
 
@@ -105,7 +109,7 @@ final TaxProfile saudiProfile = TaxProfile(
   rates: const [0, 15],
   defaultRate: 15,
   intraComponents: const [TaxComponent('VAT', 1.0)],
-  verified: false,
+  confidence: TaxConfidence.unconfirmed,
   source: 'UNCONFIRMED. Believed 15% standard rate since July 2020. '
       'Check zatca.gov.sa. Note e-invoicing (Fatoora) has its own '
       'mandatory requirements this profile does NOT yet cover.',
@@ -123,7 +127,7 @@ final TaxProfile singaporeProfile = TaxProfile(
   rates: const [0, 9],
   defaultRate: 9,
   intraComponents: const [TaxComponent('GST', 1.0)],
-  verified: false,
+  confidence: TaxConfidence.unconfirmed,
   source: 'UNCONFIRMED. Believed 9% since 1 Jan 2024 (7% → 8% → 9%). '
       'Check iras.gov.sg — this rate moved twice in two years.',
   effectiveFrom: DateTime.utc(2024, 1, 1),
@@ -156,6 +160,34 @@ TaxProfile profileFor(String countryCode) {
 List<TaxProfile> get verifiedProfiles =>
     allProfiles.where((p) => p.verified).toList();
 
+/// A profile built from rate_table.dart, or null if that country has no
+/// row there.
+///
+/// Always [TaxConfidence.unconfirmed]: the table is recollection, not
+/// research. The currency comes from countries.dart, which is reference
+/// data and can be relied on in a way the rates cannot.
+TaxProfile? tableProfileFor(String countryCode) {
+  final row = rateRowFor(countryCode);
+  if (row == null) return null;
+  final c = countryFor(row.code);
+  return TaxProfile(
+    countryCode: row.code,
+    countryName: c?.name ?? row.code,
+    currencyCode: c?.currencyCode ?? 'USD',
+    currencySymbol: c?.currencySymbol ?? r'$',
+    taxName: row.taxName,
+    taxIdLabel: row.taxIdLabel,
+    rates: row.rates,
+    defaultRate: row.defaultRate,
+    intraComponents: [TaxComponent(row.taxName, 1.0)],
+    confidence: TaxConfidence.unconfirmed,
+    source: 'Standard rate from rate_table.dart — NOT CONFIRMED. '
+        'Check it against your tax authority; the app shows a notice '
+        'saying so and the rate stays editable in Settings.',
+    effectiveFrom: DateTime.utc(2025, 1, 1),
+  );
+}
+
 /// The profile a shop actually trades under.
 ///
 /// For a researched country this is simply that country's profile. For
@@ -176,6 +208,14 @@ TaxProfile resolveProfile({
   final base = profileFor(countryCode);
   if (base.countryCode != 'XX') return base;
 
+  // A researched profile wins; then the rate table, unless the
+  // shopkeeper has set their own rate, which always wins over a
+  // recollection. Only then does the blank custom profile apply.
+  if (customTaxRate == 0) {
+    final table = tableProfileFor(countryCode);
+    if (table != null) return table;
+  }
+
   final rates = <double>{0, customTaxRate}.toList()..sort();
   final label = customTaxName.trim().isEmpty ? 'Tax' : customTaxName.trim();
 
@@ -191,7 +231,7 @@ TaxProfile resolveProfile({
     rates: rates,
     defaultRate: customTaxRate,
     intraComponents: [TaxComponent(label, 1.0)],
-    verified: false,
+    confidence: TaxConfidence.unconfirmed,
     source: 'Set by the shopkeeper. No tax authority was consulted and '
         'the app makes no claim that this rate is correct.',
     effectiveFrom: DateTime.utc(2020, 1, 1),

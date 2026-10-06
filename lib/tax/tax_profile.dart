@@ -52,6 +52,25 @@ class TaxComponent {
   String toString() => '$label(${(share * 100).toStringAsFixed(0)}%)';
 }
 
+/// How much the app actually knows about this country's tax.
+///
+/// Three states, not two, because the middle one is the common case and
+/// collapsing it into either neighbour is a lie. A rate that came from
+/// rate_table.dart is a decent starting point and an unchecked claim at
+/// the same time; telling the shopkeeper it is "built in" would be
+/// wrong, and telling them the app knows nothing would be unhelpful.
+enum TaxConfidence {
+  /// Checked by a person against the authority named in [TaxProfile.source].
+  verified,
+
+  /// Pre-filled from rate_table.dart and never confirmed. The app must
+  /// show a notice and keep the rate editable.
+  unconfirmed,
+
+  /// The shopkeeper typed it. The app claims nothing at all.
+  selfDeclared,
+}
+
 /// Whether a supply stays inside the seller's own tax region.
 ///
 /// Only meaningful where [TaxProfile.regionMatters]; elsewhere every
@@ -76,7 +95,7 @@ class TaxProfile {
     required this.rates,
     required this.defaultRate,
     required this.intraComponents,
-    required this.verified,
+    required this.confidence,
     required this.source,
     required this.effectiveFrom,
     this.interComponents = const [],
@@ -124,9 +143,12 @@ class TaxProfile {
   /// field. Empty when [regionMatters] is false.
   final String regionLabel;
 
-  /// Whether a person has checked these numbers against the source
-  /// below. False means the app must not present them as authoritative.
-  final bool verified;
+  /// How far these numbers can be trusted. See [TaxConfidence].
+  final TaxConfidence confidence;
+
+  /// Kept as a getter so the one question most callers ask — can this be
+  /// presented as authoritative — stays a single word.
+  bool get verified => confidence == TaxConfidence.verified;
 
   /// Where the rates came from, so the next person can re-check them.
   final String source;
@@ -158,6 +180,5 @@ class TaxProfile {
   }
 
   @override
-  String toString() => 'TaxProfile($countryCode, $taxName, '
-      '${verified ? "verified" : "UNVERIFIED"})';
+  String toString() => 'TaxProfile($countryCode, $taxName, ${confidence.name})';
 }

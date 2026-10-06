@@ -7,6 +7,7 @@ import '../tax/countries.dart';
 import '../tax/profiles.dart';
 import '../tax/tax_engine.dart';
 import '../tax/tax_profile.dart';
+import '../design/money.dart';
 
 final storageProvider = Provider<LocalStorage>((_) => LocalStorage.instance);
 
@@ -44,6 +45,20 @@ final businessProvider =
 // is in.
 final taxProfileProvider = Provider<TaxProfile>((ref) {
   final biz = ref.watch(businessProvider);
+  final profile = _resolve(biz);
+  // Push the currency into money.dart, which renders every amount in
+  // the app and cannot read a provider — it is on the hot path of every
+  // row of every list. Same shape the i18n layer already uses.
+  setActiveCurrency(
+    symbol: profile.currencySymbol,
+    grouping: profile.grouping == NumberGrouping.indian
+        ? MoneyGrouping.indian
+        : MoneyGrouping.western,
+  );
+  return profile;
+});
+
+TaxProfile _resolve(Business? biz) {
   if (biz == null) return indiaProfile;
   return resolveProfile(
     countryCode: biz.countryCode,
@@ -54,7 +69,7 @@ final taxProfileProvider = Provider<TaxProfile>((ref) {
     customCurrencyCode:
         countryFor(biz.countryCode)?.currencyCode ?? 'USD',
   );
-});
+}
 
 /// The engine bound to the current profile. Screens compute totals
 /// through this so the arithmetic lives in one tested place.

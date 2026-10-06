@@ -21,6 +21,35 @@ import 'package:flutter/material.dart';
 import 'tokens.dart';
 import 'theme.dart';
 
+// ── The active currency ─────────────────────────────────────────────
+//
+// Money renders every amount in the app, from a dashboard hero figure to
+// a line item in a list, and it used to hardcode the rupee glyph and
+// Indian grouping. Making it a ConsumerWidget would have meant touching
+// all 37 call sites and putting a provider read on the hot path of every
+// row of every list.
+//
+// Instead the same shape the i18n layer already uses: a module-level
+// value that a provider keeps current. taxProfileProvider calls
+// setActiveCurrency whenever the shop's country changes, and every Money
+// built afterwards picks it up. The default is the rupee, so an install
+// that never touches the setting behaves exactly as it always did.
+
+/// Whether a currency groups digits in threes or the Indian way.
+enum MoneyGrouping { western, indian }
+
+String _symbol = '\u20B9';
+MoneyGrouping _grouping = MoneyGrouping.indian;
+
+/// Called by taxProfileProvider. Not for screens to call directly.
+void setActiveCurrency({required String symbol, required MoneyGrouping grouping}) {
+  _symbol = symbol;
+  _grouping = grouping;
+}
+
+String get activeCurrencySymbol => _symbol;
+MoneyGrouping get activeGrouping => _grouping;
+
 /// Formats a number in the Indian grouping system (lakh / crore).
 ///
 /// `intl`'s en_IN locale can do this, but this is on the hot path for
@@ -34,6 +63,19 @@ String formatIndianDigits(num value, {int decimals = 2}) {
   final parts = fixed.split('.');
   var whole = parts[0];
   final fraction = parts.length > 1 ? parts[1] : '';
+
+  // Outside India, group in threes. The function keeps its name because
+  // it is called from 37 places and the Indian path is still the one
+  // that needed hand-writing; the western path is the ordinary rule.
+  if (_grouping == MoneyGrouping.western && whole.length > 3) {
+    final buf = StringBuffer();
+    for (var i = 0; i < whole.length; i++) {
+      if (i > 0 && (whole.length - i) % 3 == 0) buf.write(',');
+      buf.write(whole[i]);
+    }
+    final body = fraction.isEmpty ? buf.toString() : '$buf.$fraction';
+    return negative ? '-$body' : body;
+  }
 
   // Last three digits stay together; everything above pairs off.
   String grouped;
@@ -66,8 +108,15 @@ String formatMoneyCompact(num value) {
 String formatMoneyShort(num value) {
   final abs = value.abs();
   final sign = value < 0 ? '-' : '';
-  if (abs >= 10000000) return '$sign${(abs / 10000000).toStringAsFixed(abs >= 100000000 ? 0 : 1)}Cr';
-  if (abs >= 100000) return '$sign${(abs / 100000).toStringAsFixed(abs >= 1000000 ? 0 : 1)}L';
+  // Lakh and crore are not units anyone outside the subcontinent reads.
+  // Elsewhere the ladder is K / M / B.
+  if (_grouping == MoneyGrouping.indian) {
+    if (abs >= 10000000) return '$sign${(abs / 10000000).toStringAsFixed(abs >= 100000000 ? 0 : 1)}Cr';
+    if (abs >= 100000) return '$sign${(abs / 100000).toStringAsFixed(abs >= 1000000 ? 0 : 1)}L';
+  } else {
+    if (abs >= 1000000000) return '$sign${(abs / 1000000000).toStringAsFixed(abs >= 10000000000 ? 0 : 1)}B';
+    if (abs >= 1000000) return '$sign${(abs / 1000000).toStringAsFixed(abs >= 10000000 ? 0 : 1)}M';
+  }
   if (abs >= 1000) return '$sign${(abs / 1000).toStringAsFixed(abs >= 10000 ? 0 : 1)}K';
   return '$sign${formatIndianDigits(abs, decimals: 0)}';
 }
@@ -154,7 +203,7 @@ class Money extends StatelessWidget {
     return Text.rich(
       TextSpan(children: [
         TextSpan(
-          text: '₹',
+          text: _symbol,
           style: base.copyWith(
             fontSize: (base.fontSize ?? 16) * _symbolRatio,
             fontWeight: FontWeight.w500,

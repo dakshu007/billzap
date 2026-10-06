@@ -17,6 +17,7 @@ import '../../models/models.dart';
 import '../../providers/providers.dart';
 import '../../tax/countries.dart';
 import '../../tax/profiles.dart';
+import '../../tax/tax_profile.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -79,8 +80,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Widget _countryStep() {
     final country = countryFor(_country);
     final profile = resolveProfile(countryCode: _country);
-    final researched = profile.countryCode != 'XX' && profile.verified ||
-        allProfiles.any((p) => p.countryCode == _country);
+    // Same three states as Settings. A rate pre-filled from the table is
+    // neither "built in" nor "nothing" and must not be shown as either.
+    final (noticeKey, noticeIcon) = switch (profile.confidence) {
+      TaxConfidence.verified => ('onboard.country_known', Icons.verified_outlined),
+      TaxConfidence.unconfirmed => ('set.tax_unconfirmed', Icons.help_outline),
+      TaxConfidence.selfDeclared => ('onboard.country_custom', Icons.tune),
+    };
+    final known = profile.confidence == TaxConfidence.verified;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -141,21 +148,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: researched ? AppColors.brandSofter : AppColors.inset,
+              color: known ? AppColors.brandSofter : AppColors.inset,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(researched ? Icons.verified_outlined : Icons.tune,
-                    size: 18,
-                    color: researched ? AppColors.brand : AppColors.t3),
+                Icon(noticeIcon, size: 18,
+                    color: known ? AppColors.brand : AppColors.t3),
                 const Gap(10),
                 Expanded(
                   child: Text(
-                    researched
-                        ? trGlobal('onboard.country_known')
-                        : trGlobal('onboard.country_custom'),
+                    trGlobal(noticeKey),
                     style: TextStyle(
                         fontSize: 13, height: 1.45, color: AppColors.t2),
                   ),

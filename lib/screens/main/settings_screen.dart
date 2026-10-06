@@ -21,6 +21,10 @@ import '../../utils/validators.dart';
 import '../../utils/platform.dart';
 import '../../widgets/language_picker.dart';
 import '../../providers/theme_provider.dart';
+import '../../widgets/country_picker.dart';
+import '../../tax/countries.dart';
+import '../../tax/profiles.dart';
+import '../../tax/tax_profile.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -683,6 +687,15 @@ Download: $playStoreUrl
         ),
 
         // ═════════════════════════════════════════════════
+        // COUNTRY & TAX — where the shop trades
+        // ═════════════════════════════════════════════════
+        // Without this the country could only be set during onboarding,
+        // which means every install that already existed was stuck on
+        // India with no way out — the whole international feature was
+        // unreachable for exactly the people already using the app.
+        const _CountryTile(),
+
+        // ═════════════════════════════════════════════════
         // THEME TILE — light / dark / system
         // ═════════════════════════════════════════════════
         _ThemeTile(),
@@ -1254,4 +1267,218 @@ class _StatePicker extends StatelessWidget {
       }),
     );
   }
+}
+
+
+// ─── Country & tax ────────────────────────────────────────────────────
+//
+// Two rows in one tile: which country, and — unless the profile is
+// verified — what the shopkeeper says their tax is called and costs.
+//
+// The second row is not a degraded state. For most of the world nobody
+// has checked the rates, and asking is honest where asserting would not
+// be. It is offered for an unconfirmed table rate too, because that is
+// exactly the case where somebody most needs to be able to correct us.
+class _CountryTile extends ConsumerWidget {
+  const _CountryTile({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final biz = ref.watch(businessProvider);
+    final profile = ref.watch(taxProfileProvider);
+    final country = countryFor(profile.countryCode);
+    // Three states. Collapsing the middle one into either neighbour
+    // would be a lie: a rate from the table is a real starting point AND
+    // an unchecked claim, and the shopkeeper needs to know both.
+    final (noticeKey, noticeIcon, noticeTint) = switch (profile.confidence) {
+      TaxConfidence.verified =>
+        ('set.tax_verified', Symbols.verified, AppColor.primary),
+      TaxConfidence.unconfirmed =>
+        ('set.tax_unconfirmed', Symbols.help, AppColors.orange),
+      TaxConfidence.selfDeclared =>
+        ('set.tax_custom', Symbols.tune, AppColors.t3),
+    };
+    final editable = profile.confidence != TaxConfidence.verified;
+
+    Future<void> change() async {
+      HapticFeedback.lightImpact();
+      final picked = await pickCountry(context, selected: profile.countryCode);
+      if (picked == null) return;
+      await ref.read(businessProvider.notifier).save(
+            (biz ?? Business()).copyWith(
+              countryCode: picked.code,
+              customCurrencySymbol: picked.currencySymbol,
+            ),
+          );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border)),
+      child: Material(
+        color: Colors.transparent,
+        child: Column(children: [
+          InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: change,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              child: Row(children: [
+                Container(
+                  width: 42, height: 42,
+                  decoration: BoxDecoration(
+                    color: AppColor.wash(AppColor.primary),
+                    borderRadius: BorderRadius.circular(11)),
+                  child: Icon(Symbols.public, color: AppColor.primary, size: 22)),
+                const Gap(12),
+                Expanded(child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(tr('set.country', ref),
+                      style: AppFont.sans(fontSize: 14.5,
+                        fontWeight: FontWeight.w600, color: AppColors.t1)),
+                    const Gap(2),
+                    Text(
+                      '${country?.name ?? profile.countryName} · '
+                      '${profile.currencyCode} · ${profile.taxName}'
+                      '${profile.defaultRate > 0 ? " ${profile.defaultRate}%" : ""}',
+                      style: AppFont.sans(fontSize: 12, color: AppColors.t3)),
+                  ])),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColors.brandSoft,
+                    borderRadius: BorderRadius.circular(20)),
+                  child: Text(tr('set.change', ref),
+                    style: AppFont.sans(fontSize: 11,
+                      fontWeight: FontWeight.w700, color: AppColors.brand))),
+                const Gap(4),
+                Icon(Symbols.chevron_right, color: AppColors.t3, size: 22),
+              ]),
+            ),
+          ),
+
+          // Say which of the two situations this country is in. A
+          // shopkeeper has to know whether the rate on their bill is the
+          // app's claim or their own.
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Icon(noticeIcon, size: 15, color: noticeTint),
+              const Gap(8),
+              Expanded(child: Text(tr(noticeKey, ref),
+                style: AppFont.sans(fontSize: 11.5, height: 1.4,
+                  color: AppColors.t3))),
+            ]),
+          ),
+
+          // Editable for anything not verified — including a table
+          // rate, which is precisely the case where a shopkeeper most
+          // needs to be able to correct us.
+          if (editable) ...[
+            Divider(height: 1, color: AppColors.border),
+            InkWell(
+              onTap: () => _editCustomTax(context, ref, biz, profile),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                child: Row(children: [
+                  Icon(Symbols.percent, size: 18, color: AppColors.t3),
+                  const Gap(12),
+                  Expanded(child: Text(tr('set.tax_edit', ref),
+                    style: AppFont.sans(fontSize: 13.5,
+                      fontWeight: FontWeight.w600, color: AppColors.t1))),
+                  Text('${profile.taxName} ${profile.defaultRate}%',
+                    style: AppFont.sans(fontSize: 12.5, color: AppColors.t3)),
+                  const Gap(4),
+                  Icon(Symbols.chevron_right, color: AppColors.t3, size: 20),
+                ]),
+              ),
+            ),
+          ],
+        ]),
+      ),
+    );
+  }
+}
+
+Future<void> _editCustomTax(BuildContext context, WidgetRef ref,
+    Business? biz, TaxProfile profile) async {
+  final name = TextEditingController(text: profile.taxName);
+  final rate = TextEditingController(
+      text: profile.defaultRate == 0 ? '' : '${profile.defaultRate}');
+  // Declared outside the builder so it survives every rebuild — the
+  // same trap that made four other sheets in this app save twice.
+  bool saving = false;
+
+  await showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) => StatefulBuilder(builder: (ctx, ss) {
+      return Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.bg,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20))),
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+          child: Column(mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(tr('set.tax_edit', ref),
+              style: AppFont.sans(fontSize: 17,
+                fontWeight: FontWeight.w700, color: AppColors.t1)),
+            const Gap(6),
+            Text(tr('set.tax_custom', ref),
+              style: AppFont.sans(fontSize: 12.5, height: 1.45,
+                color: AppColors.t3)),
+            const Gap(18),
+            TextField(
+              controller: name,
+              textCapitalization: TextCapitalization.characters,
+              decoration: InputDecoration(
+                labelText: tr('set.tax_name', ref),
+                hintText: 'VAT',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12))),
+            ),
+            const Gap(12),
+            TextField(
+              controller: rate,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: tr('set.tax_rate', ref),
+                suffixText: '%',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12))),
+            ),
+            const Gap(20),
+            SizedBox(width: double.infinity, child: ElevatedButton(
+              onPressed: saving ? null : () async {
+                ss(() => saving = true);
+                final parsed = double.tryParse(rate.text.trim()) ?? 0;
+                await ref.read(businessProvider.notifier).save(
+                  (biz ?? Business()).copyWith(
+                    customTaxName: name.text.trim().isEmpty
+                        ? 'Tax' : name.text.trim(),
+                    // Clamped: a negative rate would subtract tax and a
+                    // rate above 100 is a typo, not a jurisdiction.
+                    customTaxRate: parsed.clamp(0, 100),
+                  ));
+                if (ctx.mounted) Navigator.of(ctx).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.brand,
+                foregroundColor: AppColors.onBrand,
+                padding: const EdgeInsets.symmetric(vertical: 14)),
+              child: Text(tr('set.save', ref)),
+            )),
+          ]),
+        ),
+      );
+    }),
+  );
 }
