@@ -5,6 +5,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:billzap/theme/app_icons.dart';
 
+import '../design/money.dart';
 import '../models/models.dart';
 
 enum InsightType {
@@ -408,17 +409,14 @@ class InsightEngine {
   // ─────────────────────────────────────────────────────────────────
   // HELPERS
   // ─────────────────────────────────────────────────────────────────
-  static String _inr(double amount) {
-    if (amount >= 10000000) {
-      return '₹${(amount / 10000000).toStringAsFixed(2)}cr';
-    } else if (amount >= 100000) {
-      return '₹${(amount / 100000).toStringAsFixed(2)}L';
-    } else if (amount >= 1000) {
-      return '₹${(amount / 1000).toStringAsFixed(amount % 1000 == 0 ? 0 : 1)}k';
-    } else {
-      return '₹${amount.toStringAsFixed(0)}';
-    }
-  }
+  /// Short money for an insight sentence.
+  ///
+  /// Delegates to the shared short formatter so the ladder matches the
+  /// rest of the app and follows the country: lakh and crore in South
+  /// Asia, K/M/B everywhere else. An insight that said "₹12L" to a
+  /// shopkeeper in Lagos was telling them nothing.
+  static String _inr(double amount) =>
+      '$activeCurrencySymbol${formatMoneyShort(amount)}';
 
   static String _monthName(int m) {
     const names = ['', 'January', 'February', 'March', 'April', 'May', 'June',

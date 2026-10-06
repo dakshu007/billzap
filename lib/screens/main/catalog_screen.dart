@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:billzap/theme/app_icons.dart';
 import 'package:gap/gap.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
+import '../../design/money.dart';
 import '../../theme/app_theme.dart';
 import '../../design/components.dart';
 import '../../services/gst_classifier.dart';
@@ -154,7 +155,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                                       color: AppColors.t1)),
                               const Gap(2),
                               Row(children: [
-                                Text('₹${item.price.toStringAsFixed(0)}',
+                                Text(formatActiveMoney(item.price, decimals: 0),
                                     style: AppFont.sans(
                                         fontSize: 12, color: AppColors.t3)),
                                 const Gap(8),

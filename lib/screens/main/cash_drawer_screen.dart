@@ -9,6 +9,7 @@ import 'package:gap/gap.dart';
 import 'package:billzap/theme/app_icons.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
+import '../../design/money.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
@@ -460,22 +461,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
     }
   }
 
-  String _inrFmt(double v) {
-    final isNeg = v < 0;
-    final abs = v.abs();
-    final parts = abs.toStringAsFixed(0).split('.');
-    String integer = parts[0];
-    if (integer.length > 3) {
-      final last3 = integer.substring(integer.length - 3);
-      final rest = integer.substring(0, integer.length - 3);
-      final groups = <String>[];
-      for (var i = rest.length; i > 0; i -= 2) {
-        groups.insert(0, rest.substring(i < 2 ? 0 : i - 2, i));
-      }
-      integer = '${groups.join(',')},$last3';
-    }
-    return '${isNeg ? '-' : ''}₹$integer';
-  }
+  String _inrFmt(double v) => formatActiveMoney(v, decimals: 0);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -570,20 +556,5 @@ class _ModeRow extends StatelessWidget {
     );
   }
 
-  static String _inr(double v) {
-    final isNeg = v < 0;
-    final abs = v.abs();
-    final parts = abs.toStringAsFixed(0).split('.');
-    String integer = parts[0];
-    if (integer.length > 3) {
-      final last3 = integer.substring(integer.length - 3);
-      final rest = integer.substring(0, integer.length - 3);
-      final groups = <String>[];
-      for (var i = rest.length; i > 0; i -= 2) {
-        groups.insert(0, rest.substring(i < 2 ? 0 : i - 2, i));
-      }
-      integer = '${groups.join(',')},$last3';
-    }
-    return '${isNeg ? '-' : ''}₹$integer';
-  }
+  static String _inr(double v) => formatActiveMoney(v, decimals: 0);
 }

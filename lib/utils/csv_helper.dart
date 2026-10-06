@@ -4,6 +4,7 @@
 
 import 'package:intl/intl.dart';
 import '../models/models.dart';
+import '../tax/active_profile.dart';
 
 class CsvHelper {
   static const _bom = '\uFEFF';  // UTF-8 BOM, makes Excel detect UTF-8 properly
@@ -49,7 +50,15 @@ class CsvHelper {
     final buf = StringBuffer(_bom);
     buf.write(_row([
       'Invoice Number', 'Date', 'Due Date', 'Customer', 'Customer Phone',
-      'Customer GSTIN', 'Subtotal', 'CGST', 'SGST', 'IGST',
+      'Customer $activeTaxIdLabel', 'Subtotal',
+      // The three India columns stay, and stay in this position, so
+      // anything already importing this file keeps working. They are
+      // simply 0 on a bill from a country that has no such split.
+      'CGST', 'SGST', 'IGST',
+      // What the bill actually charged, for everywhere else: the total,
+      // the named split as text, and the currency and country it was
+      // in — without which a mixed-country export is unreadable.
+      'Total Tax', 'Tax Breakdown', 'Currency', 'Country',
       'Shipping', 'Discount', 'Grand Total', 'Status', 'Place of Supply',
       'Notes',
     ]));
@@ -69,6 +78,12 @@ class CsvHelper {
         _inrNum(inv.totalCgst),
         _inrNum(inv.totalSgst),
         _inrNum(inv.totalIgst),
+        _inrNum(inv.totalTax),
+        inv.taxRows
+            .map((r) => '${r.label} ${r.rate}%: ${_inrNum(r.amount)}')
+            .join(' | '),
+        inv.currencySymbol.isEmpty ? '\u20B9' : inv.currencySymbol,
+        inv.taxCountryCode,
         _inrNum(inv.shippingCharge),
         _inrNum(inv.flatDiscount),
         _inrNum(inv.grandTotal),

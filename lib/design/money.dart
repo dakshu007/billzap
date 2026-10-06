@@ -18,6 +18,8 @@
 
 import 'package:flutter/material.dart';
 
+import '../tax/tax_profile.dart';
+
 import 'tokens.dart';
 import 'theme.dart';
 
@@ -50,14 +52,30 @@ void setActiveCurrency({required String symbol, required MoneyGrouping grouping}
 String get activeCurrencySymbol => _symbol;
 MoneyGrouping get activeGrouping => _grouping;
 
+/// The grouping a given country's amounts use, independent of whatever
+/// the shop is set to right now.
+///
+/// Needed when formatting a *stored* amount rather than a live one: a
+/// rupee invoice written last year must reprint as 12,34,567 even after
+/// the shop has moved to Dubai. The country list lives in
+/// tax_profile.dart so there is one answer, not two.
+MoneyGrouping groupingForCountry(String countryCode) =>
+    groupingFor(countryCode) == NumberGrouping.indian
+        ? MoneyGrouping.indian
+        : MoneyGrouping.western;
+
 /// Formats a number in the Indian grouping system (lakh / crore).
 ///
 /// `intl`'s en_IN locale can do this, but this is on the hot path for
 /// every row of every list, so a direct implementation avoids the
 /// per-call locale lookup.
-String formatIndianDigits(num value, {int decimals = 2}) {
+/// [grouping] overrides the shop's current setting, for the one case
+/// that needs it: formatting an amount that was *stored* under
+/// different settings. Omit it and every live call behaves as before.
+String formatIndianDigits(num value, {int decimals = 2, MoneyGrouping? grouping}) {
   final negative = value < 0;
   final abs = value.abs();
+  final mode = grouping ?? _grouping;
 
   final fixed = abs.toStringAsFixed(decimals);
   final parts = fixed.split('.');
@@ -67,7 +85,7 @@ String formatIndianDigits(num value, {int decimals = 2}) {
   // Outside India, group in threes. The function keeps its name because
   // it is called from 37 places and the Indian path is still the one
   // that needed hand-writing; the western path is the ordinary rule.
-  if (_grouping == MoneyGrouping.western && whole.length > 3) {
+  if (mode == MoneyGrouping.western && whole.length > 3) {
     final buf = StringBuffer();
     for (var i = 0; i < whole.length; i++) {
       if (i > 0 && (whole.length - i) % 3 == 0) buf.write(',');
@@ -99,9 +117,10 @@ String formatIndianDigits(num value, {int decimals = 2}) {
 
 /// Drops a trailing `.00` — a shop's prices are usually whole rupees, and
 /// the noise adds up across a dense list.
-String formatMoneyCompact(num value) {
+String formatMoneyCompact(num value, {MoneyGrouping? grouping}) {
   final whole = value == value.roundToDouble();
-  return formatIndianDigits(value, decimals: whole ? 0 : 2);
+  return formatIndianDigits(value,
+      decimals: whole ? 0 : 2, grouping: grouping);
 }
 
 /// Short form for chart axes and dense stat tiles: 1.2L, 3.4Cr.
@@ -119,6 +138,39 @@ String formatMoneyShort(num value) {
   }
   if (abs >= 1000) return '$sign${(abs / 1000).toStringAsFixed(abs >= 10000 ? 0 : 1)}K';
   return '$sign${formatIndianDigits(abs, decimals: 0)}';
+}
+
+/// The shop's current currency, as a plain string.
+///
+/// The live counterpart of [formatStoredMoney], for the places that
+/// need text rather than the [Money] widget — a PDF, a CSV header, a
+/// share message.
+String formatActiveMoney(num value, {bool withSymbol = true, int decimals = 2}) {
+  final body = formatIndianDigits(value.abs(), decimals: decimals);
+  final sign = value < 0 ? '-' : '';
+  return '$sign${withSymbol ? _symbol : ''}$body';
+}
+
+/// Format an amount exactly as it was recorded, not as the shop is set
+/// up today.
+///
+/// A bill is a legal record. Reprinting a rupee invoice as dirhams
+/// because the shopkeeper has since changed country would be a forged
+/// document, so stored amounts carry their own symbol and their own
+/// country's grouping. An empty [symbol] means the rupee, which is what
+/// every invoice written before BillZap left India was in.
+String formatStoredMoney(
+  num value, {
+  required String symbol,
+  required String countryCode,
+  bool withSymbol = true,
+  int decimals = 2,
+}) {
+  final glyph = symbol.isEmpty ? '\u20B9' : symbol;
+  final body = formatIndianDigits(value.abs(),
+      decimals: decimals, grouping: groupingForCountry(countryCode));
+  final sign = value < 0 ? '-' : '';
+  return '$sign${withSymbol ? glyph : ''}$body';
 }
 
 /// How large the ₹ glyph is relative to the amount it prefixes.
@@ -155,6 +207,16 @@ class Money extends StatelessWidget {
 
   final TextAlign? textAlign;
 
+  /// Render in a *stored* currency instead of the shop's current one.
+  ///
+  /// Only a saved record should pass this — an invoice reprint, a past
+  /// receipt. Live figures leave it null and follow the setting.
+  final String? storedSymbol;
+
+  /// The country whose digit grouping this stored amount used. Ignored
+  /// unless [storedSymbol] is given.
+  final String? storedCountryCode;
+
   const Money(
     this.value, {
     super.key,
@@ -166,6 +228,8 @@ class Money extends StatelessWidget {
     this.animate = false,
     this.signed = false,
     this.textAlign,
+    this.storedSymbol,
+    this.storedCountryCode,
   });
 
   Color _resolve() {
@@ -192,8 +256,14 @@ class Money extends StatelessWidget {
 
   Widget _render(num v, Color fg) {
     final shown = round ? v.roundToDouble() : v;
-    final body =
-        compact ? formatMoneyCompact(shown) : formatIndianDigits(shown);
+    // A stored amount is formatted in the currency it was recorded in,
+    // so an old invoice reads the same after the shop changes country.
+    final stored = storedSymbol != null;
+    final grouping =
+        stored ? groupingForCountry(storedCountryCode ?? 'IN') : null;
+    final body = compact
+        ? formatMoneyCompact(shown, grouping: grouping)
+        : formatIndianDigits(shown, grouping: grouping);
     final base = AppFont.style(style, color: fg);
 
     if (!showSymbol) {
@@ -203,7 +273,7 @@ class Money extends StatelessWidget {
     return Text.rich(
       TextSpan(children: [
         TextSpan(
-          text: _symbol,
+          text: stored && storedSymbol!.isNotEmpty ? storedSymbol! : _symbol,
           style: base.copyWith(
             fontSize: (base.fontSize ?? 16) * _symbolRatio,
             fontWeight: FontWeight.w500,
@@ -238,6 +308,11 @@ class MoneyCounter extends StatefulWidget {
   final bool round;
   final Duration duration;
 
+  /// See [Money.storedSymbol] — for a hero figure read off a saved
+  /// record rather than computed live.
+  final String? storedSymbol;
+  final String? storedCountryCode;
+
   const MoneyCounter(
     this.value, {
     super.key,
@@ -246,6 +321,8 @@ class MoneyCounter extends StatefulWidget {
     this.compact = true,
     this.round = true,
     this.duration = const Duration(milliseconds: 900),
+    this.storedSymbol,
+    this.storedCountryCode,
   });
 
   @override
@@ -274,6 +351,8 @@ class _MoneyCounterState extends State<MoneyCounter> {
         color: widget.color,
         compact: widget.compact,
         round: widget.round,
+        storedSymbol: widget.storedSymbol,
+        storedCountryCode: widget.storedCountryCode,
       ),
     );
   }

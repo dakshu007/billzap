@@ -26,6 +26,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:intl/intl.dart';
+import '../design/money.dart';
 import '../models/models.dart';
 
 class ReportPdfBuilder {
@@ -60,24 +61,14 @@ class ReportPdfBuilder {
   }
 
   // ── Money ───────────────────────────────────────────────────────
-  // Indian grouping: the last three digits, then pairs. 12,34,567.00,
-  // never 1,234,567.00 — an accountant reads the wrong number off the
-  // western grouping at a glance.
-  static String _inr(double v, {bool symbol = true}) {
-    final neg = v < 0;
-    final parts = v.abs().toStringAsFixed(2).split('.');
-    var integer = parts[0];
-    if (integer.length > 3) {
-      final last3 = integer.substring(integer.length - 3);
-      final rest = integer.substring(0, integer.length - 3);
-      final groups = <String>[];
-      for (var i = rest.length; i > 0; i -= 2) {
-        groups.insert(0, rest.substring(i < 2 ? 0 : i - 2, i));
-      }
-      integer = '${groups.join(',')},$last3';
-    }
-    return '${neg ? '-' : ''}${symbol ? '₹' : ''}$integer.${parts[1]}';
-  }
+  // The shop's own currency and its own country's grouping. In India
+  // that is still the last three digits then pairs — 12,34,567.00,
+  // never 1,234,567.00, because an accountant reads the wrong number
+  // off the western grouping at a glance. Elsewhere the western rule is
+  // the one that reads correctly, which is the whole point of asking
+  // the shopkeeper what country they are in.
+  static String _inr(double v, {bool symbol = true}) =>
+      formatActiveMoney(v, withSymbol: symbol);
 
   static String _dt(DateTime d) => DateFormat('d MMM yyyy').format(d);
 

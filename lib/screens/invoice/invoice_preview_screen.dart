@@ -335,6 +335,8 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                                 color: inkSoft,
                                 showSymbol: false,
                                 compact: false,
+                                storedSymbol: '',
+                                storedCountryCode: invoice.taxCountryCode,
                                 textAlign: TextAlign.right),
                           ),
                         ),
@@ -347,6 +349,8 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                                 color: ink,
                                 showSymbol: false,
                                 compact: false,
+                                storedSymbol: '',
+                                storedCountryCode: invoice.taxCountryCode,
                                 textAlign: TextAlign.right),
                           ),
                         ),
@@ -361,20 +365,20 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpace.xl),
           child: Column(children: [
-            _DocTotal('Subtotal', invoice.subtotal, ink, inkSoft),
-            if (invoice.totalCgst > 0)
-              _DocTotal('CGST ${invoice.gstRateForDisplay / 2}%',
-                  invoice.totalCgst, ink, inkSoft),
-            if (invoice.totalSgst > 0)
-              _DocTotal('SGST ${invoice.gstRateForDisplay / 2}%',
-                  invoice.totalSgst, ink, inkSoft),
-            if (invoice.totalIgst > 0)
-              _DocTotal('IGST ${invoice.gstRateForDisplay}%',
-                  invoice.totalIgst, ink, inkSoft),
+            _DocTotal('Subtotal', invoice.subtotal, ink, inkSoft,
+                country: invoice.taxCountryCode),
+            // Whatever this country's bill names its tax, in its own
+            // order. India still prints two rows or one.
+            for (final r in invoice.taxRows)
+              if (r.amount > 0)
+                _DocTotal('${r.label} ${r.rate}%', r.amount, ink, inkSoft,
+                    country: invoice.taxCountryCode),
             if (invoice.shippingCharge > 0)
-              _DocTotal('Shipping', invoice.shippingCharge, ink, inkSoft),
+              _DocTotal('Shipping', invoice.shippingCharge, ink, inkSoft,
+                  country: invoice.taxCountryCode),
             if (invoice.flatDiscount > 0)
-              _DocTotal('Discount', -invoice.flatDiscount, ink, inkSoft),
+              _DocTotal('Discount', -invoice.flatDiscount, ink, inkSoft,
+                  country: invoice.taxCountryCode),
           ]),
         ),
         const Gap(AppSpace.md),
@@ -395,7 +399,10 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                 Text('TOTAL DUE',
                     style: doc(AppType.overline, color: inkSoft)),
                 MoneyCounter(invoice.grandTotal,
-                    style: AppType.amountL, color: AppColor.paid),
+                    style: AppType.amountL,
+                    color: AppColor.paid,
+                    storedSymbol: invoice.currencySymbol,
+                    storedCountryCode: invoice.taxCountryCode),
               ]),
         ),
 
@@ -595,23 +602,17 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     final doc = pw.Document(theme: theme);
     final isPaid = invoice.status == InvoiceStatus.paid;
 
-    /// Indian digit grouping with a real rupee sign.
-    String rs(double amount, {bool symbol = true}) {
-      final abs = amount.abs();
-      final parts = abs.toStringAsFixed(2).split('.');
-      var integer = parts[0];
-      if (integer.length > 3) {
-        final last3 = integer.substring(integer.length - 3);
-        final rest = integer.substring(0, integer.length - 3);
-        final groups = <String>[];
-        for (var i = rest.length; i > 0; i -= 2) {
-          groups.insert(0, rest.substring(i < 2 ? 0 : i - 2, i));
-        }
-        integer = '${groups.join(',')},$last3';
-      }
-      final sign = amount < 0 ? '-' : '';
-      return '$sign${symbol ? '₹' : ''}$integer.${parts[1]}';
-    }
+    /// The invoice's own currency and its own country's grouping.
+    ///
+    /// Read from the invoice, never from the shop's current settings:
+    /// reprinting a rupee bill in dirhams because the shopkeeper moved
+    /// would be a forged document.
+    String rs(double amount, {bool symbol = true}) => formatStoredMoney(
+          amount,
+          symbol: invoice.currencySymbol,
+          countryCode: invoice.taxCountryCode,
+          withSymbol: symbol,
+        );
 
     final upiLink = (biz != null &&
             biz.upiId.isNotEmpty &&
@@ -837,15 +838,9 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                 flex: 4,
                 child: pw.Column(children: [
                   totalRow('Subtotal', invoice.subtotal),
-                  if (invoice.totalCgst > 0)
-                    totalRow('CGST ${invoice.gstRateForDisplay / 2}%',
-                        invoice.totalCgst),
-                  if (invoice.totalSgst > 0)
-                    totalRow('SGST ${invoice.gstRateForDisplay / 2}%',
-                        invoice.totalSgst),
-                  if (invoice.totalIgst > 0)
-                    totalRow('IGST ${invoice.gstRateForDisplay}%',
-                        invoice.totalIgst),
+                  for (final r in invoice.taxRows)
+                    if (r.amount > 0)
+                      totalRow('${r.label} ${r.rate}%', r.amount),
                   if (invoice.shippingCharge > 0)
                     totalRow('Shipping', invoice.shippingCharge),
                   if (invoice.flatDiscount > 0)
@@ -1573,7 +1568,11 @@ class _DocTotal extends StatelessWidget {
   final String label;
   final double amount;
   final Color ink, inkSoft;
-  const _DocTotal(this.label, this.amount, this.ink, this.inkSoft);
+  /// The invoice's own country, so the grouping matches the PDF even
+  /// after the shop has moved.
+  final String country;
+  const _DocTotal(this.label, this.amount, this.ink, this.inkSoft,
+      {this.country = 'IN'});
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -1584,7 +1583,9 @@ class _DocTotal extends StatelessWidget {
               style: AppType.amountS,
               color: ink,
               showSymbol: false,
-              compact: false),
+              compact: false,
+              storedSymbol: '',
+              storedCountryCode: country),
         ]),
       );
 }

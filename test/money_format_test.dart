@@ -53,7 +53,9 @@ void main() {
       expect(formatMoneyShort(1500000), '1.5M');
       expect(formatMoneyShort(2500000000), '2.5B');
       expect(formatMoneyShort(5000), '5.0K');
-      expect(formatMoneyShort(150000), '150.0K',
+      // 150K, not 150.0K: the ladder drops the decimal above 10K
+      // because a stat tile has no room for a digit that says nothing.
+      expect(formatMoneyShort(150000), '150K',
           reason: 'must NOT say 1.5L outside India');
     });
   });

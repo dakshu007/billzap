@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/models.dart';
 import '../services/local_storage.dart';
 import '../tax/countries.dart';
+import '../tax/active_profile.dart';
 import '../tax/profiles.dart';
 import '../tax/tax_engine.dart';
 import '../tax/tax_profile.dart';
@@ -55,6 +56,10 @@ final taxProfileProvider = Provider<TaxProfile>((ref) {
         ? MoneyGrouping.indian
         : MoneyGrouping.western,
   );
+  // Same again for the label strings — 'GST' vs 'VAT' vs 'Sales Tax' —
+  // which a static bottom sheet and a PDF builder also cannot read a
+  // provider for.
+  setActiveProfile(profile);
   return profile;
 });
 

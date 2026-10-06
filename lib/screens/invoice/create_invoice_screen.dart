@@ -146,9 +146,26 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
   // Calculated totals
   double get _sub => _lines.fold(0, (s, l) => s + l.qty * l.rate);
   double get _gstAmt => _applyGst ? _lines.fold(0, (s, l) => s + l.qty * l.rate * l.gstRate / 100) : 0;
-  double get _cgst => _gstType == GstType.cgstSgst ? _gstAmt / 2 : 0;
-  double get _sgst => _gstType == GstType.cgstSgst ? _gstAmt / 2 : 0;
-  double get _igst => _gstType == GstType.igst ? _gstAmt : 0;
+
+  /// The tax lines this bill will print, named by the country's own
+  /// profile rather than by GST.
+  ///
+  /// In India this still yields {'CGST': x/2, 'SGST': x/2} or
+  /// {'IGST': x} — the same two cases the three getters this replaced
+  /// produced. Everywhere else it yields whatever that country calls
+  /// its tax: {'VAT': x}, {'Sales Tax': x}, {'Consumption Tax': x}.
+  Map<String, double> get _taxComponents {
+    if (_gstAmt == 0) return const {};
+    final profile = ref.read(taxProfileProvider);
+    final scope = _gstType == GstType.cgstSgst
+        ? SupplyScope.intra
+        : SupplyScope.inter;
+    final out = <String, double>{};
+    for (final c in profile.componentsFor(scope)) {
+      out[c.label] = (out[c.label] ?? 0) + _gstAmt * c.share;
+    }
+    return out;
+  }
   double get _grand => _sub + _gstAmt + (_applyShipping ? _shipping : 0) - (_applyDiscount ? _discount : 0);
 
   @override
@@ -397,7 +414,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                   controller: _discountCtrl,
                   icon: Symbols.percent,
                   hint: '0',
-                  suffix: '\u20B9',
+                  suffix: activeCurrencySymbol,
                   validatable: false,
                   keyboardType: TextInputType.number,
                   onChanged: (v) =>
@@ -415,7 +432,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                   controller: _shippingCtrl,
                   icon: Symbols.local_shipping,
                   hint: '0',
-                  suffix: '\u20B9',
+                  suffix: activeCurrencySymbol,
                   validatable: false,
                   keyboardType: TextInputType.number,
                   onChanged: (v) =>
@@ -432,9 +449,10 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
             icon: Symbols.receipt_long,
             children: [
               _SRow(tr('create.subtotal', ref), _sub),
-              if (_cgst > 0) _SRow('CGST', _cgst),
-              if (_sgst > 0) _SRow('SGST', _sgst),
-              if (_igst > 0) _SRow('IGST', _igst),
+              // One row per tax line the country names. India prints
+              // two or one; most of the world prints one.
+              for (final e in _taxComponents.entries)
+                if (e.value > 0) _SRow(e.key, e.value),
               if (_applyShipping && _shipping > 0)
                 _SRow(tr('create.shipping', ref), _shipping),
               if (_applyDiscount && _discount > 0)
@@ -582,6 +600,12 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
         customerAddress: _custAddr.text.trim(),
         invoiceDate: _date, dueDate: _due,
         lineItems: items, gstType: _gstType,
+        // Snapshot the country, the split and the symbol. A reprint
+        // years from now must show what was actually charged, not what
+        // the shop's settings happen to say then.
+        taxCountryCode: ref.read(taxProfileProvider).countryCode,
+        taxComponents: _taxComponents,
+        currencySymbol: activeCurrencySymbol,
         shippingCharge: _applyShipping ? _shipping : 0,
         flatDiscount: _applyDiscount ? _discount : 0,
         notes: _notes.text.trim(), placeOfSupply: _place,

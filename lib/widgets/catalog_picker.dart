@@ -5,7 +5,9 @@ import 'package:billzap/theme/app_icons.dart';
 import 'package:gap/gap.dart';
 import '../theme/app_theme.dart';
 import '../screens/main/catalog_screen.dart';
+import '../design/money.dart';
 import '../i18n/translations.dart';
+import '../tax/active_profile.dart';
 
 class CatalogPicker {
   /// Shows a bottom sheet of catalog items.
@@ -132,7 +134,7 @@ class CatalogPicker {
                                                         FontWeight.w700,
                                                     color: AppColors.t1)),
                                         Text(
-                                            '₹${item.price.toStringAsFixed(0)} · ${item.gstRate}% GST',
+                                            '${formatActiveMoney(item.price, decimals: 0)} · ${item.gstRate}% $activeTaxName',
                                             style:
                                                 AppFont.sans(
                                                     fontSize: 12,

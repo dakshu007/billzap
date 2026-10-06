@@ -83,6 +83,22 @@ enum SupplyScope { intra, inter }
 /// owner reads 1,234,567 as wrong. Everywhere else groups in threes.
 enum NumberGrouping { western, indian }
 
+/// The countries that group digits the South Asian way.
+///
+/// Not just India. Lakh and crore are the everyday units in Pakistan,
+/// Bangladesh, Nepal, Sri Lanka and Bhutan too, and a shopkeeper in
+/// Dhaka misreads 1,234,567 for exactly the same reason one in Chennai
+/// does. Getting this wrong does not round a number — it changes which
+/// number the person reads.
+const kLakhCroreCountries = {'IN', 'PK', 'BD', 'NP', 'LK', 'BT'};
+
+/// The grouping a country's amounts should use. Western unless the
+/// country is in [kLakhCroreCountries].
+NumberGrouping groupingFor(String countryCode) =>
+    kLakhCroreCountries.contains(countryCode.toUpperCase())
+        ? NumberGrouping.indian
+        : NumberGrouping.western;
+
 @immutable
 class TaxProfile {
   const TaxProfile({

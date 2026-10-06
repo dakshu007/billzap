@@ -175,6 +175,7 @@ TaxProfile? tableProfileFor(String countryCode) {
     countryName: c?.name ?? row.code,
     currencyCode: c?.currencyCode ?? 'USD',
     currencySymbol: c?.currencySymbol ?? r'$',
+    grouping: groupingFor(row.code),
     taxName: row.taxName,
     taxIdLabel: row.taxIdLabel,
     rates: row.rates,
@@ -226,12 +227,18 @@ TaxProfile resolveProfile({
     countryName: countryName ?? customProfile.countryName,
     currencyCode: customCurrencyCode,
     currencySymbol: customCurrencySymbol,
+    grouping: groupingFor(countryCode),
     taxName: label,
     taxIdLabel: 'Tax ID',
     rates: rates,
     defaultRate: customTaxRate,
     intraComponents: [TaxComponent(label, 1.0)],
-    confidence: TaxConfidence.unconfirmed,
+    // selfDeclared, not unconfirmed. The difference is what the app
+    // tells the shopkeeper: "unconfirmed" means BillZap pre-filled a
+    // rate it has not checked, which deserves a warning. This rate is
+    // the shopkeeper's own, so warning them about it would be absurd —
+    // the app simply makes no claim either way.
+    confidence: TaxConfidence.selfDeclared,
     source: 'Set by the shopkeeper. No tax authority was consulted and '
         'the app makes no claim that this rate is correct.',
     effectiveFrom: DateTime.utc(2020, 1, 1),

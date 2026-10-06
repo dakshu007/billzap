@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:billzap/theme/app_icons.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import '../../design/money.dart';
 import '../../theme/app_theme.dart';
 import '../../i18n/translations.dart';
 import '../../utils/voice_parser.dart';
@@ -494,7 +495,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                                 style: AppFont.sans(
                                   fontSize: 11, color: AppColors.t3)),
                             ])),
-                            Text('₹${item.price.toStringAsFixed(0)}',
+                            Text(formatActiveMoney(item.price, decimals: 0),
                               style: AppFont.sans(
                                 fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.brand)),
                           ]),

@@ -296,6 +296,24 @@ class Invoice {
   DateTime dueDate;
   List<InvoiceItem> lineItems;
   GstType gstType;
+  /// ISO code of the country whose rules priced this bill.
+  ///
+  /// Stored on the invoice, not read from the shop's current setting:
+  /// a shopkeeper who moves, or corrects their country, must not have
+  /// last year's bills silently reprint under the new rules.
+  String taxCountryCode;
+  /// The tax split exactly as it was charged — {'VAT': 180.0} or
+  /// {'CGST': 90.0, 'SGST': 90.0}.
+  ///
+  /// Empty on every invoice written before this field existed. The
+  /// getters below fall back to the old CGST/SGST/IGST halving in that
+  /// case, so a reprint of an old bill is byte-identical.
+  Map<String, double> taxComponents;
+  /// The currency symbol in force when the bill was written.
+  ///
+  /// Empty means the rupee, which is what every pre-existing invoice
+  /// was in.
+  String currencySymbol;
   double shippingCharge;
   double flatDiscount;
   String notes;
@@ -313,6 +331,9 @@ class Invoice {
     this.customerGstin = '', this.customerAddress = '',
     required this.invoiceDate, required this.dueDate,
     required this.lineItems, this.gstType = GstType.cgstSgst,
+    this.taxCountryCode = 'IN',
+    this.taxComponents = const {},
+    this.currencySymbol = '',
     this.shippingCharge = 0, this.flatDiscount = 0,
     this.notes = '', this.terms = 'Payment due within 30 days.',
     this.status = InvoiceStatus.sent, DateTime? createdAt,
@@ -326,9 +347,47 @@ class Invoice {
 
   double get subtotal => lineItems.fold(0, (s, i) => s + i.taxable);
   double get totalTax => lineItems.fold(0, (s, i) => s + i.gstAmount);
-  double get totalCgst => gstType == GstType.cgstSgst ? totalTax / 2 : 0;
-  double get totalSgst => gstType == GstType.cgstSgst ? totalTax / 2 : 0;
-  double get totalIgst => gstType == GstType.igst ? totalTax : 0;
+
+  /// The tax lines this bill has to print, in the order they print.
+  ///
+  /// One source of truth for the preview, the PDF, the CSV and the
+  /// summary — so none of them can disagree about what was charged.
+  /// Falls back to India's split for invoices saved before the field
+  /// existed, which is the only shape they could have been.
+  Map<String, double> get taxSplit {
+    if (taxComponents.isNotEmpty) return taxComponents;
+    if (totalTax == 0) return const {};
+    return gstType == GstType.igst
+        ? {'IGST': totalTax}
+        : {'CGST': totalTax / 2, 'SGST': totalTax / 2};
+  }
+
+  /// India's three names, kept so GSTR-1 and the GST reports keep
+  /// working unchanged. Zero everywhere else, which is correct: a
+  /// Kenyan bill has no CGST on it.
+  /// The tax rows a bill has to print: label, rate, amount — in order.
+  ///
+  /// The rate shown against each row is the bill's rate scaled by that
+  /// row's share of the tax, which is exactly what a split means. An
+  /// 18% Indian bill prints CGST 9.0% and SGST 9.0%; a 5% UAE bill
+  /// prints VAT 5.0%. The India case is deliberately bit-identical to
+  /// the three hand-written rows this replaced — 0.5 and 1.0 are both
+  /// exact in binary, so the arithmetic cannot drift.
+  List<({String label, double rate, double amount})> get taxRows {
+    final total = totalTax;
+    if (total == 0) return const [];
+    return taxSplit.entries
+        .map((e) => (
+              label: e.key,
+              rate: gstRateForDisplay * (e.value / total),
+              amount: e.value,
+            ))
+        .toList();
+  }
+
+  double get totalCgst => taxSplit['CGST'] ?? 0;
+  double get totalSgst => taxSplit['SGST'] ?? 0;
+  double get totalIgst => taxSplit['IGST'] ?? 0;
   double get grandTotal => subtotal + totalTax + shippingCharge - flatDiscount;
   bool get isOverdue =>
       status != InvoiceStatus.paid &&
@@ -344,7 +403,11 @@ class Invoice {
     'invoiceDate': invoiceDate.toIso8601String(),
     'dueDate': dueDate.toIso8601String(),
     'lineItems': lineItems.map((i) => i.toMap()).toList(),
-    'gstType': gstType.name, 'shippingCharge': shippingCharge,
+    'gstType': gstType.name,
+    'taxCountryCode': taxCountryCode,
+    'taxComponents': taxComponents,
+    'currencySymbol': currencySymbol,
+    'shippingCharge': shippingCharge,
     'flatDiscount': flatDiscount, 'notes': notes, 'terms': terms,
     'status': status.name, 'createdAt': createdAt.toIso8601String(),
     'paidAt': paidAt?.toIso8601String(), 'placeOfSupply': placeOfSupply,
@@ -365,6 +428,10 @@ class Invoice {
         .map((i) => InvoiceItem.fromMap(Map<String, dynamic>.from(i)))
         .toList(),
     gstType: m['gstType'] == 'igst' ? GstType.igst : GstType.cgstSgst,
+    taxCountryCode: m['taxCountryCode'] ?? 'IN',
+    taxComponents: ((m['taxComponents'] as Map?) ?? const {}).map(
+        (k, v) => MapEntry('$k', (v as num).toDouble())),
+    currencySymbol: m['currencySymbol'] ?? '',
     shippingCharge: (m['shippingCharge'] as num?)?.toDouble() ?? 0,
     flatDiscount: (m['flatDiscount'] as num?)?.toDouble() ?? 0,
     notes: m['notes'] ?? '', terms: m['terms'] ?? '',

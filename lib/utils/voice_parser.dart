@@ -84,6 +84,48 @@ class VoiceParser {
     'ರೂಪಾಯಿ', 'ರೂಪಾಯಿಗಳು',
     'രൂപ', 'রুপি', 'ਰੁਪਏ', 'ଟଙ୍କା', 'روپے',
     'rupayya', 'rupiyaa',
+    // ── The rest of the world ────────────────────────────────────
+    // A shopkeeper in Nairobi says "two kilos rice at four hundred
+    // shillings" and means the same thing as "char sau rupaye". Without
+    // the word in this list the parser read the price as part of the
+    // item name and billed "rice at four hundred shillings" for zero.
+    //
+    // Spoken forms, not ISO codes: people say "dollars", not "USD" —
+    // though the codes are here too because a dictation engine often
+    // writes them that way. Singular and plural both, because a price
+    // of one is a real price.
+    'dollar', 'dollars', 'usd', 'cent', 'cents',
+    'euro', 'euros', 'eur',
+    'pound', 'pounds', 'gbp', 'pence', 'quid',
+    'yen', 'jpy', 'yuan', 'rmb', 'cny',
+    'won', 'krw', 'baht', 'thb', 'ringgit', 'myr', 'sen',
+    'rupiah', 'idr', 'peso', 'pesos', 'php', 'mxn',
+    'dong', 'vnd', 'kyat', 'mmk', 'riel', 'khr', 'kip', 'lak',
+    'dirham', 'dirhams', 'aed', 'fils',
+    'riyal', 'riyals', 'rial', 'rials', 'sar', 'qar', 'omr',
+    'dinar', 'dinars', 'kwd', 'bhd', 'jod', 'iqd', 'tnd', 'dzd', 'lyd',
+    'shekel', 'shekels', 'ils', 'lira', 'try',
+    'pula', 'rand', 'zar', 'naira', 'ngn', 'cedi', 'ghs',
+    'shilling', 'shillings', 'kes', 'ugx', 'tzs',
+    'birr', 'etb', 'kwacha', 'zmw', 'mwk',
+    'franc', 'francs', 'cfa', 'xof', 'xaf', 'chf',
+    'krona', 'kronor', 'sek', 'krone', 'kroner', 'nok', 'dkk', 'isk',
+    'zloty', 'pln', 'koruna', 'czk', 'forint', 'huf',
+    'leu', 'lei', 'ron', 'lev', 'bgn', 'hryvnia', 'uah',
+    'rouble', 'ruble', 'roubles', 'rubles', 'rub', 'tenge', 'kzt',
+    'som', 'uzs', 'manat', 'azn', 'lari', 'dram', 'amd',
+    'reais', 'brl', 'sol', 'soles', 'pen',
+    'colon', 'colones', 'crc', 'quetzal', 'gtq', 'lempira', 'hnl',
+    'cordoba', 'nio', 'balboa', 'pab', 'guarani', 'pyg',
+    'boliviano', 'bob', 'bolivar', 'ves',
+    'taka', 'bdt', 'afghani', 'afn', 'ngultrum', 'btn',
+    'rufiyaa', 'mvr', 'tugrik', 'mnt', 'kina', 'pgk',
+    'vatu', 'vuv', 'tala', 'wst',
+    // Deliberately NOT here: 'at', 'real' and 'gel'. Each is a real
+    // currency word somewhere, and each is also a word a shopkeeper
+    // says about their stock -- "hair gel", "real leather". A marker
+    // is stripped out of the item name, so a wrong one silently
+    // renames the product.
     'each', 'per',
   ];
 
