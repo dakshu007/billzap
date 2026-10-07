@@ -44,6 +44,28 @@ void main() {
         reason: 'the GST codes must still be in kStates');
   });
 
+  test('every country in the picker has regions, bar four by design', () {
+    // The whole point: a shop anywhere should find its own region, not
+    // somebody else's.
+    final uncovered = <String>[];
+    for (final c in allCountries) {
+      if (c.code == 'IN') continue; // kStates, see below
+      if (regionsFor(c.code) == null) uncovered.add(c.code);
+    }
+    // Gibraltar, Monaco, Macao and Vatican City are single-settlement
+    // jurisdictions — "which region of Vatican City" is not a
+    // question, so those get the free-text field.
+    expect(uncovered..sort(), ['GI', 'MC', 'MO', 'VA']);
+  });
+
+  test('a country with regions has enough of them to be a real list', () {
+    // A one-entry list is almost always a half-finished row.
+    for (final code in regionTableCountries) {
+      expect(regionsFor(code)!.length, greaterThan(2),
+          reason: '$code has only ${regionsFor(code)!.length}');
+    }
+  });
+
   test('the countries the user named are covered', () {
     // Albania was the example in the bug report.
     expect(regionsFor('AL'), contains('Tirana'));
@@ -51,6 +73,10 @@ void main() {
     expect(regionsFor('US'), contains('California'));
     expect(regionsFor('GB'), contains('Scotland'));
     expect(regionsFor('KE'), contains('Nairobi'));
+    expect(regionsFor('JP'), contains('Tokyo'),
+        reason: 'the Japan case from the bug report');
+    expect(regionsFor('BR'), contains('São Paulo'));
+    expect(regionsFor('ZW'), contains('Harare'));
   });
 
   test('no country was handed India\'s list by mistake', () {

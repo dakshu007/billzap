@@ -17,6 +17,7 @@ import '../../models/models.dart';
 import '../../providers/providers.dart';
 import '../../tax/countries.dart';
 import '../../tax/profiles.dart';
+import '../../tax/regions.dart';
 import '../../tax/tax_profile.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -37,6 +38,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _addrCtl = TextEditingController();
   final _cityCtl = TextEditingController();
   String _state = 'Tamil Nadu';
+  /// Backs the region box for countries with no region list.
+  final _stateCtl = TextEditingController();
   // Where the shop trades. India by default, which is what every
   // install had before this question existed.
   String _country = 'IN';
@@ -51,6 +54,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     _gstinCtl.dispose();
     _addrCtl.dispose();
     _cityCtl.dispose();
+    _stateCtl.dispose();
     super.dispose();
   }
 
@@ -110,7 +114,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             borderRadius: BorderRadius.circular(14),
             onTap: () async {
               final picked = await pickCountry(context, selected: _country);
-              if (picked != null) setState(() => _country = picked.code);
+              if (picked != null) {
+                setState(() {
+                  _country = picked.code;
+                  // A Tamil Nadu address on a Japanese bill is the bug
+                  // this whole change is about.
+                  _state = '';
+                  _stateCtl.clear();
+                });
+              }
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -515,20 +527,40 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppColors.border),
             ),
-            child: DropdownButton<String>(
-              value: _state,
-              isExpanded: true,
-              underline: const SizedBox.shrink(),
-              icon: Icon(Symbols.expand_more, color: AppColors.t3),
-              style: AppFont.sans(
-                  fontSize: 14, color: AppColors.t1),
-              items: _states
-                  .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                  .toList(),
-              onChanged: (v) {
-                if (v != null) setState(() => _state = v);
-              },
-            ),
+            // A country with no region list gets a plain box. A
+            // DropdownButton whose value is not among its items throws,
+            // so the value is only passed through when it is one of
+            // them — changing country clears it.
+            child: _states.isEmpty
+                ? TextField(
+                    controller: _stateCtl,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      border: InputBorder.none,
+                      hintText: 'Region or province',
+                      hintStyle:
+                          AppFont.sans(fontSize: 14, color: AppColors.t3),
+                    ),
+                    style: AppFont.sans(fontSize: 14, color: AppColors.t1),
+                    onChanged: (v) => _state = v,
+                  )
+                : DropdownButton<String>(
+                    value: _states.contains(_state) ? _state : null,
+                    hint: Text('Select',
+                        style:
+                            AppFont.sans(fontSize: 14, color: AppColors.t3)),
+                    isExpanded: true,
+                    underline: const SizedBox.shrink(),
+                    icon: Icon(Symbols.expand_more, color: AppColors.t3),
+                    style: AppFont.sans(fontSize: 14, color: AppColors.t1),
+                    items: _states
+                        .map((s) =>
+                            DropdownMenuItem(value: s, child: Text(s)))
+                        .toList(),
+                    onChanged: (v) {
+                      if (v != null) setState(() => _state = v);
+                    },
+                  ),
           ),
           const Gap(16),
           Container(
@@ -708,14 +740,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
-  static const _states = [
-    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar',
-    'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana',
-    'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala',
-    'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya',
-    'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
-    'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana',
-    'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
-    'Delhi', 'Chandigarh', 'Puducherry',
-  ];
+  /// The regions of whichever country was picked on the step before.
+  ///
+  /// This used to be a third hardcoded list of Indian states — 31 of
+  /// them, disagreeing with the 20 in models.dart and the 37 that are
+  /// actually GST jurisdictions. Three lists that could each be wrong
+  /// in a different way, on a field that decides the tax split.
+  ///
+  /// Now there is one source per country: kStates in India, because its
+  /// entries carry the GST code, and regions.dart everywhere else.
+  List<String> get _states => _country.toUpperCase() == 'IN'
+      ? kStates.map((s) => s.split(' (').first).toList()
+      : (regionsFor(_country) ?? const <String>[]);
 }

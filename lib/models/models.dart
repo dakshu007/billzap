@@ -47,6 +47,23 @@ class Business {
   double customTaxRate;
   String customCurrencySymbol;
 
+  /// The country the shop's *address* is in.
+  ///
+  /// Usually the same as [countryCode], and it defaults to it. They are
+  /// separate because they are separate questions: [countryCode] is the
+  /// tax regime the shop bills under, and this is where the premises
+  /// are. A trader registered in Singapore with a warehouse in Malaysia
+  /// has one of each, and before this field the address card showed
+  /// Indian states to everybody regardless of either.
+  ///
+  /// Empty means "same as countryCode", which is what every invoice and
+  /// profile written before this field existed meant.
+  String addressCountryCode;
+
+  /// Where the address country actually resolves to.
+  String get effectiveAddressCountry =>
+      addressCountryCode.trim().isEmpty ? countryCode : addressCountryCode;
+
   Business({
     String? id,
     this.name = '',
@@ -69,6 +86,7 @@ class Business {
     this.customTaxName = 'Tax',
     this.customTaxRate = 0,
     this.customCurrencySymbol = r'$',
+    this.addressCountryCode = '',
   }) : id = id ?? genId();
 
   Business copyWith({
@@ -79,6 +97,7 @@ class Business {
     int? nextInvoiceNumber, String? defaultTerms,
     String? countryCode, String? customTaxName, double? customTaxRate,
     String? customCurrencySymbol,
+    String? addressCountryCode,
   }) => Business(
     id: id,
     name: name ?? this.name, gstin: gstin ?? this.gstin,
@@ -95,6 +114,7 @@ class Business {
     customTaxName: customTaxName ?? this.customTaxName,
     customTaxRate: customTaxRate ?? this.customTaxRate,
     customCurrencySymbol: customCurrencySymbol ?? this.customCurrencySymbol,
+    addressCountryCode: addressCountryCode ?? this.addressCountryCode,
   );
 
   Map<String, dynamic> toMap() => {
@@ -106,6 +126,7 @@ class Business {
     'countryCode': countryCode, 'customTaxName': customTaxName,
     'customTaxRate': customTaxRate,
     'customCurrencySymbol': customCurrencySymbol,
+    'addressCountryCode': addressCountryCode,
   };
 
   factory Business.fromMap(Map<String, dynamic> m) => Business(
@@ -122,6 +143,9 @@ class Business {
     customTaxName: m['customTaxName'] ?? 'Tax',
     customTaxRate: (m['customTaxRate'] as num?)?.toDouble() ?? 0,
     customCurrencySymbol: m['customCurrencySymbol'] ?? r'$',
+    // Empty for every profile saved before this field existed, which
+    // reads as "same as countryCode" — exactly what they meant.
+    addressCountryCode: m['addressCountryCode'] ?? '',
   );
 }
 
@@ -508,23 +532,51 @@ String formatCurrency(double amount) {
   return '${isNeg ? '-' : ''}\u20b9$integer.$decimal';
 }
 
+/// Every GST jurisdiction in India: 28 states, 8 union territories and
+/// "Other Territory", each with its official GST state code.
+///
+/// This list held twenty of them. A shopkeeper in Goa, Chhattisgarh,
+/// Uttarakhand, Puducherry or any of the north-eastern states simply
+/// could not select where they trade — and place of supply is what
+/// decides CGST/SGST against IGST, so the omission did not just block
+/// the form, it would have produced the wrong tax split for anyone who
+/// picked a neighbouring state to get past it.
+///
+/// Codes 25 (Daman & Diu) and 28 (the old Andhra Pradesh) are retired
+/// and deliberately absent. Sorted by name so the picker is navigable;
+/// the code in brackets is what create_invoice_screen.dart and
+/// gstr1_builder.dart parse back out, so the format is load-bearing.
 const kStates = [
-  'Andhra Pradesh (37)', 'Assam (18)', 'Bihar (10)', 'Chandigarh (04)',
-  'Delhi (07)', 'Gujarat (24)', 'Haryana (06)', 'Himachal Pradesh (02)',
-  'Jharkhand (20)', 'Karnataka (29)', 'Kerala (32)',
-  'Madhya Pradesh (23)', 'Maharashtra (27)', 'Odisha (21)',
-  'Punjab (03)', 'Rajasthan (08)', 'Tamil Nadu (33)',
-  'Telangana (36)', 'Uttar Pradesh (09)', 'West Bengal (19)',
+  'Andaman & Nicobar Islands (35)', 'Andhra Pradesh (37)',
+  'Arunachal Pradesh (12)', 'Assam (18)', 'Bihar (10)',
+  'Chandigarh (04)', 'Chhattisgarh (22)',
+  'Dadra & Nagar Haveli and Daman & Diu (26)', 'Delhi (07)', 'Goa (30)',
+  'Gujarat (24)', 'Haryana (06)', 'Himachal Pradesh (02)',
+  'Jammu & Kashmir (01)', 'Jharkhand (20)', 'Karnataka (29)',
+  'Kerala (32)', 'Ladakh (38)', 'Lakshadweep (31)',
+  'Madhya Pradesh (23)', 'Maharashtra (27)', 'Manipur (14)',
+  'Meghalaya (17)', 'Mizoram (15)', 'Nagaland (13)', 'Odisha (21)',
+  'Other Territory (97)', 'Puducherry (34)', 'Punjab (03)',
+  'Rajasthan (08)', 'Sikkim (11)', 'Tamil Nadu (33)', 'Telangana (36)',
+  'Tripura (16)', 'Uttar Pradesh (09)', 'Uttarakhand (05)',
+  'West Bengal (19)',
 ];
 
+/// Name to GST state code, the same 37 entries as [kStates].
 const kStateMap = {
-  'Andhra Pradesh': '37', 'Assam': '18', 'Bihar': '10',
-  'Chandigarh': '04', 'Delhi': '07', 'Gujarat': '24',
-  'Haryana': '06', 'Himachal Pradesh': '02', 'Jharkhand': '20',
-  'Karnataka': '29', 'Kerala': '32', 'Madhya Pradesh': '23',
-  'Maharashtra': '27', 'Odisha': '21', 'Punjab': '03',
-  'Rajasthan': '08', 'Tamil Nadu': '33', 'Telangana': '36',
-  'Uttar Pradesh': '09', 'West Bengal': '19',
+  'Andaman & Nicobar Islands': '35', 'Andhra Pradesh': '37',
+  'Arunachal Pradesh': '12', 'Assam': '18', 'Bihar': '10',
+  'Chandigarh': '04', 'Chhattisgarh': '22',
+  'Dadra & Nagar Haveli and Daman & Diu': '26', 'Delhi': '07',
+  'Goa': '30', 'Gujarat': '24', 'Haryana': '06',
+  'Himachal Pradesh': '02', 'Jammu & Kashmir': '01', 'Jharkhand': '20',
+  'Karnataka': '29', 'Kerala': '32', 'Ladakh': '38', 'Lakshadweep': '31',
+  'Madhya Pradesh': '23', 'Maharashtra': '27', 'Manipur': '14',
+  'Meghalaya': '17', 'Mizoram': '15', 'Nagaland': '13', 'Odisha': '21',
+  'Other Territory': '97', 'Puducherry': '34', 'Punjab': '03',
+  'Rajasthan': '08', 'Sikkim': '11', 'Tamil Nadu': '33',
+  'Telangana': '36', 'Tripura': '16', 'Uttar Pradesh': '09',
+  'Uttarakhand': '05', 'West Bengal': '19',
 };
 
 const kExpenseCategories = [

@@ -24,6 +24,7 @@ import '../../widgets/language_picker.dart';
 import '../../providers/theme_provider.dart';
 import '../../widgets/country_picker.dart';
 import '../../tax/countries.dart';
+import '../../tax/regions.dart';
 import '../../tax/tax_profile.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -124,7 +125,13 @@ class _BusinessPanel extends ConsumerStatefulWidget {
 
 class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
   late final TextEditingController _name, _gstin, _phone, _email, _addr, _city, _pin;
+  /// Backs the region field for the four countries with no region list,
+  /// where it is a plain box rather than a picker.
+  late final TextEditingController _stateCtrl;
   String _state = 'Tamil Nadu';
+  /// Empty until the shopkeeper changes it, which means "same as the
+  /// country the shop bills under".
+  String _addrCountry = '';
   bool _saving = false;
   String? _gstinErr, _phoneErr, _emailErr, _pinErr;
 
@@ -140,6 +147,8 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
     _city  = TextEditingController(text: b?.city ?? '');
     _pin   = TextEditingController(text: b?.pincode ?? '');
     _state = b?.state ?? 'Tamil Nadu';
+    _stateCtrl = TextEditingController(text: _state);
+    _addrCountry = b?.addressCountryCode ?? '';
     _gstinErr = Validators.gstin(_gstin.text);
     _phoneErr = Validators.phone(_phone.text);
     _emailErr = Validators.email(_email.text);
@@ -150,13 +159,36 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
   void dispose() {
     _name.dispose(); _gstin.dispose(); _phone.dispose(); _email.dispose();
     _addr.dispose(); _city.dispose(); _pin.dispose();
+    _stateCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final stateNames = kStates.map((s) => s.split(' (')[0]).toList();
-    final currentState = stateNames.contains(_state) ? _state : 'Tamil Nadu';
+    // The address country, which is NOT necessarily the country the
+    // shop bills under: a trader registered in Singapore may have the
+    // premises in Malaysia. It defaults to the trading country and is
+    // changeable here.
+    final biz = ref.watch(businessProvider);
+    final addrCountry = (_addrCountry.isNotEmpty
+            ? _addrCountry
+            : (biz?.effectiveAddressCountry ?? 'IN'))
+        .toUpperCase();
+    final isIndia = addrCountry == 'IN';
+    // India keeps its coded list; everyone else gets their own regions
+    // or, for the four single-settlement jurisdictions, nothing — and
+    // the field below becomes free text.
+    final regionOptions =
+        isIndia ? kStates : (regionsFor(addrCountry) ?? const <String>[]);
+    final regionNames =
+        regionOptions.map((s) => s.split(' (')[0]).toList();
+    // Only fall back to Tamil Nadu in India. Elsewhere an unrecognised
+    // value means the shopkeeper has not picked yet, and showing them
+    // an Indian state would be the bug this is fixing.
+    final currentState = regionNames.contains(_state)
+        ? _state
+        : (isIndia ? 'Tamil Nadu' : '');
+    final regionLabel = _regionLabelFor(addrCountry);
 
     // What the page is *about*, at the top: the identity every invoice
     // this shop sends will carry. A form with no subject is just nine
@@ -244,10 +276,27 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
 
           FieldGroup(
             title: 'Where you trade from',
-            subtitle: 'State decides CGST/SGST against IGST',
+            subtitle: isIndia
+                ? 'State decides CGST/SGST against IGST'
+                : 'The address printed on every invoice',
             icon: Symbols.location_on,
             tone: AppColor.pending,
             children: [
+              // Country first, because everything under it depends on
+              // the answer — the region list, its name, and whether a
+              // GST code applies at all.
+              _AddressCountryTile(
+                code: addrCountry,
+                onChanged: (c) => setState(() {
+                  _addrCountry = c;
+                  // The old region belongs to the old country, so it
+                  // cannot carry over. Clearing is honest; keeping it
+                  // would print a Tamil Nadu address on a Japanese
+                  // bill.
+                  _state = '';
+                  _stateCtrl.clear();
+                }),
+              ),
               AppField(
                 label: tr('cust.address', ref),
                 controller: _addr,
@@ -282,10 +331,24 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
                   ),
                 ),
               ]),
-              _StatePicker(
-                value: currentState,
-                onChanged: (v) => setState(() => _state = v),
-              ),
+              // A country with no region list gets a plain box rather
+              // than a picker of somebody else's regions.
+              if (regionOptions.isEmpty)
+                AppField(
+                  label: regionLabel,
+                  controller: _stateCtrl,
+                  icon: Symbols.location_city,
+                  hint: 'Region or province',
+                  validatable: false,
+                  onChanged: (v) => setState(() => _state = v),
+                )
+              else
+                _StatePicker(
+                  value: currentState,
+                  options: regionOptions,
+                  label: regionLabel,
+                  onChanged: (v) => setState(() => _state = v),
+                ),
             ],
           ),
           const Gap(AppSpace.xl),
@@ -324,7 +387,11 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
         name: _name.text.trim(), gstin: _gstin.text.trim().toUpperCase(),
         phone: _phone.text.trim(), email: _email.text.trim(),
         address: _addr.text.trim(), city: _city.text.trim(),
-        state: _state, stateCode: kStateMap[_state] ?? '33',
+        state: _state,
+        // The GST code only means something in India. Saving '33' for a
+        // Japanese prefecture would put Tamil Nadu's code on the bill.
+        stateCode: kStateMap[_state] ?? '',
+        addressCountryCode: _addrCountry,
         pincode: _pin.text.trim());
       await ref.read(businessProvider.notifier).save(b);
       if (!mounted) return;
@@ -1115,22 +1182,130 @@ class _IdentityCard extends StatelessWidget {
   }
 }
 
-/// State picker. A bottom sheet with a search box rather than a 36-entry
-/// dropdown — the list is long enough that scrolling a menu to find
-/// "Uttar Pradesh" is genuinely annoying, and this is the field that
-/// decides whether a bill charges CGST/SGST or IGST.
-class _StatePicker extends StatelessWidget {
-  final String value;
+/// What a country calls its first-level divisions, for the field label.
+///
+/// Getting this wrong is not fatal but it reads as foreign: a Canadian
+/// expects "Province", a Japanese trader "Prefecture", and most of
+/// Europe neither. Only the ones that clearly differ are listed; the
+/// rest fall back to "Region", which is understood everywhere and is
+/// the honest answer where the local term is not known.
+String _regionLabelFor(String code) {
+  const labels = {
+    'IN': 'State', 'US': 'State', 'AU': 'State', 'BR': 'State',
+    'MY': 'State', 'NG': 'State', 'MX': 'State', 'VE': 'State',
+    'SD': 'State', 'SS': 'State', 'PW': 'State',
+    'CA': 'Province', 'ZA': 'Province', 'CN': 'Province', 'ID': 'Province',
+    'AR': 'Province', 'PH': 'Province', 'TR': 'Province', 'PK': 'Province',
+    'KE': 'County', 'IE': 'County', 'NO': 'County',
+    'JP': 'Prefecture',
+    'AE': 'Emirate',
+    'CH': 'Canton',
+    'DE': 'State', 'AT': 'State',
+    'GB': 'Nation', 'NL': 'Province', 'BE': 'Province',
+    'FR': 'Region', 'IT': 'Region', 'ES': 'Community',
+    'RU': 'Region', 'UA': 'Oblast', 'PL': 'Voivodeship',
+    'SA': 'Region', 'TH': 'Region', 'VN': 'Province', 'KR': 'Province',
+    'BD': 'Division', 'NP': 'Province', 'LK': 'Province',
+  };
+  return labels[code.toUpperCase()] ?? 'Region';
+}
+
+/// The country the shop's premises are in.
+///
+/// Separate from the country it bills under, and sitting above the
+/// region field because everything below depends on it: which regions
+/// exist, what they are called, and whether a GST code applies.
+class _AddressCountryTile extends StatelessWidget {
+  const _AddressCountryTile({required this.code, required this.onChanged});
+
+  final String code;
   final ValueChanged<String> onChanged;
-  const _StatePicker({required this.value, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
+    final country = countryFor(code);
+    final flag = countryFlag(code);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('COUNTRY',
+            style:
+                AppFont.style(AppType.labelS, color: AppColor.textTertiary)),
+        const Gap(AppSpace.xs),
+        PressScale(
+          onTap: () async {
+            HapticFeedback.lightImpact();
+            final picked = await pickCountry(context, selected: code);
+            if (picked != null) onChanged(picked.code);
+          },
+          child: Container(
+            padding: const EdgeInsets.all(AppSpace.md),
+            decoration: BoxDecoration(
+              color: AppColor.sunken,
+              borderRadius: AppRadius.all(AppRadius.md),
+              border: Border.all(color: AppColor.hairline),
+            ),
+            child: Row(children: [
+              if (flag.isEmpty)
+                Icon(Symbols.public, size: 18, color: AppColor.textTertiary)
+              else
+                Text(flag, style: const TextStyle(fontSize: 19)),
+              const Gap(AppSpace.md),
+              Expanded(
+                child: Text(country?.name ?? code,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppFont.style(AppType.bodyL,
+                        color: AppColor.textPrimary)),
+              ),
+              Icon(Symbols.expand_more,
+                  size: 18, color: AppColor.textTertiary),
+            ]),
+          ),
+        ),
+        const Gap(AppSpace.md),
+      ],
+    );
+  }
+}
+
+/// Region picker for the business address. A bottom sheet with a search
+/// box rather than a dropdown — India alone has 37 GST jurisdictions,
+/// and in India this is the field that decides whether a bill charges
+/// CGST/SGST or IGST.
+///
+/// The list comes from the address country, not from India. It used to
+/// be kStates unconditionally, so a shop in Japan was asked to pick
+/// between Tamil Nadu and West Bengal.
+class _StatePicker extends StatelessWidget {
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  /// The regions of the address country, already resolved by the
+  /// caller: India's coded states, another country's divisions, or
+  /// empty where the country has none.
+  final List<String> options;
+
+  /// What this country calls the field. "State" in India and the US,
+  /// "Province" in Canada, "Region" in much of Europe.
+  final String label;
+
+  const _StatePicker({
+    required this.value,
+    required this.onChanged,
+    required this.options,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Only India's entries carry a code, and only India's bill splits
+    // on it, so the badge appears only where it means something.
     final code = kStateMap[value] ?? '';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('STATE',
+        Text(label.toUpperCase(),
             style:
                 AppFont.style(AppType.labelS, color: AppColor.textTertiary)),
         const Gap(AppSpace.xs),
@@ -1149,9 +1324,13 @@ class _StatePicker extends StatelessWidget {
                   size: 18, color: AppColor.textTertiary),
               const Gap(AppSpace.md),
               Expanded(
-                child: Text(value,
+                child: Text(value.isEmpty ? 'Select $label' : value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: AppFont.style(AppType.bodyL,
-                        color: AppColor.textPrimary)),
+                        color: value.isEmpty
+                            ? AppColor.textTertiary
+                            : AppColor.textPrimary)),
               ),
               if (code.isNotEmpty)
                 Container(
@@ -1182,7 +1361,7 @@ class _StatePicker extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(builder: (ctx, ss) {
         final q = search.text.trim().toLowerCase();
-        final list = kStates
+        final list = options
             .where((s) => q.isEmpty || s.toLowerCase().contains(q))
             .toList();
         return Container(
