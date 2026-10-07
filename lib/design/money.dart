@@ -123,20 +123,48 @@ String formatMoneyCompact(num value, {MoneyGrouping? grouping}) {
       decimals: whole ? 0 : 2, grouping: grouping);
 }
 
-/// Short form for chart axes and dense stat tiles: 1.2L, 3.4Cr.
+/// Short form for chart axes and dense stat tiles: 1.2L, 3.4Cr, 2.5M.
+///
+/// The ladder has to reach as far as the numbers do. It used to stop
+/// at B, so a dashboard showing a sixteen-digit total rendered it as
+/// "14000000B" — seven digits in front of a unit, which is no shorter
+/// and no more readable than the number it replaced.
+///
+/// Each rung is now used only while it keeps the mantissa under four
+/// digits, and the top rung groups its digits so even an absurd figure
+/// stays legible rather than running off the tile.
 String formatMoneyShort(num value) {
   final abs = value.abs();
   final sign = value < 0 ? '-' : '';
-  // Lakh and crore are not units anyone outside the subcontinent reads.
-  // Elsewhere the ladder is K / M / B.
-  if (_grouping == MoneyGrouping.indian) {
-    if (abs >= 10000000) return '$sign${(abs / 10000000).toStringAsFixed(abs >= 100000000 ? 0 : 1)}Cr';
-    if (abs >= 100000) return '$sign${(abs / 100000).toStringAsFixed(abs >= 1000000 ? 0 : 1)}L';
-  } else {
-    if (abs >= 1000000000) return '$sign${(abs / 1000000000).toStringAsFixed(abs >= 10000000000 ? 0 : 1)}B';
-    if (abs >= 1000000) return '$sign${(abs / 1000000).toStringAsFixed(abs >= 10000000 ? 0 : 1)}M';
+
+  // Each entry is (threshold, divisor, suffix), largest first. Lakh
+  // and crore are not units anyone outside the subcontinent reads, and
+  // a lakh crore is how South Asia says "ten trillion".
+  final rungs = _grouping == MoneyGrouping.indian
+      ? const [
+          (1e12, 1e12, 'L Cr'),
+          (1e7, 1e7, 'Cr'),
+          (1e5, 1e5, 'L'),
+          (1e3, 1e3, 'K'),
+        ]
+      : const [
+          (1e12, 1e12, 'T'),
+          (1e9, 1e9, 'B'),
+          (1e6, 1e6, 'M'),
+          (1e3, 1e3, 'K'),
+        ];
+
+  for (final (threshold, divisor, suffix) in rungs) {
+    if (abs < threshold) continue;
+    final scaled = abs / divisor;
+    // One decimal below ten, none above — 1.2M, but 340M not 340.0M.
+    // Past four digits the decimal is noise, and the digits get
+    // grouped so the top rung never becomes an unreadable run.
+    final body = scaled >= 10000
+        ? formatIndianDigits(scaled, decimals: 0)
+        : scaled.toStringAsFixed(scaled >= 10 ? 0 : 1);
+    return '$sign$body$suffix';
   }
-  if (abs >= 1000) return '$sign${(abs / 1000).toStringAsFixed(abs >= 10000 ? 0 : 1)}K';
   return '$sign${formatIndianDigits(abs, decimals: 0)}';
 }
 
@@ -217,6 +245,19 @@ class Money extends StatelessWidget {
   /// unless [storedSymbol] is given.
   final String? storedCountryCode;
 
+  /// Shrink the text rather than let it run past its box.
+  ///
+  /// A hero figure is laid out for a plausible amount, and a shop that
+  /// bills in rupiah or dong reaches sixteen digits honestly. Without
+  /// this the grand total ran off its pill and the bottom bar cut the
+  /// number mid-digit, which on a bill is worse than small type: a
+  /// truncated total reads as a smaller, wrong number.
+  ///
+  /// Needs a bounded width, so it belongs on figures inside an
+  /// Expanded, a SizedBox or a padded Container — not in a Row that
+  /// sizes itself to its children.
+  final bool shrinkToFit;
+
   const Money(
     this.value, {
     super.key,
@@ -230,6 +271,7 @@ class Money extends StatelessWidget {
     this.textAlign,
     this.storedSymbol,
     this.storedCountryCode,
+    this.shrinkToFit = false,
   });
 
   Color _resolve() {
@@ -244,15 +286,27 @@ class Money extends StatelessWidget {
   Widget build(BuildContext context) {
     final fg = _resolve();
 
-    if (!animate) return _render(value, fg);
+    if (!animate) return _fit(_render(value, fg));
 
-    return TweenAnimationBuilder<double>(
+    return _fit(TweenAnimationBuilder<double>(
       tween: Tween(begin: value.toDouble(), end: value.toDouble()),
       duration: AppMotion.slow,
       curve: AppMotion.standard,
       builder: (_, v, __) => _render(v, fg),
-    );
+    ));
   }
+
+  /// scaleDown, not contain: a short amount keeps its designed size and
+  /// only a long one shrinks, so the ramp still means something.
+  Widget _fit(Widget child) => shrinkToFit
+      ? FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: textAlign == TextAlign.right
+              ? Alignment.centerRight
+              : Alignment.centerLeft,
+          child: child,
+        )
+      : child;
 
   Widget _render(num v, Color fg) {
     final shown = round ? v.roundToDouble() : v;
@@ -313,6 +367,11 @@ class MoneyCounter extends StatefulWidget {
   final String? storedSymbol;
   final String? storedCountryCode;
 
+  /// See [Money.shrinkToFit]. On by default here: every MoneyCounter
+  /// in the app is a hero figure in a fixed-width well, which is
+  /// exactly where a long number does the most damage.
+  final bool shrinkToFit;
+
   const MoneyCounter(
     this.value, {
     super.key,
@@ -323,6 +382,7 @@ class MoneyCounter extends StatefulWidget {
     this.duration = const Duration(milliseconds: 900),
     this.storedSymbol,
     this.storedCountryCode,
+    this.shrinkToFit = true,
   });
 
   @override
@@ -353,6 +413,7 @@ class _MoneyCounterState extends State<MoneyCounter> {
         round: widget.round,
         storedSymbol: widget.storedSymbol,
         storedCountryCode: widget.storedCountryCode,
+        shrinkToFit: widget.shrinkToFit,
       ),
     );
   }

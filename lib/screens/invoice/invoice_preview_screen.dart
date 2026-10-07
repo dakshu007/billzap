@@ -332,6 +332,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                           child: Padding(
                             padding: _docColGutter,
                             child: Money(item.rate,
+                                shrinkToFit: true,
                                 style: AppType.numeric,
                                 color: inkSoft,
                                 showSymbol: false,
@@ -346,6 +347,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                           child: Padding(
                             padding: _docColGutter,
                             child: Money(item.taxable,
+                                shrinkToFit: true,
                                 style: AppType.amountS,
                                 color: ink,
                                 showSymbol: false,
@@ -399,11 +401,14 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
               children: [
                 Text('TOTAL DUE',
                     style: doc(AppType.overline, color: inkSoft)),
-                MoneyCounter(invoice.grandTotal,
-                    style: AppType.amountL,
-                    color: AppColor.paid,
-                    storedSymbol: invoice.currencySymbol,
-                    storedCountryCode: invoice.taxCountryCode),
+                const Gap(AppSpace.md),
+                Expanded(
+                  child: MoneyCounter(invoice.grandTotal,
+                      style: AppType.amountL,
+                      color: AppColor.paid,
+                      storedSymbol: invoice.currencySymbol,
+                      storedCountryCode: invoice.taxCountryCode),
+                ),
               ]),
         ),
 
@@ -1580,13 +1585,17 @@ class _DocTotal extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Text(label, style: AppFont.style(AppType.bodyM, color: inkSoft)),
-          Money(amount,
-              style: AppType.amountS,
-              color: ink,
-              showSymbol: false,
-              compact: false,
-              storedSymbol: '',
-              storedCountryCode: country),
+          Flexible(
+            child: Money(amount,
+                style: AppType.amountS,
+                color: ink,
+                showSymbol: false,
+                compact: false,
+                shrinkToFit: true,
+                textAlign: TextAlign.right,
+                storedSymbol: '',
+                storedCountryCode: country),
+          ),
         ]),
       );
 }

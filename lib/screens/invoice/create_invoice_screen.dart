@@ -21,6 +21,7 @@ import '../../services/gst_classifier.dart';
 import '../../utils/voice_parser.dart';
 import '../../i18n/translations.dart';
 import '../main/catalog_screen.dart';
+import '../../tax/regions.dart';
 import '../../tax/tax_profile.dart';
 
 class CreateInvoiceScreen extends ConsumerStatefulWidget {
@@ -46,6 +47,10 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
   GstType  _gstType = GstType.cgstSgst;
   // Defaulted from the business profile in initState — see _defaultPlace.
   String _place = kStates.first;
+  /// Backs the free-text place-of-supply field, for the countries this
+  /// app has no region list for. A controller rather than a bare
+  /// string so the text survives a rebuild.
+  final _placeCtrl = TextEditingController();
 
   bool _applyGst      = true;
   bool _applyDiscount = false;
@@ -84,6 +89,24 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
     final biz = ref.read(businessProvider);
     final code = biz?.stateCode.trim() ?? '';
     final name = biz?.state.trim() ?? '';
+    final country = (biz?.countryCode ?? 'IN').toUpperCase();
+
+    // Outside India the default must not be an Indian state. Seed from
+    // the seller's own region where it is one this country has, and
+    // otherwise leave it empty for the shopkeeper to fill in — an
+    // empty field is honest, a wrong one prints on the bill.
+    if (country != 'IN') {
+      final regions = regionsFor(country) ?? const <String>[];
+      final match = regions.firstWhere(
+        (r) => name.isNotEmpty && r.toLowerCase() == name.toLowerCase(),
+        orElse: () => '',
+      );
+      _place = match.isNotEmpty
+          ? match
+          : (regions.isEmpty ? name : '');
+      _placeCtrl.text = _place;
+      return;
+    }
 
     final match = kStates.firstWhere(
       (s) =>
@@ -97,6 +120,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
   @override
   void dispose() {
     _custName.removeListener(_onNameChanged);
+    _placeCtrl.dispose();
     _custName.dispose(); _custPhone.dispose();
     _custGstin.dispose(); _custAddr.dispose(); _notes.dispose();
     _discountCtrl.dispose(); _shippingCtrl.dispose();
@@ -174,6 +198,13 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
     // slabs, the tax labels, whether the intra/inter toggle exists at
     // all — follows from this rather than from hardcoded GST.
     final profile = ref.watch(taxProfileProvider);
+    // India keeps kStates, because each entry carries the GST state
+    // code that gstr1_builder.dart and the intra/inter split parse
+    // back out — a second list could disagree about a number the tax
+    // return depends on.
+    final regions = profile.countryCode == 'IN'
+        ? kStates
+        : (regionsFor(profile.countryCode) ?? const <String>[]);
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
@@ -324,21 +355,44 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                         (d) => setState(() => _due = d))),
               ]),
               const Gap(AppSpace.md),
-              _PlaceOfSupply(
-                value: _place,
-                intraState: _gstType == GstType.cgstSgst,
-                onChanged: (v) => setState(() {
-                  _place = v;
-                  // Intra-state -> CGST+SGST, inter-state -> IGST.
-                  final biz = ref.read(businessProvider);
-                  final code = biz?.stateCode.trim() ?? '';
-                  if (code.isNotEmpty) {
-                    _gstType = _place.endsWith('($code)')
-                        ? GstType.cgstSgst
-                        : GstType.igst;
-                  }
-                }),
-              ),
+              // Three cases, in order of how much the app knows:
+              //
+              //   India          its own states, carrying the GST code
+              //                  the intra/inter split is decided by
+              //   has regions    that country's own first-level
+              //                  divisions, as a picker
+              //   no regions     a free-text box, because offering a
+              //                  list of somebody else's regions is
+              //                  worse than offering none
+              if (profile.countryCode == 'IN' || regions.isNotEmpty)
+                _PlaceOfSupply(
+                  value: _place,
+                  regions: regions,
+                  splitsTax: profile.regionMatters,
+                  intraState: _gstType == GstType.cgstSgst,
+                  onChanged: (v) => setState(() {
+                    _place = v;
+                    // Intra-state -> CGST+SGST, inter-state -> IGST.
+                    // Only India splits by region, and only India's
+                    // list carries the code this compares against.
+                    final biz = ref.read(businessProvider);
+                    final code = biz?.stateCode.trim() ?? '';
+                    if (profile.regionMatters && code.isNotEmpty) {
+                      _gstType = _place.endsWith('($code)')
+                          ? GstType.cgstSgst
+                          : GstType.igst;
+                    }
+                  }),
+                )
+              else
+                AppField(
+                  label: 'Place of supply',
+                  controller: _placeCtrl,
+                  icon: Symbols.location_city,
+                  hint: 'City, region or province',
+                  validatable: false,
+                  onChanged: (v) => setState(() => _place = v),
+                ),
             ],
           ),
 
@@ -474,10 +528,19 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                       Text(tr('create.grand_total', ref).toUpperCase(),
                           style: AppFont.style(AppType.labelS,
                               color: AppColor.primary)),
-                      Money(_grand,
-                          style: AppType.amountL,
-                          compact: false,
-                          color: AppColor.primary),
+                      const Gap(AppSpace.md),
+                      // Expanded + shrinkToFit: a rupiah or dong total
+                      // reaches sixteen digits honestly, and the pill
+                      // was laid out for five. It used to run straight
+                      // off the right edge.
+                      Expanded(
+                        child: Money(_grand,
+                            style: AppType.amountL,
+                            compact: false,
+                            shrinkToFit: true,
+                            textAlign: TextAlign.right,
+                            color: AppColor.primary),
+                      ),
                     ]),
               ),
             ],
@@ -1117,10 +1180,15 @@ Widget _SRow(String label, double amount) => Padding(
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Text(label,
             style: AppFont.style(AppType.bodyM, color: AppColor.textSecondary)),
-        Money(amount,
-            style: AppType.amountS,
-            compact: false,
-            color: amount < 0 ? AppColor.paid : AppColor.textPrimary),
+        const Gap(AppSpace.md),
+        Expanded(
+          child: Money(amount,
+              style: AppType.amountS,
+              compact: false,
+              shrinkToFit: true,
+              textAlign: TextAlign.right,
+              color: amount < 0 ? AppColor.paid : AppColor.textPrimary),
+        ),
       ]));
 
 
@@ -1173,8 +1241,13 @@ class _TotalBar extends StatelessWidget {
                       color: AppColor.textTertiary),
                 ),
                 const Gap(4),
+                // A truncated total reads as a smaller, wrong number,
+                // which on a bill is worse than small type.
                 Money(total,
-                    style: AppType.amountL, compact: false, animate: true),
+                    style: AppType.amountL,
+                    compact: false,
+                    animate: true,
+                    shrinkToFit: true),
               ],
             ),
           ),
@@ -1203,15 +1276,33 @@ class _PlaceOfSupply extends StatelessWidget {
   final bool intraState;
   final ValueChanged<String> onChanged;
 
+  /// The regions this country actually has.
+  ///
+  /// It used to be India's twenty states for everybody, so a shop in
+  /// Albania recording where it had sold something was offered Tamil
+  /// Nadu and West Bengal — and the field prints on the invoice.
+  final List<String> regions;
+
+  /// Whether the choice changes the tax split, which is India's rule
+  /// and nobody else's in this app. Elsewhere this is a location on a
+  /// document, so the caption says where rather than what it costs.
+  final bool splitsTax;
+
   const _PlaceOfSupply({
     required this.value,
     required this.intraState,
     required this.onChanged,
+    required this.regions,
+    required this.splitsTax,
   });
 
   @override
   Widget build(BuildContext context) {
-    final tone = intraState ? AppColor.primary : AppColor.info;
+    final tone = !splitsTax
+        ? AppColor.textTertiary
+        : intraState
+            ? AppColor.primary
+            : AppColor.info;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1243,9 +1334,11 @@ class _PlaceOfSupply extends StatelessWidget {
                             color: AppColor.textPrimary)),
                     const Gap(1),
                     Text(
-                        intraState
-                            ? 'Same state · CGST + SGST'
-                            : 'Other state · IGST',
+                        !splitsTax
+                            ? 'Where the supply happened'
+                            : intraState
+                                ? 'Same state · CGST + SGST'
+                                : 'Other state · IGST',
                         style: AppFont.style(AppType.bodyS, color: tone)),
                   ],
                 ),
@@ -1266,7 +1359,7 @@ class _PlaceOfSupply extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(builder: (ctx, ss) {
         final q = search.text.trim().toLowerCase();
-        final list = kStates
+        final list = regions
             .where((s) => q.isEmpty || s.toLowerCase().contains(q))
             .toList();
         return Container(

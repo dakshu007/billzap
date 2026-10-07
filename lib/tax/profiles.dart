@@ -7,9 +7,12 @@
 // where its numbers came from and whether a person has checked them.
 //
 //   TaxConfidence.verified      someone checked these against `source`
-//   TaxConfidence.unconfirmed   pre-filled from rate_table.dart and never
-//                               confirmed — the app says so and keeps the
-//                               rate editable
+//   TaxConfidence.unconfirmed   pre-filled from rate_table.dart, which is
+//                               now sourced from a 2026 reference citing
+//                               PwC, official authorities, VATupdate and
+//                               TaxAtlas — a real source, but still not a
+//                               rate checked for a particular sale. The
+//                               app says so and keeps the rate editable.
 //   TaxConfidence.selfDeclared  the shopkeeper typed it; no claim at all
 //
 // Only India is verified here, and only because it is the arithmetic
@@ -93,8 +96,11 @@ final TaxProfile uaeProfile = TaxProfile(
   defaultRate: 5,
   intraComponents: const [TaxComponent('VAT', 1.0)],
   confidence: TaxConfidence.unconfirmed,
-  source: 'UNCONFIRMED. Believed 5% standard rate. Check tax.gov.ae '
-      'and promote it to TaxConfidence.verified with the evidence.',
+  source: 'The 2026 global tax reference gives 5% standard VAT, '
+      'sourced to PwC and VATupdate, which corroborates what this '
+      'profile already held. Still not verified against the Federal '
+      'Tax Authority for a particular supply — check tax.gov.ae and '
+      'promote it with the evidence.',
   effectiveFrom: DateTime.utc(2018, 1, 1),
 );
 
@@ -110,9 +116,11 @@ final TaxProfile saudiProfile = TaxProfile(
   defaultRate: 15,
   intraComponents: const [TaxComponent('VAT', 1.0)],
   confidence: TaxConfidence.unconfirmed,
-  source: 'UNCONFIRMED. Believed 15% standard rate since July 2020. '
-      'Check zatca.gov.sa. Note e-invoicing (Fatoora) has its own '
-      'mandatory requirements this profile does NOT yet cover.',
+  source: 'The 2026 global tax reference gives 15% standard VAT, '
+      'sourced to PwC and VATupdate, corroborating this profile. '
+      'Still not verified against ZATCA for a particular supply, and '
+      'e-invoicing (Fatoora) has its own mandatory requirements this '
+      'profile does NOT cover.',
   effectiveFrom: DateTime.utc(2020, 7, 1),
 );
 
@@ -128,8 +136,11 @@ final TaxProfile singaporeProfile = TaxProfile(
   defaultRate: 9,
   intraComponents: const [TaxComponent('GST', 1.0)],
   confidence: TaxConfidence.unconfirmed,
-  source: 'UNCONFIRMED. Believed 9% since 1 Jan 2024 (7% → 8% → 9%). '
-      'Check iras.gov.sg — this rate moved twice in two years.',
+  source: 'The 2026 global tax reference gives 9% GST, sourced to '
+      'PwC and VATupdate, corroborating this profile. Still not '
+      'verified against IRAS for a particular supply — and this rate '
+      'moved twice in two years (7% → 8% → 9%), so it is worth '
+      'rechecking rather than assuming.',
   effectiveFrom: DateTime.utc(2024, 1, 1),
 );
 
@@ -182,10 +193,13 @@ TaxProfile? tableProfileFor(String countryCode) {
     defaultRate: row.defaultRate,
     intraComponents: [TaxComponent(row.taxName, 1.0)],
     confidence: TaxConfidence.unconfirmed,
-    source: 'Standard rate from rate_table.dart — NOT CONFIRMED. '
-        'Check it against your tax authority; the app shows a notice '
-        'saying so and the rate stays editable in Settings.',
-    effectiveFrom: DateTime.utc(2025, 1, 1),
+    source: 'Standard rate from rate_table.dart, sourced from the 2026 '
+        'global tax reference (PwC Worldwide Tax Summaries, official '
+        'authorities, VATupdate, TaxAtlas). NOT confirmed for a '
+        'particular sale: reduced rates, exemptions and zero-rating '
+        'are not modelled. The app says so and the rate stays editable '
+        'in Settings.',
+    effectiveFrom: DateTime.utc(2026, 10, 7),
   );
 }
 

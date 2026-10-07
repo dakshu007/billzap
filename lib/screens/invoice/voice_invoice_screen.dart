@@ -256,9 +256,13 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
       context: context,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        // AppColors.card, not Colors.white. The labels in this sheet
+        // are AppColors.t1, which is near-white in dark mode, so a
+        // hardcoded white sheet rendered every enabled language
+        // invisible — only the greyed-out "not installed" rows showed.
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
         child: Column(
@@ -535,8 +539,11 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Container(
                           padding: const EdgeInsets.all(10),
+                          // Same bug as the sheet above: a white card
+                          // under near-white text hid every parsed
+                          // item name and quantity in dark mode.
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AppColors.card,
                             borderRadius: BorderRadius.circular(12)),
                           child: Row(children: [
                             Container(

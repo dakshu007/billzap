@@ -54,8 +54,9 @@ const _en = <String, String>{
       'No built-in rules for this country, so you set the rate. '
       'Please confirm it with your tax authority.',
   'set.tax_unconfirmed':
-      'This rate is a starting point, not a checked figure. '
-      'Please confirm it with your tax authority before billing.',
+      'Standard rate as of October 2026, from a global tax reference. '
+      'It does not account for reduced rates or exemptions on what you '
+      'sell — confirm it with your tax authority.',
   'set.tax_edit': 'Tax rate',
   'set.tax_name': 'What the tax is called',
   'set.tax_rate': 'Rate',

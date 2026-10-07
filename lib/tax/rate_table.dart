@@ -1,202 +1,251 @@
-// lib/tax/rate_table.dart — standard rates for the main VAT/GST economies.
+// lib/tax/rate_table.dart — standard rates, from a sourced reference.
 //
-// READ THIS BEFORE TRUSTING ANY NUMBER IN HERE.
+// WHERE THESE NUMBERS COME FROM, AND HOW FAR TO TRUST THEM
 //
-// Nothing in this file is verified. Every rate is my best recollection of
-// a country's standard rate, which is not a standard anybody should hold
-// tax law to. Rates move, and they move fast: Singapore went 7 to 8 to 9
-// per cent inside two years, and Saudi Arabia tripled 5 to 15 overnight
-// in 2020. I could not check any of these — every tax authority and rate
-// API is blocked from the environment this was written in.
+// Every rate below is taken from "BillZap - Global VAT / GST / Sales
+// Tax Reference 2026", a reference document prepared 7 Oct 2026 and
+// supplied by the project owner. It cites PwC Worldwide Tax Summaries
+// 2026 country reviews, official tax authorities, the VATupdate 2026
+// change tracker and the TaxAtlas 2026 dataset, and it marks which
+// source backs each row.
 //
-// So the app treats them as a STARTING POINT, not an answer. A country
-// sourced from this table shows the shopkeeper a "confirm this rate"
-// notice, and the rate stays editable. That is the difference between
-// saving somebody a minute of typing and telling them a number they will
-// print on a legal document.
+// That is a genuine step up from what this file held before, which was
+// recollection. It is still NOT the same as a rate checked against the
+// tax authority for a particular sale, and the document says so itself
+// in as many words:
 //
-// Reduced rates, zero-rated categories, registration thresholds, reverse
-// charge, place-of-supply rules and e-invoicing mandates are all OUT OF
-// SCOPE here. This is one standard rate per country. A shop that needs
-// more than that needs a researched profile, which is profiles.dart.
+//   "Do not implement this table as a universal 'one country = one tax
+//    rate' formula... The headline rate below is a reference starting
+//    point, not a substitute for a tax-determination engine."
 //
-// To promote a country: check it against the authority named below, move
-// it into profiles.dart with verified: true, and put the evidence in the
-// commit message.
+// So every row here is still TaxConfidence.unconfirmed, the app still
+// shows the shopkeeper a "confirm this rate" notice, and the rate
+// stays editable. What changed is the quality of the starting point,
+// not the promise the app makes about it.
 //
-// A row with a single 0 rate is not a gap in the table — it is the
-// answer. Hong Kong, Macau, Qatar, Kuwait, Libya and Bermuda levy no
-// consumption tax, so the app offers nothing but zero and the tax rows
-// never print. It says "Tax" rather than "No VAT" because the word
-// appears in the UI as "Apply {tax}", and "Apply No VAT" is nonsense.
+// WHAT IS DELIBERATELY NOT MODELLED
 //
-// The USA is the other shape of the same problem: sales tax is real but
-// set per state and often per city, so a single national figure would
-// be a fiction. Its row offers the common combined bands so a
-// shopkeeper can pick theirs, and defaults to 0 because we do not know
-// which state they are in and must not guess.
+// Reduced-rate categories, exemptions, zero-rating, registration
+// thresholds, reverse charge, place-of-supply rules beyond India's
+// state split, digital-services regimes and local or state taxes. The
+// rates list offers the bands a country publishes; which one applies
+// to a given sale is the shopkeeper's call, as it has to be.
+//
+// SPECIFIC ROWS THE DOCUMENT SINGLES OUT
+//
+//   Brazil        2026 is a transition year (IBS/CBS alongside legacy
+//                 ICMS/ISS/PIS/COFINS). No single rate, so none is
+//                 offered — the shopkeeper sets it.
+//   United States no national rate; sales tax is state and local. The
+//                 common combined bands are offered and the default is
+//                 nothing, because guessing a state would be worse.
+//   Liberia       13% GST in 2026. The 15% VAT is scheduled for 1 Jan
+//                 2027 and must NOT be used as the 2026 invoice rate —
+//                 the document is explicit about this one.
+//   Indonesia     12% statutory applied to an 11/12 base, so 11% is
+//                 the effective rate for most supplies.
+//   Thailand      rose from 7% to 10% effective 1 Oct 2026.
+//   Ghana         20% effective: 15% VAT + 2.5% NHIL + 2.5% GETFund on
+//                 the same taxable base.
+//   Gibraltar     a 15% transaction tax from 1 Aug 2026, where there
+//                 was historically no VAT at all.
+//   Canada, China, Malaysia, Pakistan
+//                 publish several rates by category or province; the
+//                 bands are offered and the default is the headline.
+//
+// A row of a single 0 is not a gap — it is the answer. Bermuda, the
+// British Virgin Islands, the Cayman Islands, Hong Kong, Macao,
+// Kuwait, Qatar, Libya, Micronesia and Vatican City levy no general
+// consumption tax, and Iraq has no broad standard rate. The row says
+// "Tax" rather than naming the absence, because the word reaches the
+// UI as "Apply {tax}" and "Apply No VAT" is nonsense.
+//
+// India is NOT in this table. It has a researched profile in
+// profiles.dart carrying the CGST/SGST/IGST split and the GST state
+// codes, and tax_golden_test.dart asserts its arithmetic is unchanged.
+//
+// TO PROMOTE A COUNTRY TO VERIFIED: check it against that country's
+// tax authority, move it into profiles.dart with
+// TaxConfidence.verified, and put the evidence in the commit message.
 //
 // FORMAT  code|taxName|taxIdLabel|rates(/-separated)|default
 const String _rates = r'''
-GB|VAT|VAT number|0/5/20|20
-IE|VAT|VAT number|0/9/13.5/23|23
-DE|VAT|USt-IdNr.|0/7/19|19
-FR|VAT|No. TVA|0/5.5/10/20|20
-IT|VAT|P. IVA|0/4/10/22|22
-ES|VAT|NIF-IVA|0/4/10/21|21
-NL|VAT|Btw-nummer|0/9/21|21
-BE|VAT|BTW-nummer|0/6/12/21|21
-PT|VAT|NIF|0/6/13/23|23
-AT|VAT|UID|0/10/13/20|20
-PL|VAT|NIP|0/5/8/23|23
-SE|VAT|Momsnr.|0/6/12/25|25
-NO|VAT|Org.nr.|0/12/15/25|25
-DK|VAT|CVR|0/25|25
-FI|VAT|ALV-numero|0/10/14/25.5|25.5
-CH|VAT|MWST-Nr.|0/2.6/3.8/8.1|8.1
-GR|VAT|AFM|0/6/13/24|24
-CZ|VAT|DIC|0/12/21|21
-RO|VAT|CUI|0/5/9/19|19
-HU|VAT|Adoszam|0/5/18/27|27
-TR|VAT|Vergi No|0/1/10/20|20
-AU|GST|ABN|0/10|10
-NZ|GST|GST number|0/15|15
-ZA|VAT|VAT number|0/15|15
-NG|VAT|TIN|0/7.5|7.5
-KE|VAT|PIN|0/8/16|16
-EG|VAT|Tax ID|0/14|14
-MA|VAT|ICE|0/10/20|20
-JP|Consumption tax|Invoice number|0/8/10|10
-KR|VAT|Business number|0/10|10
-CN|VAT|USCC|0/6/9/13|13
-TW|Business tax|Tax ID|0/5|5
-TH|VAT|Tax ID|0/7|7
-VN|VAT|MST|0/5/10|10
-PH|VAT|TIN|0/12|12
-ID|VAT|NPWP|0/11|11
-MY|SST|SST number|0/6/10|6
-PK|GST|NTN|0/18|18
-BD|VAT|BIN|0/15|15
-LK|VAT|VAT number|0/18|18
-NP|VAT|PAN|0/13|13
-BH|VAT|VAT number|0/10|10
-OM|VAT|VATIN|0/5|5
-QA|Tax|Tax card|0|0
-KW|Tax|Tax number|0|0
-MX|IVA|RFC|0/8/16|16
-AR|IVA|CUIT|0/10.5/21|21
-CL|IVA|RUT|0/19|19
-CO|IVA|NIT|0/5/19|19
-PE|IGV|RUC|0/18|18
-RU|VAT|INN|0/10/20|20
-UA|VAT|Tax number|0/7/14/20|20
-IL|VAT|Osek number|0/18|18
-BR|Tax|CNPJ|0/7/12/18|18
-UY|IVA|RUT|0/10/22|22
-PY|IVA|RUC|0/5/10|10
-BO|IVA|NIT|0/13|13
-EC|IVA|RUC|0/5/15|15
-VE|IVA|RIF|0/8/16|16
-CR|IVA|Cedula juridica|0/1/2/4/13|13
-PA|ITBMS|RUC|0/7/10/15|7
-GT|IVA|NIT|0/12|12
-HN|ISV|RTN|0/15/18|15
-SV|IVA|NIT|0/13|13
-NI|IVA|RUC|0/15|15
-DO|ITBIS|RNC|0/16/18|18
-JM|GCT|TRN|0/15|15
-TT|VAT|BIR number|0/12.5|12.5
-BS|VAT|TIN|0/10|10
-US|Sales Tax|EIN|0/4/5/6/6.25/7/7.25/8/8.25/9/9.5/10|0
-CA|GST/HST|BN|0/5/13/15|5
-BM|Tax|Tax number|0|0
-BZ|GST|TIN|0/12.5|12.5
-SR|VAT|FIN|0/10|10
-HT|TCA|NIF|0/10|10
-CU|Tax|NIT|0/10|10
-IS|VAT|VSK|0/11/24|24
-EE|VAT|KMKR|0/9/22|22
-LV|VAT|PVN|0/5/12/21|21
-LT|VAT|PVM kodas|0/5/9/21|21
-SK|VAT|DIC|0/5/19/23|23
-SI|VAT|ID za DDV|0/5/9.5/22|22
-HR|VAT|OIB|0/5/13/25|25
-BG|VAT|EIK|0/9/20|20
-RS|VAT|PIB|0/10/20|20
-BA|VAT|JIB|0/17|17
-MK|VAT|EDB|0/5/10/18|18
-AL|VAT|NIPT|0/6/20|20
-MD|VAT|IDNO|0/8/20|20
-BY|VAT|UNP|0/10/20|20
-LU|VAT|No. TVA|0/3/8/17|17
-MT|VAT|VAT number|0/5/7/18|18
-CY|VAT|VAT number|0/5/9/19|19
-MC|VAT|No. TVA|0/5.5/10/20|20
-LI|VAT|MWST-Nr.|0/2.6/3.8/8.1|8.1
-SM|VAT|COE|0/17|17
-GE|VAT|Tax ID|0/18|18
+AE|VAT|TRN|0/5|5
+AG|ABST|TIN|0/17|17
+AL|VAT|NIPT|0/20|20
 AM|VAT|TIN|0/20|20
+AO|VAT|NIF|0/14|14
+AR|VAT|CUIT|0/21|21
+AT|VAT|UID|0/20|20
+AU|GST|ABN|0/10|10
+AW|Turnover Tax|Tax number|0/7|7
 AZ|VAT|VOEN|0/18|18
-KZ|VAT|BIN|0/12|12
-UZ|VAT|INN|0/12|12
-KG|VAT|INN|0/12|12
-TJ|VAT|TIN|0/15|15
-TM|VAT|Tax number|0/15|15
-MN|VAT|Register number|0/10|10
-IR|VAT|National ID|0/10|10
-IQ|Sales Tax|Tax number|0/15|15
-JO|GST|Tax number|0/4/10/16|16
-LB|VAT|VAT number|0/11|11
-YE|Sales Tax|Tax number|0/5|5
-DZ|VAT|NIF|0/9/19|19
-TN|VAT|Matricule fiscal|0/7/13/19|19
-LY|Tax|Tax number|0|0
-SD|VAT|Tax number|0/17|17
-ET|VAT|TIN|0/15|15
-GH|VAT|TIN|0/3/15|15
-CI|VAT|CC|0/9/18|18
-SN|VAT|NINEA|0/18|18
-CM|VAT|NIU|0/19.25|19.25
-TZ|VAT|TIN|0/18|18
-UG|VAT|TIN|0/18|18
-RW|VAT|TIN|0/18|18
-ZM|VAT|TPIN|0/16|16
-ZW|VAT|BP number|0/15|15
-BW|VAT|TIN|0/14|14
-NA|VAT|VAT number|0/15|15
-MZ|VAT|NUIT|0/16|16
-AO|VAT|NIF|0/7/14|14
-MU|VAT|VAT number|0/15|15
+BA|VAT|JIB|0/17|17
+BD|VAT|BIN|0/15|15
+BE|VAT|BTW-nummer|0/21|21
 BF|VAT|IFU|0/18|18
-ML|VAT|NIF|0/18|18
-NE|VAT|NIF|0/19|19
-TD|VAT|NIF|0/18|18
+BG|VAT|EIK|0/20|20
+BH|VAT|VAT number|0/10|10
 BJ|VAT|IFU|0/18|18
-TG|VAT|NIF|0/18|18
-GN|VAT|NIF|0/18|18
-GA|VAT|NIF|0/18|18
-CG|VAT|NIU|0/18|18
+BM|Tax|Tax number|0|0
+BO|VAT|NIT|0/13|13
+BR|Tax|CNPJ|0|0
+BS|VAT|TIN|0/10|10
+BW|VAT|TIN|0/14|14
+BY|VAT|UNP|0/20|20
+BZ|GST|TIN|0/12.5|12.5
+CA|GST/HST|BN|0/5/13/15|5
 CD|VAT|NIF|0/16|16
-LR|GST|TIN|0/10|10
-SL|GST|TIN|0/15|15
-GM|VAT|TIN|0/15|15
+CG|VAT|NIU|0/18.9|18.9
+CH|VAT|MWST-Nr.|0/8.1|8.1
+CI|VAT|CC|0/18|18
+CL|VAT|RUT|0/19|19
+CM|VAT|NIU|0/19.25|19.25
+CN|VAT|USCC|0/6/9/13|13
+CO|VAT|NIT|0/19|19
+CR|VAT|Cedula juridica|0/13|13
+CU|Sales Tax|NIT|0/10|10
 CV|VAT|NIF|0/15|15
-SC|VAT|TIN|0/15|15
-SO|Sales Tax|Tax number|0/5|5
-DJ|VAT|NIF|0/10|10
-ER|Sales Tax|TIN|0/5|5
-KH|VAT|VAT TIN|0/10|10
-LA|VAT|TIN|0/7|7
-MM|Commercial Tax|TIN|0/5|5
-MV|GST|TIN|0/8/16|8
-MO|Tax|Tax number|0|0
-HK|Tax|BR number|0|0
-PG|GST|TIN|0/10|10
+CY|VAT|VAT number|0/19|19
+CZ|VAT|DIC|0/21|21
+DE|VAT|USt-IdNr.|0/19|19
+DJ|VAT|NIF|0/7|7
+DK|VAT|CVR|0/25|25
+DM|VAT|TIN|0/15|15
+DO|ITBIS|RNC|0/18|18
+DZ|VAT|NIF|0/19|19
+EC|VAT|RUC|0/15|15
+EE|VAT|KMKR|0/24|24
+EG|VAT|Tax registration number|0/14|14
+ER|Sales Tax|TIN|0/5/10/12|12
+ES|VAT|NIF-IVA|0/21|21
+ET|VAT|TIN|0/15|15
+FI|VAT|ALV-numero|0/25.5|25.5
 FJ|VAT|TIN|0/15|15
+FM|Tax|Tax ID|0|0
+FR|VAT|No. TVA|0/20|20
+GA|VAT|NIF|0/18|18
+GB|VAT|VAT number|0/20|20
+GD|VAT|TIN|0/15|15
+GE|VAT|Tax ID|0/18|18
+GH|VAT|TIN|0/20|20
+GI|Transaction Tax|Tax ID|0/15|15
+GM|VAT|TIN|0/15|15
+GN|VAT|NIF|0/18|18
+GR|VAT|AFM|0/24|24
+GT|VAT|NIT|0/12|12
+GW|VAT|NIF|0/19|19
+HK|Tax|BR number|0|0
+HN|Sales Tax|RTN|0/15|15
+HR|VAT|OIB|0/25|25
+HT|Turnover Tax|NIF|0/10|10
+HU|VAT|Adoszam|0/27|27
+ID|VAT|NPWP|0/11/12|11
+IE|VAT|VAT number|0/23|23
+IL|VAT|Osek number|0/18|18
+IQ|Tax|Tax number|0|0
+IR|VAT|National ID|0/9|9
+IS|VAT|VSK|0/24|24
+IT|VAT|P. IVA|0/22|22
+JM|GCT|TRN|0/15|15
+JO|Sales Tax|Tax number|0/16|16
+JP|Consumption Tax|Invoice number|0/10|10
+KE|VAT|PIN|0/16|16
+KG|VAT|INN|0/12|12
+KH|VAT|VAT TIN|0/10|10
+KM|Consumption Tax|NIF|0/10|10
+KN|VAT|TIN|0/17|17
+KR|VAT|Business number|0/10|10
+KW|Tax|Tax number|0|0
+KY|Tax|Tax number|0|0
+KZ|VAT|BIN|0/16|16
+LA|VAT|TIN|0/10|10
+LB|VAT|VAT number|0/11|11
+LC|VAT|TIN|0/12.5|12.5
+LI|VAT|MWST-Nr.|0/8.1|8.1
+LK|VAT|VAT number|0/18|18
+LR|GST|TIN|0/13/15|13
+LT|VAT|PVM kodas|0/21|21
+LU|VAT|No. TVA|0/17|17
+LV|VAT|PVN|0/21|21
+LY|Tax|Tax number|0|0
+MA|VAT|ICE|0/20|20
+MC|VAT|No. TVA|0/20|20
+MD|VAT|IDNO|0/20|20
+MK|VAT|EDB|0/18|18
+ML|VAT|NIF|0/18|18
+MM|Commercial Tax|TIN|0/5|5
+MN|VAT|Register number|0/10|10
+MO|Tax|Tax number|0|0
+MT|VAT|VAT number|0/18|18
+MU|VAT|VAT number|0/15|15
+MV|GST|TIN|0/8|8
+MX|VAT|RFC|0/16|16
+MY|SST|SST number|0/5/6/8/10|10
+MZ|VAT|NUIT|0/16|16
+NA|VAT|VAT number|0/15|15
+NE|VAT|NIF|0/19|19
+NG|VAT|TIN|0/7.5|7.5
+NI|VAT|RUC|0/15|15
+NL|VAT|Btw-nummer|0/21|21
+NO|VAT|Org.nr.|0/25|25
+NP|VAT|PAN|0/13|13
+NZ|GST|GST number|0/15|15
+OM|VAT|VATIN|0/5|5
+PA|ITBMS|RUC|0/7|7
+PE|IGV|RUC|0/18|18
+PG|GST|TIN|0/10|10
+PH|VAT|TIN|0/12|12
+PK|GST|NTN|0/15/16/18|18
+PL|VAT|NIP|0/23|23
+PT|VAT|NIF|0/23|23
+PY|VAT|RUC|0/10|10
+QA|Tax|Tax card|0|0
+RO|VAT|CUI|0/21|21
+RS|VAT|PIB|0/20|20
+RU|VAT|INN|0/20|20
+RW|VAT|TIN|0/18|18
+SA|VAT|VAT number|0/15|15
+SB|Goods Tax|TIN|0/10/15|10
+SC|VAT|TIN|0/15|15
+SD|VAT|Tax number|0/17|17
+SE|VAT|Momsnr.|0/25|25
+SG|GST|GST registration number|0/9|9
+SI|VAT|ID za DDV|0/22|22
+SK|VAT|DIC|0/23|23
+SL|GST|TIN|0/15|15
+SM|Import Tax|COE|0/17|17
+SN|VAT|NINEA|0/18|18
+SO|Sales Tax|Tax number|0/5|5
+SR|VAT|FIN|0/10|10
+SV|VAT|NIT|0/13|13
+TC|Tax|Tax ID|0/12|0
+TD|VAT|NIF|0/18|18
+TG|VAT|NIF|0/18|18
+TH|VAT|Tax ID|0/10|10
+TJ|VAT|TIN|0/14|14
+TM|VAT|Tax number|0/15|15
+TN|VAT|Matricule fiscal|0/19|19
+TO|VAT|TIN|0/15|15
+TR|VAT|Vergi No|0/20|20
+TT|VAT|BIR number|0/12.5|12.5
+TW|VAT|Tax ID|0/5|5
+TZ|VAT|TIN|0/18|18
+UA|VAT|Tax number|0/20|20
+UG|VAT|TIN|0/18|18
+US|Sales Tax|EIN|0/4/5/6/6.25/7/7.25/8/8.25/9/9.5/10|0
+UY|VAT|RUT|0/22|22
+UZ|VAT|INN|0/12|12
+VA|Tax|Tax number|0|0
+VE|VAT|RIF|0/16|16
+VG|Tax|Tax number|0|0
+VN|VAT|MST|0/10|10
 VU|VAT|VAT number|0/15|15
-WS|VAGST|TIN|0/15|15
-TO|CT|TIN|0/15|15
-SB|GST|TIN|0/10|10
+WS|GST|TIN|0/15|15
+YE|Sales Tax|Tax number|0/5/10|5
+ZA|VAT|VAT number|0/15|15
+ZM|VAT|TPIN|0/16|16
+ZW|VAT|BP number|0/15.5|15.5
 ''';
 
 /// One row of the table above.

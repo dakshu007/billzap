@@ -13,14 +13,17 @@ import 'package:billzap/tax/profiles.dart';
 import 'package:billzap/tax/tax_profile.dart';
 
 void main() {
-  test('the table covers most of the country picker', () {
-    // 159 of the 177 countries in the picker. The remainder is four
-    // researched profiles plus fourteen small jurisdictions where no
-    // national rate exists to pre-fill, and those correctly fall
-    // through to the shopkeeper's own setting.
-    expect(rateTableCountries.length, 159);
-    expect(rateTableCountries.length / allCountries.length,
-        greaterThan(0.85));
+  test('the table covers the whole country picker bar India', () {
+    // 176 of the 177. India is the exception on purpose: it has a
+    // researched profile carrying the CGST/SGST/IGST split and the GST
+    // state codes, and a second entry here could disagree with it.
+    expect(rateTableCountries.length, 176);
+    expect(rateTableCountries, isNot(contains('IN')));
+    for (final c in allCountries) {
+      if (c.code == 'IN') continue;
+      expect(rateRowFor(c.code), isNotNull,
+          reason: '${c.name} (${c.code}) has no rate row');
+    }
   });
 
   test('a tax name is never a sentence about the absence of one', () {
@@ -114,24 +117,55 @@ void main() {
   });
 
   test('a country in neither place still works', () {
-    // Gibraltar: in the picker, no researched profile, no table row.
-    // This is the fall-through the whole design rests on — an
-    // unresearched country must be a working app, not an error.
-    final p = resolveProfile(countryCode: 'GI', countryName: 'Gibraltar');
+    // ZZ is the ISO user-assigned code, so it is permanently not a
+    // country and can never grow a table row. This used to be
+    // Gibraltar, until the 2026 reference gave Gibraltar a 15%
+    // transaction tax and the test quietly started exercising the
+    // table instead of the fall-through it was written for.
+    //
+    // The fall-through still matters even though the table now covers
+    // every country in the picker: it is what happens when a code
+    // arrives that the app does not know.
+    final p = resolveProfile(countryCode: 'ZZ', countryName: 'Elsewhere');
     expect(p.confidence, TaxConfidence.selfDeclared);
     expect(p.componentsAreWellFormed, isTrue);
+    expect(p.rates, contains(0.0));
   });
 
-  test('the fall-through countries really are in neither place', () {
-    // If the table later grows a row for one of these, the two tests
-    // above start testing the table instead of the fall-through and
-    // quietly stop checking what they were written to check.
-    for (final code in ['GI', 'KY', 'VA', 'VG', 'AW']) {
-      expect(rateRowFor(code), isNull,
-          reason: '$code now has a table row; pick another fall-through');
+  test('an unknown code never acquires a rate from nowhere', () {
+    for (final code in ['ZZ', 'QQ', 'XY']) {
+      expect(rateRowFor(code), isNull, reason: code);
       expect(resolveProfile(countryCode: code).confidence,
           TaxConfidence.selfDeclared,
           reason: code);
+      expect(resolveProfile(countryCode: code).defaultRate, 0,
+          reason: '$code must not arrive with a rate the app invented');
     }
+  });
+
+  test('the rows the reference singles out are the rates it names', () {
+    // Each of these is a row the source document flags as one where a
+    // naive reading gives the wrong answer, so each is worth pinning.
+    expect(rateRowFor('LR')!.defaultRate, 13,
+        reason: 'Liberia is 13% GST in 2026; 15% VAT starts in 2027 and '
+            'the document says explicitly not to use it yet');
+    expect(rateRowFor('TH')!.defaultRate, 10,
+        reason: 'Thailand rose from 7% to 10% on 1 Oct 2026');
+    expect(rateRowFor('ID')!.defaultRate, 11,
+        reason: '12% statutory on an 11/12 base is 11% effective');
+    expect(rateRowFor('GH')!.defaultRate, 20,
+        reason: '15% VAT + 2.5% NHIL + 2.5% GETFund on one base');
+    expect(rateRowFor('BR')!.defaultRate, 0,
+        reason: 'Brazil has no single rate during the 2026 transition');
+    expect(rateRowFor('US')!.defaultRate, 0,
+        reason: 'sales tax is state and local; guessing a state is worse '
+            'than asking');
+    expect(rateRowFor('EE')!.defaultRate, 24);
+    expect(rateRowFor('RO')!.defaultRate, 21);
+    expect(rateRowFor('KZ')!.defaultRate, 16);
+    expect(rateRowFor('ZW')!.defaultRate, 15.5);
+    expect(rateRowFor('GI')!.defaultRate, 15,
+        reason: 'a transaction tax from 1 Aug 2026, where there was '
+            'historically no VAT at all');
   });
 }

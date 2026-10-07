@@ -23,11 +23,40 @@ class SmartAmountFormatter extends TextInputFormatter {
   static const double _lMultiplier = 100000;
   static const double _crMultiplier = 10000000;
 
+  /// The most digits an amount may have before the decimal point.
+  ///
+  /// Twelve, which is a trillion — comfortably more than any real
+  /// invoice line in any currency, including the ones with small
+  /// units: a line of a trillion Vietnamese dong is about forty
+  /// million US dollars.
+  ///
+  /// The cap exists because money here is a `double`, and a double
+  /// stops being able to represent every whole number above 2^53, or
+  /// about 9,007 trillion. A tester typing fifteen nines produced a
+  /// sixteen-digit total that no longer survives a round trip, on a
+  /// document whose entire purpose is to state an exact amount. Better
+  /// to refuse the keystroke than to print a number the app cannot
+  /// hold.
+  static const int maxIntegerDigits = 12;
+
+  /// Whether [text] stays within the digit cap, judged on the integer
+  /// part only — decimals do not cost precision at this scale.
+  static bool withinLimit(String text) {
+    final digits = text.split('.').first.replaceAll(RegExp(r'[^0-9]'), '');
+    return digits.length <= maxIntegerDigits;
+  }
+
   @override
   TextEditingValue formatEditUpdate(
       TextEditingValue oldValue, TextEditingValue newValue) {
     final text = newValue.text;
     if (text.isEmpty) return newValue;
+
+    // Refuse the keystroke that would take the amount past what a
+    // double can hold exactly. Checked before the shorthand expands,
+    // and again after, because "9999999999999k" is three keystrokes
+    // away from an unrepresentable number.
+    if (!withinLimit(text)) return oldValue;
 
     // Allow only digits, dot, k/K/l/L/c/C, r/R
     final validChars = RegExp(r'^[0-9.kKlLcCrR]*$');
@@ -90,6 +119,11 @@ class SmartAmountFormatter extends TextInputFormatter {
     } else {
       formatted = result.toStringAsFixed(2);
     }
+
+    // The shorthand multiplies, so a value inside the cap before
+    // expansion can land outside it after — "99999999999k" is twelve
+    // digits typed and fifteen stored.
+    if (!withinLimit(formatted)) return fallback;
 
     return TextEditingValue(
       text: formatted,

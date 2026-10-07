@@ -337,7 +337,10 @@ class _EarningsCard extends StatelessWidget {
             FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
-              child: MoneyCounter(revenue, style: AppType.amountHero),
+              // The FittedBox above already does the shrinking, so the
+              // counter does not need its own.
+              child: MoneyCounter(revenue,
+                  style: AppType.amountHero, shrinkToFit: false),
             ),
             // The trend, drawn small under the figure. Shown only once
             // there is a shape worth showing — a flat line across six
