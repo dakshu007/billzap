@@ -4,9 +4,62 @@
 from a different account.** It is the state of play, the decisions already
 made and the reasons behind them, and what is genuinely left.
 
-Last updated: 2026-10-06
+Last updated: 2026-10-07
 Working branch: `claude/loving-pasteur-nr9lz2`
 Repository: `dakshu007/billzap` (Android only — see *Platform scope*)
+Last green build: **260502278** — the number shows in Settings → About
+
+---
+
+## Start here
+
+You have walked in on an app that shipped as an Indian GST biller and is
+being taken worldwide. The work is largely done and green; what remains
+is listed under *Still open*.
+
+**Your first five minutes:**
+
+1. `git log --oneline origin/main..HEAD` — 23 commits, none merged to
+   `main` yet, and **no pull request** (the owner has not asked for one;
+   do not open one unless he does).
+2. Read *The single most important rule* below before touching any
+   arithmetic. It is the one thing that can really hurt someone.
+3. Read *The honesty constraint*. A fresh session's first instinct is to
+   "finish" the tax table from memory. Do not.
+4. `flutter analyze` and `flutter test` **cannot be run here** — there is
+   no Flutter toolchain in the container. CI is your compiler. Push, then
+   read the log. See *CI — read it, do not guess at it*.
+
+**What the owner is doing right now:** installing each APK on his own
+phone and reporting what he sees, screenshot by screenshot. He is not
+reading the diff. Every round has been: he reports 3–5 things, they get
+fixed, a new APK goes out. Expect that to continue, and expect at least
+one of his reports to uncover something worse underneath it — that has
+happened every single round so far.
+
+**The pattern worth copying:** when he reports a bug, check whether it is
+one bug or a class of them. "Albania shows Indian states" was really
+three hardcoded state lists that disagreed. "The text is invisible" was
+four screens at once. Both times the fix was a test that scans the
+source, not a careful edit.
+
+---
+
+## Where the last two rounds got to
+
+Not a changelog — the git log is that. This is what a cold session needs
+to know has *already been dealt with*, so it does not redo it.
+
+| | |
+|---|---|
+| **India's state list** | Held 20 of India's 37 GST jurisdictions. Goa, Chhattisgarh, Uttarakhand, Puducherry and the north-east were missing, on the field that decides CGST/SGST against IGST. All 37 now, with codes. This was hurting real users. |
+| **Three state lists** | models.dart had 20, onboarding had 31, reality has 37 — all feeding tax fields. Now one source. |
+| **Regions** | `lib/tax/regions.dart`, 172 of 177 countries, 2,707 entries. Gibraltar, Monaco, Macao and Vatican City are deliberately absent (single-settlement; free-text instead). |
+| **Business address country** | `Business.addressCountryCode`, separate from `countryCode`. Empty means "same as where I trade". A trader registered in Singapore with premises in Malaysia has one of each. |
+| **Tax rates** | Replaced from a reference PDF the owner supplied — see *The honesty constraint*. |
+| **Dark mode** | Four screens painted `Colors.white` under theme-coloured text. `dark_mode_surfaces_test.dart` scans for it now. |
+| **Large amounts** | Short-form ladder reaches T and lakh crore; hero figures shrink instead of truncating; the amount field caps at 12 digits (doubles lose exactness above 2^53). |
+| **Voice** | Locale follows the shop's country; ~180 spoken currency words; connecting verbs no longer land in item names ("Dakshini needs 2 kg sugar" was billing an item called "Needs sugar"). |
 
 ---
 
@@ -137,10 +190,42 @@ lib/tax/
                        storage, no clock — deliberately, so it is
                        exhaustively testable
   profiles.dart        The four researched countries + resolveProfile()
-  rate_table.dart      159 pre-filled standard rates, all unconfirmed
+  rate_table.dart      176 standard rates, all unconfirmed
   countries.dart       177 countries, currencies, countryFlag()
+  regions.dart         First-level divisions for 172 of them
   active_profile.dart  The shop's profile WITHOUT a WidgetRef
 ```
+
+### Why India's states are NOT in regions.dart
+
+`kStates` lives in `lib/models/models.dart` because each entry carries
+the official GST state code in brackets — `'Tamil Nadu (33)'` — and
+three things parse it back out: the intra/inter-state split in
+`create_invoice_screen.dart`, `gstr1_builder.dart`, and the settings
+save. A second list here could disagree with it about a number the tax
+return depends on.
+
+The format is therefore load-bearing. If you touch `kStates`, keep
+`kStateMap` in step; `business_address_country_test.dart` asserts the
+two agree, that all 37 jurisdictions are present, and that the retired
+codes 25 and 28 stay out.
+
+### Two countries, not one
+
+`Business` carries both:
+
+- `countryCode` — the tax regime the shop bills under. Set at
+  onboarding, changed in Settings → Country. This is what
+  `taxProfileProvider` reads.
+- `addressCountryCode` — where the premises are. **Empty means "same as
+  countryCode"**, which is what every profile saved before the field
+  existed meant, and what it still means for almost everyone. Read it
+  through `effectiveAddressCountry`, never directly.
+
+They are separate because they are separate questions, and the owner
+asked for it explicitly: a business registered in one country may trade
+from another. The region picker and its label follow the *address*
+country; the tax follows the *trading* country.
 
 ### Why `active_profile.dart` exists
 
@@ -207,6 +292,39 @@ that split, so GSTR-1 keeps working unchanged and reads 0 outside India.
 
 ## Still open
 
+### 0. The Gemini question — AWAITING THE OWNER'S ANSWER
+
+He asked, in his own words: *"what about connecting gemini api free and
+summarizing the tax VAT monthly and updating it to automatically?"*
+
+I gave him a split answer and he has not come back on it yet. **Pick
+this up only if he does**, and if he does, the position I put to him was:
+
+**Yes to the summary half.** "You collected ₹48,000 of GST in October,
+up 12%, mostly from three customers" is genuinely useful and a wrong
+word costs nothing.
+
+**No to auto-updating tax rates from an LLM.** This is the one place I
+argued against him. Everything in this codebase exists to stop the app
+asserting a rate nobody checked — that is what `TaxConfidence` is for,
+and why nothing was promoted to `verified` even with his sourced PDF. A
+model that hallucinates "Kenya VAT is 14%" would write it silently onto
+a legal document and the shopkeeper finds out at filing. His own PDF
+says the same: *"do not infer a rate from the country field alone."*
+Rate updates should come from a file he replaces, which is exactly what
+the PDF was.
+
+Two constraints he needs to have accepted before any of it is built:
+
+- **It breaks "100% offline."** That claim is on the Play listing and
+  the landing page. Summarising means invoice totals leave the phone to
+  Google. Workable, but opt-in, off by default, and said plainly.
+- **A free Gemini key shipped inside an APK is extractable in minutes**
+  and the bill is his. It needs a proxy he controls, or the user's own
+  key pasted into Settings.
+
+If he says yes: totals and tax only, never line items or customer names.
+
 ### 1. The discount and shipping tax base — BLOCKED ON THE OWNER
 
 This is a real, unresolved question about Indian tax law and **it needs
@@ -239,7 +357,17 @@ existing upload key and the build log says "Keystore decoded — release
 build will be signed". What is outstanding is Google's side of the key
 reset, not anything in this repository.
 
-### 3. Eleven taglines still say "for India"
+### 3. Nothing is merged to `main`, and that is deliberate
+
+23 commits sit on `claude/loving-pasteur-nr9lz2`. The owner authorised a
+merge once, earlier, and has not asked again since the international
+work started. `build.yml` has `workflow_dispatch`, so APKs are built
+from the branch directly and he has been testing from there.
+
+**Do not merge or open a pull request unless he asks.** If he does ask
+for a PR, the repository has no template; write the body as normal.
+
+### 4. Eleven taglines still say "for India"
 
 `splash.tagline`, `onboard.welcome_sub` and `onboard.done_sub` are
 country-neutral in English and still name India in the other eleven
@@ -248,7 +376,7 @@ Punjabi is in India, where the line is true, and a machine-translated
 replacement would be worse than a correct sentence. If the owner starts
 marketing in a non-Indian language, these need a native speaker.
 
-### 4. Things a researched country would unlock
+### 5. Things a researched country would unlock
 
 Not blockers, but the next real steps for any country promoted to
 `verified`:
@@ -391,7 +519,7 @@ pending item is Google's upload *key reset*, not the CI setup.
 
 ## Test suite
 
-Thirteen files. The ones that matter most to the international work:
+Nineteen files. The ones that matter most to the international work:
 
 | File | What it protects |
 |---|---|
@@ -407,6 +535,8 @@ Thirteen files. The ones that matter most to the international work:
 | `voice_item_name_test.dart` | Connecting verbs do not end up in item names |
 | `money_format_test.dart` | Both grouping rules, both short-form ladders |
 | `voice_locale_test.dart` | Speech locale follows the shop's country |
+| `business_address_country_test.dart` | All 37 Indian GST jurisdictions; the two country fields |
+| `app_version_test.dart` | The About panel shows which build is installed |
 
 ---
 
@@ -421,3 +551,26 @@ Thirteen files. The ones that matter most to the international work:
   whole piece and report than ask three clarifying questions.
 - **But** he is the one who decides anything touching tax liability. The
   discount question above is his, not yours.
+- He ends most messages with some form of "fix these and tell me, I'll
+  tell you the next". Give him a short, concrete report and an APK link,
+  then stop. He does not want a plan; he wants the thing done.
+- He tests on a real phone and reports by screenshot. Several of the
+  best finds this project has had came from him noticing something in a
+  screenshot that no test covered — the invisible text, the Japanese
+  state list, the overflowing total. Take his screenshots seriously and
+  look at the parts he did not mention: the "Needs sugar" item name was
+  sitting in one of them, unremarked.
+- When you have to tell him something cannot be done the way he asked —
+  the Gemini rate updates, the unverifiable rates — say it in a sentence,
+  give him the nearest thing that is safe, and move on. He takes a
+  straight answer well. He does not take padding well.
+
+---
+
+## If you change one thing in this file, change this
+
+Keep it current. It has already been wrong once in a way that would have
+cost the next session real time: it said CI produced a debug-signed APK
+when the signing secrets were in fact configured, which would have sent
+someone off to set up something already done. Anything here that you
+discover is stale is worth a commit on its own.
