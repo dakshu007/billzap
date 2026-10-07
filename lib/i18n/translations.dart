@@ -644,6 +644,14 @@ const _en = <String, String>{
   'inv.deleted_named': '{no} deleted',
   'inv.due_on': 'Due {date}',
   'inv.total_count': '{n} total',
+  // logo
+  'logo.title': 'Business logo',
+  'logo.sub': 'Printed at the top of every invoice PDF',
+  'logo.add': 'Add logo',
+  'logo.change': 'Change',
+  'logo.remove': 'Remove',
+  'logo.saved': 'Logo saved',
+  'logo.unreadable': 'That image could not be read. Try a PNG or JPG.',
   // lang
   'lang.all_languages': 'All languages',
   'lang.apply': 'Apply',

@@ -116,6 +116,7 @@ class Symbols {
   static const IconData undo = LucideIcons.undo2;
   static const IconData verified = LucideIcons.badgeCheck;
   static const IconData upload_file = LucideIcons.fileUp;
+  static const IconData image = LucideIcons.image;
   static const IconData warning = LucideIcons.triangleAlert;
   static const IconData wifi_off = LucideIcons.wifiOff;
 }

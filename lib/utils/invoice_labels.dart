@@ -36,3 +36,21 @@ String invoiceStatusLabel(Invoice inv) {
     tax: p.taxName,
   );
 }
+
+/// Whether a UPI payment request belongs on this invoice.
+///
+/// UPI is India's payment system: it moves rupees between Indian bank
+/// accounts and nothing else. A shop billing in lek or dirhams that put
+/// a UPI QR on its bill would be asking the customer to pay the bill's
+/// number in rupees — the screenshot that found this showed "₹46.02"
+/// under a L46.02 invoice. Converting is not an answer either: an
+/// offline app has no exchange rate it could stand behind, and the
+/// customer still could not pay without an Indian account. So: rupee
+/// invoices only. Read off the invoice, not the shop, because a bill
+/// keeps the currency it was issued in.
+bool upiApplies(Invoice inv) => inv.taxCountryCode.toUpperCase() == 'IN';
+
+/// What the bank routing code is called on the printed bill: IFSC in
+/// India, a neutral word everywhere else, where the same field holds a
+/// SWIFT/BIC, sort code or routing number.
+String bankCodeLabel(Invoice inv) => upiApplies(inv) ? 'IFSC' : 'Bank code';

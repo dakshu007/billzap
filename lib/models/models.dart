@@ -60,6 +60,14 @@ class Business {
   /// profile written before this field existed meant.
   String addressCountryCode;
 
+  /// The shop's logo as a base64 PNG, already shrunk to at most 512px
+  /// on its long side when it was picked. Empty means no logo.
+  ///
+  /// Stored inside the business record rather than as a file path so
+  /// it travels with the encrypted backup: a restored phone gets its
+  /// logo back with everything else.
+  String logoBase64;
+
   /// Where the address country actually resolves to.
   String get effectiveAddressCountry =>
       addressCountryCode.trim().isEmpty ? countryCode : addressCountryCode;
@@ -87,6 +95,7 @@ class Business {
     this.customTaxRate = 0,
     this.customCurrencySymbol = r'$',
     this.addressCountryCode = '',
+    this.logoBase64 = '',
   }) : id = id ?? genId();
 
   Business copyWith({
@@ -98,6 +107,7 @@ class Business {
     String? countryCode, String? customTaxName, double? customTaxRate,
     String? customCurrencySymbol,
     String? addressCountryCode,
+    String? logoBase64,
   }) => Business(
     id: id,
     name: name ?? this.name, gstin: gstin ?? this.gstin,
@@ -115,6 +125,7 @@ class Business {
     customTaxRate: customTaxRate ?? this.customTaxRate,
     customCurrencySymbol: customCurrencySymbol ?? this.customCurrencySymbol,
     addressCountryCode: addressCountryCode ?? this.addressCountryCode,
+    logoBase64: logoBase64 ?? this.logoBase64,
   );
 
   Map<String, dynamic> toMap() => {
@@ -127,6 +138,7 @@ class Business {
     'customTaxRate': customTaxRate,
     'customCurrencySymbol': customCurrencySymbol,
     'addressCountryCode': addressCountryCode,
+    'logoBase64': logoBase64,
   };
 
   factory Business.fromMap(Map<String, dynamic> m) => Business(
@@ -146,6 +158,7 @@ class Business {
     // Empty for every profile saved before this field existed, which
     // reads as "same as countryCode" — exactly what they meant.
     addressCountryCode: m['addressCountryCode'] ?? '',
+    logoBase64: m['logoBase64'] ?? '',
   );
 }
 

@@ -1,5 +1,7 @@
 // lib/screens/main/settings_screen.dart
 // Fully translated + Language picker tile in About panel
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -19,6 +21,7 @@ import '../../design/palette_scope.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../i18n/translations.dart';
+import '../../utils/business_logo.dart';
 import '../../utils/validators.dart';
 import '../../utils/platform.dart';
 import '../../widgets/language_picker.dart';
@@ -74,7 +77,9 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
             onSelect: _selectTab,
             labels: [
               tr('set.business', ref),
-              tr('set.bank', ref),
+              (ref.watch(businessProvider)?.countryCode ?? 'IN') == 'IN'
+                  ? tr('set.bank', ref)
+                  : tr('dc.bank_short', ref),
               tr('set.invoice', ref),
               tr('set.about', ref),
             ],
@@ -214,12 +219,18 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Country & tax first: it decides the currency, the tax and the
+          // names of half the fields below it. It used to be in the
+          // About tab, where nobody setting up a shop would look.
+          const _CountryTile(),
+
           _IdentityCard(
             name: _name.text.trim(),
             gstin: _gstin.text.trim(),
             city: _city.text.trim(),
             done: done,
             total: filled.length,
+            logo: logoBytes(biz?.logoBase64 ?? ''),
           ),
           const Gap(AppSpace.lg),
 
@@ -228,6 +239,7 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
             subtitle: tr('set.profile_sub', ref),
             icon: Symbols.storefront,
             children: [
+              const _LogoField(),
               AppField(
                 label: tr('set.business_name', ref),
                 controller: _name,
@@ -489,6 +501,9 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
             ),
           ],
         ),
+        // UPI only moves rupees between Indian accounts, so a shop
+        // trading anywhere else is not asked for an ID it cannot use.
+        if (isIndia)
         FieldGroup(
           title: tr('set.upi_title', ref),
           subtitle: tr('set.upi_sub', ref),
@@ -698,14 +713,8 @@ class _AboutPanelState extends ConsumerState<_AboutPanel> {
         // nobody looks in. It is now the button in the top corner of
         // Settings, on every tab.
 
-        // ═════════════════════════════════════════════════
-        // COUNTRY & TAX — where the shop trades
-        // ═════════════════════════════════════════════════
-        // Without this the country could only be set during onboarding,
-        // which means every install that already existed was stuck on
-        // India with no way out — the whole international feature was
-        // unreachable for exactly the people already using the app.
-        const _CountryTile(),
+        // Country & tax moved to the top of the Business tab, where a
+        // shopkeeper setting up looks for it.
 
         // ═════════════════════════════════════════════════
         // THEME TILE — light / dark / system
@@ -1032,6 +1041,7 @@ class _InfoRow extends StatelessWidget {
 class _IdentityCard extends StatelessWidget {
   final String name, gstin, city;
   final int done, total;
+  final Uint8List? logo;
 
   const _IdentityCard({
     required this.name,
@@ -1039,6 +1049,7 @@ class _IdentityCard extends StatelessWidget {
     required this.city,
     required this.done,
     required this.total,
+    this.logo,
   });
 
   @override
@@ -1050,7 +1061,10 @@ class _IdentityCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpace.lg),
       child: Column(children: [
         Row(children: [
-          AppAvatar(label: label, tone: AppColor.primary, size: 54),
+          if (logo != null)
+            _LogoThumb(bytes: logo!, size: 54)
+          else
+            AppAvatar(label: label, tone: AppColor.primary, size: 54),
           const Gap(AppSpace.lg),
           Expanded(
             child: Column(
@@ -1644,4 +1658,126 @@ Future<void> _editCustomTax(BuildContext context, WidgetRef ref,
       );
     }),
   );
+}
+
+
+/// The logo, on white so a transparent PNG with dark ink reads in dark
+/// mode too — the same as it will on the paper invoice.
+class _LogoThumb extends StatelessWidget {
+  final Uint8List bytes;
+  final double size;
+  const _LogoThumb({required this.bytes, required this.size});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        width: size,
+        height: size,
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Image.memory(bytes, fit: BoxFit.contain, gaplessPlayback: true),
+      );
+}
+
+/// Add, change or remove the shop's logo. Saved the moment it is picked,
+/// so the next invoice PDF carries it without a separate save.
+class _LogoField extends ConsumerStatefulWidget {
+  const _LogoField();
+
+  @override
+  ConsumerState<_LogoField> createState() => _LogoFieldState();
+}
+
+class _LogoFieldState extends ConsumerState<_LogoField> {
+  bool _busy = false;
+
+  Future<void> _pick() async {
+    if (_busy) return;
+    HapticFeedback.lightImpact();
+    setState(() => _busy = true);
+    try {
+      final logo = await pickBusinessLogo();
+      if (logo == null) return;
+      final biz = ref.read(businessProvider) ?? Business();
+      await ref.read(businessProvider.notifier).save(biz.copyWith(logoBase64: logo));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(trGlobal('logo.saved')),
+          backgroundColor: AppColors.green));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(trGlobal('logo.unreadable')),
+          backgroundColor: AppColors.red));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _remove() async {
+    HapticFeedback.lightImpact();
+    final biz = ref.read(businessProvider);
+    if (biz == null) return;
+    await ref.read(businessProvider.notifier).save(biz.copyWith(logoBase64: ''));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bytes = logoBytes(ref.watch(businessProvider)?.logoBase64 ?? '');
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpace.md),
+      child: Row(children: [
+        if (bytes != null)
+          _LogoThumb(bytes: bytes, size: 56)
+        else
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: AppColor.sunken,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColor.hairline),
+            ),
+            child: Icon(Symbols.image, size: 22, color: AppColor.textTertiary),
+          ),
+        const Gap(AppSpace.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(trGlobal('logo.title'),
+                  style: AppFont.style(AppType.labelL,
+                      color: AppColor.textPrimary)),
+              const Gap(2),
+              Text(trGlobal('logo.sub'),
+                  style: AppFont.style(AppType.bodyS,
+                      color: AppColor.textTertiary)),
+              const Gap(AppSpace.sm),
+              Wrap(spacing: AppSpace.sm, runSpacing: AppSpace.xs, children: [
+                AppButton.outline(
+                  label: bytes == null
+                      ? trGlobal('logo.add')
+                      : trGlobal('logo.change'),
+                  icon: Symbols.upload_file,
+                  compact: true,
+                  expand: false,
+                  busy: _busy,
+                  onPressed: _busy ? null : _pick,
+                ),
+                if (bytes != null)
+                  AppButton.ghost(
+                    label: trGlobal('logo.remove'),
+                    icon: Symbols.delete,
+                    onPressed: _busy ? null : _remove,
+                  ),
+              ]),
+            ],
+          ),
+        ),
+      ]),
+    );
+  }
 }

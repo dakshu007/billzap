@@ -24,9 +24,20 @@ import '../../design/money.dart';
 import '../../design/tokens.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
+import '../../utils/business_logo.dart';
 import '../../utils/invoice_labels.dart';
 import '../../utils/phone_number.dart';
 import '../../utils/upi_helper.dart';
+
+/// The saved copy of [selected] from [all], falling back to [selected]
+/// itself if it is not in the list.
+Invoice? _live(Invoice? selected, List<Invoice> all) {
+  if (selected == null) return null;
+  for (final i in all) {
+    if (i.id == selected.id) return i;
+  }
+  return selected;
+}
 
 /// The invoice total in its own currency and grouping, for text that
 /// leaves the phone — never the shop's current currency.
@@ -48,7 +59,11 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final invoice = ref.watch(selectedInvoiceProvider);
+    // The selected invoice is a snapshot taken when it was opened. Read
+    // the live copy from the list, so marking it paid or unpaid shows on
+    // this screen at once instead of only after leaving and coming back.
+    final invoice = _live(ref.watch(selectedInvoiceProvider),
+        ref.watch(invoiceProvider));
     final biz     = ref.watch(businessProvider);
 
     if (invoice == null) {
@@ -126,7 +141,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
             // ═══════════════════════════════════════════════
             // UPI Payment QR card (only shown if not paid)
             // ═══════════════════════════════════════════════
-            if (!isPaid) ...[
+            if (!isPaid && upiApplies(invoice)) ...[
               _UpiPaymentCard(invoice: invoice, biz: biz),
               const Gap(12),
             ],
@@ -193,6 +208,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     TextStyle doc(TextStyle base, {Color? color}) =>
         AppFont.style(base, color: color ?? ink);
     final labels = docLabelsFor(invoice);
+    final logo = logoBytes(biz?.logoBase64 ?? '');
 
     return Container(
       decoration: BoxDecoration(
@@ -207,6 +223,21 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           padding: const EdgeInsets.fromLTRB(
               AppSpace.xl, AppSpace.xl, AppSpace.xl, AppSpace.lg),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            if (logo != null) ...[
+              // On white, as on paper, so a dark logo reads in dark mode.
+              Container(
+                width: 48,
+                height: 48,
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Image.memory(logo,
+                    fit: BoxFit.contain, gaplessPlayback: true),
+              ),
+              const Gap(AppSpace.md),
+            ],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -423,13 +454,18 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                   child: MoneyCounter(invoice.grandTotal,
                       style: AppType.amountL,
                       color: AppColor.paid,
+                      // Exact, never rounded: the rows above add up to
+                      // 46.02, so the total must say 46.02, not 46.
+                      round: false,
                       storedSymbol: invoice.currencySymbol,
                       storedCountryCode: invoice.taxCountryCode),
                 ),
               ]),
         ),
 
-        if (biz != null && (biz.bankName.isNotEmpty || biz.upiId.isNotEmpty)) ...[
+        if (biz != null &&
+            (biz.bankName.isNotEmpty ||
+                (biz.upiId.isNotEmpty && upiApplies(invoice)))) ...[
           const Gap(AppSpace.lg),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpace.xl),
@@ -440,9 +476,9 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                 const Gap(5),
                 if (biz.bankName.isNotEmpty)
                   Text(
-                      '${biz.bankName} · A/C ${biz.accountNumber} · IFSC ${biz.ifscCode}',
+                      '${biz.bankName} · A/C ${biz.accountNumber} · ${bankCodeLabel(invoice)} ${biz.ifscCode}',
                       style: doc(AppType.bodyS, color: inkSoft)),
-                if (biz.upiId.isNotEmpty)
+                if (biz.upiId.isNotEmpty && upiApplies(invoice))
                   Text('UPI ${biz.upiId}',
                       style: doc(AppType.bodyS, color: inkSoft)),
               ],
@@ -625,6 +661,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     final doc = pw.Document(theme: theme);
     final isPaid = invoice.status == InvoiceStatus.paid;
     final labels = docLabelsFor(invoice);
+    final logo = logoBytes(biz?.logoBase64 ?? '');
 
     /// The invoice's own currency and its own country's grouping.
     ///
@@ -639,6 +676,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
         );
 
     final upiLink = (biz != null &&
+            upiApplies(invoice) &&
             biz.upiId.isNotEmpty &&
             UpiHelper.isValidVpa(biz.upiId) &&
             !isPaid &&
@@ -684,6 +722,15 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
+                  if (logo != null) ...[
+                    pw.Container(
+                      width: 52,
+                      height: 52,
+                      child: pw.Image(pw.MemoryImage(logo),
+                          fit: pw.BoxFit.contain),
+                    ),
+                    pw.SizedBox(width: 12),
+                  ],
                   pw.Expanded(
                     child: pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -948,15 +995,16 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
             ],
 
             if (biz != null &&
-                (biz.bankName.isNotEmpty || biz.upiId.isNotEmpty)) ...[
+                (biz.bankName.isNotEmpty ||
+                    (biz.upiId.isNotEmpty && upiApplies(invoice)))) ...[
               pw.SizedBox(height: 16),
               label('Pay to'),
               pw.SizedBox(height: 4),
               if (biz.bankName.isNotEmpty)
                 pw.Text(
-                    '${biz.bankName}  ·  A/C ${biz.accountNumber}  ·  IFSC ${biz.ifscCode}',
+                    '${biz.bankName}  ·  A/C ${biz.accountNumber}  ·  ${bankCodeLabel(invoice)} ${biz.ifscCode}',
                     style: const pw.TextStyle(fontSize: 9, color: _pInkSoft)),
-              if (biz.upiId.isNotEmpty)
+              if (biz.upiId.isNotEmpty && upiApplies(invoice))
                 pw.Text('UPI ${biz.upiId}',
                     style: const pw.TextStyle(fontSize: 9, color: _pInkSoft)),
             ],
@@ -1099,6 +1147,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     String upiLine = '';
     if (!isPaid &&
         biz != null &&
+        upiApplies(invoice) &&
         biz.upiId.isNotEmpty &&
         UpiHelper.isValidVpa(biz.upiId) &&
         invoice.grandTotal > 0) {

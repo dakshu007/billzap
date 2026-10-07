@@ -32,7 +32,9 @@ class ProfileCompleteness {
     } else if (biz.state.trim().isNotEmpty) {
       total += _weights['state']!;
     }
-    if (biz.upiId.trim().isNotEmpty) total += _weights['upiId']!;
+    if (biz.upiId.trim().isNotEmpty || biz.countryCode != 'IN') {
+      total += _weights['upiId']!;
+    }
     return total;
   }
 
@@ -55,7 +57,10 @@ class ProfileCompleteness {
     }
     if (biz.name.trim().isEmpty) missing.add(trGlobal('pc.business_name'));
     if (biz.phone.trim().isEmpty) missing.add(trGlobal('pc.phone'));
-    if (biz.upiId.trim().isEmpty) missing.add(trGlobal('pc.upi'));
+    // UPI is Indian; nobody elsewhere should be nagged for one.
+    if (biz.upiId.trim().isEmpty && biz.countryCode == 'IN') {
+      missing.add(trGlobal('pc.upi'));
+    }
     if (biz.address.trim().isEmpty) missing.add(trGlobal('pc.address'));
     return missing;
   }
