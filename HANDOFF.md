@@ -366,18 +366,19 @@ updates, was told yes to summaries / no to an LLM writing tax rates,
 and on 7 Oct 2026 said: "the gemini integration is not required now,
 will drop it." Do not build it unless he raises it again.
 
-### 0b. Translations still to write
+### 0b. Translations — all written, none reviewed by a native speaker
 
-At the end of the languages round the translators hit the account's
-usage limit. Languages with no file in assets/i18n are listed in the
-picker greyed out with a clock and cannot be chosen
-(`availableLanguageIds()` reads the asset manifest). te, kn, ml and mr
-still lack the ~470 strings added this round and show English for
-those. `i18n_assets_test.dart` holds that list (`stillIncomplete`) and
-fails when one is finished, so the list can only shrink. Brief and
-tooling: the scratchpad pipeline is gone with the container, but the
-format is simple — every file must have every key in `_en`, with the
-same `{placeholders}`.
+All 126 languages in `kAppLocales` have a complete file in assets/i18n
+(863 strings each), so the picker no longer greys any out.
+`i18n_assets_test.dart` requires every file present to be complete;
+its `stillIncomplete` set is empty and should stay that way: a new
+English key means adding it to every file in the same change.
+
+They are machine translations. The least certain, by the translators'
+own account: Aymara, Cherokee, Chuvash, Lower Sorbian, Fijian, Samoan,
+Tongan, Bislama, Tok Pisin, Pijin, Kazakh in Arabic script (converted
+from the Cyrillic file) and Cantonese Simplified (converted from the
+Traditional file). Every language except English carries the Beta tag.
 
 ### 1. The discount and shipping tax base — BLOCKED ON THE OWNER
 
