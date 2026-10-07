@@ -37,7 +37,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart' show AssetManifest, rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 
@@ -905,6 +905,28 @@ Future<bool> loadLanguage(String id) async {
   } catch (_) {
     return false;
   }
+}
+
+Set<String>? _available;
+
+/// Languages that have a translation file in this build, plus English.
+/// A language in the list without a file is shown as coming soon rather
+/// than offered and then silently refused.
+Future<Set<String>> availableLanguageIds() async {
+  if (_available != null) return _available!;
+  try {
+    final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+    _available = {
+      'en',
+      for (final a in manifest.listAssets())
+        if (a.startsWith('assets/i18n/') && a.endsWith('.json'))
+          a.substring('assets/i18n/'.length, a.length - '.json'.length),
+    };
+  } catch (_) {
+    // Cannot tell: offer everything, as before.
+    _available = {for (final l in kAppLocales) l.id};
+  }
+  return _available!;
 }
 
 /// Tests read the JSON straight off disk and hand it in here, since a

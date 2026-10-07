@@ -64,6 +64,9 @@ class _LanguagePickerScreenState extends ConsumerState<LanguagePickerScreen> {
   late String _country;
   late String _selected;
   bool _applying = false;
+  /// Null until the asset manifest has been read; then the languages
+  /// this build actually has a file for.
+  Set<String>? _available;
 
   @override
   void initState() {
@@ -71,6 +74,9 @@ class _LanguagePickerScreenState extends ConsumerState<LanguagePickerScreen> {
     final shop = ref.read(businessProvider)?.countryCode ?? 'IN';
     _country = countryFor(shop) != null ? shop : 'IN';
     _selected = ref.read(languageProvider);
+    availableLanguageIds().then((ids) {
+      if (mounted) setState(() => _available = ids);
+    });
   }
 
   @override
@@ -266,15 +272,20 @@ class _LanguagePickerScreenState extends ConsumerState<LanguagePickerScreen> {
                         );
                       }
                       final l = row as AppLocale;
+                      final ready =
+                          _available == null || _available!.contains(l.id);
                       return _LangTile(
                         locale: l,
                         selected: l.id == _selected,
                         current: l.id == current,
                         beta: isBetaLanguage(l.id),
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          setState(() => _selected = l.id);
-                        },
+                        ready: ready,
+                        onTap: ready
+                            ? () {
+                                HapticFeedback.selectionClick();
+                                setState(() => _selected = l.id);
+                              }
+                            : null,
                       );
                     },
                   ),
@@ -390,19 +401,24 @@ class _LangTile extends StatelessWidget {
   final bool selected;
   final bool current;
   final bool beta;
-  final VoidCallback onTap;
+  /// False for a language whose translation is not in this build yet.
+  final bool ready;
+  final VoidCallback? onTap;
 
   const _LangTile({
     required this.locale,
     required this.selected,
     required this.current,
     required this.beta,
+    required this.ready,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Opacity(
+      opacity: ready ? 1 : 0.5,
+      child: Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: selected ? AppColors.brandSoft : AppColors.card,
@@ -458,6 +474,11 @@ class _LangTile extends StatelessWidget {
                 ),
               ),
               const Gap(8),
+              // Not in this build yet: a clock, not a radio button, so it
+              // does not look like something that can be chosen.
+              if (!ready)
+                Icon(Symbols.schedule, size: 20, color: AppColors.t3)
+              else
               AnimatedContainer(
                 duration: const Duration(milliseconds: 220),
                 curve: Curves.easeOutCubic,
@@ -480,6 +501,7 @@ class _LangTile extends StatelessWidget {
           ),
         ),
       ),
+    ),
     );
   }
 }

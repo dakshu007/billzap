@@ -352,38 +352,25 @@ it to PaletteScope too rather than inventing another mechanism.
 
 ## Still open
 
-### 0. The Gemini question — AWAITING THE OWNER'S ANSWER
+### 0. Gemini — DROPPED BY THE OWNER
 
-He asked, in his own words: *"what about connecting gemini api free and
-summarizing the tax VAT monthly and updating it to automatically?"*
+He asked about a free Gemini API for monthly tax summaries and rate
+updates, was told yes to summaries / no to an LLM writing tax rates,
+and on 7 Oct 2026 said: "the gemini integration is not required now,
+will drop it." Do not build it unless he raises it again.
 
-I gave him a split answer and he has not come back on it yet. **Pick
-this up only if he does**, and if he does, the position I put to him was:
+### 0b. Translations still to write
 
-**Yes to the summary half.** "You collected ₹48,000 of GST in October,
-up 12%, mostly from three customers" is genuinely useful and a wrong
-word costs nothing.
-
-**No to auto-updating tax rates from an LLM.** This is the one place I
-argued against him. Everything in this codebase exists to stop the app
-asserting a rate nobody checked — that is what `TaxConfidence` is for,
-and why nothing was promoted to `verified` even with his sourced PDF. A
-model that hallucinates "Kenya VAT is 14%" would write it silently onto
-a legal document and the shopkeeper finds out at filing. His own PDF
-says the same: *"do not infer a rate from the country field alone."*
-Rate updates should come from a file he replaces, which is exactly what
-the PDF was.
-
-Two constraints he needs to have accepted before any of it is built:
-
-- **It breaks "100% offline."** That claim is on the Play listing and
-  the landing page. Summarising means invoice totals leave the phone to
-  Google. Workable, but opt-in, off by default, and said plainly.
-- **A free Gemini key shipped inside an APK is extractable in minutes**
-  and the bill is his. It needs a proxy he controls, or the user's own
-  key pasted into Settings.
-
-If he says yes: totals and tax only, never line items or customer names.
+At the end of the languages round the translators hit the account's
+usage limit. Languages with no file in assets/i18n are listed in the
+picker greyed out with a clock and cannot be chosen
+(`availableLanguageIds()` reads the asset manifest). te, kn, ml and mr
+still lack the ~470 strings added this round and show English for
+those. `i18n_assets_test.dart` holds that list (`stillIncomplete`) and
+fails when one is finished, so the list can only shrink. Brief and
+tooling: the scratchpad pipeline is gone with the container, but the
+format is simple — every file must have every key in `_en`, with the
+same `{placeholders}`.
 
 ### 1. The discount and shipping tax base — BLOCKED ON THE OWNER
 
