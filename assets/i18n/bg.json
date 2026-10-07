@@ -279,7 +279,7 @@
  "dc.upi": "UPI",
  "dc.yesterday": "Вчера",
  "ex.all_time": "За цялото време",
- "ex.custom": "По избор",
+ "ex.custom": "Друг период",
  "ex.exported": "Експортирано: {file}",
  "ex.failed": "Експортът не успя: {e}",
  "ex.gstr1_failed": "Експортът на GSTR-1 не успя: {e}",
