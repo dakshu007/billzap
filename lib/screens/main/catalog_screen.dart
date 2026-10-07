@@ -10,6 +10,7 @@ import '../../theme/app_theme.dart';
 import '../../design/components.dart';
 import '../../services/gst_classifier.dart';
 import '../../i18n/translations.dart';
+import '../../widgets/csv_import_sheet.dart';
 import '../../tax/active_profile.dart';
 
 class CatalogItem {
@@ -59,6 +60,11 @@ class CatalogService {
     await box.put(item.id, item.toMap());
   }
 
+  static Future<void> addAll(Iterable<CatalogItem> items) async {
+    final box = await Hive.openBox(_boxName);
+    await box.putAll({for (final i in items) i.id: i.toMap()});
+  }
+
   static Future<void> delete(String id) async {
     final box = await Hive.openBox(_boxName);
     await box.delete(id);
@@ -105,6 +111,12 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 letterSpacing: -0.5,
                 color: AppColors.t1)),
         actions: [
+          AppIconButton(
+            icon: Symbols.upload_file,
+            onTap: () => showCsvImport(context, CsvImportKind.products)
+                .then((_) => _load()),
+          ),
+          const SizedBox(width: 8),
           Padding(
             padding: const EdgeInsets.only(right: 14),
             child: AppIconButton(

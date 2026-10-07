@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 
 import 'design/palette_scope.dart';
+import 'personal/spending_store.dart';
 import 'design/theme.dart' as ds;
 import 'design/tokens.dart';
 import 'i18n/dates.dart';
@@ -43,6 +44,7 @@ Future<void> main() async {
   // instead of flashing a default.
   try {
     await Hive.openBox('settings');
+    await Hive.openBox(kSpendingBox);
   } catch (_) {}
   // Awaited: the saved language's file is read before the first frame,
   // so the app opens in it instead of flashing English.

@@ -13,6 +13,7 @@ import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../i18n/translations.dart';
 import '../../tax/active_profile.dart';
+import '../../widgets/csv_import_sheet.dart';
 import '../../widgets/skeleton.dart';
 
 class ProductsScreen extends ConsumerStatefulWidget {
@@ -72,6 +73,8 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
           fontSize: 21, fontWeight: FontWeight.w700,
           letterSpacing: -0.5, color: AppColors.t1)),
         actions: [
+          const CsvImportButton(CsvImportKind.products),
+          const SizedBox(width: 8),
           Padding(
             padding: const EdgeInsets.only(right: 14),
             child: AppIconButton(

@@ -186,6 +186,14 @@ class CustomerNotifier extends Notifier<List<Customer>> {
     state = _db.getCustomers();
   }
 
+  Future<void> addAll(List<Customer> items) async {
+    for (final c in items) {
+      c.touch();
+    }
+    await _db.saveCustomers(items);
+    state = _db.getCustomers();
+  }
+
   Future<void> delete(String id) async {
     await _db.deleteCustomer(id);
     state = _db.getCustomers();
@@ -210,6 +218,14 @@ class ProductNotifier extends Notifier<List<Product>> {
   Future<void> add(Product p) async {
     p.touch();
     await _db.saveProduct(p);
+    state = _db.getProducts();
+  }
+
+  Future<void> addAll(List<Product> items) async {
+    for (final p in items) {
+      p.touch();
+    }
+    await _db.saveProducts(items);
     state = _db.getProducts();
   }
 

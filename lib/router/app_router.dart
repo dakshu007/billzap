@@ -19,6 +19,7 @@ import '../screens/main/customers_screen.dart';
 import '../screens/main/products_screen.dart';
 import '../screens/main/expenses_screen.dart';
 import '../screens/main/catalog_screen.dart';
+import '../screens/personal/my_money_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../design/components.dart';
 import '../design/tokens.dart';
@@ -125,6 +126,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/expenses',
         pageBuilder: (c, s) => _slideRight(c, s, const ExpensesScreen()),
+      ),
+      GoRoute(
+        path: '/spending',
+        pageBuilder: (c, s) => _slideRight(c, s, const MyMoneyScreen()),
       ),
       // Full-screen routes
             GoRoute(

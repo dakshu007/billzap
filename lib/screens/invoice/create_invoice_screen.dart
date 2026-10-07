@@ -239,7 +239,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
             subtitle: tr('create.customer_sub', ref),
             icon: Symbols.person,
             children: [
-              Stack(clipBehavior: Clip.none, children: [
+              Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 AppField(
                   label: tr('cust.name', ref),
                   controller: _custName,
@@ -248,14 +248,13 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                   helper: tr('create.customer_helper', ref),
                   onChanged: (_) => setState(() {}),
                 ),
-                // The suggestion list hangs off the field rather than
-                // pushing the form down, so the layout does not jump
-                // under the thumb while typing.
+                // In the flow, below the field. It used to float over the
+                // form in a Stack, but the fields after it paint later,
+                // so they drew on top of it — the Phone label and box
+                // showed straight through the suggestion.
                 if (_acShow)
-                  Positioned(
-                    top: 74,
-                    left: 0,
-                    right: 0,
+                  Padding(
+                    padding: const EdgeInsets.only(top: AppSpace.xs),
                     child: AppSurface(
                       padding: EdgeInsets.zero,
                       shadow: AppElevation.lifted,
@@ -311,7 +310,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                   child: AppField(
                     label: tr('cust.phone', ref),
                     controller: _custPhone,
-                    hint: '98765 43210',
+                    hint: activeProfile.countryCode == 'IN' ? '98765 43210' : null,
                     keyboardType: TextInputType.phone,
                     onChanged: (_) => setState(() {}),
                   ),
@@ -412,7 +411,13 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
               // One read, used by every line row and by the tax
               // section below, so the whole screen agrees on which
               // country's rules it is applying.
+              // Keyed by the line itself. Without a key, Flutter matched
+              // rows to state by position: deleting an empty line 1 left
+              // its blank text boxes on screen over the line that moved
+              // up, and their listeners then wrote the blanks into it —
+              // the catalog item looked deleted "entirely".
               ..._lines.asMap().entries.map((e) => _LineRow(
+                  key: ObjectKey(e.value),
                   item: e.value,
                   index: e.key,
                   profile: profile,
@@ -571,6 +576,18 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
   // ═════════════════════════════════════════════════
   // BUG FIX #1: Read from CatalogService not productProvider!
   // ═════════════════════════════════════════════════
+  /// Add a line, filling the untouched blank line a new bill starts
+  /// with rather than leaving it above the item as an empty row the
+  /// shopkeeper then has to delete.
+  void _addLine(_LineItem item) {
+    final blank = _lines.indexWhere((l) => l.name.trim().isEmpty && l.rate == 0);
+    if (blank >= 0) {
+      _lines[blank] = item;
+    } else {
+      _lines.add(item);
+    }
+  }
+
   Future<void> _showCatalogPicker() async {
     final items = await CatalogService.getAll();
     if (!mounted) return;
@@ -600,7 +617,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                 final p = items[i];
                 return GestureDetector(
                   onTap: () {
-                    setState(() => _lines.add(_LineItem(
+                    setState(() => _addLine(_LineItem(
                       name: p.name, hsn: p.hsnCode, rate: p.price, gstRate: p.gstRate.toDouble())));
                     Navigator.pop(context);
                   },
@@ -741,7 +758,7 @@ class _LineRow extends StatefulWidget {
   /// has ref, and converting the row would be a larger change than the
   /// one thing it needs.
   final TaxProfile profile;
-  const _LineRow({required this.item, required this.index, this.onRemove, required this.onChange, required this.profile});
+  const _LineRow({super.key, required this.item, required this.index, this.onRemove, required this.onChange, required this.profile});
   @override
   State<_LineRow> createState() => _LineRowState();
 }

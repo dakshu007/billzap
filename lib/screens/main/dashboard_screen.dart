@@ -27,6 +27,7 @@ import '../../i18n/dates.dart';
 import '../../i18n/translations.dart';
 import '../../models/models.dart';
 import '../../providers/providers.dart';
+import '../personal/my_money_screen.dart';
 import '../../utils/platform.dart';
 import '../../widgets/festival_banner.dart';
 import '../../widgets/insight_card.dart';
@@ -171,6 +172,10 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                   ]),
                 ),
+                const SizedBox(height: AppSpace.xxl),
+
+                // My Money: the person's own spending, beside the shop's.
+                Entrance(index: 4, child: MyMoneyDashCard(onTap: () => context.push('/spending'))),
                 const SizedBox(height: AppSpace.xxl),
 
                 // 4 — the things the owner does

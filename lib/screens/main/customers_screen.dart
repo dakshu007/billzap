@@ -15,6 +15,7 @@ import '../../models/models.dart';
 import '../../i18n/translations.dart';
 import '../../tax/active_profile.dart';
 import '../../utils/validators.dart';
+import '../../widgets/csv_import_sheet.dart';
 import '../../widgets/skeleton.dart';
 
 class CustomersScreen extends ConsumerStatefulWidget {
@@ -85,6 +86,8 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
           fontSize: 21, fontWeight: FontWeight.w700,
           letterSpacing: -0.5, color: AppColors.t1)),
         actions: [
+          const CsvImportButton(CsvImportKind.customers),
+          const SizedBox(width: 8),
           Padding(
             padding: const EdgeInsets.only(right: 14),
             child: AppIconButton(

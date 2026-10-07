@@ -116,6 +116,21 @@ class LocalStorage {
     await _box.put(_kCustomers, jsonEncode(list.map((x) => x.toMap()).toList()));
   }
 
+  /// Add or replace many at once — one read and one write, for import.
+  Future<void> saveCustomers(Iterable<Customer> items) async {
+    final list = getCustomers();
+    final byId = {for (var i = 0; i < list.length; i++) list[i].id: i};
+    for (final c in items) {
+      final idx = byId[c.id];
+      if (idx != null) {
+        list[idx] = c;
+      } else {
+        list.add(c);
+      }
+    }
+    await _box.put(_kCustomers, jsonEncode(list.map((x) => x.toMap()).toList()));
+  }
+
   Future<void> deleteCustomer(String id) async {
     final list = getCustomers()..removeWhere((c) => c.id == id);
     await _box.put(_kCustomers, jsonEncode(list.map((c) => c.toMap()).toList()));
@@ -139,6 +154,21 @@ class LocalStorage {
     final list = getProducts();
     final idx = list.indexWhere((x) => x.id == p.id);
     if (idx >= 0) list[idx] = p; else list.add(p);
+    await _box.put(_kProducts, jsonEncode(list.map((x) => x.toMap()).toList()));
+  }
+
+  /// Add or replace many at once — one read and one write, for import.
+  Future<void> saveProducts(Iterable<Product> items) async {
+    final list = getProducts();
+    final byId = {for (var i = 0; i < list.length; i++) list[i].id: i};
+    for (final p in items) {
+      final idx = byId[p.id];
+      if (idx != null) {
+        list[idx] = p;
+      } else {
+        list.add(p);
+      }
+    }
     await _box.put(_kProducts, jsonEncode(list.map((x) => x.toMap()).toList()));
   }
 
