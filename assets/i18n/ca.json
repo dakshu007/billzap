@@ -851,7 +851,7 @@
  "welcome.cta": "Configura el perfil",
  "welcome.f1": "Factures a punt per a {tax}",
  "welcome.f1_sub": "Impostos calculats a cada factura",
- "welcome.f1_sub_in": "CGST, SGST i IGST calculats per tu",
+ "welcome.f1_sub_in": "CGST, SGST i IGST calculats automàticament",
  "welcome.f2": "QR d'UPI a cada factura",
  "welcome.f2_sub": "Els clients paguen escanejant, a l'instant",
  "welcome.f3": "El teu nom a cada PDF",
