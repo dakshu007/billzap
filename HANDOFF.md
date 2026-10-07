@@ -74,8 +74,27 @@ than a plausible-looking report.
 ## The honesty constraint, and why the code looks the way it does
 
 The owner asked for every country's tax rules. **Every tax authority and
-rate API is blocked from this environment**, so not a single rate in this
-repository has been verified against a primary source.
+rate API is blocked from this environment**, so nothing here was checked
+online.
+
+**On 7 Oct 2026 the owner supplied a reference PDF** — "BillZap Global
+VAT / GST / Sales Tax Reference 2026" — citing PwC Worldwide Tax
+Summaries 2026, official authorities, VATupdate 2026 and TaxAtlas 2026.
+`rate_table.dart` is now built from it: 176 jurisdictions, replacing
+what had been recollection. It corrected several rates that were wrong
+(Thailand 7→10, Estonia 22→24, Romania 19→21, Kazakhstan 12→16, Laos
+7→10, Zimbabwe 15→15.5) and added jurisdictions that had none.
+
+**The confidence level did not change, and must not.** Every row is
+still `unconfirmed`, because the document itself says:
+
+> "Do not implement this table as a universal 'one country = one tax
+> rate' formula... The headline rate below is a reference starting
+> point, not a substitute for a tax-determination engine."
+
+Reduced rates, exemptions, zero-rating, thresholds and digital-services
+rules are not modelled. The starting point got better; the promise the
+app makes did not.
 
 Rather than ship a table of half-remembered percentages as if it were
 researched, the code carries its own confidence level:
@@ -300,6 +319,13 @@ Each of these cost a CI round. They are all still live hazards.
   languages got `en_IN`. Then `en` still mapped to `en_IN` for
   everybody. `voiceLocaleCandidates()` is public and top-level
   specifically so it can be tested; keep it that way.
+- **Money is a `double`, so above 2^53 (about 9,007 trillion) it stops
+  representing every whole number.** The amount field caps at twelve
+  digits for that reason. The real fix is integer minor units or a
+  decimal type, which is a larger change than anything done here.
+- **A surface painted `Colors.white` disappears in dark mode** — the
+  text on it uses theme tokens that go near-white. It shipped in four
+  places at once. `dark_mode_surfaces_test.dart` scans for it.
 - **A test that picks a country to exercise the fall-through path breaks
   when the rate table grows.** `rate_table_test.dart` now asserts that
   the five countries those tests rely on have no table row, so the
@@ -376,6 +402,9 @@ Thirteen files. The ones that matter most to the international work:
 | `i18n_placeholder_test.dart` | No `{tax}` ever reaches the screen; India-only names keep theirs |
 | `rate_table_test.dart` | Table shape, coverage, and the fall-through countries |
 | `countries_test.dart` | 177 countries exactly, unique, sorted, with flags |
+| `regions_test.dart` | Place of supply lists the right country's regions |
+| `dark_mode_surfaces_test.dart` | No screen paints a surface the theme cannot change |
+| `voice_item_name_test.dart` | Connecting verbs do not end up in item names |
 | `money_format_test.dart` | Both grouping rules, both short-form ladders |
 | `voice_locale_test.dart` | Speech locale follows the shop's country |
 
