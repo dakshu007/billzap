@@ -245,25 +245,37 @@ class _CsvImportSheetState extends ConsumerState<_CsvImportSheet> {
   @override
   Widget build(BuildContext context) {
     final h = MediaQuery.of(context).size.height;
+    // Each chip shows the header exactly as the file must spell it —
+    // the importer matches English header names — and, in any other
+    // language, what the column means beside it.
+    (String, String, bool) col(String header, String key, bool required) =>
+        (header, trGlobal(key), required);
+    // The tax-number column takes the local name where the importer
+    // knows it (GSTIN, TRN, VAT number…), and "Tax ID" otherwise.
+    final taxIdNorm =
+        activeTaxIdLabel.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+    final taxIdHeader = customerColumns['taxid']!.contains(taxIdNorm)
+        ? activeTaxIdLabel
+        : 'Tax ID';
     final columns = _products
-        ? <(String, bool)>[
-            (trGlobal('csv.col_name'), true),
-            (trGlobal('csv.col_price'), true),
-            (trGlobal('csv.col_tax'), false),
-            (trGlobal('csv.col_unit'), false),
-            (trGlobal('csv.col_code'), false),
-            (trGlobal('csv.col_cost'), false),
-            (trGlobal('csv.col_stock'), false),
-            (trGlobal('csv.col_low'), false),
+        ? <(String, String, bool)>[
+            col('Name', 'csv.col_name', true),
+            col('Price', 'csv.col_price', true),
+            col('Tax %', 'csv.col_tax', false),
+            col('Unit', 'csv.col_unit', false),
+            col('Code', 'csv.col_code', false),
+            col('Cost', 'csv.col_cost', false),
+            col('Stock', 'csv.col_stock', false),
+            col('Low stock at', 'csv.col_low', false),
           ]
-        : <(String, bool)>[
-            (trGlobal('csv.col_name'), true),
-            (trGlobal('csv.col_phone'), false),
-            (trGlobal('csv.col_email'), false),
-            (trGlobal('csv.col_address'), false),
-            (trGlobal('csv.col_city'), false),
-            (trGlobal('csv.col_state'), false),
-            (activeTaxIdLabel, false),
+        : <(String, String, bool)>[
+            col('Name', 'csv.col_name', true),
+            col('Phone', 'csv.col_phone', false),
+            col('Email', 'csv.col_email', false),
+            col('Address', 'csv.col_address', false),
+            col('City', 'csv.col_city', false),
+            col('State', 'csv.col_state', false),
+            (taxIdHeader, activeTaxIdLabel, false),
           ];
     final example = _products
         ? 'Name,Price,Tax %,Unit,Code,Cost,Stock\n'
@@ -331,7 +343,7 @@ class _CsvImportSheetState extends ConsumerState<_CsvImportSheet> {
                       color: AppColors.t3)),
               const Gap(8),
               Wrap(spacing: 6, runSpacing: 6, children: [
-                for (final (label, required) in columns)
+                for (final (header, meaning, required) in columns)
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -343,12 +355,23 @@ class _CsvImportSheetState extends ConsumerState<_CsvImportSheet> {
                               ? AppColors.brand.withValues(alpha: 0.4)
                               : AppColors.border),
                     ),
-                    child: Text(required ? '$label *' : label,
-                        style: AppFont.sans(
-                            fontSize: 12,
-                            fontWeight:
-                                required ? FontWeight.w700 : FontWeight.w500,
-                            color: required ? AppColors.brand : AppColors.t2)),
+                    child: Text.rich(
+                      TextSpan(children: [
+                        TextSpan(text: required ? '$header *' : header),
+                        if (meaning.toLowerCase() != header.toLowerCase())
+                          TextSpan(
+                              text: '  $meaning',
+                              style: AppFont.sans(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w400,
+                                  color: AppColors.t3)),
+                      ]),
+                      style: AppFont.sans(
+                          fontSize: 12,
+                          fontWeight:
+                              required ? FontWeight.w700 : FontWeight.w500,
+                          color: required ? AppColors.brand : AppColors.t2),
+                    ),
                   ),
               ]),
               const Gap(10),
