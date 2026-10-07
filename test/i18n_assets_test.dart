@@ -64,7 +64,7 @@ void main() {
     // original Indian files that predate this round fall back to English
     // for the strings they never had — both listed below so the list can
     // only shrink.
-    const stillIncomplete = <String>{'te', 'kn', 'ml', 'mr'};
+    const stillIncomplete = <String>{'kn', 'mr'};
     final problems = <String>[];
     for (final id in translationFilesOnDisk()) {
       final raw = readTranslationFile(id);
