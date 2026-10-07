@@ -364,7 +364,7 @@
  "ins.clear_msg": "Žane zličbowanki po terminje. Wuběrny pjenježny tok!",
  "ins.clear_title": "Wšo w porjadku",
  "ins.create_invoice": "Zličbowanku wutworić",
- "ins.follow_msg": "Za {name} sće hižo dołho žanu zličbowanku wustajili (dny: {n}). Skontaktować so?",
+ "ins.follow_msg": "Za {name} njejsće hižo dołho žanu zličbowanku wustajili (dny: {n}). Skontaktować so?",
  "ins.follow_title": "Čas so přizjewić",
  "ins.overdue_msg": "Zličbowanki po terminje: {n}, w hódnoće {amount}. Čas so přizjewić.",
  "ins.overdue_title": "Po terminje",
