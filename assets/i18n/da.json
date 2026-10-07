@@ -842,7 +842,7 @@
  "voice.try": "Prøv:",
  "voice.try_again": "Prøv igen",
  "wa.due": "Forfalder: {date}",
- "wa.greeting": "Hej {name}",
+ "wa.greeting": "Hej {name},",
  "wa.pay_upi": "*Betal med det samme via UPI:*",
  "wa.ready": "Din faktura *{no}* på *{amount}* er klar.",
  "wa.sent_via": "— Sendt via BillZap",
