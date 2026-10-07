@@ -151,6 +151,15 @@ class VoiceParser {
     'aur', 'ya', 'ke', 'ka', 'ki', 'ko', 'mein', 'liye',
     'pannu', 'podu', 'kuduku', 'sera',
     'for', 'to', 'at', 'of',
+    // Verbs that sit between the customer and the item. "Dakshini
+    // needs 2 kg sugar" parsed the item as "Needs sugar", because
+    // nothing stripped the verb and the name extractor keeps whatever
+    // is left after the units, prices and customer span are removed.
+    'needs', 'need', 'wants', 'want', 'wanted', 'needed',
+    'give', 'gives', 'take', 'takes', 'took', 'buy', 'buys',
+    'bought', 'send', 'sends', 'order', 'orders', 'ordered',
+    'is', 'are', 'was', 'were', 'has', 'have', 'had',
+    'chahiye', 'chaiye', 'venum', 'kavali', 'kaveli',
     // FIX 4: Articles
     'a', 'an', 'the',
     // FIX 2: Generic placeholders that aren't names
