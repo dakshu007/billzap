@@ -25,6 +25,7 @@ import '../../utils/business_logo.dart';
 import '../../utils/validators.dart';
 import '../../utils/platform.dart';
 import '../../widgets/language_picker.dart';
+import '../../widgets/logo_thumb.dart';
 import '../../providers/theme_provider.dart';
 import '../../widgets/country_picker.dart';
 import '../../tax/countries.dart';
@@ -1062,7 +1063,7 @@ class _IdentityCard extends StatelessWidget {
       child: Column(children: [
         Row(children: [
           if (logo != null)
-            _LogoThumb(bytes: logo!, size: 54)
+            LogoThumb(bytes: logo!, size: 54)
           else
             AppAvatar(label: label, tone: AppColor.primary, size: 54),
           const Gap(AppSpace.lg),
@@ -1661,27 +1662,6 @@ Future<void> _editCustomTax(BuildContext context, WidgetRef ref,
 }
 
 
-/// The logo, on white so a transparent PNG with dark ink reads in dark
-/// mode too — the same as it will on the paper invoice.
-class _LogoThumb extends StatelessWidget {
-  final Uint8List bytes;
-  final double size;
-  const _LogoThumb({required this.bytes, required this.size});
-
-  @override
-  Widget build(BuildContext context) => Container(
-        width: size,
-        height: size,
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Image.memory(bytes, fit: BoxFit.contain, gaplessPlayback: true),
-      );
-}
-
 /// Add, change or remove the shop's logo. Saved the moment it is picked,
 /// so the next invoice PDF carries it without a separate save.
 class _LogoField extends ConsumerStatefulWidget {
@@ -1731,7 +1711,7 @@ class _LogoFieldState extends ConsumerState<_LogoField> {
       padding: const EdgeInsets.only(bottom: AppSpace.md),
       child: Row(children: [
         if (bytes != null)
-          _LogoThumb(bytes: bytes, size: 56)
+          LogoThumb(bytes: bytes, size: 56)
         else
           Container(
             width: 56,

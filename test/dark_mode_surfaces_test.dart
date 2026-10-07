@@ -51,6 +51,10 @@ const _allowed = <String, String>{
           'change with the theme.',
   'lib/widgets/festival_banner.dart':
       'Translucent white over that same fixed gradient.',
+  'lib/widgets/logo_thumb.dart':
+      'A shop logo is usually dark ink on transparency and vanishes on '
+          'the dark card. White is also what it prints on, so this is the '
+          'faithful preview.',
 };
 
 /// The constructor whose argument list encloses [index], found by
