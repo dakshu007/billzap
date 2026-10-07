@@ -14,6 +14,7 @@ import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
 import '../../design/components.dart';
 import '../../design/tokens.dart';
+import '../../personal/spending_store.dart';
 import '../../providers/providers.dart';
 import '../../i18n/translations.dart';
 import '../../tax/active_profile.dart';
@@ -242,6 +243,7 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
     ref.invalidate(customerProvider);
     ref.invalidate(productProvider);
     ref.invalidate(expenseProvider);
+    ref.invalidate(spendingProvider);
     ref.invalidate(businessProvider);
 
     if (!mounted) return;

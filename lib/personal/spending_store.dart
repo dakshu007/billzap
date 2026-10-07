@@ -122,3 +122,82 @@ class SpendingNotifier extends Notifier<SpendingState> {
 
 final spendingProvider =
     NotifierProvider<SpendingNotifier, SpendingState>(SpendingNotifier.new);
+
+// ── Backup ───────────────────────────────────────────────────────────
+// My Money rides in the same encrypted backup file as the shop's data,
+// under its own 'spending' key. A backup made before My Money existed
+// simply has no such key, and restoring it leaves My Money as it is.
+
+/// This person's spending, for the backup file. Null when there is none.
+Map<String, dynamic>? spendingForBackup() {
+  if (!Hive.isBoxOpen(kSpendingBox)) return null;
+  final b = Hive.box(kSpendingBox);
+  final spends = b.get(_kSpends);
+  final recurring = b.get(_kRecurring);
+  final budget = (b.get(_kBudget) as num?)?.toDouble() ?? 0;
+  if (spends == null && recurring == null && budget == 0) return null;
+  return {
+    'spends': spends is String ? jsonDecode(spends) : const [],
+    'recurring': recurring is String ? jsonDecode(recurring) : const [],
+    'budget': budget,
+  };
+}
+
+/// Puts a backup's spending back, merged by id with what is already
+/// here, the backup's copy winning — the same rule the rest of restore
+/// follows. Returns how many expenses the backup held.
+Future<int> restoreSpendingFromBackup(Object? raw) async {
+  if (raw is! Map) return 0;
+  final b = Hive.isBoxOpen(kSpendingBox)
+      ? Hive.box(kSpendingBox)
+      : await Hive.openBox(kSpendingBox);
+  List<Map<String, dynamic>> maps(Object? v) => v is List
+      ? [for (final m in v) if (m is Map) Map<String, dynamic>.from(m)]
+      : const [];
+  List<Map<String, dynamic>> stored(String key) {
+    final s = b.get(key);
+    if (s is! String) return const [];
+    try {
+      return maps(jsonDecode(s));
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  List<Map<String, dynamic>> merge(
+      List<Map<String, dynamic>> here, List<Map<String, dynamic>> incoming) {
+    final byId = <String, Map<String, dynamic>>{
+      for (final m in here)
+        if (m['id'] is String) m['id'] as String: m,
+    };
+    for (final m in incoming) {
+      if (m['id'] is String) byId[m['id'] as String] = m;
+    }
+    return byId.values.toList();
+  }
+
+  final spends = maps(raw['spends']);
+  // Each entry is read through its model before it is stored, so a
+  // damaged entry is dropped rather than breaking My Money on open.
+  final goodSpends = <Map<String, dynamic>>[];
+  for (final m in merge(stored(_kSpends), spends)) {
+    try {
+      goodSpends.add(Spend.fromMap(m).toMap());
+    } catch (_) {
+      // damaged entry: dropped
+    }
+  }
+  final goodRecurring = <Map<String, dynamic>>[];
+  for (final m in merge(stored(_kRecurring), maps(raw['recurring']))) {
+    try {
+      goodRecurring.add(RecurringSpend.fromMap(m).toMap());
+    } catch (_) {
+      // damaged entry: dropped
+    }
+  }
+  await b.put(_kSpends, jsonEncode(goodSpends));
+  await b.put(_kRecurring, jsonEncode(goodRecurring));
+  final budget = (raw['budget'] as num?)?.toDouble() ?? 0;
+  if (budget > 0) await b.put(_kBudget, budget);
+  return spends.length;
+}

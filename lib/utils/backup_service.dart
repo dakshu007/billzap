@@ -11,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import '../i18n/translations.dart';
 import '../models/models.dart';
+import '../personal/spending_store.dart';
 import '../services/local_storage.dart';
 
 class BackupResult {
@@ -66,6 +67,7 @@ class BackupService {
         'customers': customers.map((c) => c.toMap()).toList(),
         'products': products.map((p) => p.toMap()).toList(),
         'expenses': expenses.map((e) => e.toMap()).toList(),
+        'spending': spendingForBackup(),
       };
       final jsonStr = jsonEncode(data);
 
@@ -165,6 +167,8 @@ class BackupService {
       for (final e in expenses) {
         await storage.saveExpense(e);
       }
+
+      await restoreSpendingFromBackup(data['spending']);
 
       return RestoreResult(
         success: true,

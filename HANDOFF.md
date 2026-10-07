@@ -67,6 +67,9 @@ to know has *already been dealt with*, so it does not redo it.
 | **Country & tax** | Moved from the About tab to the top of the Business tab, at the owner's request. |
 | **Invoice screen state** | Mark paid/unpaid now shows on the open invoice at once: the screen reads the live invoice from the list, not the snapshot taken when it was opened. TOTAL DUE is no longer rounded (showed L46 above rows adding to 46.02). |
 | **India leaking into other countries** | The invoice PDF printed GSTIN / HSN / a "GST" column for every country; WhatsApp put +91 in front of every number on earth; Settings showed an Indian GSTIN example under "EIN" and "+91" under Phone for a US shop; the splash said "GST Billing Made Simple"; the catalogue price field said "Price (₹)". All now follow the shop's (or the invoice's) country, and India is unchanged. |
+| **CSV import** | Products, Catalog and Customers each have an import button (table icon in the app bar). A sheet shows the columns (★ = needed), a note, a copyable example and a file button, then a preview: new / skipped / bad rows by line number. Parser in `lib/utils/csv_import.dart` (pure Dart, `csv_import_test.dart`): columns by name in any order under common aliases (Item, MRP, Mobile, GSTIN…), comma/semicolon/tab, BOM, quoted fields, "1.250,50" and "1,250.50". Products go into **both** Products and Catalog; existing names are skipped, never overwritten. Customers dedupe by last-10-digits of phone, else by name. |
+| **Invoice lines** | Deleting a line deleted the wrong one (rows had no keys, so state was reused by position): rows now carry `ObjectKey`. Adding a catalog item fills the untouched blank line instead of adding beside it. The existing-customer suggestion list now sits inline under the field instead of floating over the fields below. |
+| **My Money** | A personal daily-expense tracker for anyone — not the shop's expenses, kept in its own Hive box `spending` (`lib/personal/`). Monthly budget; *safe to spend today* = (budget − spent before today) ÷ days left, so it does not shrink as today is spent; 80% and over-budget alerts said once at the crossing (`crossing()`); pace to month end; vs last month; no-spend days; last 7 days; by category; repeating monthly expenses (day 1–28, no back-fill of months the app was not opened); CSV export. Home screen card for it. Rides in the encrypted backup under a `spending` key; older backups without it restore as before. All arithmetic in `spending.dart`, pinned by `spending_test.dart`. Categories and payment methods are stored by id and translated at display time (`mm.cat_<id>`, `mm.method_<id>`). UPI is offered as a payment method only in India. |
 
 ---
 
@@ -617,6 +620,8 @@ Twenty-four files. The ones that matter most to the international work:
 | `i18n_assets_test.dart` | Language files: real language, no stray keys, placeholders intact, nothing blank, every language complete |
 | `locales_test.dart` | 126 languages, RTL set, every country has languages, the spec's rows |
 | `phone_number_test.dart` | WhatsApp numbers: India unchanged, nobody else gets +91 |
+| `csv_import_test.dart` | CSV parsing, loose numbers, product/customer rows, duplicate keys |
+| `spending_test.dart` | My Money: month/week/today, allowance, budget states, crossing, repeating expenses |
 
 ---
 
