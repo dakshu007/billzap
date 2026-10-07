@@ -513,7 +513,7 @@
  "mm.export": "CSV sifatida eksport qilish",
  "mm.history": "Tarix",
  "mm.last7": "Oxirgi 7 kun",
- "mm.left_of": "{budget} dan {left} qoldi",
+ "mm.left_of": "{budget}dan {left} qoldi",
  "mm.method_bank": "Bank",
  "mm.method_card": "Karta",
  "mm.method_cash": "Naqd pul",
