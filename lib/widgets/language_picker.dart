@@ -13,10 +13,10 @@
 // Picking a row selects it; Apply switches the whole app to it at once.
 //
 // A "Beta" tag marks languages whose strings were machine-translated
-// and have not been checked by a native speaker. That is every language
-// added for the worldwide build. The tag is there because a wrong word
-// is likely somewhere in those files and the shopkeeper deserves to
-// know that before relying on one.
+// and have not been checked by a native speaker — today, every language
+// but English. The tag is there because a wrong word is likely
+// somewhere in those files and the shopkeeper deserves to know that
+// before relying on one.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -30,13 +30,15 @@ import '../providers/providers.dart';
 import '../tax/countries.dart';
 import '../theme/app_theme.dart';
 
-/// The languages the app shipped with before the worldwide build. Every
-/// other language is new and machine-translated, and wears a Beta tag.
-const Set<String> kLaunchLanguages = {
-  'en', 'hi', 'ta', 'te', 'kn', 'ml', 'mr', 'gu', 'bn', 'pa', 'or', 'ur',
-};
+/// Every language but English wears a Beta tag until a native speaker
+/// has checked it. That includes the twelve the app launched with: the
+/// worldwide build added about 470 strings to each of them, and those
+/// were machine-translated like every other new language. When someone
+/// fluent signs a language off, add its id here — and say who in the
+/// commit.
+const Set<String> kReviewedLanguages = {'en'};
 
-bool isBetaLanguage(String id) => !kLaunchLanguages.contains(id);
+bool isBetaLanguage(String id) => !kReviewedLanguages.contains(id);
 
 /// Open the language picker.
 Future<void> openLanguagePicker(BuildContext context,

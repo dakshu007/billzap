@@ -57,4 +57,26 @@ void main() {
     }
     expect(problems, isEmpty, reason: problems.join('\n'));
   });
+
+  test('every language the app offers has a complete file', () {
+    // The picker lists all of kAppLocales. A language with no file
+    // would silently refuse to load; one with gaps shows English
+    // mid-sentence. Both are worth a red build.
+    final onDisk = translationFilesOnDisk().toSet();
+    final problems = <String>[];
+    for (final l in kAppLocales) {
+      if (l.id == 'en') continue;
+      if (!onDisk.contains(l.id)) {
+        problems.add('${l.id} (${l.englishName}) has no file');
+        continue;
+      }
+      final raw = readTranslationFile(l.id);
+      final missing = english.keys.where((k) => !raw.containsKey(k)).toList();
+      if (missing.isNotEmpty) {
+        problems.add('${l.id} is missing ${missing.length}: '
+            '${missing.take(5).join(', ')}...');
+      }
+    }
+    expect(problems, isEmpty, reason: problems.join('\n'));
+  });
 }
