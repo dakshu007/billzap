@@ -18,6 +18,7 @@
 // valid tax number looks like in 170 countries, and guessing would
 // block real traders.
 
+import '../i18n/translations.dart';
 import '../tax/active_profile.dart';
 
 class Validators {
@@ -68,18 +69,18 @@ class Validators {
     final v = (raw ?? '').trim().toUpperCase();
     if (v.isEmpty) return null;
     if (_india) {
-      if (v.length != 15) return 'GSTIN must be 15 characters';
-      if (!_gstin.hasMatch(v)) return 'Invalid GSTIN format';
+      if (v.length != 15) return trGlobal('val.gstin_len');
+      if (!_gstin.hasMatch(v)) return trGlobal('val.gstin_format');
       return null;
     }
-    if (!_taxIdLoose.hasMatch(v)) return 'Invalid $activeTaxIdLabel';
+    if (!_taxIdLoose.hasMatch(v)) return trGlobal('val.taxid');
     return null;
   }
 
   static String? upi(String? raw) {
     final v = (raw ?? '').trim();
     if (v.isEmpty) return null;
-    if (!_vpa.hasMatch(v)) return 'Should look like name@bank';
+    if (!_vpa.hasMatch(v)) return trGlobal('val.upi');
     return null;
   }
 
@@ -90,7 +91,7 @@ class Validators {
   static String? ifsc(String? raw) {
     final v = (raw ?? '').trim().toUpperCase();
     if (v.isEmpty || !_india) return null;
-    if (!_ifsc.hasMatch(v)) return 'Invalid IFSC (e.g. SBIN0001234)';
+    if (!_ifsc.hasMatch(v)) return trGlobal('val.ifsc');
     return null;
   }
 
@@ -98,10 +99,10 @@ class Validators {
     final v = (raw ?? '').trim();
     if (v.isEmpty) return null;
     if (_india) {
-      if (!_pincode.hasMatch(v)) return 'Invalid 6-digit pincode';
+      if (!_pincode.hasMatch(v)) return trGlobal('val.pincode');
       return null;
     }
-    if (!_postalLoose.hasMatch(v.toUpperCase())) return 'Invalid postal code';
+    if (!_postalLoose.hasMatch(v.toUpperCase())) return trGlobal('val.postal');
     return null;
   }
 
@@ -118,22 +119,24 @@ class Validators {
     if (_india) {
       final stripped =
           v.startsWith('91') && v.length == 12 ? v.substring(2) : v;
-      if (!_phone.hasMatch(stripped)) return 'Invalid Indian mobile number';
+      if (!_phone.hasMatch(stripped)) return trGlobal('val.phone_in');
       return null;
     }
-    if (!_phoneLoose.hasMatch(v)) return 'Invalid phone number';
+    if (!_phoneLoose.hasMatch(v)) return trGlobal('val.phone');
     return null;
   }
 
   static String? email(String? raw) {
     final v = (raw ?? '').trim();
     if (v.isEmpty) return null;
-    if (!_email.hasMatch(v)) return 'Invalid email';
+    if (!_email.hasMatch(v)) return trGlobal('val.email');
     return null;
   }
 
-  static String? required(String? raw, {String field = 'Field'}) {
-    if ((raw ?? '').trim().isEmpty) return '$field is required';
+  static String? required(String? raw, {String? field}) {
+    if ((raw ?? '').trim().isEmpty) {
+      return trGlobal('val.required', {'field': field ?? trGlobal('val.field')});
+    }
     return null;
   }
 }

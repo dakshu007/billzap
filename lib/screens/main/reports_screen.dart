@@ -22,6 +22,7 @@ import '../../design/money.dart';
 import '../../design/motion.dart';
 import '../../design/theme.dart';
 import '../../design/tokens.dart';
+import '../../i18n/dates.dart';
 import '../../i18n/translations.dart';
 import '../../models/models.dart';
 import '../../providers/providers.dart';
@@ -37,14 +38,10 @@ class ReportsScreen extends ConsumerWidget {
     final expenses = ref.watch(expenseProvider);
     final now = DateTime.now();
 
-    const monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-
+    // Month names in the language on screen.
     final months = List.generate(6, (i) {
       final d = DateTime(now.year, now.month - 5 + i);
-      return (month: d.month, year: d.year, label: monthNames[d.month - 1]);
+      return (month: d.month, year: d.year, label: uiDate('MMM', d));
     });
 
     final paid = invoices.where((i) => i.status == InvoiceStatus.paid);
@@ -112,11 +109,11 @@ class ReportsScreen extends ConsumerWidget {
             children: [
               ScreenTitle(
                 tr('rep.title', ref),
-                eyebrow: 'Last 6 months',
+                eyebrow: tr('rep.last_6', ref),
                 padding: const EdgeInsets.fromLTRB(
                     0, AppSpace.lg, 0, AppSpace.lg),
                 trailing: AppButton.outline(
-                  label: 'Export',
+                  label: tr('rep.export', ref),
                   icon: Symbols.download,
                   compact: true,
                   expand: false,

@@ -11,6 +11,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
+import '../../i18n/dates.dart';
+import '../../i18n/translations.dart';
 import '../../providers/providers.dart';
 import '../../utils/csv_helper.dart';
 import '../../utils/report_csv_helper.dart';
@@ -155,11 +157,11 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
       await file.writeAsBytes(await doc.save());
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'application/pdf')],
-        subject: 'BillZap Report',
+        subject: trGlobal('ex.subject'),
       );
-      _toast('Exported $filename', AppColors.green);
+      _toast(trGlobal('ex.exported', {'file': filename}), AppColors.green);
     } catch (e) {
-      _toast('Export failed: $e', AppColors.red);
+      _toast(trGlobal('ex.failed', {'e': e}), AppColors.red);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -203,11 +205,11 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
       await file.writeAsString(content);
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'text/csv')],
-        subject: 'BillZap Report',
+        subject: trGlobal('ex.subject'),
       );
-      _toast('Exported $filename', AppColors.green);
+      _toast(trGlobal('ex.exported', {'file': filename}), AppColors.green);
     } catch (e) {
-      _toast('Export failed: $e', AppColors.red);
+      _toast(trGlobal('ex.failed', {'e': e}), AppColors.red);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -229,9 +231,9 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'application/json')],
         subject: 'GSTR-1 JSON — ${DateFormat('MMM yyyy').format(_from)}');
-      _toast('GSTR-1 JSON ready', AppColors.green);
+      _toast(trGlobal('ex.gstr1_ready'), AppColors.green);
     } catch (e) {
-      _toast('GSTR-1 export failed: $e', AppColors.red);
+      _toast(trGlobal('ex.gstr1_failed', {'e': e}), AppColors.red);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -249,12 +251,12 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
 
   String _periodLabel(_PeriodPreset p) {
     switch (p) {
-      case _PeriodPreset.thisMonth: return 'This Month';
-      case _PeriodPreset.lastMonth: return 'Last Month';
-      case _PeriodPreset.thisQuarter: return 'This Quarter';
-      case _PeriodPreset.thisYear: return 'This Year';
-      case _PeriodPreset.allTime: return 'All Time';
-      case _PeriodPreset.custom: return 'Custom';
+      case _PeriodPreset.thisMonth: return trGlobal('rep.this_month');
+      case _PeriodPreset.lastMonth: return trGlobal('rep.last_month');
+      case _PeriodPreset.thisQuarter: return trGlobal('ex.this_quarter');
+      case _PeriodPreset.thisYear: return trGlobal('rep.this_year');
+      case _PeriodPreset.allTime: return trGlobal('ex.all_time');
+      case _PeriodPreset.custom: return trGlobal('ex.custom');
     }
   }
 
@@ -267,7 +269,6 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
     // here. Everything else is a report any shop can read.
     final profile = ref.watch(taxProfileProvider);
     final india = profile.countryCode == 'IN';
-    final activeTaxName = profile.taxName;
     return DraggableScrollableSheet(
       initialChildSize: 0.85,
       minChildSize: 0.5,
@@ -294,7 +295,7 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
             child: Row(children: [
               Icon(Symbols.download, color: AppColors.brand, size: 22),
               const Gap(10),
-              Text('Export Reports',
+              Text(trGlobal('ex.title'),
                 style: AppFont.sans(
                   fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.t1)),
               const Spacer(),
@@ -311,7 +312,7 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 30),
               children: [
                 // ──────── Date range section ────────
-                Text('PERIOD',
+                Text(trGlobal('ex.period').toUpperCase(),
                   style: AppFont.sans(
                     fontSize: 11, fontWeight: FontWeight.w600,
                     color: AppColors.t3, letterSpacing: 0.8)),
@@ -343,8 +344,8 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
                     Icon(Symbols.event, size: 16, color: AppColors.brand),
                     const Gap(8),
                     Text(
-                      '${DateFormat('dd MMM yyyy').format(_from)} → '
-                      '${_preset == _PeriodPreset.allTime ? "Present" : DateFormat('dd MMM yyyy').format(_to)}',
+                      '${uiDate('dd MMM y', _from)} → '
+                      '${_preset == _PeriodPreset.allTime ? trGlobal('ex.present') : uiDate('dd MMM y', _to)}',
                       style: AppFont.sans(
                         fontSize: 12.5, fontWeight: FontWeight.w700,
                         color: AppColors.brand)),
@@ -353,7 +354,7 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
                 const Gap(20),
 
                 // ──────── Reports ────────
-                Text('REPORTS',
+                Text(trGlobal('ex.reports').toUpperCase(),
                   style: AppFont.sans(
                     fontSize: 11, fontWeight: FontWeight.w600,
                     color: AppColors.t3, letterSpacing: 0.8)),
@@ -362,8 +363,8 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
                 _ReportRow(
                   icon: Symbols.trending_up,
                   iconColor: AppColors.brand,
-                  title: 'Monthly Revenue',
-                  subtitle: 'Earnings, top customers, month-wise breakdown',
+                  title: trGlobal('rep.monthly_revenue'),
+                  subtitle: trGlobal('ex.revenue_sub'),
                   busy: _busy,
                   onPdf: () => _exportPdf(_ReportKind.monthlyRevenue),
                   onCsv: () => _exportCsv(_ReportKind.monthlyRevenue),
@@ -372,8 +373,8 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
                 _ReportRow(
                   icon: Symbols.account_balance_wallet,
                   iconColor: AppColors.green,
-                  title: 'Profit & Loss',
-                  subtitle: 'Revenue − Expenses with category breakdown',
+                  title: trGlobal('rep.profit_loss'),
+                  subtitle: trGlobal('ex.pl_sub'),
                   busy: _busy,
                   onPdf: () => _exportPdf(_ReportKind.profitLoss),
                   onCsv: () => _exportCsv(_ReportKind.profitLoss),
@@ -382,10 +383,10 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
                 _ReportRow(
                   icon: Symbols.calculate,
                   iconColor: AppColors.purple,
-                  title: '$activeTaxName Summary',
+                  title: trGlobal('rep.gst_summary'),
                   subtitle: india
-                      ? 'CGST/SGST/IGST breakdown for GSTR-1 filing'
-                      : 'Tax collected and payable, period by period',
+                      ? trGlobal('ex.tax_sub_in')
+                      : trGlobal('ex.tax_sub'),
                   busy: _busy,
                   onPdf: () => _exportPdf(_ReportKind.gstSummary),
                   onCsv: () => _exportCsv(_ReportKind.gstSummary),
@@ -400,8 +401,8 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
                 _ReportRow(
                   icon: Symbols.fact_check,
                   iconColor: AppColors.orange,
-                  title: 'Invoice Status',
-                  subtitle: 'Paid / Pending / Overdue + aging analysis',
+                  title: trGlobal('rep.invoice_status'),
+                  subtitle: trGlobal('ex.status_sub'),
                   busy: _busy,
                   onPdf: () => _exportPdf(_ReportKind.invoiceStatus),
                   onCsv: () => _exportCsv(_ReportKind.invoiceStatus),
@@ -418,7 +419,7 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
                     Icon(Symbols.lightbulb, size: 16, color: AppColors.orange),
                     const Gap(8),
                     Expanded(child: Text(
-                      'PDFs are great for sharing and printing. CSVs work in Excel for further analysis.',
+                      trGlobal('ex.tip'),
                       style: AppFont.sans(
                         fontSize: 11.5, color: AppColors.t2, height: 1.4))),
                   ]),

@@ -11,6 +11,7 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../design/money.dart';
 import '../../tax/active_profile.dart';
 import '../../theme/app_theme.dart';
+import '../../design/components.dart';
 import '../../i18n/translations.dart';
 import '../../utils/voice_parser.dart';
 
@@ -57,19 +58,22 @@ const Map<String, String> _langToLocale = {
 /// wrong twice. See test/voice_locale_test.dart.
 List<String> voiceLocaleCandidates(String lang, String country) {
   final c = country.toUpperCase();
+  // Speech packs are named by bare language: 'zh_CN', not 'zh-Hans_CN'.
+  final base = lang.split('-').first;
+  final home = appLocaleFor(lang)?.defaultRegion;
   return <String>[
     // The language as spoken in this country. Hindi in Fiji, Tamil in
     // Singapore, Arabic in the UAE — all real cases.
-    '${lang}_$c',
+    '${base}_$c',
     // The language's own home pack, which is the one that exists.
-    _langToLocale[lang] ?? '',
+    _langToLocale[lang] ?? (home != null ? '${base}_$home' : ''),
     // English where the shop is, then the big English packs almost
     // every device carries.
     'en_$c',
     'en_US',
     'en_GB',
     'en_IN',
-  ].where((l) => l.isNotEmpty).toList();
+  ].where((l) => l.isNotEmpty).toSet().toList();
 }
 
 class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
@@ -121,7 +125,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
             });
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Speech error: ${e.errorMsg}'),
+                content: Text(trGlobal('voice.speech_error', {'e': e.errorMsg})),
                 backgroundColor: AppColors.red));
           }
         },
@@ -274,7 +278,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                 color: AppColors.border,
                 borderRadius: BorderRadius.circular(99)))),
             const Gap(16),
-            Text('Choose Language',
+            Text(trGlobal('voice.choose_lang'),
               style: AppFont.sans(
                 fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.t1)),
             const Gap(12),
@@ -291,7 +295,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                         color: installed ? AppColors.t1 : AppColors.t4)),
                     subtitle: !installed
-                      ? Text('Not installed on this device',
+                      ? Text(trGlobal('voice.not_installed'),
                           style: AppFont.sans(fontSize: 11, color: AppColors.t4))
                       : null,
                     trailing: isSelected
@@ -325,10 +329,17 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
               color: AppColors.bg, borderRadius: BorderRadius.circular(14)),
             child: Icon(Symbols.close, size: 19, color: AppColors.t1)),
           onPressed: () => context.go('/home')),
-        title: Text('Voice Invoice',
-          style: AppFont.sans(
-            fontSize: 21, fontWeight: FontWeight.w700,
-          letterSpacing: -0.5, color: AppColors.t1)),
+        title: Row(mainAxisSize: MainAxisSize.min, children: [
+          Flexible(
+            child: Text(trGlobal('voice.title'),
+              overflow: TextOverflow.ellipsis,
+              style: AppFont.sans(
+                fontSize: 21, fontWeight: FontWeight.w700,
+              letterSpacing: -0.5, color: AppColors.t1)),
+          ),
+          const SizedBox(width: 8),
+          BetaBadge(trGlobal('common.beta')),
+        ]),
         actions: [
           TextButton.icon(
             onPressed: _pickLocale,
@@ -359,7 +370,13 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
             Icon(Symbols.tips_and_updates, color: AppColors.brand, size: 22),
             const Gap(10),
             Expanded(child: Text(
-              'Try: "For Ravi 2 kg sugar 50 rupees and 1 kg salt 20 rupees"',
+              // The example stays in English: it shows the phrasing the
+              // parser understands, and a translated sentence would
+              // promise support for words it does not know. Rupees only
+              // where rupees are the currency.
+              '${trGlobal('voice.try')} ${activeProfile.countryCode == 'IN'
+                  ? '"For Ravi 2 kg sugar 50 rupees and 1 kg salt 20 rupees"'
+                  : '"For Ravi 2 kg sugar 50 and 1 kg salt 20"'}',
               style: AppFont.sans(
                 fontSize: 12.5, color: AppColors.t2, height: 1.4))),
           ]),
@@ -381,7 +398,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                 const Gap(10),
                 Expanded(child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text("Couldn't capture audio",
+                    Text(trGlobal('voice.no_audio'),
                       style: AppFont.sans(
                         fontSize: 13.5, fontWeight: FontWeight.w600,
                         color: AppColors.t1)),
@@ -396,7 +413,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                     _toggleListening();
                   },
                   icon: const Icon(Symbols.refresh, size: 16),
-                  label: Text('Retry',
+                  label: Text(trGlobal('voice.retry'),
                     style: AppFont.sans(
                       fontSize: 12, fontWeight: FontWeight.w600)),
                   style: TextButton.styleFrom(
@@ -462,8 +479,8 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                   const Gap(16),
                   Text(
                     _listening
-                      ? 'Listening...'
-                      : (_transcript.isEmpty ? 'Tap mic and speak' : 'Tap mic to record again'),
+                      ? trGlobal('voice.listening')
+                      : (_transcript.isEmpty ? trGlobal('voice.tap_speak') : trGlobal('voice.tap_again')),
                     style: AppFont.sans(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -485,7 +502,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                     Row(children: [
                       Icon(Symbols.hearing, size: 16, color: AppColors.t3),
                       const Gap(6),
-                      Text('I heard:',
+                      Text(trGlobal('voice.heard'),
                         style: AppFont.sans(
                           fontSize: 11, fontWeight: FontWeight.w700,
                           color: AppColors.t3, letterSpacing: 0.5)),
@@ -513,25 +530,25 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                     Row(children: [
                       Icon(Symbols.auto_awesome, size: 18, color: AppColors.green),
                       const Gap(8),
-                      Text('Extracted',
+                      Text(trGlobal('voice.extracted'),
                         style: AppFont.sans(
                           fontSize: 13, fontWeight: FontWeight.w600,
                           color: AppColors.green, letterSpacing: 0.5)),
                     ]),
                     const Gap(10),
                     if (_parsed!.customerName != null) ...[
-                      _kvRow(Symbols.person, 'Customer', _parsed!.customerName!),
+                      _kvRow(Symbols.person, trGlobal('inv.customer'), _parsed!.customerName!),
                       const Gap(8),
                     ],
                     if (_parsed!.items.isEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Text('No items detected. Try speaking again with clearer pricing.',
+                        child: Text(trGlobal('voice.no_items'),
                           style: AppFont.sans(
                             fontSize: 12.5, color: AppColors.t3, fontStyle: FontStyle.italic)),
                       )
                     else ...[
-                      Text('Items',
+                      Text(trGlobal('voice.items'),
                         style: AppFont.sans(
                           fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.t3, letterSpacing: 0.5)),
                       const Gap(6),
@@ -578,7 +595,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                   Expanded(child: OutlinedButton.icon(
                     onPressed: _retry,
                     icon: const Icon(Symbols.refresh, size: 18),
-                    label: Text('Try again',
+                    label: Text(trGlobal('voice.try_again'),
                       style: AppFont.sans(fontWeight: FontWeight.w700, fontSize: 13)),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.t2,
@@ -590,7 +607,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                   Expanded(flex: 2, child: ElevatedButton.icon(
                     onPressed: _parsed!.items.isEmpty ? null : _proceedToCreate,
                     icon: const Icon(Symbols.arrow_forward, size: 18),
-                    label: Text('Continue',
+                    label: Text(trGlobal('common.continue'),
                       style: AppFont.sans(fontWeight: FontWeight.w600, fontSize: 13.5)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.brand,
@@ -611,15 +628,15 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: AppColors.border)),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('Voice Tips',
+                    Text(trGlobal('voice.tips'),
                       style: AppFont.sans(
                         fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.t1)),
                     const Gap(10),
-                    _tip('Speak slowly and clearly'),
-                    _tip('Mention quantity, item name, and price'),
-                    _tip('Say "for [Customer Name]" at the start'),
-                    _tip('Separate items with "and" or pause'),
-                    _tip('You can edit everything in the next step'),
+                    _tip(trGlobal('voice.tip1')),
+                    _tip(trGlobal('voice.tip2')),
+                    _tip(trGlobal('voice.tip3')),
+                    _tip(trGlobal('voice.tip4')),
+                    _tip(trGlobal('voice.tip5')),
                   ]),
                 ),
               ],

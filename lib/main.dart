@@ -2,12 +2,15 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 
+import 'design/palette_scope.dart';
 import 'design/theme.dart' as ds;
 import 'design/tokens.dart';
+import 'i18n/dates.dart';
 import 'i18n/translations.dart';
 import 'providers/theme_provider.dart';
 import 'router/app_router.dart';
@@ -41,9 +44,10 @@ Future<void> main() async {
   try {
     await Hive.openBox('settings');
   } catch (_) {}
-  try {
-    initGlobalLanguage();
-  } catch (_) {}
+  // Awaited: the saved language's file is read before the first frame,
+  // so the app opens in it instead of flashing English.
+  await initGlobalLanguage();
+  await initUiDates();
 
   runApp(const ProviderScope(child: BillZapApp()));
 }
@@ -54,6 +58,8 @@ class BillZapApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
+    final lang = currentLanguage(ref.watch(languageProvider));
+    final materialLocale = materialLocaleFor(lang);
     final platform = MediaQuery.platformBrightnessOf(context);
     final brightness = brightnessFor(themeMode, platform);
 
@@ -77,10 +83,19 @@ class BillZapApp extends ConsumerWidget {
       theme: ds.AppTheme.light(),
       darkTheme: ds.AppTheme.dark(),
       themeMode: themeMode,
-      // Slower than Material's 200ms default so the light/dark switch
-      // reads as a deliberate transition rather than a hard cut.
-      themeAnimationDuration: AppMotion.theme,
-      themeAnimationCurve: AppMotion.standard,
+      // No ThemeData lerp. The custom widgets read static tokens that
+      // flip in one frame, so a lerping ThemeData left Material parts
+      // mid-fade beside custom parts already switched. PaletteScope
+      // does the transition instead, as one cross-fade of the whole
+      // screen.
+      themeAnimationDuration: Duration.zero,
+      // Material's built-in strings follow the language where Flutter
+      // has them; where it does not, English. The reading direction is
+      // set below from our own table, which knows Divehi and Sindhi
+      // read right to left even where Material has no strings for them.
+      locale: materialLocale,
+      supportedLocales: {materialLocale, const Locale('en')}.toList(),
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       routerConfig: ref.watch(routerProvider),
       builder: (context, child) {
         final mq = MediaQuery.of(context);
@@ -91,9 +106,45 @@ class BillZapApp extends ConsumerWidget {
         final scale = AppPlatform.isDesktop ? base * 1.1 : base;
         return MediaQuery(
           data: mq.copyWith(textScaler: TextScaler.linear(scale)),
-          child: AppLockGate(child: child!),
+          child: Directionality(
+            textDirection: lang.rtl ? TextDirection.rtl : TextDirection.ltr,
+            child: PaletteScope(
+              brightness: brightness,
+              language: lang.id,
+              child: AppLockGate(child: child!),
+            ),
+          ),
         );
       },
     );
   }
+}
+
+/// The locale Material's own strings are drawn from for a language.
+///
+/// Flutter ships Material strings for about eighty languages. Where it
+/// has the language, use it. Where the language is a script variant
+/// Flutter does not have — Hindi in Latin letters, Kazakh in Arabic
+/// script — English, because Devanagari or Cyrillic buttons would be
+/// unreadable to exactly the person who chose the variant. Cantonese
+/// borrows Chinese in its own script.
+Locale materialLocaleFor(AppLocale l) {
+  switch (l.id) {
+    case 'zh-Hans':
+    case 'yue-Hans':
+      return const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans');
+    case 'zh-Hant':
+      return const Locale.fromSubtags(
+          languageCode: 'zh', scriptCode: 'Hant', countryCode: 'TW');
+    case 'yue-Hant':
+      return const Locale.fromSubtags(
+          languageCode: 'zh', scriptCode: 'Hant', countryCode: 'HK');
+    case 'sr-Latn':
+      return const Locale.fromSubtags(languageCode: 'sr', scriptCode: 'Latn');
+  }
+  if (l.script != null) return const Locale('en');
+  final locale = Locale(l.language);
+  return GlobalMaterialLocalizations.delegate.isSupported(locale)
+      ? locale
+      : const Locale('en');
 }

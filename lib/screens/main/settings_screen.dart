@@ -15,6 +15,7 @@ import '../../app_version.dart';
 import '../../design/components.dart';
 import '../../design/tokens.dart';
 import '../../design/motion.dart';
+import '../../design/palette_scope.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../i18n/translations.dart';
@@ -57,6 +58,9 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
         child: Column(children: [
         ScreenTitle(
           tr('set.title', ref),
+          // Top corner, on every tab, so the language can be found by
+          // someone who cannot yet read the tab names.
+          trailing: const LanguagePill(),
           padding: const EdgeInsets.fromLTRB(
               AppSpace.gutter, AppSpace.lg, AppSpace.gutter, AppSpace.lg),
         ),
@@ -221,24 +225,26 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
 
           FieldGroup(
             title: tr('set.business_profile', ref),
-            subtitle: 'Printed at the top of every bill',
+            subtitle: tr('set.profile_sub', ref),
             icon: Symbols.storefront,
             children: [
               AppField(
                 label: tr('set.business_name', ref),
                 controller: _name,
                 icon: Symbols.storefront,
-                hint: 'e.g. Ravi Electronics',
+                hint: tr('set.biz_name_hint', ref),
                 onChanged: (_) => setState(() {}),
               ),
               AppField(
                 label: tr('cust.gstin', ref),
                 controller: _gstin,
                 icon: Symbols.verified,
-                hint: '33RAAAA1234B1Z5',
+                // An Indian GSTIN as the example only in India. It sat
+                // under "EIN" for a US shop, which reads as a bug.
+                hint: isIndia ? '33RAAAA1234B1Z5' : null,
                 caps: true,
                 errorText: _gstinErr,
-                helper: 'Leave blank if you are not registered',
+                helper: tr('set.taxid_helper', ref),
                 onChanged: (v) =>
                     setState(() => _gstinErr = Validators.gstin(v)),
               ),
@@ -246,8 +252,8 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
           ),
 
           FieldGroup(
-            title: 'How customers reach you',
-            subtitle: 'Shown on the bill and the WhatsApp message',
+            title: tr('set.reach_title', ref),
+            subtitle: tr('set.reach_sub', ref),
             icon: Symbols.phone,
             tone: AppColor.info,
             children: [
@@ -255,7 +261,7 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
                 label: tr('cust.phone', ref),
                 controller: _phone,
                 icon: Symbols.phone,
-                hint: '+91 98765 43210',
+                hint: isIndia ? '+91 98765 43210' : null,
                 keyboardType: TextInputType.phone,
                 errorText: _phoneErr,
                 onChanged: (v) =>
@@ -275,10 +281,10 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
           ),
 
           FieldGroup(
-            title: 'Where you trade from',
+            title: tr('set.trade_from', ref),
             subtitle: isIndia
-                ? 'State decides CGST/SGST against IGST'
-                : 'The address printed on every invoice',
+                ? tr('set.trade_from_in', ref)
+                : tr('set.trade_from_sub', ref),
             icon: Symbols.location_on,
             tone: AppColor.pending,
             children: [
@@ -301,7 +307,7 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
                 label: tr('cust.address', ref),
                 controller: _addr,
                 icon: Symbols.location_on,
-                hint: 'Street, area',
+                hint: tr('set.street_hint', ref),
                 maxLines: 2,
                 validatable: false,
                 onChanged: (_) => setState(() {}),
@@ -312,7 +318,7 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
                   child: AppField(
                     label: tr('set.city', ref),
                     controller: _city,
-                    hint: 'Coimbatore',
+                    hint: isIndia ? 'Coimbatore' : null,
                     onChanged: (_) => setState(() {}),
                   ),
                 ),
@@ -320,11 +326,17 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
                 Expanded(
                   flex: 2,
                   child: AppField(
-                    label: tr('set.pincode', ref),
+                    // "Pincode" is India's word, and six digits India's
+                    // length. A UK postcode has letters and a space.
+                    label: isIndia
+                        ? tr('set.pincode', ref)
+                        : tr('set.postal_code', ref),
                     controller: _pin,
-                    hint: '641001',
-                    keyboardType: TextInputType.number,
-                    maxLength: 6,
+                    hint: isIndia ? '641001' : null,
+                    keyboardType: isIndia
+                        ? TextInputType.number
+                        : TextInputType.text,
+                    maxLength: isIndia ? 6 : 10,
                     errorText: _pinErr,
                     onChanged: (v) =>
                         setState(() => _pinErr = Validators.pincode(v)),
@@ -338,7 +350,7 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
                   label: regionLabel,
                   controller: _stateCtrl,
                   icon: Symbols.location_city,
-                  hint: 'Region or province',
+                  hint: tr('set.region_hint', ref),
                   validatable: false,
                   onChanged: (v) => setState(() => _state = v),
                 )
@@ -377,7 +389,7 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
     if (_gstinErr != null || _phoneErr != null ||
         _emailErr != null || _pinErr != null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Fix the highlighted fields first'),
+        content: Text(trGlobal('set.fix_fields')),
         backgroundColor: AppColors.red));
       return;
     }
@@ -402,7 +414,7 @@ class _BusinessPanelState extends ConsumerState<_BusinessPanel> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Error: $e'), backgroundColor: AppColors.red));
+        content: Text(trGlobal('common.error_detail', {'e': e})), backgroundColor: AppColors.red));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -440,13 +452,16 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
 
   @override
   Widget build(BuildContext context) {
+    // IFSC, and the Indian examples, only for a shop that trades in
+    // India. Elsewhere the same field holds a SWIFT or routing code.
+    final isIndia = (ref.watch(businessProvider)?.countryCode ?? 'IN') == 'IN';
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.screenH, 4, AppSpacing.screenH, AppSpacing.bottomNavSafe),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         FieldGroup(
           title: tr('set.bank_details', ref),
-          subtitle: 'Printed on the bill so customers can transfer',
+          subtitle: tr('set.bank_sub', ref),
           icon: Symbols.account_balance,
           tone: AppColor.info,
           children: [
@@ -454,7 +469,7 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
               label: tr('set.bank_name', ref),
               controller: _bank,
               icon: Symbols.account_balance,
-              hint: 'State Bank of India',
+              hint: isIndia ? 'State Bank of India' : null,
               onChanged: (_) => setState(() {}),
             ),
             AppField(
@@ -465,9 +480,9 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
               onChanged: (_) => setState(() {}),
             ),
             AppField(
-              label: tr('set.ifsc', ref),
+              label: isIndia ? tr('set.ifsc', ref) : tr('set.bank_code', ref),
               controller: _ifsc,
-              hint: 'SBIN0001234',
+              hint: isIndia ? 'SBIN0001234' : null,
               caps: true,
               errorText: _ifscErr,
               onChanged: (v) => setState(() => _ifscErr = Validators.ifsc(v)),
@@ -475,8 +490,8 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
           ],
         ),
         FieldGroup(
-          title: 'UPI',
-          subtitle: 'Becomes the QR code on every unpaid bill',
+          title: tr('set.upi_title', ref),
+          subtitle: tr('set.upi_sub', ref),
           icon: Symbols.qr_code_2,
           children: [
             AppField(
@@ -485,7 +500,7 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
               icon: Symbols.qr_code_2,
               hint: 'business@upi',
               errorText: _upiErr,
-              helper: 'Customers scan this to pay you directly',
+              helper: tr('set.upi_helper', ref),
               onChanged: (v) => setState(() => _upiErr = Validators.upi(v)),
             ),
           ],
@@ -503,7 +518,7 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
   Future<void> _save() async {
     if (_ifscErr != null || _upiErr != null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Fix the highlighted fields first'),
+        content: Text(trGlobal('set.fix_fields')),
         backgroundColor: AppColors.red));
       return;
     }
@@ -521,7 +536,7 @@ class _BankPanelState extends ConsumerState<_BankPanel> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Error: $e'), backgroundColor: AppColors.red));
+        content: Text(trGlobal('common.error_detail', {'e': e})), backgroundColor: AppColors.red));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -560,7 +575,7 @@ class _InvoicePanelState extends ConsumerState<_InvoicePanel> {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         FieldGroup(
           title: tr('set.invoice_settings', ref),
-          subtitle: 'How new bills are numbered and worded',
+          subtitle: tr('set.invoice_sub', ref),
           icon: Symbols.receipt_long,
           children: [
             AppField(
@@ -568,13 +583,13 @@ class _InvoicePanelState extends ConsumerState<_InvoicePanel> {
               controller: _prefix,
               icon: Symbols.receipt_long,
               hint: 'INV-',
-              helper: 'Your next bill will be numbered from this',
+              helper: tr('set.prefix_helper', ref),
               onChanged: (_) => setState(() {}),
             ),
             AppField(
               label: tr('set.default_terms', ref),
               controller: _terms,
-              hint: 'Payment due within 30 days.',
+              hint: tr('set.terms_hint', ref),
               maxLines: 3,
               validatable: false,
             ),
@@ -604,7 +619,7 @@ class _InvoicePanelState extends ConsumerState<_InvoicePanel> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Error: $e'), backgroundColor: AppColors.red));
+        content: Text(trGlobal('common.error_detail', {'e': e})), backgroundColor: AppColors.red));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -630,7 +645,7 @@ class _AboutPanelState extends ConsumerState<_AboutPanel> {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open browser')));
+        SnackBar(content: Text(trGlobal('set.browser_fail'))));
     }
   }
 
@@ -642,20 +657,14 @@ class _AboutPanelState extends ConsumerState<_AboutPanel> {
     // it's published.
     const playStoreUrl =
         'https://play.google.com/store/apps/details?id=com.billzap.app';
-    final msg = '''
-*BillZap* — Free GST billing for India
-
-I'm using BillZap to send professional GST invoices in seconds.
-• 100% offline • No sign-up • Free forever
-• UPI QR on every invoice — get paid instantly
-• Available in 12 Indian languages
-• Voice billing in your language
-
-Try it: $_siteUrl
-Download: $playStoreUrl
-
-— Sent via BillZap''';
-    await Share.share(msg, subject: 'Try BillZap — Free GST Billing');
+    // It used to say "Free GST billing for India" and "12 Indian
+    // languages" to whoever it was sent to, wherever they were.
+    final msg = '${trGlobal('share.title')}\n\n'
+        '${trGlobal('share.body', {'count': kAppLocales.length})}\n\n'
+        '${trGlobal('share.try', {'url': _siteUrl})}\n'
+        '${trGlobal('share.download', {'url': playStoreUrl})}\n\n'
+        '${trGlobal('wa.sent_via')}';
+    await Share.share(msg, subject: trGlobal('share.subject'));
   }
 
   Future<void> _toggleAppLock() async {
@@ -680,78 +689,14 @@ Download: $playStoreUrl
 
   @override
   Widget build(BuildContext context) {
-    final lang = currentLanguage(ref.watch(languageProvider));
-
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.screenH, 4, AppSpacing.screenH, AppSpacing.bottomNavSafe),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-        // ═════════════════════════════════════════════════
-        // LANGUAGE TILE — TAP TO CHANGE APP LANGUAGE
-        // ═════════════════════════════════════════════════
-        Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          decoration: BoxDecoration(
-            color: AppColors.card,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.border)),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: () {
-                HapticFeedback.lightImpact();
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => const LanguagePickerScreen()));
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                child: Row(children: [
-                  // Washed jade like every other tile on this panel. A
-                  // solid ink square here read as a rendering fault
-                  // sitting in a column of pastel discs.
-                  Container(
-                    width: 42, height: 42,
-                    decoration: BoxDecoration(
-                      color: AppColor.wash(AppColor.primary),
-                      borderRadius: BorderRadius.circular(11)),
-                    child: Icon(Symbols.translate,
-                      color: AppColor.primary, size: 22)),
-                  const Gap(12),
-                  Expanded(child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(tr('set.language', ref),
-                        style: AppFont.sans(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.t1)),
-                      const Gap(2),
-                      Text('${lang.name} • ${lang.englishName}',
-                        style: AppFont.sans(
-                          fontSize: 12,
-                          color: AppColors.t3)),
-                    ])),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: AppColors.brandSoft,
-                      borderRadius: BorderRadius.circular(20)),
-                    child: Text(tr('set.change', ref),
-                      style: AppFont.sans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.brand))),
-                  const Gap(4),
-                  Icon(Symbols.chevron_right,
-                    color: AppColors.t3, size: 22),
-                ]),
-              ),
-            ),
-          ),
-        ),
+        // The language used to live here, two taps deep in a tab
+        // nobody looks in. It is now the button in the top corner of
+        // Settings, on every tab.
 
         // ═════════════════════════════════════════════════
         // COUNTRY & TAX — where the shop trades
@@ -1001,17 +946,17 @@ class _ThemeTile extends ConsumerWidget {
             icon: Symbols.brightness_auto, label: tr('set.theme_system', ref),
             sub: tr('set.theme_system_sub', ref),
             selected: current == ThemeMode.system,
-            onTap: () { ref.read(themeModeProvider.notifier).set(ThemeMode.system); Navigator.pop(ctx); }),
+            onTap: () { Navigator.pop(ctx); switchThemeMode(ref, ThemeMode.system); }),
           _ThemeOption(
             icon: Symbols.light_mode, label: tr('set.theme_light', ref),
             sub: tr('set.theme_light_sub', ref),
             selected: current == ThemeMode.light,
-            onTap: () { ref.read(themeModeProvider.notifier).set(ThemeMode.light); Navigator.pop(ctx); }),
+            onTap: () { Navigator.pop(ctx); switchThemeMode(ref, ThemeMode.light); }),
           _ThemeOption(
             icon: Symbols.dark_mode, label: tr('set.theme_dark', ref),
             sub: tr('set.theme_dark_sub', ref),
             selected: current == ThemeMode.dark,
-            onTap: () { ref.read(themeModeProvider.notifier).set(ThemeMode.dark); Navigator.pop(ctx); }),
+            onTap: () { Navigator.pop(ctx); switchThemeMode(ref, ThemeMode.dark); }),
         ]),
       ),
     );
@@ -1099,7 +1044,7 @@ class _IdentityCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final complete = done >= total;
-    final label = name.isEmpty ? 'Your business' : name;
+    final label = name.isEmpty ? trGlobal('set.your_business') : name;
 
     return AppSurface(
       padding: const EdgeInsets.all(AppSpace.lg),
@@ -1132,7 +1077,7 @@ class _IdentityCard extends StatelessWidget {
                               color: AppColor.textSecondary)),
                     ),
                   ] else
-                    Text('No GSTIN yet',
+                    Text(trGlobal('set.no_taxid'),
                         style: AppFont.style(AppType.bodyS,
                             color: AppColor.textTertiary)),
                   if (city.isNotEmpty) ...[
@@ -1171,8 +1116,8 @@ class _IdentityCard extends StatelessWidget {
           const Gap(AppSpace.md),
           Text(
             complete
-                ? 'All set'
-                : '${total - done} to go',
+                ? trGlobal('set.all_set')
+                : trGlobal('set.to_go', {'n': total - done}),
             style: AppFont.style(AppType.labelS,
                 color: complete ? AppColor.primary : AppColor.textTertiary),
           ),
@@ -1190,24 +1135,26 @@ class _IdentityCard extends StatelessWidget {
 /// rest fall back to "Region", which is understood everywhere and is
 /// the honest answer where the local term is not known.
 String _regionLabelFor(String code) {
+  // Values are translation keys: the word is the country's, the
+  // language it is written in is the reader's.
   const labels = {
-    'IN': 'State', 'US': 'State', 'AU': 'State', 'BR': 'State',
-    'MY': 'State', 'NG': 'State', 'MX': 'State', 'VE': 'State',
-    'SD': 'State', 'SS': 'State', 'PW': 'State',
-    'CA': 'Province', 'ZA': 'Province', 'CN': 'Province', 'ID': 'Province',
-    'AR': 'Province', 'PH': 'Province', 'TR': 'Province', 'PK': 'Province',
-    'KE': 'County', 'IE': 'County', 'NO': 'County',
-    'JP': 'Prefecture',
-    'AE': 'Emirate',
-    'CH': 'Canton',
-    'DE': 'State', 'AT': 'State',
-    'GB': 'Nation', 'NL': 'Province', 'BE': 'Province',
-    'FR': 'Region', 'IT': 'Region', 'ES': 'Community',
-    'RU': 'Region', 'UA': 'Oblast', 'PL': 'Voivodeship',
-    'SA': 'Region', 'TH': 'Region', 'VN': 'Province', 'KR': 'Province',
-    'BD': 'Division', 'NP': 'Province', 'LK': 'Province',
+    'IN': 'state', 'US': 'state', 'AU': 'state', 'BR': 'state',
+    'MY': 'state', 'NG': 'state', 'MX': 'state', 'VE': 'state',
+    'SD': 'state', 'SS': 'state', 'PW': 'state',
+    'CA': 'province', 'ZA': 'province', 'CN': 'province', 'ID': 'province',
+    'AR': 'province', 'PH': 'province', 'TR': 'province', 'PK': 'province',
+    'KE': 'county', 'IE': 'county', 'NO': 'county',
+    'JP': 'prefecture',
+    'AE': 'emirate',
+    'CH': 'canton',
+    'DE': 'state', 'AT': 'state',
+    'GB': 'nation', 'NL': 'province', 'BE': 'province',
+    'FR': 'region', 'IT': 'region', 'ES': 'community',
+    'RU': 'region', 'UA': 'oblast', 'PL': 'voivodeship',
+    'SA': 'region', 'TH': 'region', 'VN': 'province', 'KR': 'province',
+    'BD': 'division', 'NP': 'province', 'LK': 'province',
   };
-  return labels[code.toUpperCase()] ?? 'Region';
+  return trGlobal('region.${labels[code.toUpperCase()] ?? 'region'}');
 }
 
 /// The country the shop's premises are in.
@@ -1228,7 +1175,7 @@ class _AddressCountryTile extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('COUNTRY',
+        Text(trGlobal('set.country_label').toUpperCase(),
             style:
                 AppFont.style(AppType.labelS, color: AppColor.textTertiary)),
         const Gap(AppSpace.xs),
@@ -1252,7 +1199,7 @@ class _AddressCountryTile extends StatelessWidget {
                 Text(flag, style: const TextStyle(fontSize: 19)),
               const Gap(AppSpace.md),
               Expanded(
-                child: Text(country?.name ?? code,
+                child: Text(country == null ? code : countryDisplayName(code),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppFont.style(AppType.bodyL,
@@ -1324,7 +1271,7 @@ class _StatePicker extends StatelessWidget {
                   size: 18, color: AppColor.textTertiary),
               const Gap(AppSpace.md),
               Expanded(
-                child: Text(value.isEmpty ? 'Select $label' : value,
+                child: Text(value.isEmpty ? trGlobal('set.select_region', {'label': label}) : value,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppFont.style(AppType.bodyL,
@@ -1388,7 +1335,7 @@ class _StatePicker extends StatelessWidget {
                   AppSpace.lg, AppSpace.gutter, AppSpace.md),
               child: Row(children: [
                 Expanded(
-                  child: Text('Place of business',
+                  child: Text(trGlobal('set.place_of_business'),
                       style: AppFont.style(AppType.titleS,
                           color: AppColor.textPrimary)),
                 ),
@@ -1401,7 +1348,7 @@ class _StatePicker extends StatelessWidget {
                   horizontal: AppSpace.gutter),
               child: AppSearchField(
                 controller: search,
-                hint: 'Search states',
+                hint: trGlobal('create.search_states'),
                 hasValue: q.isNotEmpty,
                 onChanged: (_) => ss(() {}),
                 onClear: () {
@@ -1433,7 +1380,7 @@ class _StatePicker extends StatelessWidget {
                       size: 38,
                     ),
                     title: n,
-                    subtitle: c.isEmpty ? null : 'State code $c',
+                    subtitle: c.isEmpty ? null : trGlobal('create.state_code', {'code': c}),
                     trailing: on
                         ? Icon(Symbols.check_circle,
                             size: 20, color: AppColor.primary)
@@ -1533,7 +1480,7 @@ class _CountryTile extends ConsumerWidget {
                         fontWeight: FontWeight.w600, color: AppColors.t1)),
                     const Gap(2),
                     Text(
-                      '${country?.name ?? profile.countryName} · '
+                      '${country != null ? countryDisplayName(country.code) : profile.countryName} · '
                       '${profile.currencyCode} · ${profile.taxName}'
                       '${profile.defaultRate > 0 ? " ${profile.defaultRate}%" : ""}',
                       style: AppFont.sans(fontSize: 12, color: AppColors.t3)),
@@ -1657,7 +1604,7 @@ Future<void> _editCustomTax(BuildContext context, WidgetRef ref,
               textCapitalization: TextCapitalization.characters,
               decoration: InputDecoration(
                 labelText: tr('set.tax_name', ref),
-                hintText: 'VAT',
+                hintText: trGlobal('set.tax_name_hint'),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12))),
             ),

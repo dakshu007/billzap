@@ -10,6 +10,7 @@ import 'package:gap/gap.dart';
 import 'package:billzap/theme/app_icons.dart';
 import '../theme/app_theme.dart';
 import '../providers/providers.dart';
+import '../i18n/translations.dart';
 import '../utils/festival_data.dart';
 
 class FestivalBanner extends ConsumerWidget {
@@ -27,9 +28,9 @@ class FestivalBanner extends ConsumerWidget {
     // Determine label
     final String prefix;
     if (festival.isToday) {
-      prefix = "It's ${festival.name} today!";
+      prefix = trGlobal('fest.is_today', {'name': festival.name});
     } else if (festival.isTomorrow) {
-      prefix = "${festival.name} is tomorrow";
+      prefix = trGlobal('fest.is_tomorrow', {'name': festival.name});
     } else {
       prefix = festival.name;
     }
@@ -65,7 +66,7 @@ class FestivalBanner extends ConsumerWidget {
                 style: AppFont.sans(
                   fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
               const Gap(2),
-              Text('Send greetings to your customers in one tap',
+              Text(trGlobal('fest.banner_sub'),
                 style: AppFont.sans(
                   fontSize: 11.5, color: Colors.white.withOpacity(0.92))),
             ]),

@@ -23,13 +23,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:billzap/i18n/translations.dart';
 
 void main() {
-  test('every trGlobal() key in lib/ resolves to a real translation', () {
+  test('every key looked up in lib/ is defined in English', () {
     final lib = Directory('lib');
     expect(lib.existsSync(), isTrue, reason: 'run from the package root');
 
     // Only literal single-quoted keys; a computed key cannot be checked
     // statically and is rare enough to review by hand.
-    final call = RegExp(r"""trGlobal\(\s*'([^']+)'\s*\)""");
+    // Every lookup function, with or without arguments. trCount() reads
+    // two keys, '<key>.one' and '<key>.other', and both must exist.
+    final call = RegExp(r"""\b(?:tr|trGlobal|trKey)\(\s*'([^'$]+)'""");
+    final count = RegExp(r"""\btrCount\(\s*'([^'$]+)'""");
+    final english = englishKeys.toSet();
     final missing = <String>{};
 
     // Comments are stripped first. Without this the test flags its own
@@ -47,9 +51,13 @@ void main() {
           .replaceAll(lineComment, '');
       for (final m in call.allMatches(source)) {
         final key = m.group(1)!;
-        // The fallback IS the key, so a key that resolves to itself is
-        // either missing or a tautology. Both are worth failing on.
-        if (trGlobal(key) == key) missing.add('$key  (${f.path})');
+        if (!english.contains(key)) missing.add('$key  (${f.path})');
+      }
+      for (final m in count.allMatches(source)) {
+        for (final suffix in ['.one', '.other']) {
+          final key = '${m.group(1)!}$suffix';
+          if (!english.contains(key)) missing.add('$key  (${f.path})');
+        }
       }
     }
 
@@ -63,7 +71,8 @@ void main() {
     // The bug this guards: reaching for the language code through the
     // translation table instead of asking for it directly.
     expect(currentLangCode, isNotEmpty);
-    expect(currentLangCode.length, lessThanOrEqualTo(5));
+    // Up to 'yue-Hant': a BCP 47 language plus a script subtag.
+    expect(currentLangCode.length, lessThanOrEqualTo(8));
     expect(currentLangCode, isNot(contains(' ')));
   });
 }

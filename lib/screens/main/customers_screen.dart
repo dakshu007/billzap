@@ -13,6 +13,7 @@ import '../../theme/app_spacing.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../i18n/translations.dart';
+import '../../tax/active_profile.dart';
 import '../../utils/validators.dart';
 import '../../widgets/skeleton.dart';
 
@@ -43,9 +44,8 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
 
   Future<bool> _confirmDelete(Customer c) async {
     return confirm(context,
-        title: 'Delete ${c.name}?',
-        message: 'Their invoices stay in the ledger — only the saved '
-            'contact goes.',
+        title: trGlobal('common.delete_q', {'name': c.name}),
+        message: trGlobal('cust.delete_msg'),
         icon: Symbols.delete,
         destructive: true,
         confirmLabel: trGlobal('common.delete'),
@@ -56,7 +56,7 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
     await ref.read(customerProvider.notifier).delete(c.id);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('${c.name} deleted'),
+      content: Text(trGlobal('common.deleted_named', {'name': c.name})),
       backgroundColor: AppColors.t1,
     ));
   }
@@ -160,7 +160,7 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
                             Text(c.phone, style: AppFont.sans(
                               fontSize: 12, color: AppColors.t3)),
                           if (c.gstin.isNotEmpty)
-                            Text('GSTIN: ${c.gstin}',
+                            Text('$activeTaxIdLabel: ${c.gstin}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: AppFont.sans(
@@ -193,13 +193,13 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
     ),
     alignment: Alignment.centerRight,
     padding: const EdgeInsets.symmetric(horizontal: 22),
-    child: const Row(
+    child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Symbols.delete, color: Colors.white, size: 20),
-        SizedBox(width: 6),
-        Text('Delete',
-            style: TextStyle(
+        const Icon(Symbols.delete, color: Colors.white, size: 20),
+        const SizedBox(width: 6),
+        Text(trGlobal('common.delete'),
+            style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
                 fontSize: 13)),
@@ -308,7 +308,7 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
                           }
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text('${name.text.trim()} added'),
+                              content: Text(trGlobal('common.added_named', {'name': name.text.trim()})),
                               backgroundColor: AppColors.green));
                           }
                         } finally {

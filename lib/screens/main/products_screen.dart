@@ -12,6 +12,7 @@ import '../../theme/app_spacing.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../i18n/translations.dart';
+import '../../tax/active_profile.dart';
 import '../../widgets/skeleton.dart';
 
 class ProductsScreen extends ConsumerStatefulWidget {
@@ -41,9 +42,8 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
 
   Future<bool> _confirmDelete(Product p) async {
     return confirm(context,
-        title: 'Delete ${p.name}?',
-        message: 'Invoices that already list this item keep their line — '
-            'only the saved item goes.',
+        title: trGlobal('common.delete_q', {'name': p.name}),
+        message: trGlobal('prod.delete_msg'),
         icon: Symbols.delete,
         destructive: true,
         confirmLabel: tr('common.delete', ref),
@@ -54,7 +54,7 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
     await ref.read(productProvider.notifier).delete(p.id);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('${p.name} deleted'),
+      content: Text(trGlobal('common.deleted_named', {'name': p.name})),
       backgroundColor: AppColors.t1,
     ));
   }
@@ -159,7 +159,7 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                               ],
                             ]),
                             if (p.hsnCode.isNotEmpty)
-                              Text('HSN: ${p.hsnCode}', style: AppFont.sans(
+                              Text('${activeItemCodeLabel ?? trGlobal('cat.code_generic')}: ${p.hsnCode}', style: AppFont.sans(
                                 fontSize: 10.5, color: AppColors.t4)),
                           ])),
                           // Swipe the row to delete, as in the ledger —
@@ -182,13 +182,13 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
     ),
     alignment: Alignment.centerRight,
     padding: const EdgeInsets.symmetric(horizontal: 22),
-    child: const Row(
+    child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Symbols.delete, color: Colors.white, size: 20),
-        SizedBox(width: 6),
-        Text('Delete',
-            style: TextStyle(
+        const Icon(Symbols.delete, color: Colors.white, size: 20),
+        const SizedBox(width: 6),
+        Text(trGlobal('common.delete'),
+            style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
                 fontSize: 13)),
@@ -261,7 +261,7 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                       color: AppColors.border,
                       borderRadius: BorderRadius.circular(99)))),
                   const Gap(16),
-                  Text(isEdit ? 'Edit Product' : trGlobal('prod.add_new'),
+                  Text(isEdit ? trGlobal('prod.edit') : trGlobal('prod.add_new'),
                     style: AppFont.sans(
                       fontSize: 18, fontWeight: FontWeight.w600,
                       color: AppColors.t1)),
@@ -276,7 +276,7 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                     const Gap(10),
                     // Cost field — feeds the margin calc above.
                     Expanded(child: _SheetField(cost,
-                      label: 'Cost (optional)',
+                      label: trGlobal('prod.cost'),
                       type: TextInputType.number,
                       onChanged: (_) => ss(() {}))),
                   ]),
@@ -285,7 +285,7 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                     Row(children: [
                       Icon(Symbols.trending_up, size: 16, color: AppColors.green),
                       const Gap(6),
-                      Text('Margin: ${livePct.toStringAsFixed(1)}%',
+                      Text(trGlobal('prod.margin_pct', {'pct': livePct.toStringAsFixed(1)}),
                         style: AppFont.sans(
                           fontSize: 12.5, fontWeight: FontWeight.w700,
                           color: AppColors.green)),
@@ -305,7 +305,7 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                   Row(children: [
                     Icon(Symbols.inventory, size: 18, color: AppColors.t2),
                     const Gap(8),
-                    Text('Track stock',
+                    Text(trGlobal('prod.track_stock'),
                       style: AppFont.sans(
                         fontSize: 13, fontWeight: FontWeight.w700,
                         color: AppColors.t1)),
@@ -317,11 +317,11 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                     const Gap(8),
                     Row(children: [
                       Expanded(child: _SheetField(stock,
-                        label: 'Stock on hand',
+                        label: trGlobal('prod.stock_on_hand'),
                         type: TextInputType.number)),
                       const Gap(10),
                       Expanded(child: _SheetField(lowAt,
-                        label: 'Low-stock alert at',
+                        label: trGlobal('prod.low_alert_at'),
                         type: TextInputType.number)),
                     ]),
                   ],
@@ -371,8 +371,8 @@ class _ProductsState extends ConsumerState<ProductsScreen> {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                               content: Text(isEdit
-                                  ? '${name.text.trim()} updated'
-                                  : '${name.text.trim()} added'),
+                                  ? trGlobal('common.updated_named', {'name': name.text.trim()})
+                                  : trGlobal('common.added_named', {'name': name.text.trim()})),
                               backgroundColor: AppColors.green));
                           }
                         } finally {
@@ -445,11 +445,11 @@ class _StockBadge extends StatelessWidget {
     if (p.isOutOfStock) {
       bg = AppColors.red.withOpacity(0.15);
       fg = AppColors.red;
-      label = 'Out';
+      label = trGlobal('prod.out_of_stock');
     } else if (p.isLowStock) {
       bg = AppColors.orange.withOpacity(0.15);
       fg = AppColors.orange;
-      label = '${p.stock.toStringAsFixed(0)} left';
+      label = trGlobal('prod.left', {'n': p.stock.toStringAsFixed(0)});
     } else {
       bg = AppColors.brand.withOpacity(0.10);
       fg = AppColors.brand;

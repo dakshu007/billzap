@@ -15,6 +15,8 @@ import '../theme/app_theme.dart';
 import '../design/components.dart';
 import '../design/tokens.dart';
 import '../providers/providers.dart';
+import '../i18n/translations.dart';
+import '../tax/active_profile.dart';
 import '../utils/profile_completeness.dart';
 
 // Tracks whether the modal has been shown this session (per-app-launch
@@ -74,7 +76,7 @@ void _showWelcomeModal(BuildContext context) {
   showGeneralDialog<void>(
     context: context,
     barrierDismissible: false, // the buttons are the way out, not a stray tap
-    barrierLabel: 'Welcome',
+    barrierLabel: trGlobal('welcome.barrier'),
     barrierColor: Colors.black.withValues(alpha: AppTokens.pick(0.34, 0.62)),
     transitionDuration: AppMotion.slow,
     pageBuilder: (ctx, _, __) => const SizedBox.shrink(),
@@ -106,15 +108,16 @@ class _WelcomeSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // CGST/SGST and UPI are Indian. Elsewhere the first line says what
+    // is true there, and the UPI line is not offered at all.
+    final india = activeProfile.countryCode == 'IN';
     final features = <(IconData, String, String)>[
-      (Symbols.receipt_long, 'GST-compliant invoices',
-          'CGST, SGST and IGST worked out for you'),
-      (Symbols.qr_code_2, 'UPI QR on every bill',
-          'Customers pay by scanning, straight away'),
-      (Symbols.picture_as_pdf, 'Your name on every PDF',
-          'Shared to WhatsApp with your branding'),
-      (Symbols.wifi_off, 'Works with no signal',
-          'Everything stays on this phone'),
+      (Symbols.receipt_long, trGlobal('welcome.f1'),
+          india ? trGlobal('welcome.f1_sub_in') : trGlobal('welcome.f1_sub')),
+      if (india)
+        (Symbols.qr_code_2, trGlobal('welcome.f2'), trGlobal('welcome.f2_sub')),
+      (Symbols.picture_as_pdf, trGlobal('welcome.f3'), trGlobal('welcome.f3_sub')),
+      (Symbols.wifi_off, trGlobal('welcome.f4'), trGlobal('welcome.f4_sub')),
     ];
 
     return Center(
@@ -147,14 +150,13 @@ class _WelcomeSheet extends StatelessWidget {
                     color: AppColor.onPrimary, size: 34),
               ),
               const Gap(AppSpace.xl),
-              Text('Set up your shop',
+              Text(trGlobal('welcome.title'),
                   textAlign: TextAlign.center,
                   style: AppFont.style(AppType.titleL,
                       color: AppColor.textPrimary)),
               const Gap(AppSpace.sm),
               Text(
-                'A minute now, and every bill you send carries your name, '
-                'your GSTIN and your UPI.',
+                trGlobal('welcome.sub'),
                 textAlign: TextAlign.center,
                 style:
                     AppFont.style(AppType.bodyM, color: AppColor.textTertiary),
@@ -174,7 +176,7 @@ class _WelcomeSheet extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: AppButton(
-                  label: 'Set up profile',
+                  label: trGlobal('welcome.cta'),
                   trailingIcon: Symbols.arrow_forward,
                   onPressed: () {
                     onClose();
@@ -188,7 +190,7 @@ class _WelcomeSheet extends StatelessWidget {
                   HapticFeedback.lightImpact();
                   onClose();
                 },
-                child: Text('Not now',
+                child: Text(trGlobal('welcome.later'),
                     style: AppFont.style(AppType.labelM,
                         color: AppColor.textTertiary)),
               ),
@@ -273,7 +275,7 @@ class ProfileIncompleteBanner extends ConsumerWidget {
           Expanded(child: Column(
             crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
-              Text('Profile incomplete',
+              Text(trGlobal('welcome.incomplete'),
                 style: AppFont.sans(
                   fontSize: 14, fontWeight: FontWeight.w600,
                   letterSpacing: -0.2, color: AppColors.t1)),

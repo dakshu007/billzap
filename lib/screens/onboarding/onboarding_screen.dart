@@ -151,7 +151,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(country?.name ?? 'Select a country',
+                        Text(country == null ? trGlobal('onboard.select_country') : countryDisplayName(country.code),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: AppFont.sans(
@@ -422,12 +422,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             child: Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => const LanguagePickerScreen(),
-                  ));
-                },
+                onTap: () => openLanguagePicker(context),
                 borderRadius: BorderRadius.circular(20),
                 child: Padding(
                   padding: const EdgeInsets.all(14),
@@ -452,7 +447,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                   fontSize: 14, fontWeight: FontWeight.w700)),
                           const Gap(2),
                           Text(
-                            currentLanguage(ref.watch(languageProvider)).name,
+                            currentLanguage(ref.watch(languageProvider)).nativeName,
                             style: AppFont.sans(
                                 fontSize: 12, color: AppColors.t3),
                           ),
@@ -498,20 +493,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   fontSize: 13, color: AppColors.t3, height: 1.5)),
           const Gap(20),
           _field(trGlobal('onboard.business_name'), _nameCtl,
-              hint: 'Ravi Electronics', icon: Symbols.storefront),
+              hint: trGlobal('set.biz_name_hint'), icon: Symbols.storefront),
           _field(trGlobal('onboard.phone'), _phoneCtl,
-              hint: '9876543210',
+              hint: _country == 'IN' ? '9876543210' : '',
               icon: Symbols.phone,
               keyboard: TextInputType.phone),
           _field(trGlobal('onboard.gstin_optional'), _gstinCtl,
-              hint: '33AAAAA0000A1Z5',
+              hint: _country == 'IN' ? '33AAAAA0000A1Z5' : '',
               icon: Symbols.badge,
               caps: true),
           _field(trGlobal('onboard.address'), _addrCtl,
-              hint: '123 Main Road',
+              hint: trGlobal('onboard.address_hint'),
               icon: Symbols.home),
           _field(trGlobal('onboard.city'), _cityCtl,
-              hint: 'Coimbatore',
+              hint: _country == 'IN' ? 'Coimbatore' : '',
               icon: Symbols.location_city),
           const Gap(8),
           Text(trGlobal('onboard.state'),
@@ -537,7 +532,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     decoration: InputDecoration(
                       isDense: true,
                       border: InputBorder.none,
-                      hintText: 'Region or province',
+                      hintText: trGlobal('set.region_hint'),
                       hintStyle:
                           AppFont.sans(fontSize: 14, color: AppColors.t3),
                     ),
@@ -546,7 +541,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   )
                 : DropdownButton<String>(
                     value: _states.contains(_state) ? _state : null,
-                    hint: Text('Select',
+                    hint: Text(trGlobal('onboard.select'),
                         style:
                             AppFont.sans(fontSize: 14, color: AppColors.t3)),
                     isExpanded: true,

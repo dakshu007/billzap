@@ -6,6 +6,8 @@ import 'package:flutter/widgets.dart';
 import 'package:billzap/theme/app_icons.dart';
 
 import '../design/money.dart';
+import '../i18n/dates.dart';
+import '../i18n/translations.dart';
 import '../models/models.dart';
 
 enum InsightType {
@@ -68,8 +70,8 @@ class InsightEngine {
     if (invoices.isEmpty) {
       return Insight(
         type: InsightType.firstInvoice,
-        title: 'GET STARTED',
-        message: 'Create your first GST invoice in seconds. Tap the + button or use Voice Bill.',
+        title: trGlobal('ins.start_title').toUpperCase(),
+        message: trGlobal('ins.start_msg'),
         icon: Symbols.trending_up,
         tone: InsightTone.neutral,
       );
@@ -134,8 +136,8 @@ class InsightEngine {
       if (thisWeek > bestPrev && bestPrev > 0) {
         return Insight(
           type: InsightType.bestWeekEver,
-          title: 'New record',
-          message: 'You earned ${_inr(thisWeek)} this week — your best week yet!',
+          title: trGlobal('ins.record_title'),
+          message: trGlobal('ins.record_msg', {'amount': _inr(thisWeek)}),
           icon: Symbols.check_circle,
           tone: InsightTone.celebration,
         );
@@ -171,22 +173,22 @@ class InsightEngine {
     IconData icon;
 
     if (lastWeek == 0) {
-      message = 'You earned ${_inr(thisWeek)} this week. Keep it up!';
+      message = trGlobal('ins.week_first', {'amount': _inr(thisWeek)});
       tone = InsightTone.positive;
       icon = Symbols.trending_up;
     } else {
       final diff = thisWeek - lastWeek;
       final pct = (diff / lastWeek * 100).round();
       if (pct > 10) {
-        message = '${_inr(thisWeek)} this week — up $pct% from last week';
+        message = trGlobal('ins.week_up', {'amount': _inr(thisWeek), 'pct': pct});
         tone = InsightTone.celebration;
         icon = Symbols.auto_awesome;
       } else if (pct < -10) {
-        message = '${_inr(thisWeek)} this week — down ${pct.abs()}% from last week. Push harder!';
+        message = trGlobal('ins.week_down', {'amount': _inr(thisWeek), 'pct': pct.abs()});
         tone = InsightTone.warning;
         icon = Symbols.bar_chart;
       } else {
-        message = '${_inr(thisWeek)} earned this week — steady performance';
+        message = trGlobal('ins.week_steady', {'amount': _inr(thisWeek)});
         tone = InsightTone.neutral;
         icon = Symbols.bar_chart;
       }
@@ -194,7 +196,7 @@ class InsightEngine {
 
     return Insight(
       type: InsightType.weeklyRevenue,
-      title: 'THIS WEEK',
+      title: trGlobal('ins.week_title').toUpperCase(),
       message: message,
       tone: tone,
       icon: icon,
@@ -223,11 +225,11 @@ class InsightEngine {
 
     return Insight(
       type: InsightType.topCustomer,
-      title: 'TOP CUSTOMER',
-      message: '${top.key} is your top customer this month — ${_inr(top.value)} across multiple invoices.',
+      title: trGlobal('ins.top_title').toUpperCase(),
+      message: trGlobal('ins.top_msg', {'name': top.key, 'amount': _inr(top.value)}),
       icon: Symbols.person,
       tone: InsightTone.positive,
-      actionLabel: 'Send thanks',
+      actionLabel: trGlobal('ins.send_thanks'),
       action: InsightAction(
         route: '/customers',
         customerName: top.key,
@@ -244,8 +246,8 @@ class InsightEngine {
       if (paid >= 3) {
         return Insight(
           type: InsightType.pendingPayments,
-          title: 'All clear',
-          message: 'No overdue invoices. Great cash flow!',
+          title: trGlobal('ins.clear_title'),
+          message: trGlobal('ins.clear_msg'),
           icon: Symbols.check_circle,
           tone: InsightTone.positive,
         );
@@ -257,11 +259,11 @@ class InsightEngine {
 
     return Insight(
       type: InsightType.pendingPayments,
-      title: 'OVERDUE',
-      message: '${overdue.length} invoice${overdue.length > 1 ? 's' : ''} overdue worth ${_inr(total)}. Time to follow up.',
+      title: trGlobal('ins.overdue_title').toUpperCase(),
+      message: trGlobal('ins.overdue_msg', {'n': overdue.length, 'amount': _inr(total)}),
       icon: Symbols.lightbulb,
       tone: InsightTone.warning,
-      actionLabel: 'View overdue',
+      actionLabel: trGlobal('ins.view_overdue'),
       action: InsightAction(route: '/invoices'),
     );
   }
@@ -287,15 +289,13 @@ class InsightEngine {
       ..sort((a, b) => b.value.compareTo(a.value));
     final best = sorted.first;
 
-    const dayNames = {
-      1: 'Monday', 2: 'Tuesday', 3: 'Wednesday', 4: 'Thursday',
-      5: 'Friday', 6: 'Saturday', 7: 'Sunday',
-    };
+    // 2024-01-01 was a Monday, so day N of that week is weekday N.
+    String dayName(int weekday) => uiDate('EEEE', DateTime(2024, 1, weekday));
 
     return Insight(
       type: InsightType.bestDay,
-      title: 'BUSIEST DAY',
-      message: '${dayNames[best.key]} is your best sales day this month — ${_inr(best.value)} earned.',
+      title: trGlobal('ins.busy_title').toUpperCase(),
+      message: trGlobal('ins.busy_msg', {'day': dayName(best.key), 'amount': _inr(best.value)}),
       icon: Symbols.event,
       tone: InsightTone.positive,
     );
@@ -311,15 +311,17 @@ class InsightEngine {
     final gst = paidThisMonth.fold<double>(0, (s, i) => s + i.totalTax);
     if (gst < 100) return null;
 
-    final monthName = _monthName(now.month);
+    final monthName = uiDate('MMMM', now);
 
     return Insight(
       type: InsightType.monthlyGst,
-      title: 'GST COLLECTED',
-      message: '${_inr(gst)} GST collected in $monthName so far. File on time to avoid penalties.',
+      // Named after this country's tax: "GST collected" to a shop in
+      // Dubai was a sentence about somebody else's tax.
+      title: trGlobal('ins.tax_title').toUpperCase(),
+      message: trGlobal('ins.tax_msg', {'amount': _inr(gst), 'month': monthName}),
       icon: Symbols.receipt_long,
       tone: InsightTone.neutral,
-      actionLabel: 'View report',
+      actionLabel: trGlobal('ins.view_report'),
       action: InsightAction(route: '/reports'),
     );
   }
@@ -355,11 +357,11 @@ class InsightEngine {
 
     return Insight(
       type: InsightType.inactiveCustomer,
-      title: 'TIME TO FOLLOW UP',
-      message: "You haven't billed ${top.key} in $daysSince days. Reach out?",
+      title: trGlobal('ins.follow_title').toUpperCase(),
+      message: trGlobal('ins.follow_msg', {'name': top.key, 'n': daysSince}),
       icon: Symbols.lightbulb,
       tone: InsightTone.neutral,
-      actionLabel: 'Create invoice',
+      actionLabel: trGlobal('ins.create_invoice'),
       action: InsightAction(route: '/create', customerName: top.key),
     );
   }
@@ -380,11 +382,11 @@ class InsightEngine {
 
     return Insight(
       type: InsightType.weekAhead,
-      title: 'WEEK AHEAD',
-      message: '${dueSoon.length} invoice${dueSoon.length > 1 ? 's' : ''} worth ${_inr(total)} due this week.',
+      title: trGlobal('ins.ahead_title').toUpperCase(),
+      message: trGlobal('ins.ahead_msg', {'n': dueSoon.length, 'amount': _inr(total)}),
       icon: Symbols.lightbulb,
       tone: InsightTone.neutral,
-      actionLabel: 'View invoices',
+      actionLabel: trGlobal('ins.view_invoices'),
       action: InsightAction(route: '/invoices'),
     );
   }
@@ -397,10 +399,10 @@ class InsightEngine {
 
     return Insight(
       type: InsightType.weeklyRevenue,
-      title: 'YOUR BUSINESS',
+      title: trGlobal('ins.biz_title').toUpperCase(),
       message: paid > 0
-          ? '$paid invoices paid, ${_inr(total)} earned overall. Keep going!'
-          : 'Welcome to BillZap! Create your first invoice to see insights here.',
+          ? trGlobal('ins.biz_msg', {'n': paid, 'amount': _inr(total)})
+          : trGlobal('ins.welcome'),
       icon: Symbols.lightbulb,
       tone: InsightTone.positive,
     );
@@ -417,10 +419,4 @@ class InsightEngine {
   /// shopkeeper in Lagos was telling them nothing.
   static String _inr(double amount) =>
       '$activeCurrencySymbol${formatMoneyShort(amount)}';
-
-  static String _monthName(int m) {
-    const names = ['', 'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'];
-    return names[m];
-  }
 }

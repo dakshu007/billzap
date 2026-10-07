@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:crypto/crypto.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
+import '../i18n/translations.dart';
 
 class AppLockService {
   AppLockService._();
@@ -64,7 +65,7 @@ class AppLockService {
     try {
       debugPrint("AppLock: testBiometricForSetup starting...");
       final ok = await _localAuth.authenticate(
-        localizedReason: 'Confirm your fingerprint to enable for BillZap',
+        localizedReason: trGlobal('lock.bio_enable'),
         biometricOnly: true,
         persistAcrossBackgrounding: false,
       );
@@ -76,7 +77,7 @@ class AppLockService {
       try {
         debugPrint("AppLock: retrying without biometricOnly...");
         final ok = await _localAuth.authenticate(
-          localizedReason: 'Confirm your fingerprint to enable for BillZap',
+          localizedReason: trGlobal('lock.bio_enable'),
           biometricOnly: false,
         persistAcrossBackgrounding: false,
         );
@@ -135,7 +136,7 @@ class AppLockService {
     try {
       debugPrint("AppLock: authenticateBiometric starting...");
       final ok = await _localAuth.authenticate(
-        localizedReason: 'Unlock BillZap with your fingerprint',
+        localizedReason: trGlobal('lock.bio_unlock'),
         biometricOnly: true,
         persistAcrossBackgrounding: true,
       );
@@ -150,7 +151,7 @@ class AppLockService {
       // Retry without biometricOnly
       try {
         final ok = await _localAuth.authenticate(
-          localizedReason: 'Unlock BillZap',
+          localizedReason: trGlobal('lock.unlock'),
           biometricOnly: false,
         persistAcrossBackgrounding: true,
         );

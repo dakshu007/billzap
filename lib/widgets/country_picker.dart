@@ -23,6 +23,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:billzap/theme/app_icons.dart';
+import '../i18n/translations.dart';
 import '../tax/countries.dart';
 import '../tax/profiles.dart';
 import '../tax/rate_table.dart';
@@ -71,6 +72,7 @@ class _CountryPickerScreenState extends ConsumerState<CountryPickerScreen> {
     if (q.isEmpty) return allCountries;
     return allCountries.where((c) {
       return c.name.toLowerCase().contains(q) ||
+          countryDisplayName(c.code).toLowerCase().contains(q) ||
           c.code.toLowerCase() == q ||
           c.currencyCode.toLowerCase().contains(q) ||
           c.currencySymbol.toLowerCase() == q;
@@ -110,12 +112,12 @@ class _CountryPickerScreenState extends ConsumerState<CountryPickerScreen> {
               !researched.any((r) => r.code == c.code))
           .toList();
       if (current != null) {
-        rows..add(_Header('Your country'))..add(current);
+        rows..add(_Header(trGlobal('cp.your_country')))..add(current);
       }
       if (researched.isNotEmpty) {
-        rows..add(_Header('Rates checked'))..addAll(researched);
+        rows..add(_Header(trGlobal('cp.rates_checked')))..addAll(researched);
       }
-      rows..add(_Header('All countries'))..addAll(rest);
+      rows..add(_Header(trGlobal('cp.all_countries')))..addAll(rest);
     }
 
     return Scaffold(
@@ -123,7 +125,7 @@ class _CountryPickerScreenState extends ConsumerState<CountryPickerScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.card,
         elevation: 0,
-        title: Text('Where do you trade?',
+        title: Text(trGlobal('onboard.country_title'),
             style: AppFont.sans(
                 fontSize: 21,
                 fontWeight: FontWeight.w700,
@@ -140,7 +142,7 @@ class _CountryPickerScreenState extends ConsumerState<CountryPickerScreen> {
                 onChanged: (v) => setState(() => _query = v),
                 style: AppFont.sans(fontSize: 15, color: AppColors.t1),
                 decoration: InputDecoration(
-                  hintText: 'Country, currency or code',
+                  hintText: trGlobal('cp.search_hint'),
                   hintStyle:
                       AppFont.sans(fontSize: 14.5, color: AppColors.t3),
                   prefixIcon:
@@ -181,9 +183,7 @@ class _CountryPickerScreenState extends ConsumerState<CountryPickerScreen> {
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                      matching.length == 1
-                          ? '1 country'
-                          : '${matching.length} countries',
+                      trCount('cp.count', matching.length),
                       style:
                           AppFont.sans(fontSize: 12.5, color: AppColors.t3)),
                 ),
@@ -194,8 +194,7 @@ class _CountryPickerScreenState extends ConsumerState<CountryPickerScreen> {
                       child: Padding(
                         padding: const EdgeInsets.all(32),
                         child: Text(
-                            'No country matches "${_query.trim()}".\n'
-                            'Try the currency code instead — AED, KES, BRL.',
+                            trGlobal('cp.no_match', {'q': _query.trim()}),
                             textAlign: TextAlign.center,
                             style: AppFont.sans(
                                 fontSize: 14, color: AppColors.t3)),
@@ -264,9 +263,9 @@ class _CountryRow extends StatelessWidget {
     // the shopkeeper whether to trust the rate the app is about to
     // offer them.
     final (note, tint) = switch (known) {
-      _Known.verified => ('tax rules built in', AppColors.brand),
-      _Known.prefilled => ('rate offered — confirm it', AppColors.orange),
-      _Known.unknown => ('you set the tax rate', AppColors.t3),
+      _Known.verified => (trGlobal('cp.built_in'), AppColors.brand),
+      _Known.prefilled => (trGlobal('cp.prefilled'), AppColors.orange),
+      _Known.unknown => (trGlobal('cp.you_set'), AppColors.t3),
     };
     final flag = countryFlag(country.code);
 
@@ -311,7 +310,7 @@ class _CountryRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(country.name,
+                    Text(countryDisplayName(country.code),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppFont.sans(

@@ -15,7 +15,9 @@ import '../../design/components.dart';
 import '../../design/tokens.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
+import '../../i18n/dates.dart';
 import '../../utils/festival_data.dart';
+import '../../utils/phone_number.dart';
 import '../../i18n/translations.dart';
 
 class FestivalGreetingScreen extends ConsumerStatefulWidget {
@@ -43,7 +45,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
     if (festival == null) return;
 
     final biz = ref.read(businessProvider);
-    final bizName = biz?.name.isNotEmpty == true ? biz!.name : 'Your Business';
+    final bizName = biz?.name.isNotEmpty == true ? biz!.name : trGlobal('set.your_business');
 
     // Get user's app language
     final lang = ref.read(languageProvider);
@@ -79,26 +81,18 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
 
   // ───── WhatsApp send ─────
   Future<void> _sendOne(Customer c) async {
-    final phone = _normalizePhone(c.phone);
-    if (phone.isEmpty) return;
+    if (c.phone.trim().isEmpty) return;
+    final phone = whatsAppNumber(c.phone,
+        shopCountry: ref.read(businessProvider)?.countryCode ?? 'IN');
     final msg = _messageCtrl.text.trim();
     final encoded = Uri.encodeComponent(msg);
-    final url = Uri.parse('https://wa.me/$phone?text=$encoded');
+    // No number we can be sure of: WhatsApp asks which contact.
+    final url = phone == null
+        ? Uri.parse('https://wa.me/?text=$encoded')
+        : Uri.parse('https://wa.me/$phone?text=$encoded');
     try {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } catch (_) {}
-  }
-
-  String _normalizePhone(String raw) {
-    var p = raw.replaceAll(RegExp(r'[^\d]'), '');
-    if (p.length == 10) {
-      return '91$p'; // assume India
-    } else if (p.length == 12 && p.startsWith('91')) {
-      return p;
-    } else if (p.length == 11 && p.startsWith('0')) {
-      return '91${p.substring(1)}';
-    }
-    return p;
   }
 
   Future<void> _startBulkSend() async {
@@ -108,19 +102,18 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
 
     if (selectedCustomers.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Select at least one customer with a phone number'),
+        content: Text(trGlobal('fest.select_one')),
         backgroundColor: AppColors.red));
       return;
     }
 
     // Confirm before sending
     final confirmed = await confirm(context,
-        title: 'Send greetings?',
-        message: 'WhatsApp opens ${selectedCustomers.length} times — once per '
-            'customer. Come back to BillZap after each Send and the next one '
-            'opens on its own.',
+        title: trGlobal('fest.send_q'),
+        message: trGlobal('fest.send_q_msg', {'n': selectedCustomers.length}),
         icon: Symbols.send,
-        confirmLabel: 'Start (${selectedCustomers.length})');
+        confirmLabel: trGlobal('fest.start', {'n': selectedCustomers.length}),
+        cancelLabel: trGlobal('common.cancel'));
     if (!confirmed) return;
 
     // Begin send loop
@@ -136,9 +129,8 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
     if (!mounted) return;
     setState(() => _currentSendIndex = -1);
     notify(context,
-        title: 'All sent',
-        message: 'Greetings opened in WhatsApp for all '
-            '${selectedCustomers.length} customers.',
+        title: trGlobal('fest.all_sent'),
+        message: trGlobal('fest.all_sent_msg', {'n': selectedCustomers.length}),
         icon: Symbols.check_circle,
         tone: AppColor.paid);
   }
@@ -151,8 +143,8 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
     final festival = FestivalData.byId(widget.festivalId);
     if (festival == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Festival not found')),
-        body: const Center(child: Text('This festival is no longer available.')),
+        appBar: AppBar(title: Text(trGlobal('fest.not_found'))),
+        body: Center(child: Text(trGlobal('fest.not_found_msg'))),
       );
     }
 
@@ -202,7 +194,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.25),
                       borderRadius: BorderRadius.circular(99)),
-                    child: Text('TODAY',
+                    child: Text(trGlobal('fest.today').toUpperCase(),
                       style: AppFont.sans(
                         fontSize: 9, fontWeight: FontWeight.w700,
                         color: Colors.white, letterSpacing: 0.7)),
@@ -214,7 +206,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
           const Gap(20),
 
           // ─── Message section ───
-          Text('MESSAGE',
+          Text(trGlobal('fest.message').toUpperCase(),
             style: AppFont.sans(
               fontSize: 11, fontWeight: FontWeight.w600,
               color: AppColors.t3, letterSpacing: 0.8)),
@@ -232,21 +224,21 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
                 border: InputBorder.none,
                 isDense: true,
                 contentPadding: EdgeInsets.zero,
-                hintText: 'Your message...',
+                hintText: trGlobal('fest.message_hint'),
               ),
               style: AppFont.sans(
                 fontSize: 13.5, color: AppColors.t1, height: 1.5),
             ),
           ),
           const Gap(6),
-          Text('You can edit this message before sending',
+          Text(trGlobal('fest.editable'),
             style: AppFont.sans(
               fontSize: 11, color: AppColors.t3, fontStyle: FontStyle.italic)),
           const Gap(20),
 
           // ─── Customer selection ───
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text('SEND TO',
+            Text(trGlobal('fest.send_to').toUpperCase(),
               style: AppFont.sans(
                 fontSize: 11, fontWeight: FontWeight.w600,
                 color: AppColors.t3, letterSpacing: 0.8)),
@@ -258,13 +250,13 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
                     for (final c in withPhone) { _selectedIds.add(c.id); }
                   });
                 },
-                child: Text('Select all',
+                child: Text(trGlobal('fest.select_all'),
                   style: AppFont.sans(
                     fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.brand)),
               ),
               TextButton(
                 onPressed: () => setState(() => _selectedIds.clear()),
-                child: Text('Clear',
+                child: Text(trGlobal('inv.clear_filters'),
                   style: AppFont.sans(
                     fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.t3)),
               ),
@@ -277,8 +269,8 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
               color: AppColors.brandSoft,
               borderRadius: BorderRadius.circular(14)),
             child: Text(
-              '${_selectedIds.length} of ${withPhone.length} customers selected'
-              '${withoutPhone > 0 ? " • $withoutPhone without phone skipped" : ""}',
+              trGlobal('fest.selected', {'a': _selectedIds.length, 'b': withPhone.length}) +
+              (withoutPhone > 0 ? trGlobal('fest.skipped', {'n': withoutPhone}) : ''),
               style: AppFont.sans(
                 fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.brand)),
           ),
@@ -289,11 +281,11 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
             Center(child: Column(children: [
               Icon(Symbols.person_off, size: 48, color: AppColors.t4),
               const Gap(8),
-              Text('No customers with phone numbers',
+              Text(trGlobal('fest.no_phones'),
                 style: AppFont.sans(
                   fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.t3)),
               const Gap(4),
-              Text('Add phone numbers to your customers to use this feature',
+              Text(trGlobal('fest.no_phones_sub'),
                 textAlign: TextAlign.center,
                 style: AppFont.sans(
                   fontSize: 11.5, color: AppColors.t4)),
@@ -349,7 +341,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
                     color: AppColors.orange)),
                 const Gap(10),
                 Expanded(child: Text(
-                  'Sending ${_currentSendIndex + 1} of ${_selectedIds.length}...',
+                  trGlobal('fest.sending', {'a': _currentSendIndex + 1, 'b': _selectedIds.length}),
                   style: AppFont.sans(
                     fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.t1))),
               ]),
@@ -361,8 +353,8 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
               icon: const Icon(Symbols.send, size: 18),
               label: Text(
                 _selectedIds.isEmpty
-                  ? 'Select customers'
-                  : 'Send to ${_selectedIds.length} customer${_selectedIds.length == 1 ? "" : "s"}',
+                  ? trGlobal('fest.select_customers')
+                  : trCount('fest.send_n', _selectedIds.length),
                 style: AppFont.sans(
                   fontSize: 14, fontWeight: FontWeight.w600)),
               style: ElevatedButton.styleFrom(
@@ -383,7 +375,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
               Icon(Symbols.info, size: 14, color: AppColors.t3),
               const Gap(8),
               Expanded(child: Text(
-                'WhatsApp will open one customer at a time. Tap Send in WhatsApp, then return — the next will open automatically.',
+                trGlobal('fest.how'),
                 style: AppFont.sans(
                   fontSize: 11, color: AppColors.t3, height: 1.45))),
             ]),
@@ -393,9 +385,5 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
     );
   }
 
-  String _formatDate(DateTime d) {
-    const months = ['', 'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'];
-    return '${d.day} ${months[d.month]} ${d.year}';
-  }
+  String _formatDate(DateTime d) => uiDate('d MMMM y', d);
 }

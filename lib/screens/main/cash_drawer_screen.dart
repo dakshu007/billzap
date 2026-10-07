@@ -8,8 +8,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:billzap/theme/app_icons.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:intl/intl.dart';
 import '../../design/money.dart';
+import '../../i18n/dates.dart';
+import '../../i18n/translations.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
@@ -98,14 +99,14 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
     final netTotal = grossTotal - expenseTotal;
 
     final isToday = _isSameBusinessDay(DateTime.now(), _selectedDate);
-    final dateLabel = isToday ? 'Today' : DateFormat('EEE, d MMM').format(_selectedDate);
+    final dateLabel = isToday ? trGlobal('dc.today') : uiDate('EEE, d MMM', _selectedDate);
 
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         backgroundColor: AppColors.bg,
         iconTheme: IconThemeData(color: AppColors.t1),
-        title: Text('Day Close',
+        title: Text(trGlobal('dash.day_close'),
           style: AppFont.sans(
             fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.t1)),
         actions: [
@@ -118,7 +119,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
                   cashTotal, upiTotal, bankTotal, otherTotal, unknownTotal,
                   expenseTotal, netTotal),
                 icon: Icon(Symbols.share, size: 18, color: AppColors.brand),
-                label: Text('Share',
+                label: Text(trGlobal('common.share'),
                   style: AppFont.sans(
                     fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.brand)),
               ),
@@ -140,7 +141,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
               Text(dateLabel,
                 style: AppFont.sans(
                   fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.t1)),
-              Text(DateFormat('d MMMM yyyy').format(_selectedDate),
+              Text(uiDate('d MMMM y', _selectedDate),
                 style: AppFont.sans(
                   fontSize: 11, color: AppColors.t3)),
             ]))),
@@ -153,18 +154,18 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
           ]),
           const Gap(8),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            _DateChip('Today', isToday, () {
+            _DateChip(trGlobal('dc.today'), isToday, () {
               setState(() => _selectedDate = _businessDayStart(DateTime.now()));
             }),
             const Gap(8),
-            _DateChip('Yesterday', _isSameBusinessDay(
+            _DateChip(trGlobal('dc.yesterday'), _isSameBusinessDay(
               DateTime.now().subtract(const Duration(days: 1)), _selectedDate),
               () {
                 setState(() => _selectedDate = _businessDayStart(
                   DateTime.now().subtract(const Duration(days: 1))));
               }),
             const Gap(8),
-            _DateChip('Pick', false, () => _pickCustomDate()),
+            _DateChip(trGlobal('dc.pick'), false, () => _pickCustomDate()),
           ]),
           const Gap(20),
 
@@ -176,7 +177,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
               borderRadius: BorderRadius.circular(24),
             ),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('TOTAL COLLECTIONS',
+              Text(trGlobal('dc.total').toUpperCase(),
                 style: AppFont.sans(
                   fontSize: 11, fontWeight: FontWeight.w600,
                   color: AppColors.onBrand.withOpacity(0.6), letterSpacing: 0.8)),
@@ -186,8 +187,8 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
                   fontSize: 34, fontWeight: FontWeight.w700,
                   letterSpacing: -1.2, color: AppColors.onBrand)),
               const Gap(6),
-              Text('${paid.length} ${paid.length == 1 ? "invoice" : "invoices"} • '
-                   '${expenses.length} ${expenses.length == 1 ? "expense" : "expenses"}',
+              Text('${trCount('dc.invoices', paid.length)} • '
+                   '${trCount('dc.expenses', expenses.length)}',
                 style: AppFont.sans(
                   fontSize: 12.5, color: AppColors.onBrand.withOpacity(0.7))),
             ]),
@@ -198,18 +199,18 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
             Center(child: Column(children: [
               Icon(Symbols.point_of_sale, size: 56, color: AppColors.t4),
               const Gap(12),
-              Text('No transactions ${isToday ? "today" : "on this day"} yet',
+              Text(isToday ? trGlobal('dc.none_today') : trGlobal('dc.none_day'),
                 style: AppFont.sans(
                   fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.t3)),
               const Gap(4),
-              Text('Mark invoices as paid to see them here',
+              Text(trGlobal('dc.none_hint'),
                 style: AppFont.sans(
                   fontSize: 12, color: AppColors.t4)),
             ])),
           ] else ...[
             const Gap(20),
             // ─── Payment modes breakdown ───
-            Text('PAYMENT MODES',
+            Text(trGlobal('dc.modes').toUpperCase(),
               style: AppFont.sans(
                 fontSize: 11, fontWeight: FontWeight.w600,
                 color: AppColors.t3, letterSpacing: 0.8)),
@@ -217,7 +218,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
             _ModeRow(
               icon: Symbols.payments,
               iconColor: AppColors.green,
-              label: 'Cash',
+              label: trGlobal('dc.cash'),
               count: byMode['cash']!.length,
               amount: cashTotal,
               percent: grossTotal > 0 ? cashTotal / grossTotal : 0,
@@ -226,7 +227,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
             _ModeRow(
               icon: Symbols.qr_code_2,
               iconColor: AppColors.brand,
-              label: 'UPI',
+              label: trGlobal('dc.upi'),
               count: byMode['upi']!.length,
               amount: upiTotal,
               percent: grossTotal > 0 ? upiTotal / grossTotal : 0,
@@ -235,7 +236,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
             _ModeRow(
               icon: Symbols.account_balance,
               iconColor: AppColors.purple,
-              label: 'Bank Transfer',
+              label: trGlobal('dc.bank'),
               count: byMode['bank']!.length,
               amount: bankTotal,
               percent: grossTotal > 0 ? bankTotal / grossTotal : 0,
@@ -245,7 +246,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
               _ModeRow(
                 icon: Symbols.receipt,
                 iconColor: AppColors.orange,
-                label: 'Other',
+                label: trGlobal('dc.other'),
                 count: byMode['other']!.length,
                 amount: otherTotal,
                 percent: grossTotal > 0 ? otherTotal / grossTotal : 0,
@@ -256,7 +257,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
               _ModeRow(
                 icon: Symbols.help,
                 iconColor: AppColors.t3,
-                label: 'Unknown',
+                label: trGlobal('dc.unknown'),
                 count: byMode['unknown']!.length,
                 amount: unknownTotal,
                 percent: grossTotal > 0 ? unknownTotal / grossTotal : 0,
@@ -266,7 +267,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
             // ─── Expenses ───
             if (expenses.isNotEmpty) ...[
               const Gap(20),
-              Text('EXPENSES TODAY',
+              Text(trGlobal('dc.expenses_today').toUpperCase(),
                 style: AppFont.sans(
                   fontSize: 11, fontWeight: FontWeight.w600,
                   color: AppColors.t3, letterSpacing: 0.8)),
@@ -316,13 +317,13 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
                   color: (netTotal >= 0 ? AppColors.green : AppColors.red).withOpacity(0.3))),
               child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('NET FOR DAY',
+                  Text(trGlobal('dc.net').toUpperCase(),
                     style: AppFont.sans(
                       fontSize: 10, fontWeight: FontWeight.w600,
                       color: netTotal >= 0 ? AppColors.green : AppColors.red,
                       letterSpacing: 0.8)),
                   const Gap(2),
-                  Text('Collections − Expenses',
+                  Text(trGlobal('dc.net_sub'),
                     style: AppFont.sans(
                       fontSize: 11, color: AppColors.t3)),
                 ]),
@@ -336,7 +337,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
             // ─── Detail list of paid invoices ───
             if (paid.isNotEmpty) ...[
               const Gap(20),
-              Text('PAID INVOICES',
+              Text(trGlobal('dc.paid_invoices').toUpperCase(),
                 style: AppFont.sans(
                   fontSize: 11, fontWeight: FontWeight.w600,
                   color: AppColors.t3, letterSpacing: 0.8)),
@@ -405,25 +406,26 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
     double expenseTotal, double net,
   ) async {
     HapticFeedback.lightImpact();
-    final bizName = (biz?.name as String?)?.isNotEmpty == true ? biz!.name : 'Business';
-    final dateStr = DateFormat('EEE, d MMM yyyy').format(_selectedDate);
+    final bizName = (biz?.name as String?)?.isNotEmpty == true ? biz!.name : trGlobal('dc.business');
+    final dateStr = uiDate('EEE, d MMM y', _selectedDate);
+    int count(String mode) => paid.where((i) => _paymentMode(i) == mode).length;
     final gross = cash + upi + bank + other + unknown;
 
     final buf = StringBuffer();
-    buf.writeln('*$bizName — Day Close*');
+    buf.writeln('*$bizName — ${trGlobal('dash.day_close')}*');
     buf.writeln(dateStr);
     buf.writeln('━━━━━━━━━━━━━━━━━━━━');
     buf.writeln();
-    buf.writeln('*COLLECTIONS: ${_inrFmt(gross)}*');
-    if (cash > 0) buf.writeln('Cash: ${_inrFmt(cash)} (${paid.where((i)=>_paymentMode(i)=="cash").length})');
-    if (upi > 0) buf.writeln('UPI: ${_inrFmt(upi)} (${paid.where((i)=>_paymentMode(i)=="upi").length})');
-    if (bank > 0) buf.writeln('Bank: ${_inrFmt(bank)} (${paid.where((i)=>_paymentMode(i)=="bank").length})');
-    if (other > 0) buf.writeln('Other: ${_inrFmt(other)} (${paid.where((i)=>_paymentMode(i)=="other").length})');
-    if (unknown > 0) buf.writeln('Unknown: ${_inrFmt(unknown)} (${paid.where((i)=>_paymentMode(i)=="unknown").length})');
+    buf.writeln('*${trGlobal('dc.collections').toUpperCase()}: ${_inrFmt(gross)}*');
+    if (cash > 0) buf.writeln('${trGlobal('dc.cash')}: ${_inrFmt(cash)} (${count('cash')})');
+    if (upi > 0) buf.writeln('${trGlobal('dc.upi')}: ${_inrFmt(upi)} (${count('upi')})');
+    if (bank > 0) buf.writeln('${trGlobal('dc.bank_short')}: ${_inrFmt(bank)} (${count('bank')})');
+    if (other > 0) buf.writeln('${trGlobal('dc.other')}: ${_inrFmt(other)} (${count('other')})');
+    if (unknown > 0) buf.writeln('${trGlobal('dc.unknown')}: ${_inrFmt(unknown)} (${count('unknown')})');
 
     if (expenses.isNotEmpty) {
       buf.writeln();
-      buf.writeln('*EXPENSES: -${_inrFmt(expenseTotal)}*');
+      buf.writeln('*${trGlobal('dc.expenses').toUpperCase()}: -${_inrFmt(expenseTotal)}*');
       for (final e in expenses) {
         buf.writeln('• ${e.title}: -${_inrFmt(e.amount)}');
       }
@@ -431,12 +433,13 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
 
     buf.writeln();
     buf.writeln('━━━━━━━━━━━━━━━━━━━━');
-    buf.writeln('*NET FOR DAY: ${_inrFmt(net)}*');
+    buf.writeln('*${trGlobal('dc.net').toUpperCase()}: ${_inrFmt(net)}*');
     buf.writeln();
-    buf.writeln('Generated by BillZap');
+    buf.writeln(trGlobal('dc.generated'));
 
     try {
-      await Share.share(buf.toString(), subject: '$bizName Day Close — $dateStr');
+      await Share.share(buf.toString(),
+          subject: '$bizName ${trGlobal('dash.day_close')} — $dateStr');
     } catch (_) {}
   }
 
@@ -532,7 +535,7 @@ class _ModeRow extends StatelessWidget {
               Text(label,
                 style: AppFont.sans(
                   fontSize: 13.5, fontWeight: FontWeight.w600, color: AppColors.t1)),
-              Text('$count ${count == 1 ? "transaction" : "transactions"}',
+              Text(trCount('dc.txn', count),
                 style: AppFont.sans(
                   fontSize: 11, color: AppColors.t3)),
             ])),

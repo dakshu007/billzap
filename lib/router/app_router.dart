@@ -22,6 +22,7 @@ import '../screens/main/catalog_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../design/components.dart';
 import '../design/tokens.dart';
+import '../i18n/translations.dart';
 import 'package:billzap/theme/app_icons.dart';
 
 CustomTransitionPage<void> _slideRight(BuildContext c, GoRouterState s, Widget w) {
@@ -171,9 +172,9 @@ class _RouteNotFound extends StatelessWidget {
               child: AppEmptyState(
                 icon: Symbols.search,
                 tone: AppColor.textTertiary,
-                title: 'Nothing here',
-                message: 'That link does not lead anywhere in BillZap.',
-                actionLabel: 'Back to home',
+                title: trGlobal('nf.title'),
+                message: trGlobal('nf.msg'),
+                actionLabel: trGlobal('nf.back'),
                 onAction: () => GoRouter.of(context).go('/home'),
               ),
             ),

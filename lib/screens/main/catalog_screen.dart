@@ -10,6 +10,7 @@ import '../../theme/app_theme.dart';
 import '../../design/components.dart';
 import '../../services/gst_classifier.dart';
 import '../../i18n/translations.dart';
+import '../../tax/active_profile.dart';
 
 class CatalogItem {
   final String id;
@@ -166,7 +167,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                                     color: AppColors.brandSoft,
                                     borderRadius: BorderRadius.circular(4),
                                   ),
-                                  child: Text('${item.gstRate}% GST',
+                                  child: Text('${item.gstRate}% $activeTaxName',
                                       style: AppFont.sans(
                                           fontSize: 10,
                                           fontWeight: FontWeight.w700,
@@ -305,7 +306,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('$detectedGst% GST',
+                            Text('$detectedGst% $activeTaxName',
                                 style: AppFont.sans(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
@@ -405,7 +406,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   Future<void> _confirmDelete(CatalogItem item) async {
     final ok = await confirm(context,
         title: trGlobal('cat.delete_title'),
-        message: '${item.name} will be removed from your catalogue.',
+        message: trGlobal('cat.delete_msg', {'name': item.name}),
         icon: Symbols.delete,
         destructive: true,
         confirmLabel: trGlobal('common.delete'),

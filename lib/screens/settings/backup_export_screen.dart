@@ -15,6 +15,8 @@ import '../../theme/app_theme.dart';
 import '../../design/components.dart';
 import '../../design/tokens.dart';
 import '../../providers/providers.dart';
+import '../../i18n/translations.dart';
+import '../../tax/active_profile.dart';
 import '../../utils/backup_service.dart';
 import '../../utils/csv_helper.dart';
 
@@ -40,7 +42,7 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.bg,
         iconTheme: IconThemeData(color: AppColors.t1),
-        title: Text('Backup & Export',
+        title: Text(trGlobal('set.backup_export'),
           style: AppFont.sans(
             fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.t1)),
       ),
@@ -48,17 +50,20 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 30),
         children: [
           // ────── BACKUP SECTION ──────
-          _SectionHeader(label: 'PROTECT YOUR DATA', icon: Symbols.shield),
+          _SectionHeader(label: trGlobal('bk.protect').toUpperCase(), icon: Symbols.shield),
           const Gap(8),
 
           // Backup card
           _BigCard(
             icon: Symbols.cloud_upload,
             iconColor: AppColors.brand,
-            title: 'Backup all data',
-            subtitle:
-                '${invoices.length} invoices • ${customers.length} customers • ${expenses.length} expenses',
-            buttonLabel: _backingUp ? 'Creating backup...' : 'Backup now',
+            title: trGlobal('bk.backup_all'),
+            subtitle: trGlobal('bk.counts', {
+              'i': invoices.length,
+              'c': customers.length,
+              'e': expenses.length,
+            }),
+            buttonLabel: _backingUp ? trGlobal('bk.creating') : trGlobal('bk.backup_now'),
             buttonLoading: _backingUp,
             onTap: _backingUp ? null : _startBackup,
           ),
@@ -67,9 +72,9 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
           _BigCard(
             icon: Symbols.cloud_download,
             iconColor: AppColors.green,
-            title: 'Restore from backup',
-            subtitle: 'Import a previously saved backup file',
-            buttonLabel: _restoring ? 'Restoring...' : 'Choose file',
+            title: trGlobal('bk.restore_title'),
+            subtitle: trGlobal('bk.restore_sub'),
+            buttonLabel: _restoring ? trGlobal('bk.restoring') : trGlobal('bk.choose_file'),
             buttonLoading: _restoring,
             onTap: _restoring ? null : _startRestore,
           ),
@@ -85,7 +90,7 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
               Icon(Symbols.lightbulb, color: AppColors.orange, size: 16),
               const Gap(8),
               Expanded(child: Text(
-                'Backup files are PIN-protected. Send them to yourself via WhatsApp / Email / Drive for safekeeping.',
+                trGlobal('bk.tip'),
                 style: AppFont.sans(
                   fontSize: 11.5, color: AppColors.t2, height: 1.5))),
             ]),
@@ -94,13 +99,13 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
           const Gap(24),
 
           // ────── EXPORT FOR ACCOUNTANT ──────
-          _SectionHeader(label: 'EXPORT FOR ACCOUNTANT (CSV)', icon: Symbols.table_view),
+          _SectionHeader(label: trGlobal('bk.export_header').toUpperCase(), icon: Symbols.table_view),
           const Gap(8),
           _ExportTile(
             icon: Symbols.receipt_long,
             iconColor: AppColors.brand,
-            title: 'All Invoices',
-            subtitle: '${invoices.length} invoices with full GST breakdown',
+            title: trGlobal('bk.all_invoices'),
+            subtitle: trGlobal('bk.all_invoices_sub', {'n': invoices.length}),
             disabled: invoices.isEmpty || _exporting,
             onTap: () => _exportInvoicesCsv(),
           ),
@@ -108,8 +113,11 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
           _ExportTile(
             icon: Symbols.calculate,
             iconColor: AppColors.purple,
-            title: 'GST Summary (Monthly)',
-            subtitle: 'Ready for GSTR-1 filing — month-wise totals',
+            title: trGlobal('bk.summary_title'),
+            // GSTR-1 is an Indian return; nobody else files one.
+            subtitle: activeProfile.countryCode == 'IN'
+                ? trGlobal('bk.summary_sub_in')
+                : trGlobal('bk.summary_sub'),
             disabled: invoices.isEmpty || _exporting,
             onTap: () => _exportGstSummaryCsv(),
           ),
@@ -117,8 +125,8 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
           _ExportTile(
             icon: Symbols.group,
             iconColor: AppColors.green,
-            title: 'Customer Ledger',
-            subtitle: '${customers.length} customers with billing totals',
+            title: trGlobal('bk.ledger'),
+            subtitle: trGlobal('bk.ledger_sub', {'n': customers.length}),
             disabled: customers.isEmpty || _exporting,
             onTap: () => _exportCustomersCsv(),
           ),
@@ -126,8 +134,8 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
           _ExportTile(
             icon: Symbols.payments,
             iconColor: AppColors.orange,
-            title: 'Expenses',
-            subtitle: '${expenses.length} expense records',
+            title: trGlobal('exp.title'),
+            subtitle: trGlobal('bk.expenses_sub', {'n': expenses.length}),
             disabled: expenses.isEmpty || _exporting,
             onTap: () => _exportExpensesCsv(),
           ),
@@ -141,9 +149,8 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
   // ═══════════════════════════════════════════════════════════════
   Future<void> _startBackup() async {
     final pin = await _askForPin(
-      title: 'Set backup PIN',
-      message:
-          'Choose a 4-digit PIN to protect this backup. You\'ll need it to restore.',
+      title: trGlobal('bk.set_pin'),
+      message: trGlobal('bk.set_pin_msg'),
       requireConfirm: true,
     );
     if (pin == null) return;
@@ -154,7 +161,7 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
     setState(() => _backingUp = false);
 
     if (!result.success) {
-      _showError(result.error ?? 'Backup failed');
+      _showError(result.error ?? trGlobal('bk.failed'));
       return;
     }
 
@@ -164,18 +171,20 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
     try {
       await Share.shareXFiles(
         [XFile(filePath, mimeType: 'application/octet-stream')],
-        subject: 'BillZap Backup',
-        text: 'BillZap backup saved on ${DateFormat('dd MMM yyyy').format(DateTime.now())}.\n\nKeep this file safe — you\'ll need your PIN to restore it.',
+        subject: trGlobal('bk.share_subject'),
+        text: trGlobal('bk.share_text', {
+          'date': DateFormat('dd MMM yyyy').format(DateTime.now()),
+        }),
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Backup created • $fileName'),
+        content: Text(trGlobal('bk.created', {'file': fileName})),
         backgroundColor: AppColors.green,
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 3)));
     } catch (e) {
       if (!mounted) return;
-      _showError('Share failed: $e');
+      _showError(trGlobal('bk.share_failed', {'e': e}));
     }
   }
 
@@ -185,12 +194,12 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
   Future<void> _startRestore() async {
     // Confirm overwrite first
     final confirmed = await confirm(context,
-        title: 'Restore this backup?',
-        message: 'Everything on this phone is replaced by what is in the '
-            'backup file. Anything not in the file is lost.',
+        title: trGlobal('bk.restore_q'),
+        message: trGlobal('bk.restore_q_msg'),
         icon: Symbols.restore,
         destructive: true,
-        confirmLabel: 'Replace my data');
+        confirmLabel: trGlobal('bk.replace'),
+        cancelLabel: trGlobal('common.cancel'));
     if (!confirmed) return;
 
     // Pick file
@@ -199,21 +208,21 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
       // .billzap is not a type the picker knows, so stay on FileType.any.
       picked = await FilePicker.pickFile(type: FileType.any);
     } catch (e) {
-      _showError('File picker failed: $e');
+      _showError(trGlobal('bk.picker_failed', {'e': e}));
       return;
     }
     if (picked == null) return;
     final filePath = picked.path;
     if (filePath == null) {
-      _showError('Could not access selected file');
+      _showError(trGlobal('bk.no_access'));
       return;
     }
 
     // Ask for PIN
     if (!mounted) return;
     final pin = await _askForPin(
-      title: 'Enter backup PIN',
-      message: 'Enter the 4-digit PIN you set when creating this backup.',
+      title: trGlobal('bk.enter_pin'),
+      message: trGlobal('bk.enter_pin_msg'),
       requireConfirm: false,
     );
     if (pin == null) return;
@@ -224,7 +233,7 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
     setState(() => _restoring = false);
 
     if (!result.success) {
-      _showError(result.error ?? 'Restore failed');
+      _showError(result.error ?? trGlobal('bk.restore_failed'));
       return;
     }
 
@@ -237,17 +246,17 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
 
     if (!mounted) return;
     notify(context,
-        title: 'Restore complete',
+        title: trGlobal('bk.restore_done'),
         icon: Symbols.check_circle,
         tone: AppColor.paid,
         body: AppWell(
           padding: const EdgeInsets.symmetric(
               horizontal: AppSpace.lg, vertical: AppSpace.md),
           child: Column(children: [
-            _restoredRow('Invoices', result.invoiceCount ?? 0),
-            _restoredRow('Customers', result.customerCount ?? 0),
-            _restoredRow('Products', result.productCount ?? 0),
-            _restoredRow('Expenses', result.expenseCount ?? 0),
+            _restoredRow(trGlobal('nav.invoices'), result.invoiceCount ?? 0),
+            _restoredRow(trGlobal('nav.customers'), result.customerCount ?? 0),
+            _restoredRow(trGlobal('nav.products'), result.productCount ?? 0),
+            _restoredRow(trGlobal('nav.expenses'), result.expenseCount ?? 0),
           ]),
         ));
   }
@@ -274,53 +283,53 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
   Future<void> _exportInvoicesCsv() async {
     final invoices = ref.read(invoiceProvider);
     if (invoices.isEmpty) {
-      _showError('No invoices to export');
+      _showError(trGlobal('bk.no_invoices'));
       return;
     }
     await _shareCsv(
       content: CsvHelper.invoicesToCsv(invoices),
       filename: 'BillZap_Invoices_${_dateStamp()}.csv',
-      subject: 'BillZap Invoices',
+      subject: trGlobal('bk.subj_invoices'),
     );
   }
 
   Future<void> _exportGstSummaryCsv() async {
     final invoices = ref.read(invoiceProvider);
     if (invoices.isEmpty) {
-      _showError('No invoices to export');
+      _showError(trGlobal('bk.no_invoices'));
       return;
     }
     await _shareCsv(
       content: CsvHelper.gstSummaryToCsv(invoices),
       filename: 'BillZap_GST_Summary_${_dateStamp()}.csv',
-      subject: 'BillZap GST Summary',
+      subject: trGlobal('bk.subj_summary'),
     );
   }
 
   Future<void> _exportCustomersCsv() async {
     final customers = ref.read(customerProvider);
     if (customers.isEmpty) {
-      _showError('No customers to export');
+      _showError(trGlobal('bk.no_customers'));
       return;
     }
     final invoices = ref.read(invoiceProvider);
     await _shareCsv(
       content: CsvHelper.customersToCsv(customers, invoices),
       filename: 'BillZap_Customers_${_dateStamp()}.csv',
-      subject: 'BillZap Customers',
+      subject: trGlobal('bk.subj_customers'),
     );
   }
 
   Future<void> _exportExpensesCsv() async {
     final expenses = ref.read(expenseProvider);
     if (expenses.isEmpty) {
-      _showError('No expenses to export');
+      _showError(trGlobal('bk.no_expenses'));
       return;
     }
     await _shareCsv(
       content: CsvHelper.expensesToCsv(expenses),
       filename: 'BillZap_Expenses_${_dateStamp()}.csv',
-      subject: 'BillZap Expenses',
+      subject: trGlobal('bk.subj_expenses'),
     );
   }
 
@@ -340,12 +349,12 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Exported • $filename'),
+        content: Text(trGlobal('bk.exported', {'file': filename})),
         backgroundColor: AppColors.green,
         behavior: SnackBarBehavior.floating));
     } catch (e) {
       if (!mounted) return;
-      _showError('Export failed: $e');
+      _showError(trGlobal('bk.export_failed', {'e': e}));
     } finally {
       if (mounted) setState(() => _exporting = false);
     }
@@ -372,11 +381,11 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
         void submit() {
           final p1 = pin1Ctrl.text.trim();
           if (p1.length < 4) {
-            ss(() => error = 'A PIN needs at least 4 digits');
+            ss(() => error = trGlobal('bk.pin_short'));
             return;
           }
           if (requireConfirm && p1 != pin2Ctrl.text.trim()) {
-            ss(() => error = 'The two PINs are different');
+            ss(() => error = trGlobal('bk.pin_mismatch'));
             return;
           }
           Navigator.pop(ctx, p1);
@@ -386,14 +395,14 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
           title: title,
           message: message,
           icon: Symbols.lock,
-          confirmLabel: 'Continue',
+          confirmLabel: trGlobal('common.continue'),
           onConfirm: submit,
-          cancelLabel: 'Cancel',
+          cancelLabel: trGlobal('common.cancel'),
           onCancel: () => Navigator.pop(ctx),
           body: Column(children: [
             _PinField(
               controller: pin1Ctrl,
-              label: requireConfirm ? 'Choose a PIN' : 'Enter PIN',
+              label: requireConfirm ? trGlobal('bk.choose_pin') : trGlobal('bk.enter_pin_label'),
               autofocus: true,
               onSubmitted: requireConfirm ? null : (_) => submit(),
             ),
@@ -401,7 +410,7 @@ class _BackupExportState extends ConsumerState<BackupExportScreen> {
               const Gap(AppSpace.sm),
               _PinField(
                 controller: pin2Ctrl,
-                label: 'Type it again',
+                label: trGlobal('bk.type_again'),
                 onSubmitted: (_) => submit(),
               ),
             ],

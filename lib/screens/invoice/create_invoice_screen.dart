@@ -21,6 +21,7 @@ import '../../services/gst_classifier.dart';
 import '../../utils/voice_parser.dart';
 import '../../i18n/translations.dart';
 import '../main/catalog_screen.dart';
+import '../../tax/active_profile.dart';
 import '../../tax/regions.dart';
 import '../../tax/tax_profile.dart';
 
@@ -235,7 +236,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
           // ── Who ────────────────────────────────────────────────
           _Section(
             tr('create.customer', ref),
-            subtitle: 'Who this bill is for',
+            subtitle: tr('create.customer_sub', ref),
             icon: Symbols.person,
             children: [
               Stack(clipBehavior: Clip.none, children: [
@@ -244,7 +245,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                   controller: _custName,
                   icon: Symbols.person,
                   hint: tr('create.search_customer', ref),
-                  helper: 'Start typing to pull up a saved customer',
+                  helper: tr('create.customer_helper', ref),
                   onChanged: (_) => setState(() {}),
                 ),
                 // The suggestion list hangs off the field rather than
@@ -320,7 +321,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                   child: AppField(
                     label: tr('cust.gstin', ref),
                     controller: _custGstin,
-                    hint: '33RAAAA...',
+                    hint: activeProfile.countryCode == 'IN' ? '33RAAAA...' : null,
                     caps: true,
                     onChanged: (_) => setState(() {}),
                   ),
@@ -331,7 +332,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                 label: tr('cust.address', ref),
                 controller: _custAddr,
                 icon: Symbols.location_on,
-                hint: 'Street, area, city',
+                hint: tr('create.address_hint', ref),
                 validatable: false,
                 onChanged: (_) => setState(() {}),
               ),
@@ -341,7 +342,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
           // ── When, and where the supply happens ─────────────────
           _Section(
             tr('create.invoice_details', ref),
-            subtitle: 'Dates, and the state that sets the tax split',
+            subtitle: tr('create.details_sub', ref),
             icon: Symbols.calendar_today,
             tone: AppColor.info,
             children: [
@@ -386,10 +387,10 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                 )
               else
                 AppField(
-                  label: 'Place of supply',
+                  label: tr('create.place_of_supply', ref),
                   controller: _placeCtrl,
                   icon: Symbols.location_city,
-                  hint: 'City, region or province',
+                  hint: tr('create.place_hint', ref),
                   validatable: false,
                   onChanged: (v) => setState(() => _place = v),
                 ),
@@ -399,7 +400,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
           // ── What is being sold ─────────────────────────────────
           _Section(
             tr('create.line_items', ref),
-            subtitle: '${_lines.length} ${_lines.length == 1 ? "line" : "lines"} on this bill',
+            subtitle: trCount('create.lines', _lines.length),
             icon: Symbols.inventory,
             tone: AppColor.pending,
             trailing: AppButton.ghost(
@@ -431,7 +432,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
           // ── Tax and adjustments ────────────────────────────────
           _Section(
             tr('create.tax_adjustments', ref),
-            subtitle: 'GST, discount and delivery',
+            subtitle: tr('create.tax_sub', ref),
             icon: Symbols.calculate,
             tone: AppColor.info,
             children: [
@@ -499,7 +500,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
           // ── What it comes to ───────────────────────────────────
           _Section(
             tr('create.summary', ref),
-            subtitle: 'What the customer pays',
+            subtitle: tr('create.summary_sub', ref),
             icon: Symbols.receipt_long,
             children: [
               _SRow(tr('create.subtotal', ref), _sub),
@@ -549,7 +550,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
           // ── Anything else ──────────────────────────────────────
           _Section(
             tr('create.notes', ref),
-            subtitle: 'Prints at the foot of the bill',
+            subtitle: tr('create.notes_sub', ref),
             icon: Symbols.edit,
             tone: AppColor.textTertiary,
             children: [
@@ -616,13 +617,13 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Text(p.name, style: AppFont.sans(fontSize: 13.5, fontWeight: FontWeight.w700)),
                         if (p.hsnCode.isNotEmpty)
-                          Text('HSN: ${p.hsnCode} \u00b7 ${p.unit}',
+                          Text('${activeItemCodeLabel ?? trGlobal('cat.code_generic')}: ${p.hsnCode} \u00b7 ${p.unit}',
                             style: AppFont.sans(fontSize: 11, color: AppColors.t3)),
                       ])),
                       Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                         Text(formatCurrency(p.price), style: AppFont.sans(
                           fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.brand)),
-                        Text('GST ${p.gstRate}%', style: AppFont.sans(
+                        Text('$activeTaxName ${p.gstRate}%', style: AppFont.sans(
                           fontSize: 11, color: AppColors.green, fontWeight: FontWeight.w600)),
                       ]),
                     ]),
@@ -691,7 +692,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.red));
+        SnackBar(content: Text(trGlobal('common.error_detail', {'e': e})), backgroundColor: AppColors.red));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -720,8 +721,13 @@ String _rateLabel(TaxProfile profile, double rate) {
   // double overrides ==. The map is seven entries and this runs once
   // per dropdown item, so building it here costs nothing worth saving.
   final slab = <double, String>{
-    0.0: 'Exempt', 0.25: 'Stones', 5.0: 'Essentials', 12.0: 'Standard',
-    18.0: 'General', 28.0: 'Luxury', 40.0: 'Sin tax',
+    0.0: trGlobal('slab.exempt'),
+    0.25: trGlobal('slab.stones'),
+    5.0: trGlobal('slab.essentials'),
+    12.0: trGlobal('slab.standard'),
+    18.0: trGlobal('slab.general'),
+    28.0: trGlobal('slab.luxury'),
+    40.0: trGlobal('slab.sin'),
   };
   final name = slab[rate];
   return name == null ? base : '$base  ·  $name';
@@ -798,7 +804,7 @@ class _LineRowState extends State<_LineRow> {
           Expanded(
             child: _LineField(
               controller: _name,
-              hint: 'Product or service',
+              hint: trGlobal('create.item_hint'),
               bold: true,
             ),
           ),
@@ -870,7 +876,7 @@ class _LineRowState extends State<_LineRow> {
             width: 82,
             child: _LineField(
               controller: _rate,
-              hint: 'Rate',
+              hint: trGlobal('create.rate'),
               align: TextAlign.right,
               keyboardType: TextInputType.number,
               formatters: [SmartAmountFormatter()],
@@ -1234,7 +1240,7 @@ class _TotalBar extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '${label.toUpperCase()} · $itemCount ${itemCount == 1 ? "item" : "items"}',
+                  '${label.toUpperCase()} · ${trCount('create.items', itemCount)}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppFont.style(AppType.overline,
@@ -1306,7 +1312,7 @@ class _PlaceOfSupply extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('PLACE OF SUPPLY',
+        Text(trGlobal('create.place_of_supply').toUpperCase(),
             style:
                 AppFont.style(AppType.labelS, color: AppColor.textTertiary)),
         const Gap(AppSpace.xs),
@@ -1335,10 +1341,10 @@ class _PlaceOfSupply extends StatelessWidget {
                     const Gap(1),
                     Text(
                         !splitsTax
-                            ? 'Where the supply happened'
+                            ? trGlobal('create.place_where')
                             : intraState
-                                ? 'Same state · CGST + SGST'
-                                : 'Other state · IGST',
+                                ? trGlobal('create.place_same')
+                                : trGlobal('create.place_other'),
                         style: AppFont.style(AppType.bodyS, color: tone)),
                   ],
                 ),
@@ -1390,10 +1396,10 @@ class _PlaceOfSupply extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('Place of supply',
+                      Text(trGlobal('create.place_of_supply'),
                           style: AppFont.style(AppType.titleS,
                               color: AppColor.textPrimary)),
-                      Text('Sets the tax split on this bill',
+                      Text(trGlobal('create.place_sheet_sub'),
                           style: AppFont.style(AppType.bodyS,
                               color: AppColor.textTertiary)),
                     ],
@@ -1408,7 +1414,7 @@ class _PlaceOfSupply extends StatelessWidget {
                   const EdgeInsets.symmetric(horizontal: AppSpace.gutter),
               child: AppSearchField(
                 controller: search,
-                hint: 'Search states',
+                hint: trGlobal('create.search_states'),
                 hasValue: q.isNotEmpty,
                 onChanged: (_) => ss(() {}),
                 onClear: () {
@@ -1440,7 +1446,7 @@ class _PlaceOfSupply extends StatelessWidget {
                       size: 38,
                     ),
                     title: n,
-                    subtitle: code.isEmpty ? null : 'State code $code',
+                    subtitle: code.isEmpty ? null : trGlobal('create.state_code', {'code': code}),
                     trailing: on
                         ? Icon(Symbols.check_circle,
                             size: 20, color: AppColor.primary)

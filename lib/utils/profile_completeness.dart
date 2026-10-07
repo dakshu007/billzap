@@ -2,6 +2,7 @@
 // Calculates how complete the business profile is (0-100%)
 // and returns a human-readable list of what's missing.
 
+import '../i18n/translations.dart';
 import '../models/models.dart';
 
 class ProfileCompleteness {
@@ -45,22 +46,29 @@ class ProfileCompleteness {
   static List<String> missingLabels(Business? biz) {
     final missing = <String>[];
     if (biz == null) {
-      return ['business name', 'phone number', 'address', 'UPI ID'];
+      return [
+        trGlobal('pc.business_name'),
+        trGlobal('pc.phone'),
+        trGlobal('pc.address'),
+        trGlobal('pc.upi'),
+      ];
     }
-    if (biz.name.trim().isEmpty) missing.add('business name');
-    if (biz.phone.trim().isEmpty) missing.add('phone number');
-    if (biz.upiId.trim().isEmpty) missing.add('UPI ID');
-    if (biz.address.trim().isEmpty) missing.add('address');
+    if (biz.name.trim().isEmpty) missing.add(trGlobal('pc.business_name'));
+    if (biz.phone.trim().isEmpty) missing.add(trGlobal('pc.phone'));
+    if (biz.upiId.trim().isEmpty) missing.add(trGlobal('pc.upi'));
+    if (biz.address.trim().isEmpty) missing.add(trGlobal('pc.address'));
     return missing;
   }
 
   /// Top 1-2 most impactful missing fields (for short banner text)
   static String topMissing(Business? biz) {
-    if (biz == null) return 'Set up your business profile';
+    if (biz == null) return trGlobal('dash.setup_profile');
     final missing = missingLabels(biz);
     if (missing.isEmpty) return '';
-    if (missing.length == 1) return 'Add ${missing.first}';
-    if (missing.length == 2) return 'Add ${missing[0]} & ${missing[1]}';
-    return 'Add ${missing[0]}, ${missing[1]} & more';
+    if (missing.length == 1) return trGlobal('pc.add_one', {'a': missing.first});
+    if (missing.length == 2) {
+      return trGlobal('pc.add_two', {'a': missing[0], 'b': missing[1]});
+    }
+    return trGlobal('pc.add_more', {'a': missing[0], 'b': missing[1]});
   }
 }

@@ -10,22 +10,26 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:billzap/i18n/translations.dart';
+import 'i18n_disk.dart';
 import 'package:billzap/tax/active_profile.dart';
 import 'package:billzap/tax/profiles.dart';
 
 void main() {
+  setUpAll(registerAllTranslationsFromDisk);
   tearDown(() => setActiveProfile(indiaProfile));
 
   test('no placeholder survives a lookup, in any language', () {
-    for (final lang in supportedLanguages) {
+    for (final code in ['en', ...translationFilesOnDisk()]) {
       for (final profile in [indiaProfile, uaeProfile, customProfile]) {
         setActiveProfile(profile);
-        for (final key in allTranslationKeys(lang.code)) {
-          final out = trKey(key, lang.code);
+        for (final key in allTranslationKeys(code)) {
+          final out = trKey(key, code);
           expect(out, isNot(contains('{tax}')),
-              reason: '$key in ${lang.code} leaked {tax}');
+              reason: '$key in $code leaked {tax}');
           expect(out, isNot(contains('{taxid}')),
-              reason: '$key in ${lang.code} leaked {taxid}');
+              reason: '$key in $code leaked {taxid}');
+          expect(out, isNot(contains('{itemcode}')),
+              reason: '$key in $code leaked {itemcode}');
         }
       }
     }

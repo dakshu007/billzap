@@ -9,6 +9,7 @@ import 'package:gap/gap.dart';
 import 'package:billzap/theme/app_icons.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
+import '../../i18n/translations.dart';
 import '../../services/app_lock_service.dart';
 
 class LockScreen extends StatefulWidget {
@@ -117,7 +118,7 @@ class _LockScreenState extends State<LockScreen> {
                   color: AppColors.t1, letterSpacing: -0.5)),
               const Gap(4),
               Text(
-                _error ? 'Wrong PIN. Try again.' : 'Enter your 4-digit PIN',
+                _error ? trGlobal('lock.wrong') : trGlobal('lock.enter'),
                 style: AppFont.sans(
                   fontSize: 13,
                   color: _error ? AppColors.red : AppColors.t3,
@@ -152,7 +153,7 @@ class _LockScreenState extends State<LockScreen> {
                   onPressed: _tryBiometric,
                   icon: Icon(Symbols.fingerprint,
                     size: 22, color: AppColors.brand),
-                  label: Text('Use fingerprint',
+                  label: Text(trGlobal('lock.use_fp'),
                     style: AppFont.sans(
                       fontSize: 13, fontWeight: FontWeight.w600,
                       color: AppColors.brand)),
@@ -173,7 +174,7 @@ class _LockScreenState extends State<LockScreen> {
                   HapticFeedback.lightImpact();
                   context.push('/forgot-pin');
                 },
-                child: Text('Forgot PIN?',
+                child: Text(trGlobal('fp.forgot'),
                   style: AppFont.sans(
                     fontSize: 13, fontWeight: FontWeight.w700,
                     color: AppColors.t3,

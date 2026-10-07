@@ -17,13 +17,13 @@ import 'package:flutter/material.dart';
 import 'package:billzap/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../design/components.dart';
 import '../../design/money.dart';
 import '../../design/motion.dart';
 import '../../design/theme.dart';
 import '../../design/tokens.dart';
+import '../../i18n/dates.dart';
 import '../../i18n/translations.dart';
 import '../../models/models.dart';
 import '../../providers/providers.dart';
@@ -184,7 +184,8 @@ class DashboardScreen extends ConsumerWidget {
                           AppColor.paid, () => context.push('/day-close')),
                       if (AppPlatform.supportsVoiceBilling)
                         _Action(Symbols.mic, tr('dash.voice_bill', ref),
-                            AppColor.info, () => context.push('/voice')),
+                            AppColor.info, () => context.push('/voice'),
+                            badge: tr('common.beta', ref)),
                       _Action(Symbols.group, tr('cust.title', ref),
                           AppColor.pending, () => context.push('/customers')),
                       _Action(Symbols.shopping_basket, tr('prod.title', ref),
@@ -373,7 +374,7 @@ class _EarningsCard extends StatelessWidget {
               const SizedBox(width: AppSpace.sm),
               Flexible(
                 child: Text(
-                  '$monthLabel · $billCount ${billCount == 1 ? "bill" : "bills"}',
+                  '$monthLabel · ${trCount('dash.bills', billCount)}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppFont.style(AppType.bodyS,
@@ -430,7 +431,7 @@ class _OutstandingCard extends StatelessWidget {
                   const SizedBox(height: AppSpace.sm),
                   Money(outstanding, style: AppType.amountL, round: true),
                   const SizedBox(height: 3),
-                  Text('$unpaidCount unpaid',
+                  Text(trGlobal('dash.unpaid_n', {'n': unpaidCount}),
                       style: AppFont.style(AppType.bodyS,
                           color: AppColor.textTertiary)),
                 ],
@@ -448,7 +449,7 @@ class _OutstandingCard extends StatelessWidget {
                       color: AppColor.overdue,
                       round: true),
                   const SizedBox(height: 3),
-                  Text('$overdueCount ${overdueCount == 1 ? "bill" : "bills"}',
+                  Text(trCount('dash.bills', overdueCount),
                       style: AppFont.style(AppType.bodyS,
                           color: AppColor.textQuiet)),
                 ],
@@ -483,7 +484,9 @@ class _Action {
   final String label;
   final Color tone;
   final VoidCallback onTap;
-  const _Action(this.icon, this.label, this.tone, this.onTap);
+  /// A small tag in the tile's top corner — "Beta" on voice billing.
+  final String? badge;
+  const _Action(this.icon, this.label, this.tone, this.onTap, {this.badge});
 }
 
 class _ActionGrid extends StatelessWidget {
@@ -514,7 +517,8 @@ class _ActionGrid extends StatelessWidget {
             // was shrinking to its widest item and getting pinned to the
             // start — icon and label both hugging the left edge of a
             // card wide enough to centre them in.
-            child: SizedBox(
+            child: Stack(clipBehavior: Clip.none, children: [
+              SizedBox(
               width: double.infinity,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -541,6 +545,13 @@ class _ActionGrid extends StatelessWidget {
                 ],
               ),
             ),
+              if (a.badge != null)
+                PositionedDirectional(
+                  top: -4,
+                  end: -4,
+                  child: BetaBadge(a.badge!),
+                ),
+            ]),
           );
         },
       );
@@ -559,7 +570,7 @@ class _RecentInvoiceRow extends ConsumerWidget {
       leading: AppAvatar(label: invoice.customerName, tone: tone),
       title: invoice.customerName,
       subtitle: '${invoice.invoiceNumber} · '
-          '${DateFormat('d MMM').format(invoice.invoiceDate)}',
+          '${uiDate('d MMM', invoice.invoiceDate)}',
       amount: invoice.grandTotal,
       badge: StatusPill(label, tone: tone),
     );
@@ -610,10 +621,10 @@ class _StockAlert extends ConsumerWidget {
                 const SizedBox(height: 2),
                 Text(
                   out > 0 && low > 0
-                      ? '$out out of stock · $low running low'
+                      ? trGlobal('dash.out_and_low', {'out': out, 'low': low})
                       : out > 0
-                          ? '$out ${out == 1 ? "item" : "items"} out of stock'
-                          : '$low ${low == 1 ? "item" : "items"} running low',
+                          ? trCount('dash.out', out)
+                          : trCount('dash.low', low),
                   style: AppFont.style(AppType.bodyS,
                       color: AppColor.textTertiary),
                 ),
