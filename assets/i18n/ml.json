@@ -9,7 +9,7 @@
  "cat.hsn": "{itemcode} കോഡ് (ഓപ്ഷണൽ)",
  "cat.item_hint": "ഉദാ: ആപ്പിൾ, മൊബൈൽ, സോപ്പ്",
  "cat.item_name": "ഇനത്തിന്റെ പേര് *",
- "cat.price": "വില (₹) *",
+ "cat.price": "വില ({currency}) *",
  "cat.save": "കാറ്റലോഗിൽ സേവ്",
  "cat.title": "കാറ്റലോഗ്",
  "cat.unit": "യൂണിറ്റ്",

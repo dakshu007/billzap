@@ -9,7 +9,7 @@
  "cat.hsn": "{itemcode} कोड (पर्यायी)",
  "cat.item_hint": "उदा. सफरचंद, मोबाइल, साबण",
  "cat.item_name": "आयटमचे नाव *",
- "cat.price": "किंमत (₹) *",
+ "cat.price": "किंमत ({currency}) *",
  "cat.save": "कॅटलॉगमध्ये सेव्ह करा",
  "cat.title": "कॅटलॉग",
  "cat.unit": "एकक",

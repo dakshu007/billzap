@@ -9,7 +9,7 @@
  "cat.hsn": "{itemcode} कोड (वैकल्पिक)",
  "cat.item_hint": "जैसे सेब, मोबाइल, साबुन",
  "cat.item_name": "आइटम का नाम *",
- "cat.price": "मूल्य (₹) *",
+ "cat.price": "मूल्य ({currency}) *",
  "cat.save": "कैटलॉग में सेव करें",
  "cat.title": "कैटलॉग",
  "cat.unit": "इकाई",

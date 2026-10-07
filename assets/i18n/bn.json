@@ -9,7 +9,7 @@
  "cat.hsn": "{itemcode} কোড (ঐচ্ছিক)",
  "cat.item_hint": "যেমন আপেল, মোবাইল, সাবান",
  "cat.item_name": "আইটেমের নাম *",
- "cat.price": "মূল্য (₹) *",
+ "cat.price": "মূল্য ({currency}) *",
  "cat.save": "ক্যাটালগে সংরক্ষণ",
  "cat.title": "ক্যাটালগ",
  "cat.unit": "একক",

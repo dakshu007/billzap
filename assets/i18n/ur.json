@@ -9,7 +9,7 @@
  "cat.hsn": "{itemcode} کوڈ (اختیاری)",
  "cat.item_hint": "مثلاً سیب، موبائل، صابن",
  "cat.item_name": "شے کا نام *",
- "cat.price": "قیمت (₹) *",
+ "cat.price": "قیمت ({currency}) *",
  "cat.save": "کیٹلاگ میں محفوظ کریں",
  "cat.title": "کیٹلاگ",
  "cat.unit": "یونٹ",

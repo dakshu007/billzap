@@ -164,7 +164,7 @@ class _PaletteScopeState extends State<PaletteScope>
             child: IgnorePointer(
               child: AnimatedBuilder(
                 animation: _fade,
-                builder: (_, __) => Opacity(
+                builder: (_, _) => Opacity(
                   // Holds at full while the new frame builds underneath,
                   // then dissolves.
                   opacity: 1 - Curves.easeOutCubic.transform(_fade.value),

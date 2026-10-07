@@ -9,7 +9,7 @@
  "cat.hsn": "{itemcode} କୋଡ୍ (ବୈକଳ୍ପିକ)",
  "cat.item_hint": "ଯଥା: ଆପଲ, ମୋବାଇଲ, ସାବୁନ",
  "cat.item_name": "ଆଇଟମ ନାମ *",
- "cat.price": "ମୂଲ୍ୟ (₹) *",
+ "cat.price": "ମୂଲ୍ୟ ({currency}) *",
  "cat.save": "କ୍ୟାଟଲଗରେ ସଞ୍ଚୟ",
  "cat.title": "କ୍ୟାଟଲଗ୍",
  "cat.unit": "ଏକକ",

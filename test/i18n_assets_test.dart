@@ -13,7 +13,6 @@
 //   • nothing is blank
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:billzap/i18n/locales.dart';
 import 'package:billzap/i18n/translations.dart';
 import 'i18n_disk.dart';
 

@@ -9,7 +9,7 @@
  "cat.hsn": "{itemcode} ಕೋಡ್ (ಐಚ್ಛಿಕ)",
  "cat.item_hint": "ಉದಾ: ಸೇಬು, ಮೊಬೈಲ್, ಸಾಬೂನು",
  "cat.item_name": "ವಸ್ತುವಿನ ಹೆಸರು *",
- "cat.price": "ಬೆಲೆ (₹) *",
+ "cat.price": "ಬೆಲೆ ({currency}) *",
  "cat.save": "ಕ್ಯಾಟಲಾಗ್‌ನಲ್ಲಿ ಉಳಿಸಿ",
  "cat.title": "ಕ್ಯಾಟಲಾಗ್",
  "cat.unit": "ಘಟಕ",

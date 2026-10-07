@@ -220,7 +220,7 @@ class _FestivalGreetingState extends ConsumerState<FestivalGreetingScreen> {
             child: TextField(
               controller: _messageCtrl,
               maxLines: 6,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 border: InputBorder.none,
                 isDense: true,
                 contentPadding: EdgeInsets.zero,

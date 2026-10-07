@@ -9,7 +9,7 @@
  "cat.hsn": "{itemcode} કોડ (વૈકલ્પિક)",
  "cat.item_hint": "દા.ત. સફરજન, મોબાઇલ, સાબુ",
  "cat.item_name": "વસ્તુનું નામ *",
- "cat.price": "કિંમત (₹) *",
+ "cat.price": "કિંમત ({currency}) *",
  "cat.save": "કેટલોગમાં સાચવો",
  "cat.title": "કેટલોગ",
  "cat.unit": "એકમ",

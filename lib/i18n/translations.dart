@@ -41,6 +41,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 
+import '../design/money.dart' show activeCurrencySymbol;
 import '../tax/active_profile.dart';
 import '../tax/countries.dart';
 import 'locales.dart';
@@ -261,7 +262,7 @@ const _en = <String, String>{
   'cat.gst_auto_hint': '{tax} is auto-detected from item name',
   'cat.item_name': 'Item Name *',
   'cat.item_hint': 'e.g. Apple, Mobile, Soap',
-  'cat.price': 'Price (₹) *',
+  'cat.price': 'Price ({currency}) *',
   'cat.unit': 'Unit',
   'cat.hsn': '{itemcode} Code (optional)',
   'cat.save': 'Save to Catalog',
@@ -985,7 +986,9 @@ String _fillCountry(String value) {
       // placeholder already supply the word "code" around it, so the
       // label reads "HSN Code (optional)" in India and "Item Code
       // (optional)" everywhere else.
-      .replaceAll('{itemcode}', activeItemCodeLabel ?? 'Item');
+      .replaceAll('{itemcode}', activeItemCodeLabel ?? 'Item')
+      // The shop's own symbol. "Price (₹)" was printed for every shop.
+      .replaceAll('{currency}', activeCurrencySymbol);
 }
 
 String _lookup(String lang, String key, Map<String, Object?>? args) {
@@ -1019,7 +1022,7 @@ String trKey(String key, String langCode, [Map<String, Object?>? args]) =>
 String trGlobal(String key, [Map<String, Object?>? args]) =>
     _lookup(_currentLangCache, key, args);
 
-/// A count: picks '<key>.one' for exactly one and '<key>.other' for
+/// A count: picks `key.one` for exactly one and `key.other` for
 /// everything else, with {n} filled in. Translators whose language has
 /// more plural forms than two write '.other' so it reads for any number
 /// ("Invoices: {n}"), which is always grammatical.

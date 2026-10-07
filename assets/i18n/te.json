@@ -9,7 +9,7 @@
  "cat.hsn": "{itemcode} కోడ్ (ఐచ్ఛికం)",
  "cat.item_hint": "ఉదా: ఆపిల్, మొబైల్, సబ్బు",
  "cat.item_name": "వస్తువు పేరు *",
- "cat.price": "ధర (₹) *",
+ "cat.price": "ధర ({currency}) *",
  "cat.save": "క్యాటలాగ్‌లో సేవ్",
  "cat.title": "క్యాటలాగ్",
  "cat.unit": "యూనిట్",

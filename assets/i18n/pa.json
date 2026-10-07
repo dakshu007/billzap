@@ -9,7 +9,7 @@
  "cat.hsn": "{itemcode} ਕੋਡ (ਚੋਣਵਾਂ)",
  "cat.item_hint": "ਜਿਵੇਂ ਸੇਬ, ਮੋਬਾਈਲ, ਸਾਬਣ",
  "cat.item_name": "ਆਈਟਮ ਦਾ ਨਾਮ *",
- "cat.price": "ਕੀਮਤ (₹) *",
+ "cat.price": "ਕੀਮਤ ({currency}) *",
  "cat.save": "ਕੈਟਾਲਾਗ ਵਿੱਚ ਸੇਵ ਕਰੋ",
  "cat.title": "ਕੈਟਾਲਾਗ",
  "cat.unit": "ਯੂਨਿਟ",

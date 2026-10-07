@@ -9,7 +9,7 @@
  "cat.hsn": "{itemcode} குறியீடு (விருப்பம்)",
  "cat.item_hint": "எ.கா. ஆப்பிள், மொபைல், சோப்பு",
  "cat.item_name": "பொருளின் பெயர் *",
- "cat.price": "விலை (₹) *",
+ "cat.price": "விலை ({currency}) *",
  "cat.save": "பட்டியலில் சேமி",
  "cat.title": "பட்டியல்",
  "cat.unit": "அலகு",
