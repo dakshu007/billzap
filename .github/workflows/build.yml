@@ -103,6 +103,25 @@ jobs:
           flutter build appbundle --release \
             --dart-define=BILLZAP_BUILD=${{ steps.bump.outputs.build }}
 
+      # The certificate the bundle is actually signed with. Play rejects a
+      # bundle whose fingerprint is not the registered upload key, so this
+      # is compared against Play Console → App integrity → Upload key
+      # certificate before anything is uploaded. A fingerprint is public;
+      # nothing secret is printed.
+      - name: Report signing fingerprint
+        run: |
+          {
+            echo "### Upload signing certificate"
+            if [ "${{ steps.keystore.outputs.configured }}" != "true" ]; then
+              echo "**No keystore secrets — this bundle is debug-signed and Play will reject it.**"
+            fi
+            echo '```'
+            keytool -printcert -jarfile build/app/outputs/bundle/release/app-release.aab \
+              | grep -E 'Owner:|SHA1:|SHA256:' \
+              || echo "(could not read the bundle's signature)"
+            echo '```'
+          } | tee -a $GITHUB_STEP_SUMMARY
+
       # Universal APK — installs on any device, no guessing which one to
       # download. This is the link we hand people for sideloading.
       - name: Build APK (universal)
