@@ -121,6 +121,11 @@ jobs:
               || echo "(could not read the bundle's signature)"
             echo '```'
           } | tee -a $GITHUB_STEP_SUMMARY
+          # Also as an annotation, which the API serves even where the
+          # raw log and the step summary cannot be fetched.
+          sha=$(keytool -printcert -jarfile build/app/outputs/bundle/release/app-release.aab \
+                | grep -m1 'SHA256:' | sed 's/.*SHA256: *//' || true)
+          echo "::notice title=Upload key SHA-256::${sha:-unreadable} (keystore secrets configured: ${{ steps.keystore.outputs.configured }})"
 
       # Universal APK — installs on any device, no guessing which one to
       # download. This is the link we hand people for sideloading.
