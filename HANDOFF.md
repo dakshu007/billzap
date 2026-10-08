@@ -7,7 +7,7 @@ made and the reasons behind them, and what is genuinely left.
 Last updated: 2026-10-07 (languages round)
 Working branch: `claude/loving-pasteur-nr9lz2`
 Repository: `dakshu007/billzap` (Android only — see *Platform scope*)
-Last green build: **260502282** — the number shows in Settings → About
+Last green build: **260502285** (first signed with the new upload key — SHA-256 33:04:20:A5…3A:0C:06:34, matches Play) — the number shows in Settings → About
 
 ---
 
