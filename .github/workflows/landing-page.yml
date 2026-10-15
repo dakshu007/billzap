@@ -40,6 +40,7 @@ jobs:
     # hoisted here.
     env:
       HAS_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN != '' }}
+      HAS_CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -112,6 +113,70 @@ jobs:
         working-directory: landing-page
         run: npm install --no-audit --no-fund
 
+      # The two DNS records that send billzap.app to Netlify, kept in
+      # Cloudflare by the deploy rather than by hand. Needs the
+      # CLOUDFLARE_API_TOKEN secret: a token with Zone · DNS · Edit and
+      # Zone · Zone · Read on the billzap.app zone. Without it this is
+      # skipped and the records have to be added in the dashboard.
+      #
+      # "DNS only", never proxied: behind Cloudflare's proxy Netlify
+      # cannot complete the Let's Encrypt challenge, and a .app domain
+      # without a certificate does not load at all.
+      #
+      # It creates or corrects these two names and touches nothing else.
+      # An A/AAAA record already on one of them (a CNAME cannot sit
+      # beside one) is reported, not deleted — it is somebody's record.
+      - name: Point billzap.app at Netlify in Cloudflare DNS
+        if: env.HAS_CF_TOKEN == 'true'
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          DOMAIN: billzap.app
+          TARGET: billzap.netlify.app
+        run: |
+          cf() { curl -sS --max-time 30 -H "Authorization: Bearer $CF_TOKEN" \
+                   -H 'Content-Type: application/json' "$@"; }
+          API=https://api.cloudflare.com/client/v4
+
+          resp=$(cf "$API/zones?name=$DOMAIN")
+          zone=$(echo "$resp" | jq -r '.result[0].id // empty')
+          if [ -z "$zone" ]; then
+            echo "::error::Cloudflare did not return a zone for $DOMAIN with this token."
+            echo "$resp" | jq -c '{success, errors}'
+            echo "The token needs Zone · Zone · Read and Zone · DNS · Edit on $DOMAIN,"
+            echo "and $DOMAIN must be a site in the same Cloudflare account."
+            exit 1
+          fi
+          echo "Zone $DOMAIN: $zone"
+
+          fail=0
+          for name in "$DOMAIN" "www.$DOMAIN"; do
+            recs=$(cf "$API/zones/$zone/dns_records?name=$name")
+            clash=$(echo "$recs" | jq -r '[.result[] | select(.type=="A" or .type=="AAAA") | "\(.type) \(.content)"] | join(", ")')
+            if [ -n "$clash" ]; then
+              echo "::error::$name already has $clash. Delete it in Cloudflare DNS so the CNAME can be added."
+              fail=1; continue
+            fi
+            body="{\"type\":\"CNAME\",\"name\":\"$name\",\"content\":\"$TARGET\",\"proxied\":false,\"ttl\":1}"
+            id=$(echo "$recs" | jq -r '.result[] | select(.type=="CNAME") | .id' | head -1)
+            if [ -z "$id" ]; then
+              out=$(cf -X POST "$API/zones/$zone/dns_records" -d "$body")
+              verb=created
+            else
+              cur=$(echo "$recs" | jq -c '.result[] | select(.type=="CNAME") | [.content, .proxied]' | head -1)
+              if [ "$cur" = "[\"$TARGET\",false]" ]; then
+                echo "  ok    $name CNAME $TARGET (DNS only)"; continue
+              fi
+              out=$(cf -X PATCH "$API/zones/$zone/dns_records/$id" -d "$body")
+              verb="updated (was $cur)"
+            fi
+            if [ "$(echo "$out" | jq -r .success)" = true ]; then
+              echo "  done  $name CNAME $TARGET (DNS only) — $verb"
+            else
+              echo "::error::Could not write $name"; echo "$out" | jq -c .errors; fail=1
+            fi
+          done
+          exit $fail
+
       # billzap.app is registered at Cloudflare and its DNS lives there;
       # the site itself stays on Netlify. This attaches the domain to
       # the Netlify site, but only once Cloudflare actually sends the
@@ -133,9 +198,18 @@ jobs:
           DOMAIN: billzap.app
         run: |
           api() { curl -sS --max-time 30 -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" "$@"; }
+          # Ask the domain's own nameserver, not the runner's resolver:
+          # a record created a moment ago (the step above) can still be
+          # cached as "does not exist" by a recursive resolver for up to
+          # half an hour, and the authoritative answer is the true one.
+          ns=$(dig +short NS "$DOMAIN" @1.1.1.1 | head -1)
           answered_by_netlify() {
-            curl -sI --max-time 15 "http://$1/" | tr -d '\r' | grep -qi '^server: *netlify'
+            ip=$(dig +short A "$1" ${ns:+@$ns} | grep -E '^[0-9.]+$' | head -1)
+            [ -n "$ip" ] || return 1
+            curl -sI --max-time 15 --resolve "$1:80:$ip" "http://$1/" \
+              | tr -d '\r' | grep -qi '^server: *netlify'
           }
+          echo "Nameserver: ${ns:-none found}"
 
           echo "DNS as the public resolvers see it:"
           for n in "$DOMAIN" "www.$DOMAIN"; do
@@ -199,6 +273,12 @@ jobs:
           SITE=https://billzap.netlify.app
           if [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 https://billzap.app/)" = 200 ]; then
             SITE=https://billzap.app
+          elif [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 $SITE/)" = 301 ]; then
+            # Attached, but the certificate (or this runner's DNS cache)
+            # has not caught up yet, so neither address can be tested.
+            # The next deploy will.
+            echo "::warning::billzap.app is attached but not serving HTTPS yet; skipping the live checks this run."
+            exit 0
           fi
           echo "Checking $SITE"
           fail=0
