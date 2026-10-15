@@ -112,6 +112,67 @@ jobs:
         working-directory: landing-page
         run: npm install --no-audit --no-fund
 
+      # billzap.app is registered at Cloudflare and its DNS lives there;
+      # the site itself stays on Netlify. This attaches the domain to
+      # the Netlify site, but only once Cloudflare actually sends the
+      # domain to Netlify. Attaching it earlier would make Netlify
+      # redirect billzap.netlify.app to a domain that does not answer
+      # yet, which takes the live site down.
+      #
+      # "Answered by Netlify" is checked over HTTP rather than by
+      # comparing IPs: Netlify's edge IPs vary by region, and a record
+      # left proxied (orange cloud) in Cloudflare resolves fine but
+      # answers as Cloudflare — which also blocks Netlify's
+      # certificate, so it must count as not ready.
+      #
+      # Idempotent: once the domain is attached this only re-checks.
+      - name: Attach billzap.app to the Netlify site
+        if: env.HAS_TOKEN == 'true'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          DOMAIN: billzap.app
+        run: |
+          api() { curl -sS --max-time 30 -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" "$@"; }
+          answered_by_netlify() {
+            curl -sI --max-time 15 "http://$1/" | tr -d '\r' | grep -qi '^server: *netlify'
+          }
+
+          echo "DNS as the public resolvers see it:"
+          for n in "$DOMAIN" "www.$DOMAIN"; do
+            printf '  %-18s A: %s  CNAME: %s\n' "$n" \
+              "$(dig +short A "$n" @1.1.1.1 | tr '\n' ' ')" \
+              "$(dig +short CNAME "$n" @1.1.1.1 | tr '\n' ' ')"
+          done
+          for n in "$DOMAIN" "www.$DOMAIN"; do
+            server=$(curl -sI --max-time 15 "http://$n/" | tr -d '\r' | grep -i '^server:' || true)
+            printf '  %-18s %s\n' "$n" "${server:-no answer}"
+          done
+
+          current=$(api "https://api.netlify.com/api/v1/sites/$NETLIFY_SITE_ID" | jq -r '.custom_domain // ""')
+          echo "Netlify custom domain now: ${current:-none}"
+
+          if ! answered_by_netlify "$DOMAIN"; then
+            echo "::warning::$DOMAIN is not pointing at Netlify yet, so it was not attached."
+            echo "In Cloudflare DNS for $DOMAIN add, both with Proxy status = DNS only (grey cloud):"
+            echo "  CNAME  @    billzap.netlify.app"
+            echo "  CNAME  www  billzap.netlify.app"
+            exit 0
+          fi
+
+          if [ "$current" != "$DOMAIN" ]; then
+            api -X PATCH -H 'Content-Type: application/json' \
+              -d "{\"custom_domain\":\"$DOMAIN\",\"domain_aliases\":[\"www.$DOMAIN\"]}" \
+              "https://api.netlify.com/api/v1/sites/$NETLIFY_SITE_ID" \
+              | jq '{custom_domain, domain_aliases, ssl_url}'
+            echo "Attached $DOMAIN (and www.$DOMAIN) to the site."
+          fi
+
+          # Ask for the Let's Encrypt certificate. .app is on the HSTS
+          # preload list, so browsers refuse plain HTTP outright — the
+          # domain is unusable until this exists. Harmless to repeat.
+          api -X POST "https://api.netlify.com/api/v1/sites/$NETLIFY_SITE_ID/ssl" \
+            | jq -c '{state, domains, expires_at}' || true
+
       - name: Deploy to Netlify
         if: env.HAS_TOKEN == 'true'
         working-directory: landing-page
@@ -131,9 +192,15 @@ jobs:
       # happened, so a token-less run does not fail on a stale site.
       - name: Check the live site
         if: env.HAS_TOKEN == 'true'
-        env:
-          SITE: https://billzap.netlify.app
         run: |
+          # Once billzap.app is attached, Netlify 301s the netlify.app
+          # address to it, and every check below would read that 301.
+          # So check whichever address is actually serving the site.
+          SITE=https://billzap.netlify.app
+          if [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 https://billzap.app/)" = 200 ]; then
+            SITE=https://billzap.app
+          fi
+          echo "Checking $SITE"
           fail=0
           check() {                       # name, expected, actual
             if [ "$2" = "$3" ]; then printf '  ok    %-44s %s\n' "$1" "$3"
