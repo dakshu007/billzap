@@ -208,7 +208,7 @@ async function renderPost(slugRaw) {
             ${keywords.length ? `<ul class="bkw">${keywords.slice(0, 6)
               .map((k) => `<li>${esc(k)}</li>`).join('')}</ul>` : ''}
             <div class="bcta">
-              <a class="btn btn-primary" href="/#download">Download BillZap free</a>
+              <a class="btn btn-primary" href="https://play.google.com/store/apps/details?id=com.billzap.app&amp;hl=en_IN" rel="noopener">Download BillZap free</a>
               <p>Free forever · no sign-up · works offline</p>
             </div>
           </header>
@@ -227,7 +227,7 @@ async function renderPost(slugRaw) {
                   BillZap makes a GST invoice in about 30 seconds, works with
                   no signal, and costs nothing.
                 </p>
-                <a class="btn btn-primary" href="/#download">Get it for Android</a>
+                <a class="btn btn-primary" href="https://play.google.com/store/apps/details?id=com.billzap.app&amp;hl=en_IN" rel="noopener">Get it for Android</a>
               </div>
             </div>
 
