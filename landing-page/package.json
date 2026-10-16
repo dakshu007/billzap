@@ -7,6 +7,10 @@
     "@neondatabase/serverless": "^0.10.4"
   },
   "devDependencies": {
+    "playwright": "^1.56.1",
     "wrangler": "^4.151.0"
+  },
+  "scripts": {
+    "test": "node tests/site-check.mjs"
   }
 }

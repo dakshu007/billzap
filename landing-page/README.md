@@ -99,3 +99,19 @@ workflow; see the comment at the top of it.
 
 Local run: stage `dist/` as the workflow does, put the four secrets in
 `landing-page/.dev.vars` (git-ignored), then `npx wrangler dev`.
+
+## Testing
+
+`tests/site-check.mjs` drives Chromium through the page at seven sizes,
+from a 360px phone to 1920px, and fails on any of: a download button
+not pointing at the Google Play listing, an in-page link with no
+target, a JavaScript error, sideways scroll, a tap target under 24px,
+and — sampled through each film's whole cycle at five sizes — a motion
+stage whose contents leave its frame, a chip covering text, the pause
+button over content, or text cut off.
+
+    npm test                          # against http://127.0.0.1:8800
+    node tests/site-check.mjs https://billzap.app
+
+CI runs it against the live site after every deploy (the
+`browser-test` job in `.github/workflows/landing-page.yml`).

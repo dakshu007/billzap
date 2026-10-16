@@ -105,13 +105,18 @@
 /* Pause control. WCAG 2.2.2: anything that moves for more than five
    seconds needs a way to stop it. Hidden until the script runs, since
    without the script nothing moves. */
-.mo-pp{position:absolute;right:var(--pp-r,12px);bottom:var(--pp-b,12px);left:var(--pp-l,auto);
-  z-index:6;width:clamp(28px,6.6cqw,34px);height:clamp(28px,6.6cqw,34px);
+.mo-pp{position:absolute;top:var(--pp-t,auto);right:var(--pp-r,8px);bottom:var(--pp-b,8px);
+  left:var(--pp-l,auto);z-index:6;width:clamp(24px,5.6cqw,32px);height:clamp(24px,5.6cqw,32px);
   display:grid;place-items:center;border-radius:50%;cursor:pointer;padding:0;
   color:#D6E6DE;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);
   opacity:.72;transition:opacity .2s,background-color .2s}
+/* Each film keeps one corner clear for its pause button; the corner is
+   chosen per stage, and tests/site-check.mjs proves nothing in the film
+   ever passes under it. */
+.hv,.ex-stage,.anat{--pp-t:8px;--pp-l:8px;--pp-b:auto;--pp-r:auto}
+.age,.show-art.mo{--pp-l:8px;--pp-r:auto}
 .mo-pp:hover,.mo-pp:focus-visible{opacity:1;background:rgba(255,255,255,.14)}
-.mo-pp .ico{font-size:15px}
+.mo-pp .ico{font-size:13px}
 .mo-pp[hidden],.mo-pp .i-play,.mo.paused .mo-pp .i-pause{display:none}
 .mo.paused .mo-pp .i-play{display:block}
 
@@ -171,9 +176,8 @@
   border-radius:.4em;color:var(--jade-700);font-weight:700;font-size:.92em;letter-spacing:.14em;
   text-transform:uppercase;background:rgba(255,255,255,.9);
   transform:translateY(-50%) rotate(-9deg);--fr:translateY(-50%) rotate(-9deg) scale(1.7)}
-.hv .k-voice{left:4%;top:4%;--fr:translateY(-.6em) scale(.92)}
+.hv .k-voice{left:13%;top:4%;--fr:translateY(-.6em) scale(.92)}
 .hv .k-time{right:4%;top:4%}
-.hv{--pp-l:calc(58.5% - 3.3cqw);--pp-r:auto;--pp-b:4.9%}
 .hv .k-off{left:4%;bottom:4.5%}
 .hv .k-upi{right:4%;bottom:4.5%;--fr:translateY(1em)}
 .hv .k-wa{right:4%;bottom:4.5%;--fr:translateY(1em)}
@@ -329,7 +333,6 @@
 
 /* ── Deep dives ──────────────────────────────────────────────────── */
 .dd{--ar:1/1.02;width:min(100%,540px);justify-self:center}
-.age{--pp-l:12px;--pp-r:auto}
 
 /* Invoice anatomy. */
 .anat .doc{left:9%;top:15%;width:82%;padding:1.4em 1.5em;font-size:.84em}
@@ -428,7 +431,7 @@
 .rep .exp .ck{position:static}
 
 /* ── Showcase vignettes ─────────────────────────────────────────── */
-.show-art.mo{--pp-l:12px;--pp-r:auto;--ar:auto;aspect-ratio:auto;height:clamp(230px,26vw,290px);border-radius:0;
+.show-art.mo{--ar:auto;aspect-ratio:auto;height:clamp(230px,26vw,290px);border-radius:0;
   box-shadow:none}
 .vg-dash .t{position:absolute;padding:.8em 1em;font-size:.86em;min-width:9.5em}
 .vg-dash .t b{display:block;font-size:1.4em;font-weight:700;margin-top:.1em}
@@ -515,3 +518,212 @@
 @media (max-width:720px){.gloss dl{grid-template-columns:1fr}}
 .guide-note{margin-top:18px;text-align:center;font-size:13.5px;color:var(--ink-3)}
 
+
+/* ── Small motion ───────────────────────────────────────────────────
+   The rest of the page moves too, more quietly: CSS loops that the
+   script switches on with .play while an element is on screen, and
+   off when it leaves. With motion off .play is never added, and every
+   piece rests on its finished state. */
+
+/* Phones: the films stand taller and their type larger, so a 360px
+   screen reads them rather than squints at them. */
+@media (max-width:560px){
+  .mo-in{font-size:calc(100cqw / 28)}
+  .rep .exp{font-size:.74em}
+  .hv{--ar:1/1.36}
+  .dd{--ar:1/1.24}
+  .ex-stage{--ar:1/.86}
+  .show-art.mo{height:250px}
+}
+
+/* The explainer list opens only the chapter that is playing. */
+.ex.live .ex-ch li:not(.cur) p{display:none}
+.ex{align-items:center}
+
+/* Voice band: the transcription types itself out. */
+.mo-code{aspect-ratio:auto;border-radius:var(--r-md);background:var(--ink);box-shadow:none;
+  padding:18px 20px;--pp-t:8px;--pp-r:8px;--pp-b:auto;--pp-l:auto}
+.mo-code::before{display:none}
+.mo-code .mo-in{position:relative;inset:auto;font-size:inherit;line-height:inherit;
+  display:grid;justify-items:start;gap:2px}
+.mo-code .k{color:var(--ink-on-dark)}
+.mo-code b{color:var(--jade-400);font-weight:400}
+.mo-code .wave{height:.9em;margin-left:.4em;vertical-align:middle}
+.mo-code .wave i{background:var(--jade-400)}
+
+/* The life of a bill. */
+.rail{max-width:var(--narrow);margin:-6px auto 36px;padding-top:40px;position:relative}
+.rail ol{position:relative;display:grid;grid-template-columns:repeat(4,1fr)}
+.rail li{display:grid;justify-items:center;gap:10px;text-align:center}
+.rail .dot{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-size:20px;
+  color:#fff;background:var(--c);box-shadow:0 0 0 6px var(--canvas),0 0 0 7px var(--line)}
+.rail li b{font-family:'Jakarta','Jakarta Fallback',sans-serif;font-size:13px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--c)}
+.rail-track{position:absolute;left:12.5%;right:12.5%;top:62px;height:3px;border-radius:3px;
+  background:var(--line);container-type:inline-size}
+.rail-fill{position:absolute;inset:0;border-radius:3px;transform-origin:left;
+  background:linear-gradient(90deg,var(--c-plan),var(--c-author),var(--c-run),var(--c-look))}
+.rail-bill{position:absolute;left:-15px;top:-34px;width:30px;height:30px;border-radius:9px;display:grid;
+  place-items:center;font-size:16px;color:var(--ink);background:#fff;border:1px solid var(--line);
+  box-shadow:var(--shadow-md);transform:translateX(100cqw)}
+@keyframes rail-bill{0%,10%{transform:translateX(0)}22%,35%{transform:translateX(33.33cqw)}
+  47%,60%{transform:translateX(66.66cqw)}72%,92%{transform:translateX(100cqw)}100%{transform:translateX(0);opacity:0}}
+@keyframes rail-fill{0%,10%{transform:scaleX(0)}22%,35%{transform:scaleX(.3333)}
+  47%,60%{transform:scaleX(.6666)}72%,92%{transform:scaleX(1)}100%{transform:scaleX(0)}}
+@keyframes rail-dot{0%{transform:scale(.82);filter:grayscale(1);opacity:.55}
+  4%{transform:scale(1.12);filter:none;opacity:1}8%,100%{transform:scale(1);filter:none;opacity:1}}
+.rail.play .rail-bill{animation:rail-bill 9s var(--ease-io) infinite}
+.rail.play .rail-fill{animation:rail-fill 9s var(--ease-io) infinite}
+.rail.play .dot{animation:rail-dot 9s var(--ease) infinite both}
+.rail.play li:nth-child(1) .dot{animation-delay:0s}
+.rail.play li:nth-child(2) .dot{animation:rail-dot2 9s var(--ease) infinite}
+.rail.play li:nth-child(3) .dot{animation:rail-dot3 9s var(--ease) infinite}
+.rail.play li:nth-child(4) .dot{animation:rail-dot4 9s var(--ease) infinite}
+@keyframes rail-dot2{0%,21%{transform:scale(.82);filter:grayscale(1);opacity:.55}25%{transform:scale(1.12);filter:none;opacity:1}29%,92%{transform:scale(1);filter:none;opacity:1}100%{filter:grayscale(1);opacity:.55;transform:scale(.82)}}
+@keyframes rail-dot3{0%,46%{transform:scale(.82);filter:grayscale(1);opacity:.55}50%{transform:scale(1.12);filter:none;opacity:1}54%,92%{transform:scale(1);filter:none;opacity:1}100%{filter:grayscale(1);opacity:.55;transform:scale(.82)}}
+@keyframes rail-dot4{0%,71%{transform:scale(.82);filter:grayscale(1);opacity:.55}75%{transform:scale(1.12);filter:none;opacity:1}79%,92%{transform:scale(1);filter:none;opacity:1}100%{filter:grayscale(1);opacity:.55;transform:scale(.82)}}
+@media (max-width:560px){
+  .rail .dot{width:38px;height:38px;font-size:17px}
+  .rail-track{top:58px}
+  .rail li b{font-size:10.5px;letter-spacing:.04em}
+}
+/* Between the stage cards, a dot runs down the connector. */
+.stage + .stage::after{content:'';position:absolute;left:calc(50% - 3px);top:-34px;width:7px;height:7px;
+  border-radius:50%;background:var(--accent-solid);opacity:0}
+@keyframes drip{0%{transform:translateY(0);opacity:0}20%{opacity:1}80%{opacity:1}100%{transform:translateY(27px);opacity:0}}
+.stages.play .stage + .stage::after{animation:drip 1.8s var(--ease-io) infinite}
+
+/* Glyphs: the animated icons on the GST and privacy cards. */
+.gly{position:relative;height:58px;width:min(100%,190px);border-radius:var(--r);overflow:hidden;
+  background:var(--jade-50);border:1px solid var(--accent-line);display:flex;align-items:center;
+  gap:8px;padding:0 12px;font-size:12px;font-weight:600;color:var(--jade-700)}
+.gly .ico{font-size:15px}
+/* CGST|SGST, then IGST. */
+.gly-split{padding:9px}
+.gly-split span{position:absolute;top:9px;bottom:9px;display:grid;place-items:center;border-radius:7px;
+  color:#fff;font-size:11.5px}
+.gly-split .a{left:9px;width:calc(50% - 11px);background:var(--jade-600)}
+.gly-split .b{right:9px;width:calc(50% - 11px);background:var(--jade-500)}
+.gly-split .c{left:9px;right:9px;background:#7C3AED;opacity:0}
+@keyframes gs-ab{0%,42%{opacity:1;transform:none}50%,92%{opacity:0;transform:scale(.9)}100%{opacity:1}}
+@keyframes gs-c{0%,42%{opacity:0;transform:scaleX(.6)}50%,92%{opacity:1;transform:none}100%{opacity:0}}
+.gly-split.play .a,.gly-split.play .b{animation:gs-ab 6s var(--ease) infinite}
+.gly-split.play .c{animation:gs-c 6s var(--ease) infinite}
+/* GSTR-1: a sheet fills, then the tick. */
+.gly-doc .sh{width:56px;height:40px;border-radius:5px;background:#fff;border:1px solid var(--accent-line);
+  display:grid;gap:4px;align-content:center;padding:0 7px}
+.gly-doc .sh i{height:4px;border-radius:2px;background:var(--jade-400);transform-origin:left}
+.gly-doc .sh i:nth-child(2){width:80%}.gly-doc .sh i:nth-child(3){width:90%}.gly-doc .sh i:nth-child(4){width:60%}
+.gly-doc .ok{display:inline-flex;align-items:center;gap:5px}
+@keyframes gd-row{0%,8%{transform:scaleX(0)}22%,90%{transform:scaleX(1)}100%{transform:scaleX(0)}}
+@keyframes gd-ok{0%,58%{opacity:0;transform:scale(.7)}66%,90%{opacity:1;transform:none}100%{opacity:0}}
+.gly-doc.play .sh i{animation:gd-row 5s var(--ease) infinite}
+.gly-doc.play .sh i:nth-child(2){animation-delay:.25s}.gly-doc.play .sh i:nth-child(3){animation-delay:.5s}
+.gly-doc.play .sh i:nth-child(4){animation-delay:.75s}
+.gly-doc.play .ok{animation:gd-ok 5s var(--ease) infinite}
+/* HSN: a barcode with a scanning beam. */
+.gly-scan .bc{position:relative;width:70px;height:36px;border-radius:4px;overflow:hidden;
+  background:repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 4px,var(--ink) 4px 5px,transparent 5px 8px,var(--ink) 8px 11px,transparent 11px 13px),#fff;
+  border:3px solid #fff;outline:1px solid var(--accent-line)}
+.gly-scan .beam{position:absolute;left:-4px;right:-4px;top:0;height:2px;background:#E5484D;
+  box-shadow:0 0 6px 1px rgba(229,72,77,.7);transform:translateY(17px)}
+@keyframes beam{0%,100%{transform:translateY(0)}50%{transform:translateY(28px)}}
+.gly-scan.play .beam{animation:beam 2s var(--ease-io) infinite}
+.gly-scan .code{font-variant-numeric:tabular-nums}
+/* Print or share: paper out of the printer. */
+.gly-print .pr{position:relative;width:52px;height:40px;flex:none}
+.gly-print .pr::before{content:'';position:absolute;left:0;right:0;bottom:4px;height:16px;border-radius:5px;
+  background:var(--ink)}
+.gly-print .paper{position:absolute;left:9px;right:9px;bottom:12px;height:26px;border-radius:2px;background:#fff;
+  border:1px solid var(--line);display:grid;gap:3px;align-content:start;padding:5px 4px;transform-origin:bottom}
+.gly-print .paper i{height:2px;background:var(--line-2);border-radius:1px}
+.gly-print .wa{display:inline-flex;align-items:center;gap:5px}
+@keyframes print{0%{transform:translateY(12px) scaleY(.2)}30%,85%{transform:none}100%{transform:translateY(12px) scaleY(.2)}}
+@keyframes wa{0%,40%{opacity:0;transform:translateX(-6px)}50%,85%{opacity:1;transform:none}100%{opacity:0}}
+.gly-print.play .paper{animation:print 4.5s var(--ease) infinite}
+.gly-print.play .wa{animation:wa 4.5s var(--ease) infinite}
+/* Privacy: data stays inside the phone. */
+.gly-keep .ph{position:relative;width:26px;height:40px;border-radius:6px;border:2px solid var(--jade-700);
+  background:#fff;flex:none;overflow:hidden}
+.gly-keep .ph i{position:absolute;width:5px;height:5px;border-radius:50%;background:var(--jade-500);left:9px;top:16px}
+@keyframes orbit1{0%,100%{transform:translate(-5px,-9px)}50%{transform:translate(5px,9px)}}
+@keyframes orbit2{0%,100%{transform:translate(5px,-6px)}50%{transform:translate(-5px,8px)}}
+@keyframes orbit3{0%,100%{transform:translate(0,10px)}50%{transform:translate(0,-10px)}}
+.gly-keep.play .ph i:nth-child(1){animation:orbit1 2.6s ease-in-out infinite}
+.gly-keep.play .ph i:nth-child(2){animation:orbit2 3.1s ease-in-out infinite}
+.gly-keep.play .ph i:nth-child(3){animation:orbit3 2.2s ease-in-out infinite}
+.gly-keep .nc{display:inline-flex;align-items:center;gap:5px}
+/* Privacy: the lock closes, the backup lands. */
+.gly-lock .lk{position:relative;width:30px;height:40px;flex:none}
+.gly-lock .lk .sh{position:absolute;left:6px;top:4px;width:18px;height:18px;border:3px solid var(--jade-700);
+  border-bottom:0;border-radius:10px 10px 0 0}
+.gly-lock .lk .bd{position:absolute;left:1px;right:1px;bottom:2px;height:20px;border-radius:5px;background:var(--jade-700)}
+.gly-lock .bk{display:inline-flex;align-items:center;gap:5px}
+@keyframes shackle{0%,15%{transform:translateY(-6px)}30%,85%{transform:none}100%{transform:translateY(-6px)}}
+@keyframes bk{0%,35%{opacity:0;transform:translateY(6px)}48%,85%{opacity:1;transform:none}100%{opacity:0}}
+.gly-lock.play .sh{animation:shackle 4.5s var(--ease) infinite}
+.gly-lock.play .bk{animation:bk 4.5s var(--ease) infinite}
+.card .gly + h3{margin-top:18px}
+
+/* Languages: one word, in each script in turn, with its pill. */
+.lang-say{display:flex;justify-content:center;align-items:baseline;gap:.35em;margin:-8px 0 26px;
+  font-family:'Jakarta','Jakarta Fallback',system-ui,sans-serif;font-size:clamp(26px,4vw,40px);
+  font-weight:600;letter-spacing:-.02em}
+.lang-say .k{color:var(--ink-3)}
+.lang-say .w{display:inline-grid;min-width:5.2em;text-align:left}
+.lang-say .w b{grid-area:1/1;font-weight:700;color:var(--accent);opacity:0}
+.lang-say .w b:first-child{opacity:1}
+@keyframes lw{0%{opacity:0;transform:translateY(.35em)}1.6%,6.8%{opacity:1;transform:none}
+  8.33%,100%{opacity:0;transform:translateY(-.35em)}}
+@keyframes lp{0%,7.5%{background:var(--jade-50);border-color:var(--accent-line);color:var(--ink)}8.33%,100%{}}
+.lang-say.play .w b{animation:lw 24s var(--ease) infinite both}
+.langs.play li{animation:lp 24s linear infinite}
+.lang-say.play .w b:nth-child(1),.langs.play li:nth-child(1){animation-delay:0s}
+.lang-say.play .w b:nth-child(2),.langs.play li:nth-child(2){animation-delay:2s}
+.lang-say.play .w b:nth-child(3),.langs.play li:nth-child(3){animation-delay:4s}
+.lang-say.play .w b:nth-child(4),.langs.play li:nth-child(4){animation-delay:6s}
+.lang-say.play .w b:nth-child(5),.langs.play li:nth-child(5){animation-delay:8s}
+.lang-say.play .w b:nth-child(6),.langs.play li:nth-child(6){animation-delay:10s}
+.lang-say.play .w b:nth-child(7),.langs.play li:nth-child(7){animation-delay:12s}
+.lang-say.play .w b:nth-child(8),.langs.play li:nth-child(8){animation-delay:14s}
+.lang-say.play .w b:nth-child(9),.langs.play li:nth-child(9){animation-delay:16s}
+.lang-say.play .w b:nth-child(10),.langs.play li:nth-child(10){animation-delay:18s}
+.lang-say.play .w b:nth-child(11),.langs.play li:nth-child(11){animation-delay:20s}
+.lang-say.play .w b:nth-child(12),.langs.play li:nth-child(12){animation-delay:22s}
+
+/* Comparison: BillZap's column ticks itself off, row by row. */
+.cmp .tk{display:inline-grid;place-items:center;width:18px;height:18px;margin-right:8px;vertical-align:-3px;
+  border-radius:50%;background:var(--jade-500);color:#fff;font-size:11px}
+.cmp .tk .ico{stroke-width:3}
+.cmp-wrap.mx:not(.play) .tk{transform:scale(1)}
+.js .cmp-wrap.mx .tk{transform:scale(0);transition:transform .45s var(--ease)}
+.js .cmp-wrap.mx.play .tk,.js .cmp-wrap.mx.done .tk{transform:none}
+.cmp-wrap.play tbody tr:nth-child(1) .tk{transition-delay:200ms}
+.cmp-wrap.play tbody tr:nth-child(2) .tk{transition-delay:310ms}
+.cmp-wrap.play tbody tr:nth-child(3) .tk{transition-delay:420ms}
+.cmp-wrap.play tbody tr:nth-child(4) .tk{transition-delay:530ms}
+.cmp-wrap.play tbody tr:nth-child(5) .tk{transition-delay:640ms}
+.cmp-wrap.play tbody tr:nth-child(6) .tk{transition-delay:750ms}
+.cmp-wrap.play tbody tr:nth-child(7) .tk{transition-delay:860ms}
+.cmp-wrap.play tbody tr:nth-child(8) .tk{transition-delay:970ms}
+
+/* Download: a living background, and the four promises drifting. */
+.cta>*:not(.cta-fx){position:relative;z-index:1}
+.cta-fx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.cta-fx .blob{position:absolute;width:46%;aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle,rgba(16,165,111,.22),transparent 65%)}
+.cta-fx .b1{left:-12%;top:-30%}
+.cta-fx .b2{right:-14%;bottom:-40%;background:radial-gradient(circle,rgba(96,165,220,.22),transparent 65%)}
+@keyframes drift1{0%,100%{transform:translate(0,0)}50%{transform:translate(12%,10%)}}
+@keyframes drift2{0%,100%{transform:translate(0,0)}50%{transform:translate(-10%,-12%)}}
+.cta-fx.play .b1{animation:drift1 14s var(--ease-io) infinite}
+.cta-fx.play .b2{animation:drift2 16s var(--ease-io) infinite}
+.fxc{position:absolute;display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:999px;
+  font-size:13px;font-weight:500;color:var(--ink);background:rgba(255,255,255,.85);
+  border:1px solid var(--line);box-shadow:var(--shadow-md)}
+.fxc .ico{font-size:15px;color:var(--accent)}
+.fxc.c1{left:4%;top:50%}.fxc.c2{right:4%;top:43%}.fxc.c3{left:7%;bottom:12%}.fxc.c4{right:7%;bottom:17%}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+.cta-fx.play .fxc{animation:bob 6s ease-in-out infinite}
+.cta-fx.play .c2{animation-delay:-1.5s}.cta-fx.play .c3{animation-delay:-3s}.cta-fx.play .c4{animation-delay:-4.5s}
+@media (max-width:1180px){.fxc{display:none}}

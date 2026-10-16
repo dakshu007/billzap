@@ -54,23 +54,9 @@ HOME_UPDATED = '2026-10-16'
 # Google Analytics 4. Loaded lazily — see SCRIPT below for why.
 GA_ID = 'G-M8M91YZVCT'
 
-# The APK. This filename never changes, so the link survives every
-# version bump; release.yml is what guarantees that.
-APK_URL = ('https://github.com/dakshu007/billzap/releases/latest/'
-           'download/BillZap-Android.apk')
-
-# Where the download form posts the email address.
-#
-# This is a Google Apps Script web app bound to the sheet — see
-# ../google-sheet/README.md for the script and how to deploy it. Paste
-# the /exec URL it gives you here and rebuild.
-#
-# Until it is set, the form still validates the address and still hands
-# over the download; it just has nowhere to file the address. That is
-# the right way round: a misconfigured spreadsheet must never stand
-# between somebody and the app.
-SHEET_ENDPOINT = ('https://script.google.com/macros/s/AKfycbyxqSup-003VXxU65Fq3dj22man'
-                  'MSNqxo0aMg3UE4utJonP9_-pMe-k1B4U60tm42bX6w/exec')
+# Where every download button goes. The app is on Google Play now, so
+# the buttons are plain links to the listing — no form in front of them.
+PLAY_URL = 'https://play.google.com/store/apps/details?id=com.billzap.app'
 
 # ── SEO ─────────────────────────────────────────────────────────────
 # Focus keyword:      free GST billing app
@@ -148,9 +134,8 @@ FAQ = [
      "it makes are ordinary PDFs, so your customers and your accountant "
      "can open them on any phone or computer."),
     ("Which Android versions are supported?",
-     "Android 7.0 (Nougat) and above. The download is about 32 MB — one "
-     "file that installs on any Android phone, so there is nothing to "
-     "choose between."),
+     "Android 7.0 (Nougat) and above. Install it from Google Play; the "
+     "download is about 32 MB."),
 ]
 
 
@@ -317,6 +302,8 @@ def jsonld():
             "operatingSystem": "Android 7.0+",
             "description": DESC,
             "url": SITE,
+            "downloadUrl": PLAY_URL,
+            "installUrl": PLAY_URL,
             "image": f"{SITE}/assets/og.png",
             "inLanguage": ["en", "hi", "ta", "te", "kn", "ml", "mr", "gu",
                            "bn", "pa", "or", "ur"],
@@ -341,7 +328,6 @@ def jsonld():
                 "Local backup and restore",
             ],
             "isAccessibleForFree": True,
-            "downloadUrl": APK_URL,
             "fileSize": "32MB",
             "softwareRequirements": "Android 7.0 or later",
             "countriesSupported": "IN",
@@ -554,7 +540,8 @@ def render(fragment, *, home, base=''):
     which is not a fragment at all, so every nav link and the header's
     download button silently did nothing.
     """
-    fragment = fragment.replace('{{home}}', home).replace('{{base}}', base)
+    fragment = (fragment.replace('{{home}}', home).replace('{{base}}', base)
+                        .replace('{{play}}', PLAY_URL.replace('&', '&amp;')))
 
     def sub(m):
         name = m.group(1)
@@ -566,8 +553,8 @@ def render(fragment, *, home, base=''):
 
 # The bit of progressive enhancement both pages carry. The page is
 # complete and readable with it blocked: the reveal and the header
-# shadow are decoration, and the download button is a plain link to the
-# APK that works whether or not any of this runs.
+# shadow are decoration, and the download buttons are plain links to
+# Google Play that work whether or not any of this runs.
 #
 # Placeholders are substituted rather than f-string interpolated —
 # this is mostly braces, and doubling every one of them would make it
@@ -722,45 +709,64 @@ SCRIPT_TMPL = """
   }
 
   var canMove=!reduce && 'IntersectionObserver' in window;
+  /* Two observers. near() rewinds a stage as it comes within a few
+     hundred pixels, so the page does not rewind eleven films (each a
+     forced layout) in the first frame; seen() plays it only while it is
+     actually on screen. */
+  function near(el, fn){
+    if(!('IntersectionObserver' in window)) return fn();
+    var o=new IntersectionObserver(function(es){
+      if(es[0].isIntersecting){ o.disconnect(); fn(); }
+    },{rootMargin:'400px 0px'});
+    o.observe(el);
+  }
+  function seen(el, fn, t){
+    new IntersectionObserver(function(es){ fn(es[0].isIntersecting); },{threshold:t}).observe(el);
+  }
   if(canMove){
     d.querySelectorAll('[data-mo]').forEach(function(root){
-      var s=Scene(root), held=false, seen=false, armed=!root.hasAttribute('data-defer');
+      var s=Scene(root), held=false, vis=false, ready=false,
+          defer=root.hasAttribute('data-defer'), armed=!defer;
+      function sync(){ if(ready && armed && vis && !held) s.play(); else s.stop(); }
+      function prime(){ if(ready) return; ready=true; root.classList.add('run'); s.prime(); sync(); }
       /* A stage above the fold opens on its finished frame and starts
          the film a moment later, or on the first scroll or tap. The
          first thing a visitor sees is a complete invoice, not an empty
          one, and the page's first paint is its final paint. */
-      function arm(){
-        if(armed) return; armed=true;
-        root.classList.add('run'); s.prime(); sync();
-      }
-      if(armed){ root.classList.add('run'); s.prime(); }
-      else {
+      if(defer){
+        var arm=function(){ if(armed) return; armed=true; prime(); };
         setTimeout(arm, 6000);
         ['pointerdown','keydown','touchstart','wheel'].forEach(function(ev){
           addEventListener(ev, arm, {once:true, passive:true}); });
-      }
-      function sync(){ if(armed && seen && !held) s.play(); else s.stop(); }
+      } else near(root, prime);
       pauser(root, function(p){ held=p; sync(); });
-      new IntersectionObserver(function(es){ seen=es[0].isIntersecting; sync(); },
-        {threshold:.2}).observe(root);
+      seen(root, function(v){ vis=v; sync(); }, .2);
     });
+  }
+
+  /* The quieter motion: CSS loops that run only while on screen. */
+  if(canMove){
+    var mio=new IntersectionObserver(function(es){
+      es.forEach(function(e){ e.target.classList.toggle('play', e.isIntersecting); });
+    },{threshold:.15});
+    d.querySelectorAll('.mx').forEach(function(n){ mio.observe(n); });
   }
 
   /* The explainer: five scenes played in turn, with the chapter list as
      both the table of contents and the progress bar. With motion off it
      still works as a switcher, showing each chapter's finished frame. */
   var ex=d.querySelector('[data-ex]');
-  if(ex){
+  if(ex){ near(ex, function(){
     var stage=ex.querySelector('.ex-stage'),
         scenes=[].slice.call(ex.querySelectorAll('.ex-scene')).map(Scene),
         chs=[].slice.call(ex.querySelectorAll('.ex-ch li')),
-        cur=-1, held=false, seen=false, still=!canMove;
-    stage.classList.add('live','run');
+        cur=-1, held=false, vis=false, still=!canMove;
+    stage.classList.add('live','run'); ex.classList.add('live');
     scenes.forEach(function(s){ s.prime(); });
     function sync(){
       var s=scenes[cur], quiet=held || still;
-      ex.classList.toggle('paused', held || !seen);
-      if(seen && !quiet) s.play(); else s.stop();
+      ex.classList.toggle('paused', held || !vis);
+      if(vis && !quiet) s.play(); else s.stop();
     }
     function show(i){
       if(cur>-1){ scenes[cur].stop(); scenes[cur].root.classList.remove('cur'); chs[cur].classList.remove('cur'); }
@@ -781,12 +787,9 @@ SCRIPT_TMPL = """
       li.querySelector('button').addEventListener('click', function(){ show(i); });
     });
     pauser(stage, function(p){ held=p; if(!p && ex.classList.contains('still')) show(cur); else sync(); });
-    if(canMove){
-      new IntersectionObserver(function(es){ seen=es[0].isIntersecting; sync(); },
-        {threshold:.25}).observe(stage);
-    }
+    if(canMove) seen(stage, function(v){ vis=v; sync(); }, .25);
     show(0);
-  }
+  }); }
 
   /* ── Where the visit came from, when it was an AI assistant ───────
      ChatGPT, Perplexity, Gemini and the rest either send a referrer or
@@ -829,154 +832,22 @@ SCRIPT_TMPL = """
   if('requestIdleCallback' in window){ requestIdleCallback(loadGA,{timeout:3500}); }
   else { setTimeout(loadGA, 2500); }
 
-  /* ── Download gate ─────────────────────────────────────────────── */
-  var APK='__APK_URL__', ENDPOINT='__SHEET__';
-  var modal=d.getElementById('dlModal');
-  if(!modal) return;
-  var card=modal.querySelector('.modal-card'),
-      form=d.getElementById('dlForm'),
-      input=d.getElementById('dlEmail'),
-      err=d.getElementById('dlErr'),
-      go=d.getElementById('dlGo'),
-      done=d.getElementById('dlDone'),
-      direct=d.getElementById('dlDirect'),
-      opener=null;
-  direct.href=APK;
-
-  /* Throwaway inboxes. Somebody using one will never read the update
-     notes the address was asked for, so the address is worthless to
-     collect and the friction is worthless to impose. */
-  var BURNER=['mailinator.com','guerrillamail.com','guerrillamail.net',
-    '10minutemail.com','tempmail.com','temp-mail.org','throwawaymail.com',
-    'yopmail.com','fakeinbox.com','trashmail.com','sharklasers.com',
-    'getnada.com','dispostable.com','maildrop.cc','mailnesia.com',
-    'spam4.me','grr.la','mohmal.com','emailondeck.com','moakt.com'];
-
-  /* Real misspellings of real providers, not a spellchecker. */
-  var TYPO={'gmial.com':'gmail.com','gmai.com':'gmail.com','gmil.com':'gmail.com',
-    'gnail.com':'gmail.com','gmaill.com':'gmail.com','gmail.co':'gmail.com',
-    'gmail.con':'gmail.com','gmail.cm':'gmail.com','gamil.com':'gmail.com',
-    'yahho.com':'yahoo.com','yaho.com':'yahoo.com','yahoo.co':'yahoo.com',
-    'yahoo.con':'yahoo.com','hotmial.com':'hotmail.com','hotmai.com':'hotmail.com',
-    'hotmail.co':'hotmail.com','outlok.com':'outlook.com','outloo.com':'outlook.com',
-    'rediffmail.co':'rediffmail.com'};
-
-  /* Local part may not start, end or double a dot; every domain label
-     is a real label; the TLD is alphabetic. This rejects the shapes
-     people actually type when they are making one up. */
-  var RE=/^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,24}$/;
-
-  function domainOf(v){ return v.slice(v.lastIndexOf('@')+1).toLowerCase(); }
-
-  function check(v){
-    if(!v) return {msg:'Enter your email address and the download will start.'};
-    if(v.length>254 || !RE.test(v))
-      return {msg:'That is not a complete email address — it needs a name, an @ and a domain.'};
-    var dom=domainOf(v);
-    if(TYPO[dom]) return {msg:'Did you mean', fix:v.slice(0,v.lastIndexOf('@')+1)+TYPO[dom]};
-    if(BURNER.indexOf(dom)>-1)
-      return {msg:'That is a temporary inbox, so the update notes would never reach you. Please use an address you read.'};
-    return null;
-  }
-
-  function showErr(p){
-    input.setAttribute('aria-invalid','true');
-    if(p.fix){
-      err.textContent=p.msg+' ';
-      var b=d.createElement('button');
-      b.type='button'; b.textContent=p.fix;
-      b.addEventListener('click',function(){
-        input.value=p.fix; clearErr(); input.focus();
-      });
-      err.appendChild(b); err.appendChild(d.createTextNode('?'));
-    } else {
-      err.textContent=p.msg;
-    }
-  }
-  function clearErr(){ err.textContent=''; input.removeAttribute('aria-invalid'); }
-  input.addEventListener('input', clearErr);
-
-  function record(email){
-    if(!ENDPOINT) return;
-    /* text/plain keeps this a "simple" request so the browser does not
-       preflight it — an Apps Script web app does not answer OPTIONS.
-       no-cors makes the response opaque, which is fine: nothing waits
-       on it, and the download must not depend on a spreadsheet. */
-    try{
-      fetch(ENDPOINT,{method:'POST',mode:'no-cors',keepalive:true,
-        headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body:JSON.stringify({email:email,at:new Date().toISOString(),
-                             source:location.hostname})});
-    }catch(e){}
-  }
-
-  function fire(){
-    loadGA();
-    if(window.gtag) gtag('event','download',{method:'apk',ai_source:AI_SRC||'(none)'});
-    var a=d.createElement('a');
-    a.href=APK; a.rel='noopener';
-    d.body.appendChild(a); a.click(); a.remove();
-  }
-
-  form.addEventListener('submit', function(e){
-    e.preventDefault();
-    var v=input.value.trim();
-    var p=check(v);
-    if(p){ showErr(p); input.focus(); return; }
-    clearErr();
-    go.disabled=true;
-    record(v);
-    fire();
-    form.hidden=true; done.hidden=false;
-    direct.focus();
-  });
-
-  function onKey(e){
-    if(e.key==='Escape'){ shut(); return; }
-    if(e.key!=='Tab') return;
-    var all=card.querySelectorAll('a[href],button:not([disabled]),input:not([disabled])');
-    var vis=[].filter.call(all,function(n){ return n.offsetParent!==null; });
-    if(!vis.length) return;
-    var first=vis[0], last=vis[vis.length-1];
-    if(e.shiftKey && d.activeElement===first){ e.preventDefault(); last.focus(); }
-    else if(!e.shiftKey && d.activeElement===last){ e.preventDefault(); first.focus(); }
-  }
-
-  function show(trigger){
-    opener=trigger||null;
-    form.hidden=false; done.hidden=true; go.disabled=false;
-    clearErr();
-    modal.hidden=false;
-    d.body.classList.add('modal-open');
-    d.addEventListener('keydown', onKey);
-    setTimeout(function(){ input.focus(); }, 40);
-  }
-  function shut(){
-    modal.hidden=true;
-    d.body.classList.remove('modal-open');
-    d.removeEventListener('keydown', onKey);
-    if(opener){ opener.focus(); opener=null; }
-  }
-
-  [].forEach.call(d.querySelectorAll('[data-gate]'), function(a){
-    a.addEventListener('click', function(e){
-      /* Let a middle-click or ctrl-click through to the real link. */
-      if(e.metaKey||e.ctrlKey||e.shiftKey||e.button!==0) return;
-      e.preventDefault(); show(a);
+  /* ── Download clicks ──────────────────────────────────────────
+     The buttons are ordinary links to Google Play; this only counts
+     them. GA4 sends with sendBeacon, so the event survives the page
+     navigating away. */
+  [].forEach.call(d.querySelectorAll('a[data-store]'), function(a){
+    a.addEventListener('click', function(){
+      loadGA();
+      if(window.gtag) gtag('event','download',{method:'play_store',ai_source:AI_SRC||'(none)'});
     });
-  });
-  [].forEach.call(modal.querySelectorAll('[data-close]'), function(n){
-    n.addEventListener('click', shut);
   });
 })();
 """
 
 
 def script():
-    return (SCRIPT_TMPL
-            .replace('__GA_ID__', GA_ID)
-            .replace('__APK_URL__', APK_URL)
-            .replace('__SHEET__', SHEET_ENDPOINT))
+    return SCRIPT_TMPL.replace('__GA_ID__', GA_ID)
 
 
 def document(*, title, desc, canonical, css, ld, body, head_extra='',
@@ -1115,8 +986,7 @@ def main():
             .replace('{{updated_home}}', _human(HOME_UPDATED))
             .replace('{{qr}}', qr_use())
             .replace('{{qrdefs}}', qr_defs()),
-        home='#top') + '\n' + render(
-        open(os.path.join(HERE, 'modal.html')).read(), home='#top')
+        home='#top')
     index_html = document(
         title=TITLE, desc=DESC, canonical=f'{SITE}/', css=home_css,
         ld=jsonld(), body=index_body, head_extra=INDEX_HEAD)

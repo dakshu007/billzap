@@ -338,3 +338,25 @@ jobs:
           echo "Add it (and CLOUDFLARE_ACCOUNT_ID) under Settings -> Secrets and variables -> Actions."
           echo "Create the token at https://dash.cloudflare.com/profile/api-tokens"
           echo "from the 'Edit Cloudflare Workers' template, with billzap.app in Zone Resources."
+
+  # The browser test, against the site that was just deployed: download
+  # buttons, links, sideways scroll, JS errors and every motion stage
+  # sampled through its film at five sizes. A separate job, so the
+  # deploy itself is not held up by it; a failure here shows red on the
+  # commit with the list of what failed and where.
+  browser-test:
+    needs: deploy
+    if: github.event_name != 'workflow_dispatch' || inputs.production
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        working-directory: landing-page
+        run: npm ci --no-audit --no-fund
+      - name: Install Chromium
+        working-directory: landing-page
+        run: npx playwright install --with-deps chromium
+      - name: Test the live site
+        working-directory: landing-page
+        run: node tests/site-check.mjs https://billzap.app

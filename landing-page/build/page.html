@@ -27,8 +27,8 @@
           without internet.
         </p>
         <div class="hero-cta rv" style="--d:540ms">
-          <a class="btn btn-primary btn-lg" href="#download">
-            Download for Android <span class="chip">{{ico:arrow-right}}</span></a>
+          <a class="btn btn-primary btn-lg" data-store href="{{play}}" rel="noopener">
+            Download on Google Play <span class="chip">{{ico:arrow-right}}</span></a>
           <a class="btn btn-ghost btn-lg" href="#how">See how it works</a>
         </div>
         <ul class="hero-fine rv" style="--d:620ms">
@@ -93,12 +93,17 @@
         <h2>Say it in your language and the invoice fills itself in</h2>
         <a class="tlink" href="#languages">See all 12 languages {{ico:arrow-right}}</a>
       </div>
-      <div class="band-art rv" style="--d:90ms" aria-label="Example of voice billing">
-        <span>you say</span><br>
-        <b>&ldquo;do kilo chini&rdquo;</b><br>
-        <span>billzap writes</span><br>
-        Sugar &middot; 2 kg &middot; HSN 1701<br>
-        <b>&#8377;96.00</b> <span>+ &#8377;4.80 GST @ 5%</span>
+      <div class="band-art mo mo-code rv" style="--d:90ms" data-mo data-loop
+           data-steps="500,500,1200,700,1400,800" data-hold="2800">
+        <div class="mo-in" aria-hidden="true">
+          <span class="cl k" data-at="1">you say <span class="wave"><i></i><i></i><i></i><i></i><i></i></span></span>
+          <b class="cl ty" data-at="2" style="--n:15">&ldquo;do kilo chini&rdquo;</b>
+          <span class="cl k" data-at="3">billzap writes</span>
+          <span class="cl ty" data-at="4" style="--n:24">Sugar &middot; 2 kg &middot; HSN 1701</span>
+          <span class="cl" data-at="5"><b>&#8377;96.00</b> <span class="k">+ &#8377;4.80 GST @ 5%</span></span>
+        </div>
+        <p class="sr">Example of voice billing: you say “do kilo chini” and BillZap writes Sugar, 2 kg, HSN 1701, ₹96.00 plus ₹4.80 GST at 5%.</p>
+        <button class="mo-pp" type="button" hidden aria-label="Pause animation" aria-pressed="false"><span class="i-pause">{{ico:pause}}</span><span class="i-play">{{ico:play}}</span></button>
       </div>
     </div>
   </div>
@@ -279,7 +284,19 @@
         </p>
       </div>
 
-      <div class="stages">
+      <!-- The life of a bill: one invoice travelling the four stages,
+           each lighting in its own colour as it arrives. -->
+      <div class="rail mx rv" aria-hidden="true">
+        <div class="rail-track"><i class="rail-fill"></i><span class="rail-bill">{{ico:receipt-text}}</span></div>
+        <ol>
+          <li style="--c:var(--c-plan)"><span class="dot">{{ico:store}}</span><b>Set up</b></li>
+          <li style="--c:var(--c-author)"><span class="dot">{{ico:receipt-text}}</span><b>Billing</b></li>
+          <li style="--c:var(--c-run)"><span class="dot">{{ico:banknote}}</span><b>Getting paid</b></li>
+          <li style="--c:var(--c-look)"><span class="dot">{{ico:chart-column}}</span><b>The numbers</b></li>
+        </ol>
+      </div>
+
+      <div class="stages mx">
         <div class="stage rv" style="--c:var(--c-plan)">
           <p class="stage-h">{{ico:store}} Set up</p>
           <div class="stage-body">
@@ -434,7 +451,7 @@
                 <div class="row"><div><b>INV-1010</b><small>Sundaram Traders · &#8377;4,514.00</small></div>
                   <span class="st"><span class="tag t-amber" data-at="0" data-out="4">Pending</span><span class="tag" data-at="4">{{ico:circle-check}} Paid</span></span></div>
               </div>
-              <span class="ck ck-d k-bank" data-at="5">{{ico:shield-check}} Straight to your bank — BillZap is never in the middle</span>
+              <span class="ck ck-d k-bank" data-at="5">{{ico:shield-check}} Straight to your bank, never through us</span>
             </div>
 
             <div class="ex-scene s5" data-steps="300,900,700,900,900" data-hold="2100">
@@ -671,7 +688,7 @@
       </div>
       <div class="grid g2">
         <article class="card rv">
-          <div class="card-ico">{{ico:calculator}}</div>
+          <div class="gly gly-split mx" aria-hidden="true"><span class="a">CGST 9%</span><span class="b">SGST 9%</span><span class="c">IGST 18%</span></div>
           <h3>The right tax, automatically</h3>
           <p>
             Same state as your shop and it charges CGST + SGST. Different
@@ -681,7 +698,7 @@
           </p>
         </article>
         <article class="card rv" style="--d:80ms">
-          <div class="card-ico">{{ico:file-text}}</div>
+          <div class="gly gly-doc mx" aria-hidden="true"><span class="sh"><i></i><i></i><i></i><i></i></span><span class="ok">{{ico:circle-check}} GSTR-1</span></div>
           <h3>Ready for GSTR-1</h3>
           <p>
             A month-by-month summary of taxable value, CGST, SGST and
@@ -690,7 +707,7 @@
           </p>
         </article>
         <article class="card rv">
-          <div class="card-ico">{{ico:package}}</div>
+          <div class="gly gly-scan mx" aria-hidden="true"><span class="bc"><i class="beam"></i></span><span class="code">HSN 8539</span></div>
           <h3>HSN and SAC on every line</h3>
           <p>
             Save the code once against the item in your catalogue and it
@@ -699,7 +716,7 @@
           </p>
         </article>
         <article class="card rv" style="--d:80ms">
-          <div class="card-ico">{{ico:printer}}</div>
+          <div class="gly gly-print mx" aria-hidden="true"><span class="pr"><span class="paper"><i></i><i></i><i></i></span></span><span class="wa">{{ico:check-check}} PDF sent</span></div>
           <h3>Print or share</h3>
           <p>
             Send the PDF on WhatsApp, or print to a WiFi or Bluetooth
@@ -719,7 +736,9 @@
         <h2>The whole app, in the language you think in</h2>
         <p class="lead">Not just the menus — the voice billing understands them too.</p>
       </div>
-      <ul class="langs rv">
+      <p class="lang-say mx rv" aria-hidden="true"><span class="k">Bill in</span>
+        <span class="w"><b>English</b><b>हिन्दी</b><b>தமிழ்</b><b>తెలుగు</b><b>ಕನ್ನಡ</b><b>മലയാളം</b><b>मराठी</b><b>ગુજરાતી</b><b>বাংলা</b><b>ਪੰਜਾਬੀ</b><b>ଓଡ଼ିଆ</b><b>اردو</b></span></p>
+      <ul class="langs mx rv">
         <li>English</li>
         <li>हिन्दी <i>Hindi</i></li>
         <li>தமிழ் <i>Tamil</i></li>
@@ -743,7 +762,7 @@
         <p class="eyebrow">Side by side</p>
         <h2>What you usually get, and what you get here</h2>
       </div>
-      <div class="cmp-wrap rv">
+      <div class="cmp-wrap mx rv">
         <table class="cmp">
           <caption>Typical free tiers of cloud billing apps, compared with BillZap.</caption>
           <thead>
@@ -754,14 +773,14 @@
             </tr>
           </thead>
           <tbody>
-            <tr><th scope="row">Works with no internet</th><td>Needs a connection</td><td class="yes col-us">Fully offline</td></tr>
-            <tr><th scope="row">Invoices per month</th><td>Capped on the free plan</td><td class="yes col-us">Unlimited</td></tr>
-            <tr><th scope="row">Cost</th><td>Free trial, then monthly</td><td class="yes col-us">Free, with no paid tier</td></tr>
-            <tr><th scope="row">Sign-up required</th><td>Account and phone number</td><td class="yes col-us">None — open and bill</td></tr>
-            <tr><th scope="row">Where your data lives</th><td>On someone else's server</td><td class="yes col-us">On your phone</td></tr>
-            <tr><th scope="row">Voice billing</th><td>Rare, usually English only</td><td class="yes col-us">12 Indian languages</td></tr>
-            <tr><th scope="row">UPI QR on the invoice</th><td>Often a paid add-on</td><td class="yes col-us">Included</td></tr>
-            <tr><th scope="row">GSTR-1 summary export</th><td>Usually a higher plan</td><td class="yes col-us">Included</td></tr>
+            <tr><th scope="row">Works with no internet</th><td>Needs a connection</td><td class="yes col-us"><span class="tk">{{ico:check}}</span>Fully offline</td></tr>
+            <tr><th scope="row">Invoices per month</th><td>Capped on the free plan</td><td class="yes col-us"><span class="tk">{{ico:check}}</span>Unlimited</td></tr>
+            <tr><th scope="row">Cost</th><td>Free trial, then monthly</td><td class="yes col-us"><span class="tk">{{ico:check}}</span>Free, with no paid tier</td></tr>
+            <tr><th scope="row">Sign-up required</th><td>Account and phone number</td><td class="yes col-us"><span class="tk">{{ico:check}}</span>None — open and bill</td></tr>
+            <tr><th scope="row">Where your data lives</th><td>On someone else's server</td><td class="yes col-us"><span class="tk">{{ico:check}}</span>On your phone</td></tr>
+            <tr><th scope="row">Voice billing</th><td>Rare, usually English only</td><td class="yes col-us"><span class="tk">{{ico:check}}</span>12 Indian languages</td></tr>
+            <tr><th scope="row">UPI QR on the invoice</th><td>Often a paid add-on</td><td class="yes col-us"><span class="tk">{{ico:check}}</span>Included</td></tr>
+            <tr><th scope="row">GSTR-1 summary export</th><td>Usually a higher plan</td><td class="yes col-us"><span class="tk">{{ico:check}}</span>Included</td></tr>
           </tbody>
         </table>
       </div>
@@ -783,13 +802,13 @@
       </div>
       <div class="grid g2 rv" style="max-width:820px;margin-inline:auto">
         <article class="card">
-          <div class="card-ico">{{ico:wifi-off}}</div>
+          <div class="gly gly-keep mx" aria-hidden="true"><span class="ph"><i></i><i></i><i></i></span><span class="nc">{{ico:wifi-off}} Nothing sent</span></div>
           <h3>Nothing leaves the device</h3>
           <p>Invoices never leave your phone unless you share them
              yourself, as a PDF you chose to send.</p>
         </article>
         <article class="card">
-          <div class="card-ico">{{ico:lock}}</div>
+          <div class="gly gly-lock mx" aria-hidden="true"><span class="lk"><i class="sh"></i><i class="bd"></i></span><span class="bk">{{ico:file-check}} backup saved</span></div>
           <h3>Locked and backed up</h3>
           <p>App lock with a PIN or your fingerprint, and a backup file
              you own — restorable on a new phone in a minute.</p>
@@ -903,6 +922,13 @@
   <section class="sec sec-lazy" id="download">
     <div class="wrap">
       <div class="cta rv rv-s">
+        <div class="cta-fx mx" aria-hidden="true">
+          <span class="blob b1"></span><span class="blob b2"></span>
+          <span class="fxc c1">{{ico:wifi-off}} Works offline</span>
+          <span class="fxc c2">{{ico:qr-code}} UPI QR on every bill</span>
+          <span class="fxc c3">{{ico:check-check}} Sent on WhatsApp</span>
+          <span class="fxc c4">{{ico:indian-rupee}} &#8377;0, forever</span>
+        </div>
         <p class="eyebrow">Free download</p>
         <h2>Start billing in the next five minutes</h2>
         <p class="lead">
@@ -910,9 +936,9 @@
           network does not. No account, no card, no trial running out.
         </p>
         <div class="cta-btns">
-          <a class="btn btn-primary btn-lg" data-gate
-             href="https://github.com/dakshu007/billzap/releases/latest/download/BillZap-Android.apk"
-             rel="noopener">Get it for Android <span class="chip">{{ico:arrow-right}}</span></a>
+          <a class="btn btn-primary btn-lg" data-store
+             href="{{play}}"
+             rel="noopener">Get it on Google Play <span class="chip">{{ico:arrow-right}}</span></a>
           <a class="btn btn-ghost btn-lg" href="#features">See what is included</a>
         </div>
         <p class="cta-fine">Android 7.0 and above · about 32 MB · works offline from the first launch</p>
