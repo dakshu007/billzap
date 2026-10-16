@@ -1,0 +1,57 @@
+name: Redirect billzap.netlify.app to billzap.app
+
+# The site moved to Cloudflare (see landing-page.yml). The old Netlify
+# address stays alive only to send every URL — path and query intact —
+# to the same URL on billzap.app with a 301, which is what Google
+# Search Console's Change of Address tool requires and what keeps the
+# old links' ranking. Keep it running for at least a year.
+#
+# Runs when this file changes, or by hand. Needs NETLIFY_AUTH_TOKEN.
+# To undo, publish an earlier deploy from the Netlify project's Deploys
+# page.
+
+on:
+  push:
+    paths:
+      - '.github/workflows/netlify-redirect.yml'
+  workflow_dispatch:
+
+env:
+  NETLIFY_SITE_ID: 2ae758e6-68ec-49e7-8364-6237a893b4c4
+
+jobs:
+  redirect:
+    runs-on: ubuntu-latest
+    env:
+      HAS_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN != '' }}
+    steps:
+      # A folder with nothing in it but the rule. The 301! forces the
+      # redirect even for paths that would otherwise match a file.
+      - name: Build the redirect-only site
+        run: |
+          mkdir -p "$RUNNER_TEMP/redirect"
+          cd "$RUNNER_TEMP/redirect"
+          printf '/*  https://billzap.app/:splat  301!\n' > _redirects
+          printf '<!doctype html><meta http-equiv="refresh" content="0;url=https://billzap.app/"><link rel="canonical" href="https://billzap.app/">\n' > index.html
+
+      - name: Deploy to Netlify
+        if: env.HAS_TOKEN == 'true'
+        working-directory: ${{ runner.temp }}/redirect
+        env:
+          CI: 'true'
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        run: |
+          npx -y netlify-cli@latest deploy --dir=. --no-build --prod \
+            --site="$NETLIFY_SITE_ID" --message="redirect to billzap.app" < /dev/null
+
+      - name: Check the redirect
+        if: env.HAS_TOKEN == 'true'
+        run: |
+          fail=0
+          for path in / /privacy/ /blog /blog/some-post?x=1 /sitemap.xml; do
+            out=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' --max-time 30 "https://billzap.netlify.app$path")
+            want="301 https://billzap.app$path"
+            if [ "$out" = "$want" ]; then echo "  ok    $path -> $out"
+            else echo "  FAIL  $path got '$out', wanted '$want'"; fail=1; fi
+          done
+          exit $fail
