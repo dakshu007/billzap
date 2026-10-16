@@ -360,3 +360,75 @@ jobs:
       - name: Test the live site
         working-directory: landing-page
         run: node tests/site-check.mjs https://billzap.app
+
+  # The blog posts kept as Markdown in landing-page/content/blog/ are
+  # written into the database the blog reads from, after the deploy (so
+  # the blog code that hides not-yet-due posts is live first). A post
+  # with a future publish_at is stored now and appears on its own at
+  # that time; nothing has to run then.
+  blog:
+    needs: deploy
+    if: github.event_name != 'workflow_dispatch' || inputs.production
+    runs-on: ubuntu-latest
+    env:
+      HAS_DB: ${{ secrets.NETLIFY_AUTH_TOKEN != '' || secrets.DATABASE_URL != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        if: env.HAS_DB == 'true'
+        working-directory: landing-page
+        run: npm ci --no-audit --no-fund
+      # The same source as the Worker's own secret: a repository secret if
+      # there is one, otherwise the old Netlify environment. Masked, and
+      # only ever in this job's environment.
+      - name: Find the database
+        if: env.HAS_DB == 'true'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          GH_DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          python3 - <<'PY2'
+          import json, os, urllib.request
+          url = os.environ.get('GH_DATABASE_URL', '')
+          if not url and os.environ.get('NETLIFY_AUTH_TOKEN'):
+              def api(path):
+                  req = urllib.request.Request('https://api.netlify.com/api/v1' + path,
+                      headers={'Authorization': 'Bearer ' + os.environ['NETLIFY_AUTH_TOKEN']})
+                  with urllib.request.urlopen(req, timeout=30) as r:
+                      return json.load(r)
+              site = os.environ['NETLIFY_SITE_ID']
+              account = api(f'/sites/{site}')['account_id']
+              for var in api(f'/accounts/{account}/env?site_id={site}'):
+                  if var.get('key') == 'DATABASE_URL':
+                      vals = {v.get('context'): v.get('value') for v in var.get('values', [])}
+                      url = vals.get('production') or vals.get('all') or ''
+          if not url:
+              raise SystemExit('::error::No DATABASE_URL: add it as a repository secret.')
+          print(f'::add-mask::{url}')
+          with open(os.environ['GITHUB_ENV'], 'a') as f:
+              f.write(f'DATABASE_URL={url}\n')
+          PY2
+      - name: Publish the posts
+        if: env.HAS_DB == 'true'
+        working-directory: landing-page
+        run: node scripts/publish-posts.mjs
+      - name: Check them on the live blog
+        if: env.HAS_DB == 'true'
+        working-directory: landing-page
+        run: |
+          fail=0
+          now=$(date -u +%s)
+          for f in content/blog/*.md; do
+            slug=$(sed -n 's/^slug: *//p' "$f" | head -1)
+            at=$(date -u -d "$(sed -n 's/^publish_at: *//p' "$f" | head -1)" +%s)
+            code=$(curl -s -o /tmp/post -w '%{http_code}' --max-time 45 "https://billzap.app/blog/$slug")
+            if [ "$at" -le "$now" ]; then
+              if [ "$code" = 200 ] && grep -q '"FAQPage"\|"BlogPosting"' /tmp/post; then
+                echo "  ok    live       /blog/$slug"
+              else echo "  FAIL  /blog/$slug got $code"; fail=1; fi
+            else
+              if [ "$code" = 404 ]; then echo "  ok    scheduled  /blog/$slug  ($(date -u -d @$at +'%d %b %H:%M UTC'))"
+              else echo "  FAIL  /blog/$slug is due later but answered $code"; fail=1; fi
+            fi
+          done
+          exit $fail

@@ -655,6 +655,10 @@ main{position:relative;z-index:1}
 .bprose code{background:var(--canvas-2);padding:2px 6px;border-radius:6px;
   font-size:.92em;color:var(--jade-900)}
 .bprose table{width:100%;margin-top:22px;border-collapse:collapse;font-size:15px}
+/* A wide comparison table scrolls inside itself on a phone instead of
+   pushing the whole page sideways. */
+.bprose table{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media (max-width:640px){.bprose table{font-size:13.5px}.bprose th,.bprose td{padding:9px 10px}}
 .bprose th,.bprose td{padding:11px 14px;border:1px solid var(--line);text-align:left}
 .bprose th{background:var(--canvas);font-weight:600}
 .bprose hr{margin:32px 0;border:0;border-top:1px solid var(--line)}

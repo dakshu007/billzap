@@ -78,7 +78,7 @@ export async function handler(event) {
 async function renderIndex() {
   const posts = await sql`
     SELECT slug, title, excerpt, cover_url, cover_alt, tags, published_at
-      FROM posts WHERE status = 'published'
+      FROM posts WHERE status = 'published' AND published_at <= now()
      ORDER BY published_at DESC LIMIT 60`;
 
   const cards = posts.map((p) => `
@@ -143,7 +143,8 @@ async function renderIndex() {
 async function renderPost(slugRaw) {
   const slug = decodeURIComponent(slugRaw).replace(/[^a-z0-9-]/gi, '');
   const [p] = await sql`
-    SELECT * FROM posts WHERE slug = ${slug} AND status = 'published'`;
+    SELECT * FROM posts WHERE slug = ${slug} AND status = 'published'
+       AND published_at <= now()`;
 
   if (!p) {
     return page(404, shell({
@@ -165,8 +166,7 @@ async function renderPost(slugRaw) {
   const keywords = [p.focus_keyword, ...(p.secondary_keywords || []), ...(p.tags || [])]
     .filter(Boolean);
 
-  const ld = {
-    '@context': 'https://schema.org',
+  const post = {
     '@type': 'BlogPosting',
     '@id': `${SITE}/blog/${p.slug}#post`,
     headline: p.title,
@@ -182,6 +182,8 @@ async function renderPost(slugRaw) {
     ...(p.cover_url ? { image: abs(p.cover_url) } : {}),
     keywords: keywords.join(', '),
   };
+  const ld = { '@context': 'https://schema.org',
+               '@graph': [post, ...richResults(p.body_html, `${SITE}/blog/${p.slug}`)] };
 
   return page(200, shell({
     title: p.meta_title || `${p.title} | BillZap`,
@@ -252,7 +254,8 @@ async function renderPost(slugRaw) {
 async function renderSitemap() {
   const rows = await sql`
     SELECT slug, updated_at FROM posts
-     WHERE status = 'published' ORDER BY published_at DESC LIMIT 5000`;
+     WHERE status = 'published' AND published_at <= now()
+     ORDER BY published_at DESC LIMIT 5000`;
   const urls = rows.map((r) => `  <url>
     <loc>${SITE}/blog/${esc(r.slug)}</loc>
     <lastmod>${iso(r.updated_at).slice(0, 10)}</lastmod>
@@ -275,7 +278,8 @@ ${urls}
 async function renderFeed() {
   const rows = await sql`
     SELECT slug, title, excerpt, published_at FROM posts
-     WHERE status = 'published' ORDER BY published_at DESC LIMIT 40`;
+     WHERE status = 'published' AND published_at <= now()
+     ORDER BY published_at DESC LIMIT 40`;
   const items = rows.map((r) => `  <item>
     <title>${esc(r.title)}</title>
     <link>${SITE}/blog/${esc(r.slug)}</link>
@@ -352,6 +356,47 @@ function outline(html) {
       return `<${tag} id="${id}">${inner}</${tag}>`;
     });
   return { html: out, items };
+}
+
+/** FAQPage and ItemList, read off the post's own headings.
+ *
+ * A post earns rich results by structure, not by extra fields in the
+ * editor: an h2 whose text contains "FAQ" or "questions" makes every h3
+ * under it a question, answered by whatever follows it; and h3s written
+ * "1. Name", "2. Name"… make a ranked list. The markup is only ever a
+ * reading of what the page already says, which is the rule Google
+ * holds rich results to.
+ */
+function richResults(html, url) {
+  const out = [];
+  const src = String(html || '');
+  const h2s = [...src.matchAll(/<h2[^>]*>([\s\S]*?)<\/h2>/gi)];
+  const faq = h2s.find((m) => /faq|questions/i.test(textOf(m[1])));
+  if (faq) {
+    const start = faq.index + faq[0].length;
+    const next = h2s.find((m) => m.index > faq.index);
+    const block = src.slice(start, next ? next.index : undefined);
+    const parts = block.split(/<h3[^>]*>/i).slice(1);
+    const qa = parts.map((part) => {
+      const [q, ...rest] = part.split(/<\/h3>/i);
+      return { q: textOf(q), a: textOf(rest.join(' ')) };
+    }).filter((x) => x.q && x.a);
+    if (qa.length) out.push({
+      '@type': 'FAQPage', '@id': `${url}#faq`,
+      mainEntity: qa.map(({ q, a }) => ({
+        '@type': 'Question', name: q,
+        acceptedAnswer: { '@type': 'Answer', text: a } })),
+    });
+  }
+  const ranked = [...src.matchAll(/<h3[^>]*>\s*(\d+)\.\s*([\s\S]*?)<\/h3>/gi)]
+    .map((m) => ({ n: +m[1], name: textOf(m[2]).replace(/\s*\([^)]*\)\s*$/, '') }));
+  if (ranked.length >= 3 && ranked.every((r, i) => r.n === i + 1)) out.push({
+    '@type': 'ItemList', '@id': `${url}#list`,
+    itemListOrder: 'https://schema.org/ItemListOrderAscending',
+    numberOfItems: ranked.length,
+    itemListElement: ranked.map((r) => ({ '@type': 'ListItem', position: r.n, name: r.name })),
+  });
+  return out;
 }
 
 /** Minutes to read, at the 200 words a minute everybody uses. */
