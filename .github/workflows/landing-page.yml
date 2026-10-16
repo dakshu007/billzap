@@ -233,6 +233,14 @@ jobs:
             echo "  waiting for $SITE ($i)"; sleep 10
           done
 
+          # A path that did not exist before this deploy can 404 at the
+          # edge for a few seconds after the upload, while one that did
+          # is served at once. Wait for the newest pages the same way.
+          for i in $(seq 1 18); do
+            [ "$(code $SITE/alternatives/)" = 200 ] && break
+            echo "  waiting for new pages ($i)"; sleep 5
+          done
+
           echo "── one hostname ──"
           check "GET www (301 to apex)" 301 "$(code https://www.billzap.app/privacy/)"
 
