@@ -9,7 +9,7 @@ import { sql, ready, redact } from './lib/db.js';
 import { CSS, header, footer, head } from './lib/shell.js';
 import { esc, textOf } from './lib/html.js';
 
-const SITE = 'https://billzap.netlify.app';
+const SITE = 'https://billzap.app';
 
 // netlify.toml's [[headers]] apply to files Netlify serves, not to
 // what a function returns — a rendered page would otherwise go out

@@ -35,9 +35,9 @@ ${keywords ? `<meta name="keywords" content="${attr(keywords)}">` : ''}
 <meta property="og:title" content="${attr(title)}">
 <meta property="og:description" content="${attr(desc)}">
 <meta property="og:url" content="${canonical}">
-<meta property="og:image" content="${image || 'https://billzap.netlify.app/assets/og.png'}">
+<meta property="og:image" content="${image || 'https://billzap.app/assets/og.png'}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="${image || 'https://billzap.netlify.app/assets/og.png'}">
+<meta name="twitter:image" content="${image || 'https://billzap.app/assets/og.png'}">
 
 <link rel="icon" href="/assets/icon-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/assets/icon-512.png" sizes="512x512" type="image/png">

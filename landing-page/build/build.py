@@ -25,7 +25,7 @@ from datetime import date
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, '..')
 
-SITE = 'https://billzap.netlify.app'
+SITE = 'https://billzap.app'
 
 # The date the content last actually changed — deliberately a constant,
 # not the date of the build.

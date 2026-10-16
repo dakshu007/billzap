@@ -132,7 +132,7 @@ jobs:
       - name: Check the live site
         if: env.HAS_TOKEN == 'true'
         env:
-          SITE: https://billzap.netlify.app
+          SITE: https://billzap.app
         run: |
           fail=0
           check() {                       # name, expected, actual

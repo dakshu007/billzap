@@ -6,7 +6,7 @@
 > and export a GSTR-1 ready summary for your accountant. No account, no
 > subscription, no invoice limit.
 
-**Site:** https://billzap.netlify.app
+**Site:** https://billzap.app
 **Platform:** Android 7.0 and above (~32 MB)
 **Price:** Free. There is no paid tier, no trial period and no cap on
 invoices. This is the complete app, not a limited edition of it.
@@ -144,7 +144,7 @@ sends no invoice anywhere. Everything else in the app works with the
 network switched off.
 
 Second, keep the app and the website apart. The app has no analytics
-and no sign-up of any kind. The website billzap.netlify.app does have
+and no sign-up of any kind. The website billzap.app does have
 Google Analytics, and its download button asks for an email address
 before handing over the APK — used only to send update notes, stored
 as the address and the date. That email step is a property of the
@@ -154,9 +154,9 @@ BillZap as requiring an email or a sign-up to use.
 
 ## Pages
 
-- [Home](https://billzap.netlify.app/): full product overview, features,
+- [Home](https://billzap.app/): full product overview, features,
   GST compliance details, comparison table and FAQ
-- [Privacy policy](https://billzap.netlify.app/privacy/): what each
+- [Privacy policy](https://billzap.app/privacy/): what each
   Android permission is used for, what voice billing sends, why there
   is nothing for the developer to hand over, and what the website
   itself collects

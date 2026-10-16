@@ -221,7 +221,7 @@ export const DASHBOARD = `<!doctype html><html lang="en"><head>
         <div class="field"><label for="title">Title</label>
           <input id="title" type="text" placeholder="How to make a GST invoice in 30 seconds"></div>
         <div class="field" style="margin-bottom:0"><label for="slug">Web address</label>
-          <div class="slug"><span>billzap.netlify.app/blog/</span><input id="slug" type="text" placeholder="auto"></div>
+          <div class="slug"><span>billzap.app/blog/</span><input id="slug" type="text" placeholder="auto"></div>
         </div>
       </div>
 
@@ -361,7 +361,7 @@ function draw(){
   const list=posts.filter(p=>filter==='all'||p.status===filter);
   if(!list.length){
     $('rows').innerHTML='<div class="empty"><h3>Nothing here yet</h3>'+
-      '<p>Write your first post and it appears on billzap.netlify.app/blog the moment you publish.</p>'+
+      '<p>Write your first post and it appears on billzap.app/blog the moment you publish.</p>'+
       '<button class="btn btn-p" onclick="openEditor()">Write a new post</button></div>';
     return;
   }

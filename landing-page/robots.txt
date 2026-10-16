@@ -41,5 +41,5 @@ Allow: /
 User-agent: meta-externalagent
 Allow: /
 
-Sitemap: https://billzap.netlify.app/sitemap.xml
-Sitemap: https://billzap.netlify.app/sitemap-blog.xml
+Sitemap: https://billzap.app/sitemap.xml
+Sitemap: https://billzap.app/sitemap-blog.xml
