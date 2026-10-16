@@ -18,6 +18,8 @@ import { chromium } from 'playwright';
 const BASE = (process.argv[2] || 'http://127.0.0.1:8800').replace(/\/$/, '');
 const PLAY = 'https://play.google.com/store/apps/details?id=com.billzap.app';
 const VIEWPORTS = [[360, 780], [390, 844], [768, 1024], [1024, 768], [1280, 800], [1440, 900], [1920, 1080]];
+// ONLY=360x780,390x844 to run a subset while working on one size.
+const ONLY = (process.env.ONLY || '').split(',').filter(Boolean);
 // The films are sampled through a whole cycle at these sizes; the
 // static checks run at every size.
 const FILM_VIEWPORTS = new Set(['360x780', '390x844', '768x1024', '1024x768', '1440x900']);
@@ -51,6 +53,7 @@ const browser = await chromium.launch({
 
 for (const [w, h] of VIEWPORTS) {
   const tag = `${w}x${h}`;
+  if (ONLY.length && !ONLY.includes(tag)) continue;
   const ctx = await browser.newContext({ viewport: { width: w, height: h } });
   const p = await ctx.newPage();
   const errors = [];

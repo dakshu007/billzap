@@ -256,7 +256,7 @@
 .s-item .meta{display:flex;flex-wrap:wrap;gap:.4em;margin-top:.7em}
 .s-item .amt{margin-top:.8em;padding-top:.7em;border-top:1px dashed var(--line-2);
   display:flex;justify-content:space-between}
-.s2 .k-sug{left:46%;top:70%;--fr:translateY(.8em)}
+.s2 .k-sug{right:5%;top:70%;--fr:translateY(.8em)}
 .s2 .langs-f{position:absolute;right:5%;top:8%;display:flex;gap:.4em}
 
 /* Scene 3 — GST decided for you. */
