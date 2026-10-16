@@ -22,6 +22,8 @@ import re
 import os
 from datetime import date
 
+import alternatives
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, '..')
 
@@ -1000,8 +1002,14 @@ def main():
         ld=privacy_jsonld(), body=privacy_body, head_extra=PRIVACY_HEAD,
         asset_prefix='/')
 
-    for name, html in (('index.html', index_html),
-                       ('privacy/index.html', privacy_html)):
+    # The comparison pages: the shared sheet plus their own small one.
+    alt_pages = alternatives.build(
+        document=document, render=render, site=SITE,
+        css=css + minify_css(open(os.path.join(HERE, 'alt.css')).read()))
+
+    pages = {'index.html': index_html, 'privacy/index.html': privacy_html,
+             **alt_pages}
+    for name, html in pages.items():
         if '{{' in html:
             raise SystemExit(f'{name}: unreplaced placeholder ' +
                              re.search(r'\{\{[^}]*\}\}', html).group(0))
@@ -1012,7 +1020,7 @@ def main():
         t = re.sub(r'<script.*?</script>', ' ', html, flags=re.S)
         t = re.sub(r'<style.*?</style>', ' ', t, flags=re.S)
         return re.sub(r'<[^>]+>', ' ', t)
-    subset_fonts(text_of(index_html) + text_of(privacy_html))
+    subset_fonts(''.join(text_of(h) for h in pages.values()))
 
     # The blog pages are rendered at request time by a Netlify
     # function, so they cannot use the build's document() — but they
@@ -1065,13 +1073,12 @@ def main():
         f.write(llms)
     print(f'{"llms-full.txt":20s} {len(llms)/1024:6.1f} KB  (copy of llms.txt)')
 
-    os.makedirs(os.path.join(OUT, 'privacy'), exist_ok=True)
-    for name, html in (('index.html', index_html),
-                       ('privacy/index.html', privacy_html)):
+    for name, html in pages.items():
         path = os.path.join(OUT, name)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, 'w') as f:
             f.write(html)
-        print(f'{name:20s} {os.path.getsize(path)/1024:6.1f} KB')
+        print(f'{name:36s} {os.path.getsize(path)/1024:6.1f} KB')
     print(f'{"css (inline, both)":20s} {len(css)/1024:6.1f} KB')
 
 

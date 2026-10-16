@@ -96,7 +96,7 @@ jobs:
         working-directory: landing-page
         run: |
           rm -rf dist && mkdir -p dist
-          for item in index.html privacy assets llms.txt llms-full.txt \
+          for item in index.html privacy alternatives assets llms.txt llms-full.txt \
                       robots.txt sitemap.xml site.webmanifest _headers; do
             [ -e "$item" ] || { echo "::error::missing $item"; exit 1; }
             cp -r "$item" dist/
@@ -239,6 +239,13 @@ jobs:
           echo "── pages ──"
           check "GET /"                200 "$(code $SITE/)"
           check "GET /privacy/"        200 "$(code $SITE/privacy/)"
+          check "GET /alternatives/"   200 "$(code $SITE/alternatives/)"
+          for alt in vyapar mybillbook khatabook zoho-invoice swipe tally; do
+            check "GET /alternatives/$alt/" 200 "$(code $SITE/alternatives/$alt/)"
+          done
+          grep -q 'FAQPage' /tmp/body \
+            && echo "  ok    comparison page carries FAQPage data" \
+            || { echo "  FAIL  comparison page has no FAQPage data"; fail=1; }
           check "GET Search Console file" 200 "$(code $SITE/googled23738155d4d0020.html)"
           grep -q 'google-site-verification: googled23738155d4d0020.html' /tmp/body \
             && echo "  ok    Search Console file content" \

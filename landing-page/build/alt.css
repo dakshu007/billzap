@@ -1,0 +1,116 @@
+/* The /alternatives/ pages. Inlined on those pages only, after the
+   shared sheet; everything here builds on its tokens and components
+   (.legal, .card, .cmp, .faq, .cta) rather than restyling them. */
+
+.alt-top{padding-top:clamp(84px,9vw,112px)}
+.alt-top+.sec{padding-top:0}
+.crumbs ol{display:flex;flex-wrap:wrap;gap:6px;font-size:13.5px;color:var(--ink-3);
+  margin-bottom:22px}
+.crumbs li{display:flex;align-items:center;gap:6px}
+.crumbs li+li::before{content:"/";color:var(--line-2)}
+.crumbs a{color:var(--ink-2);text-decoration:underline;text-decoration-color:var(--line-2);
+  text-underline-offset:3px}
+.crumbs a:hover{color:var(--accent)}
+.alt-cta{margin-top:24px}
+.alt-h{font-size:clamp(22px,2.8vw,30px);font-weight:700;letter-spacing:-.03em;
+  margin:clamp(48px,6vw,72px) 0 clamp(18px,2.4vw,26px);scroll-margin-top:90px}
+.legal-head+.alt-h{margin-top:0}
+
+/* Choose BillZap if / Stay with them if */
+.alt-pick .card h3{margin-top:14px}
+.alt-diff .card h3{margin-top:0}
+.ticks{margin-top:14px;display:grid;gap:10px}
+.ticks li{display:flex;gap:10px;color:var(--ink-2);font-size:15px;line-height:1.6}
+.ticks .ico{font-size:18px;flex:none;margin-top:2px;color:var(--accent)}
+.pick-us{border-color:var(--accent-line);
+  background:linear-gradient(170deg,var(--jade-50),var(--paper) 60%)}
+.pick-them .card-ico{background:var(--canvas-2);color:var(--ink-2)}
+.pick-them .ticks .ico{color:var(--ink-3)}
+
+/* The table: the tick marks pop in row by row the first time it comes
+   on screen, and then stay (keyed on .rv.in, which is only ever added). */
+.cmp .tk{display:inline-grid;place-items:center;width:18px;height:18px;margin-right:8px;
+  vertical-align:-3px;border-radius:50%;background:var(--jade-500);color:#fff;font-size:11px}
+.cmp td:not(.col-us) .tk{background:var(--ink-3)}
+.cmp .tk .ico{stroke-width:3}
+.js .cmp-wrap.rv .tk{transform:scale(0);transition:transform .45s var(--ease) .25s}
+.js .cmp-wrap.rv.in .tk{transform:none}
+.cmp-wrap.in tbody tr:nth-child(2) .tk{transition-delay:90ms}
+.cmp-wrap.in tbody tr:nth-child(3) .tk{transition-delay:180ms}
+.cmp-wrap.in tbody tr:nth-child(4) .tk{transition-delay:270ms}
+.cmp-wrap.in tbody tr:nth-child(5) .tk{transition-delay:360ms}
+.cmp-wrap.in tbody tr:nth-child(6) .tk{transition-delay:450ms}
+.cmp-wrap.in tbody tr:nth-child(7) .tk{transition-delay:540ms}
+.cmp-wrap.in tbody tr:nth-child(8) .tk{transition-delay:630ms}
+.cmp-wrap.in tbody tr:nth-child(9) .tk{transition-delay:720ms}
+.cmp-wrap.in tbody tr:nth-child(n+10) .tk{transition-delay:810ms}
+.cmp tbody tr{transition:background-color .2s}
+.cmp tbody tr:hover>*{background-color:var(--canvas)}
+.cmp tbody tr:hover>.col-us{background-color:var(--jade-100)}
+.cmp th[scope=row] a{color:var(--accent);font-weight:500;text-decoration:underline;
+  text-underline-offset:3px}
+/* On a phone the table becomes one card per row: the label on top,
+   then each side under its own name, so nothing scrolls sideways. */
+@media (max-width:620px){
+  .cmp-stack,.cmp-stack tbody,.cmp-stack tr,.cmp-stack th,.cmp-stack td{display:block}
+  .cmp-stack{background:none;font-size:14.5px}
+  .cmp-stack caption{display:block;padding-bottom:12px}
+  .cmp-stack thead{display:none}
+  .cmp-stack tbody{display:grid;gap:10px}
+  .cmp-stack tr{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);
+    border-radius:var(--r-md);overflow:hidden;background:var(--paper)}
+  .cmp-stack.cmp-hub tr{grid-template-columns:1fr}
+  .cmp-stack th,.cmp-stack td{border:0;padding:11px 14px}
+  .cmp-stack tr>*:first-child{border-left:0}
+  .cmp-stack tbody th{grid-column:1/-1;font-weight:600;color:var(--ink);
+    background:var(--canvas);border-bottom:1px solid var(--line)}
+  .cmp-stack td::before{content:attr(data-label);display:block;margin-bottom:4px;
+    font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+  .cmp-stack td.col-us::before{color:var(--accent)}
+  .cmp-stack.cmp-hub td+td{border-top:1px solid var(--line)}
+  .cmp-stack.cmp-hub tr.us{border-color:var(--accent-line)}
+  .cmp-stack tbody tr>*,.cmp-stack tbody tr:last-child>*{border-radius:0}
+  .cmp-stack tbody tr:hover>*{background-color:inherit}
+}
+.alt-src{margin-top:14px;font-size:13.5px;line-height:1.6;color:var(--ink-3);max-width:740px}
+.alt-src a{color:var(--ink-2);text-decoration:underline;text-underline-offset:3px}
+
+.alt-prose{margin-top:clamp(48px,6vw,72px)}
+.alt-prose h2:first-of-type{padding-top:0;border-top:0}
+
+/* Switching steps, numbered by a counter so the list stays an <ol>. */
+.steps{margin-top:18px;display:grid;gap:12px;counter-reset:st}
+.steps li{position:relative;padding:16px 18px 16px 62px;border:1px solid var(--line);
+  border-radius:var(--r-md);background:var(--paper);counter-increment:st;
+  color:var(--ink-2);font-size:15.5px;line-height:1.62}
+.steps li::before{content:counter(st);position:absolute;left:16px;top:15px;width:30px;height:30px;
+  display:grid;place-items:center;border-radius:50%;background:var(--jade-50);
+  color:var(--accent);font-weight:700;font-size:14px;border:1px solid var(--accent-line)}
+.steps b{display:block;color:var(--ink);font-weight:600;margin-bottom:3px}
+
+.alt-faq{margin-inline:0}
+
+/* Other comparisons */
+.alt-links{display:flex;flex-wrap:wrap;gap:10px}
+.alt-link{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:10px 16px;
+  border:1px solid var(--line);border-radius:999px;background:var(--paper);
+  font-size:14.5px;color:var(--ink-2);transition:border-color .2s,color .2s,transform .2s}
+.alt-link b{color:var(--ink);font-weight:600}
+.alt-link .ico{font-size:16px;color:var(--ink-3);transition:transform .2s}
+.alt-link:hover{border-color:var(--accent-line);color:var(--accent);transform:translateY(-1px)}
+.alt-link:hover .ico{transform:translateX(3px);color:var(--accent)}
+.alt-link.all{background:var(--jade-50);border-color:var(--accent-line)}
+
+/* Hub cards */
+.alt-card{display:flex;flex-direction:column}
+.alt-card .eyebrow{margin:0}
+.alt-card h3{margin-top:12px}
+.alt-card .more{margin-top:auto;padding-top:16px;display:inline-flex;align-items:center;gap:6px;
+  font-size:14.5px;font-weight:600;color:var(--accent)}
+.alt-card .more .ico{transition:transform .2s}
+.alt-card:hover .more .ico{transform:translateX(3px)}
+
+@media (prefers-reduced-motion:reduce){
+  .js .cmp-wrap.rv .tk{transform:none;transition:none}
+  .alt-link,.alt-link .ico,.alt-card .more .ico{transition:none}
+}

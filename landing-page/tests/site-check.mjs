@@ -23,6 +23,10 @@ const ONLY = (process.env.ONLY || '').split(',').filter(Boolean);
 // The films are sampled through a whole cycle at these sizes; the
 // static checks run at every size.
 const FILM_VIEWPORTS = new Set(['360x780', '390x844', '768x1024', '1024x768', '1440x900']);
+// The comparison pages, which share the header, footer and download
+// buttons and get the same layout checks at every size.
+const ALT_PAGES = ['/alternatives/', ...['vyapar', 'mybillbook', 'khatabook', 'zoho-invoice', 'swipe', 'tally']
+  .map((s) => `/alternatives/${s}/`)];
 const IGNORE_CONSOLE = /googletagmanager|google-analytics|ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|net::ERR_/;
 
 const fails = [];
@@ -38,7 +42,7 @@ const browser = await chromium.launch({
 {
   const ctx = await browser.newContext();
   const p = await ctx.newPage();
-  for (const path of ['/', '/privacy/', '/robots.txt', '/sitemap.xml', '/llms.txt', '/site.webmanifest']) {
+  for (const path of ['/', '/privacy/', '/robots.txt', '/sitemap.xml', '/llms.txt', '/site.webmanifest', ...ALT_PAGES]) {
     const r = await p.goto(BASE + path);
     if (!r || r.status() !== 200) fail(path, `status ${r && r.status()}`); else ok();
   }
@@ -48,6 +52,60 @@ const browser = await chromium.launch({
   const pl = await p.$$eval('a[data-store]', (as) => as.map((a) => a.href));
   if (pl.length < 2) fail('/privacy/', `only ${pl.length} download buttons found`);
   for (const h of pl) { if (h !== PLAY) fail('/privacy/', `download button goes to ${h}`); else ok(); }
+  // The footer links every comparison page, from every page.
+  const fl = await p.$$eval('.ftr a[href^="/alternatives/"]', (as) => as.map((a) => a.getAttribute('href')));
+  for (const path of ALT_PAGES.slice(1)) {
+    if (!fl.includes(path)) fail('footer', `no link to ${path}`); else ok();
+  }
+  await ctx.close();
+}
+
+// ── Comparison pages, at every size ────────────────────────────────
+for (const [w, h] of VIEWPORTS) {
+  const tag = `${w}x${h}`;
+  if (ONLY.length && !ONLY.includes(tag)) continue;
+  const ctx = await browser.newContext({ viewport: { width: w, height: h } });
+  const p = await ctx.newPage();
+  const errors = [];
+  p.on('pageerror', (e) => errors.push(e.message));
+  p.on('console', (m) => { if (m.type() === 'error' && !IGNORE_CONSOLE.test(m.text())) errors.push(m.text()); });
+  for (const path of ALT_PAGES) {
+    const where = `${tag} ${path}`;
+    await p.goto(BASE + path, { waitUntil: 'load' });
+    const height = await p.evaluate(() => document.documentElement.scrollHeight);
+    for (let y = 0; y < height; y += h * 0.6) {
+      await p.evaluate((y) => scrollTo(0, y), y);
+      await p.waitForTimeout(120);
+    }
+    await p.waitForTimeout(500);
+    const r = await p.evaluate(() => {
+      const W = document.documentElement.clientWidth;
+      // Revealed means the observer has fired; the fade itself may still
+      // be running, so opacity is not the thing to measure.
+      const hidden = document.querySelectorAll('html.js .rv:not(.in)').length;
+      const small = [...document.querySelectorAll('a.btn, .alt-link, .nav a')].filter((n) => {
+        const b = n.getBoundingClientRect();
+        return b.width && getComputedStyle(n).display !== 'none' && (b.height < 24 || b.width < 24);
+      }).map((n) => n.textContent.trim().slice(0, 30));
+      return {
+        sideways: document.documentElement.scrollWidth > W + 1,
+        dl: [...document.querySelectorAll('a[data-store]')].map((a) => a.href),
+        hidden, small,
+        h1: document.querySelectorAll('h1').length,
+        faq: [...document.querySelectorAll('script[type="application/ld+json"]')]
+          .some((s) => s.textContent.includes('"FAQPage"')),
+      };
+    });
+    if (r.sideways) fail(where, 'page scrolls sideways'); else ok();
+    if (r.dl.length < 3) fail(where, `only ${r.dl.length} download buttons found`);
+    for (const h of r.dl) { if (h !== PLAY) fail(where, `download button goes to ${h}`); else ok(); }
+    if (r.hidden) fail(where, `${r.hidden} sections never revealed`); else ok();
+    for (const s of r.small) fail(where, `tap target under 24px: "${s}"`);
+    if (r.h1 !== 1) fail(where, `${r.h1} h1 elements`); else ok();
+    if (path !== '/alternatives/' && !r.faq) fail(where, 'no FAQPage data'); else ok();
+  }
+  for (const e of errors) fail(tag, `JS error on a comparison page: ${e}`);
+  if (!errors.length) ok();
   await ctx.close();
 }
 
