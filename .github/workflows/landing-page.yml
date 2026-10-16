@@ -110,6 +110,23 @@ jobs:
         working-directory: landing-page
         run: npm ci --no-audit --no-fund
 
+      # The account ID secret is easy to paste with a stray space, a
+      # newline or the rest of the dashboard URL around it. Take the
+      # 32-character ID out of whatever is there; if there is none,
+      # leave it unset and wrangler finds the token's only account.
+      - name: Normalise the Cloudflare account ID
+        if: env.HAS_TOKEN == 'true'
+        env:
+          RAW: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          id=$(printf '%s' "$RAW" | grep -oiE '[0-9a-f]{32}' | head -1 || true)
+          if [ -n "$id" ]; then
+            echo "CLOUDFLARE_ACCOUNT_ID=$id" >> "$GITHUB_ENV"
+            echo "Using the account ID from CLOUDFLARE_ACCOUNT_ID."
+          else
+            echo "::warning::CLOUDFLARE_ACCOUNT_ID has no 32-character ID in it; letting wrangler detect the account."
+          fi
+
       # Values never touch the log or the repo: each is masked, written
       # to a file outside the checkout, passed to the deploy, deleted.
       - name: Collect the Worker's secrets
@@ -117,7 +134,6 @@ jobs:
         working-directory: landing-page
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           GH_DATABASE_URL: ${{ secrets.DATABASE_URL }}
           GH_ADMIN_PATH: ${{ secrets.ADMIN_PATH }}
@@ -183,7 +199,6 @@ jobs:
         env:
           CI: 'true'
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           PROD: ${{ github.event_name != 'workflow_dispatch' || inputs.production }}
         run: |
           if [ "$PROD" = "true" ]; then
