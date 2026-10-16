@@ -1,0 +1,13 @@
+# Headers for /assets/*, which Cloudflare serves without running the
+# Worker (see wrangler.jsonc). Everything else gets its headers from
+# worker.js.
+#
+# Fonts, images and icons are content-addressed by filename and never
+# change under the same name, so they get a year and immutable.
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+/assets/fonts/*
+  Access-Control-Allow-Origin: *

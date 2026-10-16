@@ -65,3 +65,7 @@ landing-page/node_modules/
 *.jks
 key.properties
 upload_certificate.pem
+
+# Wrangler local state and local secrets.
+landing-page/.wrangler/
+landing-page/.dev.vars

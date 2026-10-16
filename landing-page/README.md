@@ -38,7 +38,10 @@ build/
 index.html       generated — do not edit
 llms.txt         product summary written for AI crawlers
 assets/          fonts (subset), app screenshots, icons, OG card
-netlify.toml     caching, CSP and security headers
+worker.js        Cloudflare Worker: redirects, headers, blog/studio/API routing
+wrangler.jsonc   Cloudflare config: custom domains, static assets
+_headers         cache headers for /assets/* (served without the Worker)
+functions/       blog, studio and API handlers, called by worker.js
 ```
 
 ## Build steps explained
@@ -82,5 +85,17 @@ explicitly and `llms.txt` gives them a written product summary.
 
 ## Deploying
 
-Netlify project `billzap` (`2ae758e6-68ec-49e7-8364-6237a893b4c4`),
-publish directory `landing-page/`.
+Cloudflare Worker `billzap` with static assets, on the custom domains
+`billzap.app` and `www.billzap.app` (www 301s to the apex). Pushing a
+change under `landing-page/` runs `.github/workflows/landing-page.yml`,
+which rebuilds, stages `dist/` and runs `wrangler deploy`. The deploy
+creates the domains' DNS records and certificates itself.
+
+Repository secrets: `CLOUDFLARE_API_TOKEN` (the "Edit Cloudflare
+Workers" template, with billzap.app in Zone Resources) and
+`CLOUDFLARE_ACCOUNT_ID`. The Worker's own secrets — `DATABASE_URL`,
+`ADMIN_PATH`, `ADMIN_PASSWORD`, `SESSION_SECRET` — are set by the
+workflow; see the comment at the top of it.
+
+Local run: stage `dist/` as the workflow does, put the four secrets in
+`landing-page/.dev.vars` (git-ignored), then `npx wrangler dev`.

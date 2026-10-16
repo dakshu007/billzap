@@ -1,18 +1,32 @@
 name: Deploy landing page
 
-# The landing page is a static folder — there is nothing to compile, so
-# this workflow rebuilds index.html from build/ (to prove the generated
-# file in the repo matches its sources) and then publishes.
+# The landing page runs on Cloudflare: a Worker with static assets,
+# serving billzap.app. This workflow rebuilds index.html from build/
+# (to prove the generated file in the repo matches its sources), stages
+# exactly the files the site serves, and deploys with wrangler.
 #
 # It exists because the agent sandbox that authored the site has no
-# egress to Netlify; CI does. It is also just a better place for a
-# deploy to live than somebody's laptop.
+# egress to Cloudflare; CI does.
 #
-# Needs one repository secret:
-#   NETLIFY_AUTH_TOKEN — a personal access token from
-#   https://app.netlify.com/user/applications#personal-access-tokens
+# Needs two repository secrets:
+#   CLOUDFLARE_API_TOKEN   an API token from
+#                          https://dash.cloudflare.com/profile/api-tokens
+#                          made from the "Edit Cloudflare Workers"
+#                          template, with Zone Resources including
+#                          billzap.app.
+#   CLOUDFLARE_ACCOUNT_ID  the account ID (Workers & Pages overview,
+#                          right-hand column). Optional when the token
+#                          can see only one account.
 #
-# The site ID is not a secret; it is in the URL of the Netlify project.
+# The deploy itself creates billzap.app and www.billzap.app as Custom
+# Domains on the Worker — DNS records and certificates included (see
+# wrangler.jsonc). There is nothing to set up by hand in DNS.
+#
+# The blog and studio need four Worker secrets: DATABASE_URL,
+# ADMIN_PATH, ADMIN_PASSWORD, SESSION_SECRET. A repository secret of
+# the same name always wins. Otherwise, the first time a secret is
+# missing from the Worker it is copied from the old Netlify site's
+# environment, using NETLIFY_AUTH_TOKEN if that secret still exists.
 
 on:
   push:
@@ -23,11 +37,12 @@ on:
   workflow_dispatch:
     inputs:
       production:
-        description: 'Publish to the live URL (otherwise a preview)'
+        description: 'Publish to the live URL (otherwise upload a version without deploying it)'
         type: boolean
         default: true
 
 env:
+  # Only used to copy the old environment across; see above.
   NETLIFY_SITE_ID: 2ae758e6-68ec-49e7-8364-6237a893b4c4
 
 jobs:
@@ -39,7 +54,7 @@ jobs:
     # job-level `env:` may read `secrets`, so the presence check is
     # hoisted here.
     env:
-      HAS_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN != '' }}
+      HAS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -67,70 +82,125 @@ jobs:
           fi
           echo "Committed build matches its sources."
 
-      # Run from landing-page/, not the repo root: the CLI reads
-      # netlify.toml from its working directory, and from the root it
-      # would find none — shipping with no redirects, no cache headers
-      # and no CSP, silently and successfully. The step prints the rule counts Netlify reports back so a
-      # silent drop is visible in the log rather than in production.
+      # The asset directory is published whole, so the deploy gets an
+      # explicit list instead: anything not named here does not reach
+      # the internet. Earlier, publishing all of landing-page/ put the
+      # page templates, the build script and the Apps Script source
+      # live, and /build/page.html is a head-less fragment a crawler
+      # can index as a thin duplicate of the real page.
       #
-      # --no-build because this is a folder of finished files; letting
-      # the CLI hunt for a build command in a Flutter repo can only go
-      # wrong. CI=true keeps it non-interactive, so a prompt fails the
-      # step instead of hanging the runner until the job times out.
-      # `netlify deploy --dir=X` publishes everything in X. Pointed at
-      # landing-page/ that meant the page templates, the build script
-      # and the Apps Script source all went live — and /build/page.html
-      # and /build/privacy.html are head-less HTML fragments a crawler
-      # can index as thin duplicates of the real pages, which is a
-      # direct tax on the SEO the rest of this is for.
-      #
-      # So the deploy gets an explicit list instead of a directory:
-      # anything not named here does not reach the internet. netlify.toml
-      # comes along because the CLI reads config from its working
-      # directory, which is now this staging folder.
+      # worker.js, wrangler.jsonc and functions/ are deliberately NOT in
+      # this list: wrangler bundles the code from the working directory,
+      # and none of it should be fetchable as a file.
       - name: Stage exactly what the site serves
         working-directory: landing-page
         run: |
           rm -rf dist && mkdir -p dist
-          # netlify.toml is deliberately NOT in this list. It was, and
-          # so it was being served: /netlify.toml returned the site's
-          # whole redirect and header configuration to anyone who
-          # asked. The CLI reads it from the working directory, not
-          # from the published folder, so it never needed to be here.
           for item in index.html privacy assets llms.txt llms-full.txt \
-                      robots.txt sitemap.xml site.webmanifest; do
+                      robots.txt sitemap.xml site.webmanifest _headers; do
             [ -e "$item" ] || { echo "::error::missing $item"; exit 1; }
             cp -r "$item" dist/
           done
           echo "Publishing:"
           find dist -type f | sort | sed 's/^/  /'
 
-      # The blog, the studio and the API are functions, and they have a
-      # dependency (the Neon driver). The CLI bundles each function with
-      # whatever it imports, so node_modules has to exist first.
-      - name: Install function dependencies
+      # wrangler (pinned in package-lock.json) and the Neon driver the
+      # handlers import; wrangler bundles the Worker with it.
+      - name: Install dependencies
         working-directory: landing-page
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
-      - name: Deploy to Netlify
+      # Values never touch the log or the repo: each is masked, written
+      # to a file outside the checkout, passed to the deploy, deleted.
+      - name: Collect the Worker's secrets
+        if: env.HAS_TOKEN == 'true'
+        working-directory: landing-page
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          GH_DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          GH_ADMIN_PATH: ${{ secrets.ADMIN_PATH }}
+          GH_ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          GH_SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+        run: |
+          # Secrets the Worker already has. Empty on the very first
+          # deploy, when the Worker does not exist yet.
+          npx wrangler secret list --format json > "$RUNNER_TEMP/have.json" 2>/dev/null \
+            || echo '[]' > "$RUNNER_TEMP/have.json"
+          python3 - <<'PY'
+          import json, os, urllib.request
+
+          NAMES = ['DATABASE_URL', 'ADMIN_PATH', 'ADMIN_PASSWORD', 'SESSION_SECRET']
+          tmp = os.environ['RUNNER_TEMP']
+          try:
+              have = {s['name'] for s in json.load(open(f'{tmp}/have.json'))}
+          except Exception:
+              have = set()
+
+          def netlify(path):
+              req = urllib.request.Request(
+                  'https://api.netlify.com/api/v1' + path,
+                  headers={'Authorization': 'Bearer ' + os.environ['NETLIFY_AUTH_TOKEN']})
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  return json.load(r)
+
+          old = {}
+          if os.environ.get('NETLIFY_AUTH_TOKEN') and not have.issuperset(NAMES):
+              try:
+                  site = os.environ['NETLIFY_SITE_ID']
+                  account = netlify(f'/sites/{site}')['account_id']
+                  for var in netlify(f'/accounts/{account}/env?site_id={site}'):
+                      vals = {v.get('context'): v.get('value') for v in var.get('values', [])}
+                      val = vals.get('production') or vals.get('all')
+                      if var.get('key') in NAMES and val:
+                          old[var['key']] = val
+              except Exception as e:
+                  print(f'::warning::Could not read the Netlify environment: {e}')
+
+          out = {}
+          for name in NAMES:
+              gh = os.environ.get('GH_' + name, '')
+              if gh:
+                  out[name] = gh; src = 'repository secret'
+              elif name in have:
+                  src = 'already set on the Worker'
+              elif name in old:
+                  out[name] = old[name]; src = 'copied from Netlify'
+              else:
+                  src = 'MISSING'
+                  print(f'::warning::{name} is not set: the blog/studio will not work until it is.')
+              print(f'  {name:15} {src}')
+          for v in out.values():
+              print(f'::add-mask::{v}')
+          json.dump(out, open(f'{tmp}/secrets.json', 'w'))
+          PY
+
+      - name: Deploy to Cloudflare
         if: env.HAS_TOKEN == 'true'
         working-directory: landing-page
         timeout-minutes: 12
         env:
           CI: 'true'
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           PROD: ${{ github.event_name != 'workflow_dispatch' || inputs.production }}
         run: |
-          ARGS="--dir=dist --functions=functions --no-build --site=$NETLIFY_SITE_ID --message=${GITHUB_SHA::7}"
-          if [ "$PROD" = "true" ]; then ARGS="$ARGS --prod"; fi
-          npx -y netlify-cli@latest deploy $ARGS < /dev/null
+          if [ "$PROD" = "true" ]; then
+            npx wrangler deploy --secrets-file "$RUNNER_TEMP/secrets.json" \
+              --message "${GITHUB_SHA::7}"
+          else
+            npx wrangler versions upload --secrets-file "$RUNNER_TEMP/secrets.json" \
+              --message "${GITHUB_SHA::7}"
+          fi
+          rm -f "$RUNNER_TEMP/secrets.json"
 
       # Verify what was just deployed, from outside, against the real
       # database. Nothing here needs a secret: every assertion is what
       # an anonymous visitor sees. It runs only when a deploy actually
       # happened, so a token-less run does not fail on a stale site.
       - name: Check the live site
-        if: env.HAS_TOKEN == 'true'
+        if: env.HAS_TOKEN == 'true' && (github.event_name != 'workflow_dispatch' || inputs.production)
         env:
           SITE: https://billzap.app
         run: |
@@ -140,6 +210,16 @@ jobs:
             else printf '  FAIL  %-44s got %s, wanted %s\n' "$1" "$3" "$2"; fail=1; fi
           }
           code() { curl -s -o /tmp/body -w '%{http_code}' --max-time 45 "$@"; }
+
+          # A new custom domain can take a minute or two for its
+          # certificate; wait for it rather than failing the first run.
+          for i in $(seq 1 30); do
+            [ "$(code $SITE/)" = 200 ] && break
+            echo "  waiting for $SITE ($i)"; sleep 10
+          done
+
+          echo "── one hostname ──"
+          check "GET www (301 to apex)" 301 "$(code https://www.billzap.app/privacy/)"
 
           echo "── pages ──"
           check "GET /"                200 "$(code $SITE/)"
@@ -200,7 +280,8 @@ jobs:
           check "GET /api/posts (no session)"      401 "$(code $SITE/api/posts)"
 
           echo "── nothing that should not be served ──"
-          check "GET /netlify.toml"    404 "$(code $SITE/netlify.toml)"
+          check "GET /wrangler.jsonc"  404 "$(code $SITE/wrangler.jsonc)"
+          check "GET /worker.js"       404 "$(code $SITE/worker.js)"
           check "GET /build/page.html" 301 "$(code $SITE/build/page.html)"
           check "GET /package.json"    404 "$(code $SITE/package.json)"
 
@@ -215,7 +296,7 @@ jobs:
       - name: Explain a missing token
         if: env.HAS_TOKEN != 'true'
         run: |
-          echo "::warning::NETLIFY_AUTH_TOKEN is not set, so nothing was deployed."
-          echo "Add it under Settings -> Secrets and variables -> Actions."
-          echo "Create the token at:"
-          echo "  https://app.netlify.com/user/applications#personal-access-tokens"
+          echo "::warning::CLOUDFLARE_API_TOKEN is not set, so nothing was deployed."
+          echo "Add it (and CLOUDFLARE_ACCOUNT_ID) under Settings -> Secrets and variables -> Actions."
+          echo "Create the token at https://dash.cloudflare.com/profile/api-tokens"
+          echo "from the 'Edit Cloudflare Workers' template, with billzap.app in Zone Resources."

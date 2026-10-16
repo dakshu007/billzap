@@ -5,5 +5,8 @@
   "description": "Landing page, public blog and the admin studio behind it.",
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4"
+  },
+  "devDependencies": {
+    "wrangler": "^4.151.0"
   }
 }
