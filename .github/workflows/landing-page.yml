@@ -239,6 +239,10 @@ jobs:
           echo "── pages ──"
           check "GET /"                200 "$(code $SITE/)"
           check "GET /privacy/"        200 "$(code $SITE/privacy/)"
+          check "GET Search Console file" 200 "$(code $SITE/googled23738155d4d0020.html)"
+          grep -q 'google-site-verification: googled23738155d4d0020.html' /tmp/body \
+            && echo "  ok    Search Console file content" \
+            || { echo "  FAIL  Search Console file content"; fail=1; }
           check "GET /blog"            200 "$(code $SITE/blog)"
           grep -q 'Running a shop' /tmp/body \
             && echo "  ok    /blog rendered from the database" \

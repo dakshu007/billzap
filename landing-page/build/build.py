@@ -41,11 +41,9 @@ SITE = 'https://billzap.app'
 # Bump it when the wording changes.
 UPDATED = '2026-09-16'
 
-# Google Search Console site verification. It goes in the shared head so
-# every page carries it: Search Console checks the exact URL you ask it
-# to verify, and a tag that lives only on the home page silently fails
-# the moment you verify a different one. Harmless everywhere else.
-GSC_VERIFY = '4N5b9mUevn2OzdIqgR_kUHPo2D-JTpIfd1gN0cCx03s'
+# Google Search Console verifies billzap.app with an HTML file at the
+# site root (googled23738155d4d0020.html, deployed as-is), not a meta
+# tag, so nothing for it goes in the page head.
 
 # Google Analytics 4. Loaded lazily — see SCRIPT below for why.
 GA_ID = 'G-M8M91YZVCT'
@@ -692,7 +690,6 @@ def document(*, title, desc, canonical, css, ld, body, head_extra='',
 <meta name="description" content="{desc}">
 <meta name="author" content="BillZap">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">
-<meta name="google-site-verification" content="{GSC_VERIFY}">
 <link rel="canonical" href="{canonical}">
 <meta name="theme-color" content="#F7F8F7">
 <meta name="color-scheme" content="light">
@@ -761,7 +758,6 @@ ${keywords ? `<meta name="keywords" content="${attr(keywords)}">` : ''}
 <link rel="canonical" href="${canonical}">
 <meta name="theme-color" content="#F7F8F7">
 <meta name="color-scheme" content="light">
-<meta name="google-site-verification" content="__GSC__">
 
 <meta property="og:type" content="${ogType}">
 <meta property="og:site_name" content="BillZap">
@@ -856,7 +852,7 @@ def main():
         '  HEADER.replaceAll("{{HOME}}", base).replaceAll("{{BASE}}", base);\n'
         'export const footer = ({ base = "/" } = {}) =>\n'
         '  FOOTER.replaceAll("{{HOME}}", base).replaceAll("{{BASE}}", base);\n\n'
-        + BLOG_HEAD_JS.replace('__GSC__', GSC_VERIFY).replace('__SITE__', SITE)
+        + BLOG_HEAD_JS.replace('__SITE__', SITE)
     )
     fn_lib = os.path.join(OUT, 'functions', 'lib')
     os.makedirs(fn_lib, exist_ok=True)

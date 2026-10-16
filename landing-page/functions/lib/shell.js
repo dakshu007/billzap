@@ -28,7 +28,6 @@ ${keywords ? `<meta name="keywords" content="${attr(keywords)}">` : ''}
 <link rel="canonical" href="${canonical}">
 <meta name="theme-color" content="#F7F8F7">
 <meta name="color-scheme" content="light">
-<meta name="google-site-verification" content="4N5b9mUevn2OzdIqgR_kUHPo2D-JTpIfd1gN0cCx03s">
 
 <meta property="og:type" content="${ogType}">
 <meta property="og:site_name" content="BillZap">

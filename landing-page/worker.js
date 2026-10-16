@@ -15,6 +15,10 @@
 import { handler as blog } from './functions/blog.js';
 import { handler as api } from './functions/api.js';
 import { handler as studio } from './functions/studio.js';
+// Search Console ownership file. Served from here, not the asset
+// store: static assets redirect /x.html to /x, and Google wants the
+// exact filename to answer 200.
+import GSC_FILE from './googled23738155d4d0020.html';
 
 const HOST = 'billzap.app';
 
@@ -64,6 +68,9 @@ export default {
     }
 
     const path = url.pathname;
+    if (path === '/googled23738155d4d0020.html') {
+      return new Response(GSC_FILE, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+    }
     const exact = EXACT[path];
     if (exact) return redirect(exact[0], exact[1]);
     for (const [from, to] of PREFIX) if (path.startsWith(from)) return redirect(to, 301);
