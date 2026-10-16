@@ -27,7 +27,10 @@ const FILM_VIEWPORTS = new Set(['360x780', '390x844', '768x1024', '1024x768', '1
 // buttons and get the same layout checks at every size.
 const ALT_PAGES = ['/alternatives/', ...['vyapar', 'mybillbook', 'khatabook', 'zoho-invoice', 'swipe', 'tally']
   .map((s) => `/alternatives/${s}/`)];
-const IGNORE_CONSOLE = /googletagmanager|google-analytics|ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|net::ERR_/;
+// Network noise from a sandbox that cannot reach Google is ignored; a
+// Content Security Policy refusal never is, because that is the site
+// itself blocking its own analytics.
+const IGNORE_CONSOLE = /^(?!.*Content Security Policy).*(googletagmanager|google-analytics|ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|net::ERR_)/;
 
 const fails = [];
 const fail = (where, what) => { fails.push(`${where}: ${what}`); };

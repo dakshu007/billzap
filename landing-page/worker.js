@@ -23,15 +23,18 @@ import GSC_FILE from './googled23738155d4d0020.html';
 const HOST = 'billzap.app';
 
 // ── Security headers ───────────────────────────────────────────────
-// Unchanged from netlify.toml — see the comment there in git history
-// for why the CSP grants exactly these hosts.
+// From netlify.toml — see the comment there in git history for why
+// the CSP grants exactly these hosts — plus www.google.com and
+// *.g.doubleclick.net, where GA4 sends its hits when Google signals is
+// on (Google's own CSP guide lists both). Without them every page view
+// was refused by the browser and never reached Analytics.
 const SECURITY = {
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'SAMEORIGIN',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'geolocation=(), microphone=(), camera=(), interest-cohort=()',
   'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
-  'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self'; connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://script.google.com https://script.googleusercontent.com; form-action 'self'; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests",
+  'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://www.google-analytics.com https://www.googletagmanager.com https://www.google.com https://*.g.doubleclick.net; font-src 'self'; connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://www.google.com https://*.g.doubleclick.net https://script.google.com https://script.googleusercontent.com; form-action 'self'; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests",
 };
 
 // ── Redirects ──────────────────────────────────────────────────────

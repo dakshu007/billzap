@@ -342,6 +342,11 @@ jobs:
           hdr=$(curl -sI --max-time 45 $SITE/blog)
           echo "$hdr" | grep -qi 'content-security-policy' \
             && echo "  ok    CSP present on /blog" || { echo "  FAIL  no CSP on /blog"; fail=1; }
+          # GA4 sends hits to www.google.com when Google signals is on; a
+          # CSP without it silently drops every page view.
+          echo "$hdr" | grep -i 'content-security-policy' | grep -q 'connect-src[^;]*https://www.google.com' \
+            && echo "  ok    CSP lets Analytics send its hits" \
+            || { echo "  FAIL  CSP blocks www.google.com, so Analytics hits are dropped"; fail=1; }
 
           echo
           [ $fail -eq 0 ] && echo "All checks passed." || { echo "Some checks failed."; exit 1; }
