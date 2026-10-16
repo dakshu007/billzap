@@ -19,9 +19,12 @@ const SECURITY = {
   'Content-Security-Policy':
     "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; " +
     "style-src 'self' 'unsafe-inline'; img-src 'self' data: https://www.google-analytics.com " +
-    "https://www.googletagmanager.com; font-src 'self'; connect-src 'self' " +
+    "https://www.googletagmanager.com https://www.google.com https://*.g.doubleclick.net; " +
+    "font-src 'self'; connect-src 'self' " +
     "https://www.google-analytics.com https://*.google-analytics.com " +
-    "https://*.analytics.google.com https://www.googletagmanager.com; " +
+    "https://*.analytics.google.com https://www.googletagmanager.com " +
+    // Where GA4 sends hits when Google signals is on; see worker.js.
+    "https://www.google.com https://*.g.doubleclick.net; " +
     "form-action 'self'; frame-ancestors 'self'; base-uri 'self'; object-src 'none'; " +
     'upgrade-insecure-requests',
   'X-Content-Type-Options': 'nosniff',
