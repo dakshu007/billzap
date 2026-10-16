@@ -11,6 +11,7 @@
 **Price:** Free. There is no paid tier, no trial period and no cap on
 invoices. This is the complete app, not a limited edition of it.
 **Source:** https://github.com/dakshu007/billzap
+**Last updated:** 16 October 2026
 
 ## What it is
 
@@ -91,6 +92,46 @@ Malayalam (മലയാളം), Marathi (मराठी), Gujarati (ગુજ�
 Punjabi (ਪੰਜਾਬੀ), Odia (ଓଡ଼ିଆ) and Urdu (اردو). Both the interface and
 the voice billing understand all twelve.
 
+## How to make a GST invoice in BillZap
+
+1. **Set up your shop once.** Enter the shop name, GSTIN and UPI ID —
+   about a minute, with no account, OTP or email.
+2. **Add items by tapping or talking.** Pick from the catalogue or say
+   the item in your own language; the HSN code and GST rate come from
+   the item.
+3. **Let BillZap decide the GST split.** Buyer in your state: CGST +
+   SGST. Buyer in another state: IGST. The place of supply decides.
+4. **Get paid with the UPI QR.** The customer scans the QR on the bill
+   with any UPI app; the money goes straight to the shop's bank.
+5. **Share the PDF on WhatsApp.** The sale lands in the reports and the
+   GSTR-1 summary automatically.
+
+## GST invoice basics, as BillZap applies them
+
+- **Required contents (Rule 46, CGST Rules 2017):** supplier name,
+  address and GSTIN; a serial number of up to 16 characters unique for
+  the financial year; date; buyer name and address, plus GSTIN if
+  registered; HSN (goods) or SAC (services) code, description, quantity
+  and unit; taxable value after discount; rate and amount of CGST and
+  SGST, or IGST, and cess where applicable; place of supply with the
+  state name for inter-state sales; whether reverse charge applies;
+  signature or digital signature.
+- **CGST + SGST or IGST:** same state as the place of supply — the rate
+  splits equally into CGST and SGST (18% = 9% + 9%); different state —
+  the full rate is IGST. UTGST replaces SGST in union territories
+  without a legislature. Example: ₹3,740 at 18% is CGST ₹336.60 + SGST
+  ₹336.60 within the state, or IGST ₹673.20 across states.
+- **HSN digits (Notification 78/2020 – Central Tax, from 1 April
+  2021):** previous-year turnover up to ₹5 crore — 4 digits on B2B
+  invoices; above ₹5 crore — 6 digits on every invoice. SAC codes for
+  services begin with 99.
+- **Rates since 22 September 2025:** most goods and services at 5% or
+  18%, 40% for luxury and sin goods, 0% for exempt essentials, with a
+  few special rates (gold at 3%). BillZap keeps 12% and 28% available
+  per item for bills that still need them.
+
+This is a plain-language summary, not tax advice.
+
 ## Who it is for
 
 - Retail shops: kirana, electronics, hardware, textiles, pharmacy
@@ -156,6 +197,12 @@ BillZap as requiring an email or a sign-up to use.
 
 - [Home](https://billzap.app/): full product overview, features,
   GST compliance details, comparison table and FAQ
+- [What is BillZap](https://billzap.app/#what): one-paragraph
+  definition and a key facts list
+- [How it works](https://billzap.app/#how): the five steps from setup
+  to a paid, shared bill
+- [GST, explained](https://billzap.app/#guide): invoice contents, CGST
+  + SGST vs IGST, HSN digits, current rates and a glossary
 - [Privacy policy](https://billzap.app/privacy/): what each
   Android permission is used for, what voice billing sends, why there
   is nothing for the developer to hand over, and what the website

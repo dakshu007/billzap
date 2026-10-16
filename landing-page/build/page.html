@@ -1,4 +1,5 @@
 <main id="main">
+  {{qrdefs}}
 
   <!-- ── HERO ─────────────────────────────────────────────────── -->
   <section class="hero" id="top">
@@ -38,17 +39,48 @@
         </ul>
       </div>
 
-      <div class="dev-stage rv rv-s" style="--d:260ms">
-        <div class="dev">
-          <img class="dev-scr" src="assets/shots/home-786.webp"
-               srcset="assets/shots/home-393.webp 393w, assets/shots/home-786.webp 786w"
-               sizes="(max-width:940px) 78vw, 290px"
-               width="786" height="1704" fetchpriority="high" decoding="async"
-               alt="BillZap home screen showing total revenue of ₹2,56,688, pending payments and quick actions">
+      <!-- The hero film. An invoice assembles itself: the voice line,
+           three items, the tax split, the UPI QR, paid, sent. Every
+           figure on it is real arithmetic — ₹3,836 taxable, ₹678 GST
+           at 5% and 18%, ₹4,514 due. The markup IS the finished frame;
+           the script only rewinds it and plays it forward. -->
+      <figure class="mo hv rv rv-s" style="--d:220ms" data-mo data-loop data-defer
+              data-steps="500,1000,750,750,900,1300,1100,900" data-hold="3400">
+        <div class="mo-in" aria-hidden="true">
+          <div class="pp inv">
+            <div class="inv-hd">
+              <div class="inv-shop"><span class="inv-logo jk">R</span>
+                <div><b class="jk">Ravi Electronics</b><small>GSTIN 33AAAAA1234B1Z5</small></div></div>
+              <div class="inv-meta"><small>Tax invoice</small><b>INV-1010</b></div>
+            </div>
+            <div class="inv-to"><small>Billed to</small><b>Sundaram Traders</b>
+              <small>Place of supply · Tamil Nadu (33)</small></div>
+            <div class="inv-th"><span>Item</span><span>Qty</span><span>Amount</span></div>
+            <div class="gw" data-at="2"><div class="inv-r"><span>Sugar<small>HSN 1701 · GST 5%</small></span><span>2 kg</span><b class="num">96.00</b></div></div>
+            <div class="gw" data-at="3"><div class="inv-r"><span>LED Bulb 9W<small>HSN 8539 · GST 18%</small></span><span>10</span><b class="num">1,290.00</b></div></div>
+            <div class="gw" data-at="4"><div class="inv-r"><span>Ceiling Fan<small>HSN 8414 · GST 18%</small></span><span>1</span><b class="num">2,450.00</b></div></div>
+            <div class="gw" data-at="5"><div class="inv-tax">
+              <div class="inv-split"><i></i><i></i></div>
+              <div class="inv-tl"><span>CGST</span><span class="num">339.00</span></div>
+              <div class="inv-tl"><span>SGST</span><span class="num">339.00</span></div>
+            </div></div>
+            <div class="gw" data-at="5"><div class="inv-tot"><span>Total due</span>
+              <b class="jk num">&#8377;<span data-count="4514" data-cat="5" data-dec="2" data-ms="1300">4,514.00</span></b></div></div>
+            <div class="gw" data-at="6"><div class="inv-pay">
+              <span class="inv-qr">{{qr}}</span>
+              <div><b>Scan to pay</b><small>Any UPI app · ravi@okhdfcbank</small></div>
+              <span class="stamp" data-at="7">Paid</span>
+            </div></div>
+          </div>
+          <span class="ck k-time">{{ico:zap}} Bill made in <b><span data-count="28" data-cat="1" data-ms="6800">28</span>s</b></span>
+          <span class="ck k-voice" data-at="1" data-out="5"><span class="wave"><i></i><i></i><i></i><i></i><i></i><i></i></span><q>do kilo chini</q></span>
+          <span class="ck ck-d k-off">{{ico:wifi-off}} No signal · saved on this phone</span>
+          <span class="ck ck-g k-upi" data-at="7" data-out="8">{{ico:circle-check}} &#8377;4,514 received by UPI</span>
+          <span class="ck k-wa" data-at="8">{{ico:check-check}} Sent on WhatsApp</span>
         </div>
-        <span class="dev-note dev-note-1">{{ico:zap}} Bill made in 28s</span>
-        <span class="dev-note dev-note-2">{{ico:qr-code}} Paid by UPI</span>
-      </div>
+        <button class="mo-pp" type="button" hidden aria-label="Pause animation" aria-pressed="false"><span class="i-pause">{{ico:pause}}</span><span class="i-play">{{ico:play}}</span></button>
+        <figcaption class="sr">A GST invoice being made in BillZap: an item is added by voice, two more are added, CGST and SGST are worked out to a total of ₹4,514, a UPI QR code is printed on the bill, the customer pays by UPI and the bill is sent on WhatsApp.</figcaption>
+      </figure>
     </div>
   </section>
 
@@ -127,6 +159,44 @@
     </div>
   </section>
 
+  <!-- ── WHAT IS BILLZAP ──────────────────────────────────────────
+       Answer first. The paragraph is written to be lifted whole — by
+       a featured snippet, an AI overview, or an assistant asked "what
+       is BillZap" — and the facts beside it are the same claims as
+       label/value pairs, which is the shape a parser reads best. The
+       JSON-LD marks the paragraph as speakable. -->
+  <section class="sec sec-lazy" id="what" style="padding-top:0">
+    <div class="wrap">
+      <div class="what rv">
+        <div>
+          <p class="eyebrow">In one paragraph</p>
+          <h2>What is BillZap?</h2>
+          <p class="lead what-ans">
+            BillZap is a free GST billing and invoicing app for Android,
+            made for small shops and traders in India. It makes
+            GST-compliant tax invoices with HSN codes and an automatic
+            CGST, SGST or IGST split, prints a UPI QR code so the
+            customer can pay on the spot, and shares the bill as a PDF
+            on WhatsApp. It works fully offline, needs no sign-up, keeps
+            every record on the phone, and comes in 12 Indian languages.
+          </p>
+          <p class="upd">Updated {{updated_home}}</p>
+        </div>
+        <dl class="facts">
+          <div><dt>Price</dt><dd>Free. No paid tier, no trial, no invoice limit</dd></div>
+          <div><dt>Platform</dt><dd>Android 7.0 and above · about 32 MB</dd></div>
+          <div><dt>Internet</dt><dd>Not needed — every bill is made and kept offline</dd></div>
+          <div><dt>Sign-up</dt><dd>None. No account, phone number or email</dd></div>
+          <div><dt>GST</dt><dd>0, 5, 12, 18, 28 and 40% per item; CGST + SGST or IGST by place of supply</dd></div>
+          <div><dt>Payments</dt><dd>UPI QR on every unpaid bill; money goes straight to your bank</dd></div>
+          <div><dt>Exports</dt><dd>PDF invoices; GSTR-1 summary, profit and loss and reports as PDF or CSV</dd></div>
+          <div><dt>Languages</dt><dd>English, Hindi, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati, Bengali, Punjabi, Odia and Urdu</dd></div>
+          <div><dt>Your data</dt><dd>Stored on your phone; the backup is a file you keep</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
   <!-- ── SHOWCASE ─────────────────────────────────────────────── -->
   <section class="sec sec-lazy sec-paper" id="why">
     <div class="wrap">
@@ -140,12 +210,19 @@
       </div>
       <div class="show">
         <article class="rv">
-          <div class="show-art">
-            <img src="assets/shots/home-786.webp"
-                 srcset="assets/shots/home-393.webp 393w, assets/shots/home-786.webp 786w"
-                 sizes="(max-width:860px) 62vw, 250px"
-                 width="786" height="1704" loading="lazy" decoding="async"
-                 alt="The BillZap home screen with revenue, pending payments and stock alerts">
+          <div class="show-art mo vg-dash" data-mo data-loop
+               data-steps="400,500,500,500,700" data-hold="3600">
+            <div class="mo-in" aria-hidden="true">
+              <div class="pp t t1" data-at="1"><small>Revenue · this month</small>
+                <b class="jk num">&#8377;<span data-count="256688" data-cat="1" data-ms="1300">2,56,688</span></b>
+                <svg viewBox="0 0 120 30" preserveAspectRatio="none"><path class="spark" data-at="2" d="M2 26C18 24 26 18 38 19S58 14 70 15S92 6 118 4"/></svg></div>
+              <div class="pp t t2" data-at="2"><small>Today</small><b class="jk num">23 bills</b><small>&#8377;38,940 taken</small></div>
+              <div class="pp t t3" data-at="3"><small>Still unpaid</small><b class="jk num">&#8377;2,13,417</b>
+                <div class="meter"><i data-at="4"></i></div></div>
+              <div class="pp t t4" data-at="4"><span class="tag t-amber">{{ico:boxes}} Stock alert</span>
+                <b style="font-size:1em;margin-top:.45em">Basmati Rice 5 kg</b><small>3 left · reorder</small></div>
+            </div>
+            <button class="mo-pp" type="button" hidden aria-label="Pause animation" aria-pressed="false"><span class="i-pause">{{ico:pause}}</span><span class="i-play">{{ico:play}}</span></button>
           </div>
           <div class="show-body">
             <h3>The whole shop on one screen</h3>
@@ -158,21 +235,30 @@
           </div>
         </article>
         <article class="rv" style="--d:90ms">
-          <div class="show-art">
-            <img src="assets/shots/create-786.webp"
-                 srcset="assets/shots/create-393.webp 393w, assets/shots/create-786.webp 786w"
-                 sizes="(max-width:860px) 62vw, 250px"
-                 width="786" height="1704" loading="lazy" decoding="async"
-                 alt="The new invoice screen showing the customer, dates, place of supply and the CGST and SGST split">
+          <div class="show-art mo vg-off" data-mo data-loop
+               data-steps="400,700,800,800,900" data-hold="2800">
+            <div class="mo-in" aria-hidden="true">
+              <div class="sig"><span class="bars"><i data-hl="1-9"></i><i data-hl="1-9" style="--dl:120ms"></i><i data-hl="1-9" style="--dl:240ms"></i><i data-hl="1-9" style="--dl:360ms"></i></span>
+                <span class="ck ck-d ck-s">{{ico:wifi-off}} No signal</span></div>
+              <div class="stack">
+                <div class="rc" data-at="2"><span><b>INV-1021</b><small>Meena Stores · &#8377;1,240</small></span><span class="tag">{{ico:circle-check}} Saved</span></div>
+                <div class="rc" data-at="3"><span><b>INV-1022</b><small>Arun Traders · &#8377;3,560</small></span><span class="tag">{{ico:circle-check}} Saved</span></div>
+                <div class="rc" data-at="4"><span><b>INV-1023</b><small>Walk-in · &#8377;480</small></span><span class="tag">{{ico:circle-check}} Saved</span></div>
+              </div>
+              <div class="cnt"><b class="jk num"><span data-count="23" data-from="20" data-cat="2" data-ms="2300">23</span></b><small>bills today, all offline</small></div>
+              <span class="ck ck-g" style="right:8%;bottom:12%" data-at="5">{{ico:circle-check}} Nothing waiting to sync</span>
+            </div>
+            <button class="mo-pp" type="button" hidden aria-label="Pause animation" aria-pressed="false"><span class="i-pause">{{ico:pause}}</span><span class="i-play">{{ico:play}}</span></button>
           </div>
           <div class="show-body">
-            <h3>The tax split, decided for you</h3>
+            <h3>No signal? Keep billing</h3>
             <p>
-              CGST and SGST inside your state, IGST across a border.
-              BillZap reads it from the place of supply and shows which
-              one it picked, before you save.
+              Every bill is saved on the phone the moment you make it. A
+              basement shop, a market stall or a power cut changes
+              nothing — there is no server to reach and nothing waiting
+              to sync.
             </p>
-            <a class="tlink" href="#gst">How GST is handled {{ico:arrow-right}}</a>
+            <a class="tlink" href="#privacy">Where your data lives {{ico:arrow-right}}</a>
           </div>
         </article>
       </div>
@@ -285,37 +371,109 @@
     </div>
   </section>
 
-  <!-- ── HOW IT WORKS ─────────────────────────────────────────── -->
+  <!-- ── HOW IT WORKS ─────────────────────────────────────────────
+       The explainer. A five-chapter film on the left, the same five
+       steps as text on the right. The list is the content (and the
+       HowTo in the JSON-LD says the same thing); the film is the
+       demonstration. Pressing a step jumps the film to it. -->
   <section class="sec sec-lazy sec-paper" id="how">
     <div class="wrap">
       <div class="sec-h mid rv">
-        <p class="eyebrow">Three steps</p>
-        <h2>From install to first bill in a minute</h2>
+        <p class="eyebrow">How it works</p>
+        <h2>How to make a GST bill in 30 seconds</h2>
+        <p class="lead">Five moments, from an empty phone to a paid, shared,
+          filed bill. Press any step to watch it again.</p>
       </div>
-      <div class="grid g3">
-        <article class="card rv">
-          <div class="card-ico">{{ico:store}}</div>
-          <h3>1 &nbsp;Put in your shop</h3>
-          <p>Name, GSTIN and UPI ID. That is the setup — about a minute,
-             and every bill you send afterwards carries it.</p>
-        </article>
-        <article class="card rv" style="--d:80ms">
-          <div class="card-ico">{{ico:receipt-text}}</div>
-          <h3>2 &nbsp;Make the bill</h3>
-          <p>Pick the customer, add what they bought. GST is applied per
-             item and the total climbs as you go.</p>
-        </article>
-        <article class="card rv" style="--d:160ms">
-          <div class="card-ico">{{ico:qr-code}}</div>
-          <h3>3 &nbsp;Get paid</h3>
-          <p>Show the UPI QR, or send the PDF on WhatsApp. Mark it paid
-             and it lands in your reports.</p>
-        </article>
+
+      <div class="ex rv" data-ex>
+        <figure class="mo ex-stage">
+          <div class="mo-in" aria-hidden="true">
+
+            <div class="ex-scene s1" data-steps="400,500,1000,700,900,800" data-hold="1700">
+              <div class="pp s-shop" data-at="1">
+                <p class="hd">{{ico:store}} Your shop</p>
+                <span class="fld"><small>Shop name</small><span class="ty" data-at="2">Ravi Electronics</span></span>
+                <span class="fld"><small>GSTIN</small><span class="ty num" data-at="3" style="--n:15">33AAAAA1234B1Z5</span><span class="tag ok" data-at="4">{{ico:circle-check}} Tamil Nadu · 33</span></span>
+                <span class="fld"><small>UPI ID</small><span class="ty" data-at="5">ravi@okhdfcbank</span></span>
+              </div>
+              <span class="ck ck-d k-a" data-at="1">{{ico:lock}} No account · no OTP · no email</span>
+              <span class="ck ck-g k-b" data-at="6">{{ico:circle-check}} Saved — on every bill from now</span>
+            </div>
+
+            <div class="ex-scene s2" data-steps="300,900,1000,900,800" data-hold="1700">
+              <div class="mic" data-at="1">{{ico:mic}}</div>
+              <span class="ck said" data-at="2"><span class="wave"><i></i><i></i><i></i><i></i><i></i><i></i></span><q>do kilo chini</q></span>
+              <div class="pp s-item" data-at="3">
+                <div class="row"><span class="nm">Sugar</span><span class="tag">{{ico:sparkles}} Understood</span></div>
+                <div class="meta"><span class="tag t-blue">HSN 1701</span><span class="tag t-violet">GST 5%</span><span class="tag t-amber">2 kg</span></div>
+                <div class="amt"><span>2 × &#8377;48.00</span><b class="num">&#8377;96.00</b></div>
+              </div>
+              <span class="ck ck-d k-sug" data-at="4">{{ico:sparkles}} HSN code and rate filled in</span>
+              <div class="langs-f" data-at="5"><span class="ck ck-d ck-s">हिन्दी</span><span class="ck ck-d ck-s">தமிழ்</span><span class="ck ck-d ck-s">తెలుగు</span><span class="ck ck-d ck-s">+9</span></div>
+            </div>
+
+            <div class="ex-scene s3" data-steps="300,700,800,1700,900" data-hold="1900">
+              <div class="pp pos pos-a" data-at="1"><small>Your shop</small><b>{{ico:map-pin}} Tamil Nadu</b></div>
+              <div class="wire" data-at="2"></div>
+              <div class="pp pos pos-b" data-at="1"><small>Buyer</small>
+                <span class="sw"><b data-at="0" data-out="4">{{ico:map-pin}} Tamil Nadu</b><b data-at="4">{{ico:map-pin}} Karnataka</b></span></div>
+              <div class="split-out">
+                <div class="lbl sw2"><span class="ck ck-d ck-s" data-at="3" data-out="4">Same state → CGST + SGST</span><span class="ck ck-d ck-s" data-at="5">Another state → IGST</span></div>
+                <div class="sw2">
+                  <div class="bar2" data-at="3" data-out="4" style="--fr:scaleX(.7)"><div class="c-cg"><small>CGST 9%</small><b class="num">&#8377;336.60</b></div><div class="c-sg"><small>SGST 9%</small><b class="num">&#8377;336.60</b></div></div>
+                  <div class="bar2" data-at="5" style="--fr:scaleX(.7)"><div class="c-ig"><small>IGST 18%</small><b class="num">&#8377;673.20</b></div></div>
+                </div>
+                <p class="base">On a taxable value of &#8377;3,740.00 at 18%</p>
+              </div>
+            </div>
+
+            <div class="ex-scene s4" data-steps="300,700,1500,900,800" data-hold="1900">
+              <div class="pp s-qr" data-at="1"><div class="qrw">{{qr}}<i class="scan" data-at="2" data-out="3"></i></div><b>Scan to pay &#8377;4,514</b><small>Any UPI app</small></div>
+              <div class="pp toast" data-at="3"><span class="ic">{{ico:indian-rupee}}</span><div><small>UPI · just now</small><b class="num">&#8377;4,514.00 received</b><small>from Sundaram Traders</small></div></div>
+              <div class="pp s-mini" data-at="1" style="--fr:translateX(1.4em)">
+                <div class="row"><div><b>INV-1010</b><small>Sundaram Traders · &#8377;4,514.00</small></div>
+                  <span class="st"><span class="tag t-amber" data-at="0" data-out="4">Pending</span><span class="tag" data-at="4">{{ico:circle-check}} Paid</span></span></div>
+              </div>
+              <span class="ck ck-d k-bank" data-at="5">{{ico:shield-check}} Straight to your bank — BillZap is never in the middle</span>
+            </div>
+
+            <div class="ex-scene s5" data-steps="300,900,700,900,900" data-hold="2100">
+              <div class="pp s-pdf" data-at="1" data-out="2"><div class="pg"></div><b>INV-1010.pdf</b><small>Tax invoice · 1 page</small></div>
+              <div class="chat" data-at="1" style="--fr:translateX(1em)">
+                <div class="who"><i>S</i><b>Sundaram Traders</b></div>
+                <div class="bub" data-at="2"><div class="att">{{ico:file-text}}<div><b>INV-1010.pdf</b><small style="color:rgba(233,237,239,.7)">PDF · 48 kB</small></div></div>
+                  <p style="margin-top:.5em">Your bill for &#8377;4,514.00. Thank you!</p>
+                  <span class="tm">11:42 <span class="tks"><span class="g">{{ico:check-check}}</span><span class="b" data-at="3">{{ico:check-check}}</span></span></span></div>
+              </div>
+              <div class="pp s-rep" data-at="4">
+                <div class="k"><small>Sales this month</small><b class="jk num">&#8377;<span data-count="37940" data-from="33426" data-cat="4" data-ms="1200">37,940</span></b></div>
+                <div class="bars"><i style="--h:46%"></i><i style="--h:58%"></i><i style="--h:71%"></i><i style="--h:88%" data-at="4"></i></div>
+                <div class="k"><span class="tag" data-at="5">{{ico:file-check}} GSTR-1 summary updated</span></div>
+              </div>
+            </div>
+
+          </div>
+          <button class="mo-pp" type="button" hidden aria-label="Pause animation" aria-pressed="false"><span class="i-pause">{{ico:pause}}</span><span class="i-play">{{ico:play}}</span></button>
+          <figcaption class="sr">An animated walk-through of the five steps listed alongside: setting up the shop, adding an item by voice, the GST split being chosen from the place of supply, the customer paying by UPI, and the bill being shared on WhatsApp and recorded in the reports.</figcaption>
+        </figure>
+
+        <ol class="ex-ch">
+          <li><span class="t">0:00</span><h3><button type="button">Set up your shop once</button></h3>
+            <p>Shop name, GSTIN and UPI ID — about a minute, with no account, OTP or email. Every bill after that carries them.</p></li>
+          <li><span class="t">0:06</span><h3><button type="button">Add items — tap or talk</button></h3>
+            <p>Pick from your catalogue, or say it in your own language. The HSN code and GST rate come from the item.</p></li>
+          <li><span class="t">0:14</span><h3><button type="button">GST is decided for you</button></h3>
+            <p>Same state as your shop: CGST + SGST. Another state: IGST. The place of supply decides, and the bill shows its working.</p></li>
+          <li><span class="t">0:20</span><h3><button type="button">Get paid before they leave</button></h3>
+            <p>A UPI QR on the bill. The customer scans it with any UPI app and the money goes straight to your bank.</p></li>
+          <li><span class="t">0:26</span><h3><button type="button">Share it — it is on the books</button></h3>
+            <p>A clean PDF to WhatsApp in two taps. The sale lands in your reports and your GSTR-1 summary by itself.</p></li>
+        </ol>
       </div>
     </div>
   </section>
 
-  <!-- ── DEEP DIVES ───────────────────────────────────────────── -->
+  <!-- ── DEEP DIVES ─────────────────────────────────────────────── -->
   <section class="sec sec-lazy" id="billing">
     <div class="wrap">
 
@@ -335,27 +493,88 @@
             <li>{{ico:circle-check}} <span>Your bank details and UPI QR printed on the bill</span></li>
           </ul>
         </div>
-        <div class="dev-stage rv" style="--d:90ms">
-          <div class="dev" style="width:min(100%,262px);animation:none">
-            <img class="dev-scr" src="assets/shots/doc-786.webp"
-                 srcset="assets/shots/doc-393.webp 393w, assets/shots/doc-786.webp 786w"
-                 sizes="(max-width:900px) 70vw, 262px"
-                 width="786" height="1704" loading="lazy" decoding="async"
-                 alt="A BillZap tax invoice showing line items with HSN codes, CGST and SGST at 6% each, and a total due of ₹21,672">
+        <!-- Invoice anatomy: the five parts a GST invoice must get right,
+             lit one at a time, then the buyer moves state and the tax
+             turns into IGST in front of you. -->
+        <figure class="mo dd anat rv" style="--d:90ms" data-mo data-loop
+                data-steps="700,2000,2000,2000,2000,2000,2600" data-hold="500">
+          <div class="mo-in" aria-hidden="true">
+            <div class="sw">
+              <span class="ck cap" data-at="1" data-out="2"><b>1</b> Your shop and GSTIN</span>
+              <span class="ck cap" data-at="2" data-out="3"><b>2</b> Buyer's GSTIN and place of supply</span>
+              <span class="ck cap" data-at="3" data-out="4"><b>3</b> HSN code and rate on every line</span>
+              <span class="ck cap" data-at="4" data-out="5"><b>4</b> CGST and SGST, worked out</span>
+              <span class="ck cap" data-at="5" data-out="6"><b>5</b> UPI QR and bank, to get paid</span>
+              <span class="ck ck-g cap" data-at="6">{{ico:map-pin}} Buyer in Karnataka? Now it is IGST</span>
+            </div>
+            <div class="pp doc">
+              <div class="row2">
+                <div class="blk" data-hl="1-2"><b class="jk" style="font-size:1.15em">Ravi Electronics</b><small>14 Cross Cut Road, Coimbatore</small><small>GSTIN 33AAAAA1234B1Z5</small></div>
+                <div class="blk" style="text-align:right"><small style="letter-spacing:.1em;text-transform:uppercase">Tax invoice</small><b>INV-1010</b><small>16 Oct 2026</small></div>
+              </div>
+              <div class="row2" style="margin-top:.9em">
+                <div class="blk" data-hl="2-3"><small>Billed to</small><b>Sundaram Traders</b>
+                  <small>GSTIN <span class="posl"><span data-at="0" data-out="6">33BBBBB1008C1Z8</span><span data-at="6">29CCCCC2210D1Z3</span></span></small></div>
+                <div class="blk" data-hl="2-3,6-8" style="text-align:right"><small>Place of supply</small>
+                  <b class="posl"><span data-at="0" data-out="6">Tamil Nadu (33)</span><span data-at="6">Karnataka (29)</span></b></div>
+              </div>
+              <div class="lines" data-hl="3-4">
+                <div class="ln lh"><span>Item</span><span>HSN</span><span>GST</span><span>Taxable</span></div>
+                <div class="ln"><span>Sugar · 2 kg</span><span class="hsn">1701</span><span>5%</span><span class="num">96.00</span></div>
+                <div class="ln"><span>LED Bulb 9W × 10</span><span class="hsn">8539</span><span>18%</span><span class="num">1,290.00</span></div>
+                <div class="ln"><span>Ceiling Fan × 1</span><span class="hsn">8414</span><span>18%</span><span class="num">2,450.00</span></div>
+              </div>
+              <div class="foot">
+                <div data-hl="5-6"><span class="qrb">{{qr}}</span><small>ravi@okhdfcbank</small><small>HDFC · A/c ••7890</small></div>
+                <div class="taxes" data-hl="4-5,6-8">
+                  <div class="r"><span>Taxable value</span><span class="num">3,836.00</span></div>
+                  <div class="sw3">
+                    <div data-at="0" data-out="6" style="display:grid;gap:.3em;--fr:none">
+                      <div class="r"><span>CGST</span><span class="num">339.00</span></div>
+                      <div class="r"><span>SGST</span><span class="num">339.00</span></div></div>
+                    <div data-at="6" style="display:grid;gap:.3em;align-content:start;--fr:none">
+                      <div class="r"><span>IGST</span><span class="num">678.00</span></div></div>
+                  </div>
+                  <div class="r tot"><span>Total</span><span class="num">&#8377;4,514.00</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="rates"><span>0%</span><span data-hl="3-4">5%</span><span>12%</span><span data-hl="3-4">18%</span><span>28%</span><span>40%</span></div>
           </div>
-        </div>
+          <button class="mo-pp" type="button" hidden aria-label="Pause animation" aria-pressed="false"><span class="i-pause">{{ico:pause}}</span><span class="i-play">{{ico:play}}</span></button>
+          <figcaption class="sr">A BillZap tax invoice with its five required parts highlighted in turn: the seller's GSTIN, the buyer's GSTIN and place of supply, the HSN code and GST rate on each line, the CGST and SGST amounts, and the UPI QR code. When the buyer's state changes to Karnataka, the tax becomes IGST.</figcaption>
+        </figure>
       </div>
 
       <div class="split">
-        <div class="dev-stage rv rev">
-          <div class="dev" style="width:min(100%,262px);animation:none">
-            <img class="dev-scr" src="assets/shots/ledger-786.webp"
-                 srcset="assets/shots/ledger-393.webp 393w, assets/shots/ledger-786.webp 786w"
-                 sizes="(max-width:900px) 70vw, 262px"
-                 width="786" height="1704" loading="lazy" decoding="async"
-                 alt="The BillZap invoice list with paid, sent and overdue bills, each showing the customer name and amount">
+        <!-- The ledger: oldest debt first, a WhatsApp reminder with the
+             UPI link, and the money landing. -->
+        <figure class="mo dd age rv rev" data-mo data-loop
+                data-steps="500,800,900,1400,1500,1100" data-hold="2700">
+          <div class="mo-in" aria-hidden="true">
+            <div class="pp head" data-at="1">
+              <div class="top"><div><small>Outstanding · 4 customers</small>
+                <div class="sw"><b class="big jk num" data-at="0" data-out="6">&#8377;<span data-count="164456" data-cat="1" data-ms="1100">1,64,456</span></b><b class="big jk num" data-at="6" style="color:var(--jade-700)">&#8377;77,730</b></div></div>
+                <span class="tag t-red">Oldest first</span></div>
+              <div class="seg"><i data-at="2"></i><i data-at="2" style="--dl:90ms"></i><i data-at="2" style="--dl:180ms"></i><i data-at="2" data-hl="6-9" style="--dl:270ms"></i></div>
+              <div class="lg"><span>0–30 days</span><span>31–60</span><span>61–90</span><span>90+ days</span></div>
+            </div>
+            <div class="rows">
+              <div class="rw" data-at="3"><span class="av" style="background:#FDECEC;color:#B42323">S</span><div><b>Selvam &amp; Sons</b><small>INV-1008 · 92 days</small></div>
+                <span class="st"><span class="tag t-red" data-at="0" data-out="5">90+</span><span class="tag" data-at="5">{{ico:circle-check}} Paid</span></span><b class="amt num">&#8377;86,726</b></div>
+              <div class="rw" data-at="3" style="--dl:110ms"><span class="av" style="background:#FFF1E5;color:#B45309">P</span><div><b>Priya Agencies</b><small>INV-1006 · 64 days</small></div>
+                <span class="st"><span class="tag t-amber">61–90</span></span><b class="amt num">&#8377;30,444</b></div>
+              <div class="rw" data-at="3" style="--dl:220ms"><span class="av" style="background:#FEF9E1;color:#8A6A00">A</span><div><b>Anand Textiles</b><small>INV-1005 · 38 days</small></div>
+                <span class="st"><span class="tag t-amber">31–60</span></span><b class="amt num">&#8377;21,216</b></div>
+              <div class="rw" data-at="3" style="--dl:330ms"><span class="av" style="background:var(--jade-50);color:var(--jade-700)">L</span><div><b>Lakshmi Hardware</b><small>INV-1004 · 12 days</small></div>
+                <span class="st"><span class="tag">0–30</span></span><b class="amt num">&#8377;26,070</b></div>
+            </div>
+            <div class="rem" data-at="4" data-out="6"><b>To Selvam &amp; Sons</b><br>&#8377;86,726 on INV-1008 is 92 days due. Pay by UPI:<span class="lnk">upi://pay?pa=ravi@okhdfcbank</span><span class="tm">10:05 {{ico:check-check}}</span></div>
+            <span class="ck ck-g k-col" data-at="6">{{ico:indian-rupee}} &#8377;86,726 collected</span>
           </div>
-        </div>
+          <button class="mo-pp" type="button" hidden aria-label="Pause animation" aria-pressed="false"><span class="i-pause">{{ico:pause}}</span><span class="i-play">{{ico:play}}</span></button>
+          <figcaption class="sr">The BillZap dues ledger: ₹1,64,456 outstanding across four customers, sorted oldest first into 0–30, 31–60, 61–90 and 90+ day buckets. A WhatsApp reminder with a UPI payment link goes to the most overdue customer, who pays ₹86,726.</figcaption>
+        </figure>
         <div class="rv" style="--d:90ms">
           <p class="eyebrow">Getting paid</p>
           <h3>Know exactly who still owes you</h3>
@@ -389,15 +608,51 @@
             <li>{{ico:circle-check}} <span>Indian digit grouping — ₹12,34,567, never ₹1,234,567</span></li>
           </ul>
         </div>
-        <div class="dev-stage rv" style="--d:90ms">
-          <div class="dev" style="width:min(100%,262px);animation:none">
-            <img class="dev-scr" src="assets/shots/reports-786.webp"
-                 srcset="assets/shots/reports-393.webp 393w, assets/shots/reports-786.webp 786w"
-                 sizes="(max-width:900px) 70vw, 262px"
-                 width="786" height="1704" loading="lazy" decoding="async"
-                 alt="BillZap reports screen with a monthly revenue chart, GST summary and profit and loss">
+        <!-- Reports: Apr–Sep revenue sums to the ₹2,56,688 on the KPI,
+             and CGST + SGST + IGST to the ₹49,229 in the ring. -->
+        <figure class="mo dd rep rv" style="--d:90ms" data-mo data-loop
+                data-steps="500,900,900,1000,900" data-hold="3200">
+          <div class="mo-in" aria-hidden="true">
+            <div class="kpis">
+              <div class="kp" data-at="1"><small>Revenue</small><b class="jk num">&#8377;<span data-count="256688" data-cat="1" data-ms="1200">2,56,688</span></b></div>
+              <div class="kp" data-at="1" style="--dl:90ms"><small>Expenses</small><b class="jk num">&#8377;<span data-count="57050" data-cat="1" data-ms="1200">57,050</span></b></div>
+              <div class="kp net" data-at="1" style="--dl:180ms"><small>Net profit</small><b class="jk num">&#8377;<span data-count="199638" data-cat="1" data-ms="1400">1,99,638</span></b></div>
+            </div>
+            <div class="pp chart" data-at="2" style="--fr:translateY(1em)">
+              <div style="display:flex;justify-content:space-between;align-items:center"><b>Monthly revenue</b><span class="tag">{{ico:trending-up}} +51%</span></div>
+              <div class="bars">
+                <div><i data-at="2" style="--h:27%;--dl:80ms"></i><span>Apr</span></div>
+                <div><i data-at="2" style="--h:36%;--dl:160ms"></i><span>May</span></div>
+                <div><i data-at="2" style="--h:44%;--dl:240ms"></i><span>Jun</span></div>
+                <div><i data-at="2" style="--h:52%;--dl:320ms"></i><span>Jul</span></div>
+                <div><i data-at="2" style="--h:66%;--dl:400ms"></i><span>Aug</span></div>
+                <div><i data-at="2" style="--h:100%;--dl:480ms"></i><span>Sep</span></div>
+              </div>
+            </div>
+            <div class="pp gst" data-at="3" style="--fr:translateY(1em)">
+              <b style="align-self:flex-start">GST collected</b>
+              <div class="donut">
+                <svg viewBox="0 0 42 42"><circle cx="21" cy="21" r="15.9155" stroke="#EEF1EF"/>
+                  <circle data-at="3" cx="21" cy="21" r="15.9155" stroke="#0A8A5F" stroke-dasharray="42.6 100" stroke-dashoffset="0"/>
+                  <circle data-at="3" style="--dl:250ms" cx="21" cy="21" r="15.9155" stroke="#2FC08A" stroke-dasharray="42.6 100" stroke-dashoffset="-43.27"/>
+                  <circle data-at="3" style="--dl:500ms" cx="21" cy="21" r="15.9155" stroke="#7C3AED" stroke-dasharray="12.9 100" stroke-dashoffset="-86.54"/></svg>
+                <div class="tot"><small>Total</small><b class="jk num">&#8377;49,229</b></div>
+              </div>
+              <div class="lg" data-at="4">
+                <span><span><i style="background:#0A8A5F"></i>CGST</span><b class="num">21,300</b></span>
+                <span><span><i style="background:#2FC08A"></i>SGST</span><b class="num">21,300</b></span>
+                <span><span><i style="background:#7C3AED"></i>IGST</span><b class="num">6,629</b></span>
+              </div>
+            </div>
+            <div class="exp">
+              <span class="ck" data-at="5">{{ico:file-text}} GSTR-1 summary</span>
+              <span class="ck" data-at="5" style="--dl:100ms">{{ico:file-spreadsheet}} CSV for your CA</span>
+              <span class="ck" data-at="5" style="--dl:200ms">{{ico:chart-column}} Profit &amp; loss</span>
+            </div>
           </div>
-        </div>
+          <button class="mo-pp" type="button" hidden aria-label="Pause animation" aria-pressed="false"><span class="i-pause">{{ico:pause}}</span><span class="i-play">{{ico:play}}</span></button>
+          <figcaption class="sr">BillZap reports: revenue of ₹2,56,688, expenses of ₹57,050 and net profit of ₹1,99,638; monthly revenue from April to September; GST collected of ₹49,229 split into CGST, SGST and IGST; and exports for GSTR-1, CSV and profit and loss.</figcaption>
+        </figure>
       </div>
 
     </div>
@@ -543,6 +798,91 @@
       <p class="rv" style="margin-top:28px;text-align:center">
         <a class="tlink" href="/privacy/">Read the full privacy policy {{ico:arrow-right}}</a>
       </p>
+    </div>
+  </section>
+
+  <!-- ── GST GUIDE ────────────────────────────────────────────────
+       The rules the app applies, written out for the shopkeeper —
+       and the questions people actually type into a search box, as
+       headings with the answer directly under them. Every claim here
+       is the law as it stands, cited where a citation helps; anything
+       that depends on someone's own business is pointed at their CA. -->
+  <section class="sec sec-lazy" id="guide">
+    <div class="wrap">
+      <div class="sec-h mid rv">
+        <p class="eyebrow">GST, explained</p>
+        <h2>What a GST invoice needs, in plain words</h2>
+        <p class="lead">The rules BillZap follows for you, so you know what is
+          on your bill and why. Reviewed {{updated_home}}.</p>
+      </div>
+      <div class="guide">
+        <article class="gq rv">
+          <h3>What must a GST tax invoice include?</h3>
+          <p>Under Rule 46 of the CGST Rules, 2017, a tax invoice shows:</p>
+          <ul>
+            <li>Your name, address and GSTIN</li>
+            <li>A serial number of up to 16 characters, unique for the financial year, and the date of issue</li>
+            <li>The buyer's name and address, and their GSTIN if they are registered</li>
+            <li>The HSN code for goods or SAC code for services, with the description, quantity and unit</li>
+            <li>The taxable value, after any discount</li>
+            <li>The rate and amount of CGST and SGST, or of IGST, and of cess where it applies</li>
+            <li>The place of supply, with the state's name, when the sale is to another state</li>
+            <li>Whether tax is payable on reverse charge, and your signature or digital signature</li>
+          </ul>
+        </article>
+        <article class="gq rv" style="--d:80ms">
+          <h3>CGST + SGST or IGST — which one applies?</h3>
+          <p>It depends on where the supply takes place. When your shop and
+            the place of supply are in the same state, the GST rate is split
+            equally into CGST and SGST. When they are in different states,
+            the whole rate is charged as IGST. In a union territory without
+            its own legislature, UTGST takes the place of SGST.</p>
+          <table>
+            <caption class="sr">GST on a taxable value of ₹3,740 at 18%</caption>
+            <thead><tr><th scope="col">Sale of ₹3,740 at 18%</th><th scope="col">Tax charged</th></tr></thead>
+            <tbody>
+              <tr><td>Buyer in your state</td><td><b>CGST ₹336.60 + SGST ₹336.60</b></td></tr>
+              <tr><td>Buyer in another state</td><td><b>IGST ₹673.20</b></td></tr>
+            </tbody>
+          </table>
+          <p>The total tax is the same either way; what changes is which
+            government it goes to. BillZap picks the split from the place of
+            supply and shows it on the bill.</p>
+        </article>
+        <article class="gq rv">
+          <h3>How many digits of HSN code do I need?</h3>
+          <p>From 1 April 2021 (Notification 78/2020 – Central Tax), it
+            depends on your aggregate turnover in the previous financial year:</p>
+          <table>
+            <thead><tr><th scope="col">Previous year's turnover</th><th scope="col">HSN digits on invoices</th></tr></thead>
+            <tbody>
+              <tr><td>Up to ₹5 crore</td><td><b>4 digits</b> on B2B invoices</td></tr>
+              <tr><td>More than ₹5 crore</td><td><b>6 digits</b> on every invoice</td></tr>
+            </tbody>
+          </table>
+          <p>Services use SAC codes, which begin with 99. In BillZap you save
+            the code once against the item and it prints on every bill.</p>
+        </article>
+        <article class="gq rv" style="--d:80ms">
+          <h3>Which GST rates apply in 2026?</h3>
+          <p>Since 22 September 2025, most goods and services are taxed at
+            5% or 18%, with 40% for luxury and sin goods and 0% for exempt
+            essentials. A few items keep special rates — gold, for example,
+            is at 3%.</p>
+          <p>BillZap lets you set 0, 5, 12, 18, 28 or 40% on each item, so the
+            current slabs are there and so are the older ones, for any bill
+            that still needs them. The split into CGST and SGST, or IGST, is
+            worked out from whichever rate you choose.</p>
+        </article>
+      </div>
+      <div class="gloss rv">
+        <h3>The GST terms on your bill</h3>
+        <dl>
+          {{glossary}}
+        </dl>
+      </div>
+      <p class="guide-note">A plain-language summary to help you read your own
+        invoices, not tax advice. For your own business, check with your CA.</p>
     </div>
   </section>
 

@@ -304,6 +304,25 @@ jobs:
           check "GET /build/page.html" 301 "$(code $SITE/build/page.html)"
           check "GET /package.json"    404 "$(code $SITE/package.json)"
 
+          # Cloudflare can block AI crawlers, or rewrite robots.txt, from
+          # the dashboard, without touching this repo. Either would undo
+          # the whole point of llms.txt and the robots.txt allow-list, so
+          # the deploy says so. A warning, not a failure: it is an account
+          # setting, and a code change cannot fix it.
+          echo "── AI crawlers ──"
+          served=$(curl -s --max-time 30 $SITE/robots.txt)
+          if [ "$served" = "$(cat landing-page/robots.txt)" ]; then
+            echo "  ok    robots.txt is ours, unmodified"
+          else
+            echo "::warning::The live robots.txt differs from landing-page/robots.txt. Cloudflare's managed robots.txt or AI Crawl Control is probably rewriting it: Cloudflare dashboard -> billzap.app -> AI Crawl Control / Security -> Bots, allow AI crawlers."
+            diff <(echo "$served") landing-page/robots.txt | head -20 || true
+          fi
+          for ua in GPTBot OAI-SearchBot PerplexityBot ClaudeBot; do
+            c=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 -A "Mozilla/5.0 (compatible; $ua/1.0)" $SITE/llms.txt)
+            if [ "$c" = 200 ]; then printf '  ok    %-44s %s\n' "$ua can fetch /llms.txt" "$c"
+            else echo "::warning::$ua got $c for /llms.txt — check Cloudflare's AI bot blocking for billzap.app."; fi
+          done
+
           echo "── headers ──"
           hdr=$(curl -sI --max-time 45 $SITE/blog)
           echo "$hdr" | grep -qi 'content-security-policy' \

@@ -41,6 +41,12 @@ SITE = 'https://billzap.app'
 # Bump it when the wording changes.
 UPDATED = '2026-09-16'
 
+# The same idea for the home page: the date its content last changed,
+# shown as "Updated …" and sent as dateModified. Kept apart from
+# UPDATED because a new section on the home page is not a change to the
+# privacy policy.
+HOME_UPDATED = '2026-10-16'
+
 # Google Search Console verifies billzap.app with an HTML file at the
 # site root (googled23738155d4d0020.html, deployed as-is), not a meta
 # tag, so nothing for it goes in the page head.
@@ -125,10 +131,58 @@ FAQ = [
      "Take a backup from settings — it is a single file you keep — and "
      "restore it on the new phone. Your invoices, customers, products and "
      "expenses come back."),
+    ("Does BillZap follow the new GST rates from September 2025?",
+     "Yes. You set the rate on each item — 0, 5, 12, 18, 28 or 40% — so "
+     "the current 5%, 18% and 40% slabs are there, and so are 12% and 28% "
+     "for any bill that still needs them. The CGST and SGST, or IGST, "
+     "split is worked out from the rate you choose."),
+    ("How many digits of HSN code does the invoice show?",
+     "Whatever you save against the item — 4, 6 or 8 digits. Businesses "
+     "with turnover up to ₹5 crore in the previous year need at least 4 "
+     "digits on B2B invoices; above ₹5 crore, 6 digits on every invoice."),
+    ("Can I print the bill?",
+     "Yes — print to a WiFi or Bluetooth printer from the invoice screen, "
+     "or share the PDF and print it from any other device."),
+    ("Is BillZap available on iPhone or a computer?",
+     "BillZap is an Android app, for Android 7.0 and above. The invoices "
+     "it makes are ordinary PDFs, so your customers and your accountant "
+     "can open them on any phone or computer."),
     ("Which Android versions are supported?",
      "Android 7.0 (Nougat) and above. The download is about 32 MB — one "
      "file that installs on any Android phone, so there is nothing to "
      "choose between."),
+]
+
+
+# The glossary under the GST guide. Rendered twice from this one list —
+# as a <dl> on the page and as a DefinedTermSet in the JSON-LD — for the
+# same reason the FAQ is: written once, the two cannot disagree.
+GLOSSARY = [
+    ("GSTIN",
+     "The 15-character GST Identification Number given to every registered "
+     "business. The first two digits are the state code and the next ten "
+     "are the business's PAN."),
+    ("HSN code",
+     "Harmonised System of Nomenclature: the code that classifies goods "
+     "for GST, printed on each line of the invoice."),
+    ("SAC code",
+     "Services Accounting Code: the HSN equivalent for services. SAC codes "
+     "begin with 99."),
+    ("CGST and SGST",
+     "Central and State GST, charged together on a sale within one state, "
+     "each at half the GST rate — 9% + 9% on an 18% item."),
+    ("IGST",
+     "Integrated GST, charged at the full rate on a sale from one state to "
+     "another, and on imports."),
+    ("Place of supply",
+     "The state where a supply is treated as made. It decides whether the "
+     "bill carries CGST + SGST or IGST."),
+    ("GSTR-1",
+     "The return of outward supplies — your sales — that a regular GST "
+     "taxpayer files monthly or quarterly."),
+    ("Taxable value",
+     "The value GST is charged on: the price after any discount, before "
+     "tax."),
 ]
 
 
@@ -156,6 +210,68 @@ def svg(name, inner):
     )
 
 
+def glossary_html():
+    return '\n          '.join(
+        f'<div><dt>{t}</dt><dd>{d}</dd></div>' for t, d in GLOSSARY)
+
+
+def qr_svg():
+    """The path data of a decorative UPI-style QR, drawn at build time.
+
+    It is not a scannable code — the scenes are illustrations, and a
+    real QR on a marketing page is an invitation to pay a stranger.
+    It has the three finder squares and a seeded scatter of modules, so
+    it reads as a QR at a glance and is the same on every build (the
+    CI drift check depends on that).
+    """
+    import random
+    n, rnd = 25, random.Random(1010)
+    on = set()
+    def finder(x0, y0):
+        for y in range(7):
+            for x in range(7):
+                ring = x in (0, 6) or y in (0, 6)
+                core = 2 <= x <= 4 and 2 <= y <= 4
+                if ring or core:
+                    on.add((x0 + x, y0 + y))
+    reserved = set()
+    for x0, y0 in ((0, 0), (n - 7, 0), (0, n - 7)):
+        finder(x0, y0)
+        reserved |= {(x, y) for x in range(x0 - 1, x0 + 8)
+                     for y in range(y0 - 1, y0 + 8)}
+    for y in range(n):
+        for x in range(n):
+            if (x, y) not in reserved and rnd.random() < 0.47:
+                on.add((x, y))
+    # Horizontal runs, one subpath each: a third of the bytes of one
+    # square per module.
+    d = []
+    for y in range(n):
+        x = 0
+        while x < n:
+            if (x, y) in on:
+                run = 1
+                while (x + run, y) in on:
+                    run += 1
+                d.append(f'M{x} {y}h{run}v1h-{run}z')
+                x += run
+            else:
+                x += 1
+    return ''.join(d)
+
+
+def qr_use():
+    """Where a scene shows the QR: a reference to the one definition."""
+    return ('<svg class="qr" viewBox="-1 -1 27 27" aria-hidden="true">'
+            '<use href="#bz-qr"/></svg>')
+
+
+def qr_defs():
+    """The QR, defined once per page and referenced by qr_use()."""
+    return ('<svg width="0" height="0" style="position:absolute" aria-hidden="true">'
+            f'<defs><path id="bz-qr" fill="#0D1117" d="{qr_svg()}"/></defs></svg>')
+
+
 def faq_html(ic):
     chev = svg('chevron-down', ic['chevron-down'])
     out = []
@@ -167,8 +283,30 @@ def faq_html(ic):
     return '\n        '.join(out)
 
 
+# The explainer's five chapters, in the order the film plays them. The
+# page writes them out by hand (they sit inside the player's markup);
+# keep the two in step when either changes.
+HOWTO = [
+    ("Set up your shop once",
+     "Enter the shop name, GSTIN and UPI ID — about a minute, with no "
+     "account, OTP or email. Every bill afterwards carries them."),
+    ("Add items by tapping or talking",
+     "Pick items from your catalogue or say them in your own language. "
+     "The HSN code and GST rate come from the item."),
+    ("Let BillZap decide the GST split",
+     "If the buyer is in your state the bill charges CGST + SGST; if not, "
+     "IGST. The place of supply decides, and the bill shows which applies."),
+    ("Get paid with the UPI QR",
+     "The bill carries a UPI QR code. The customer scans it with any UPI "
+     "app and the money goes straight to your bank."),
+    ("Share the PDF on WhatsApp",
+     "Send the invoice as a PDF in two taps. The sale is recorded in your "
+     "reports and GSTR-1 summary automatically."),
+]
+
+
 def jsonld():
-    today = UPDATED
+    today = HOME_UPDATED
     graph = [
         {
             "@type": "SoftwareApplication",
@@ -203,6 +341,11 @@ def jsonld():
                 "Local backup and restore",
             ],
             "isAccessibleForFree": True,
+            "downloadUrl": APK_URL,
+            "fileSize": "32MB",
+            "softwareRequirements": "Android 7.0 or later",
+            "countriesSupported": "IN",
+            "publisher": {"@id": f"{SITE}/#org"},
         },
         {
             "@type": "Organization",
@@ -210,6 +353,7 @@ def jsonld():
             "name": "BillZap",
             "url": SITE,
             "logo": f"{SITE}/assets/icon-512.png",
+            "sameAs": ["https://github.com/dakshu007/billzap"],
         },
         {
             "@type": "WebSite",
@@ -230,6 +374,19 @@ def jsonld():
             "about": {"@id": f"{SITE}/#app"},
             "dateModified": today,
             "primaryImageOfPage": f"{SITE}/assets/og.png",
+            # The answer paragraph and the FAQ: the parts written to be
+            # read out by an assistant.
+            "speakable": {"@type": "SpeakableSpecification",
+                          "cssSelector": ["#what .what-ans", "#faq .a"]},
+        },
+        {
+            "@type": "DefinedTermSet",
+            "@id": f"{SITE}/#gst-terms",
+            "name": "GST terms on an Indian tax invoice",
+            "hasDefinedTerm": [
+                {"@type": "DefinedTerm", "name": t, "description": d}
+                for t, d in GLOSSARY
+            ],
         },
         {
             "@type": "FAQPage",
@@ -248,19 +405,11 @@ def jsonld():
             "@id": f"{SITE}/#howto",
             "name": "How to make a GST invoice in BillZap",
             "totalTime": "PT1M",
+            "tool": {"@type": "HowToTool", "name": "BillZap for Android"},
             "step": [
-                {"@type": "HowToStep", "position": 1,
-                 "name": "Add your shop",
-                 "text": "Enter your business name, GSTIN and UPI ID in "
-                         "settings. Every invoice afterwards carries them."},
-                {"@type": "HowToStep", "position": 2,
-                 "name": "Make the bill",
-                 "text": "Pick the customer and add the items. GST is "
-                         "applied per item and the total updates as you go."},
-                {"@type": "HowToStep", "position": 3,
-                 "name": "Get paid",
-                 "text": "Show the UPI QR code or share the PDF on "
-                         "WhatsApp, then mark the invoice paid."},
+                {"@type": "HowToStep", "position": i, "name": n, "text": t,
+                 "url": f"{SITE}/#how"}
+                for i, (n, t) in enumerate(HOWTO, 1)
             ],
         },
     ]
@@ -485,6 +634,175 @@ SCRIPT_TMPL = """
     d.querySelectorAll('.stat b[data-to]').forEach(function(n){nio.observe(n);});
   }
 
+  /* ── Motion stages ──────────────────────────────────────────────
+     A stage is a scene of real markup. data-steps lists the pause
+     before each step; data-at / data-out / data-hl / data-count say
+     what happens on which step (see "Motion stages" in styles.css).
+
+     prime() rewinds a stage to step 0 without transitions, so nothing
+     visibly unwinds; play() steps it forward on timers; stop() freezes
+     it. Stages only run while on screen and only if motion is allowed —
+     otherwise they are never primed and keep their finished frame. */
+  function Scene(root){
+    var del=(root.getAttribute('data-steps')||'').split(',').map(Number).filter(function(n){return n>0;}),
+        hold=+(root.getAttribute('data-hold')||2400),
+        els=[].slice.call(root.querySelectorAll('[data-at],[data-hl]')),
+        nums=[].slice.call(root.querySelectorAll('[data-count]')),
+        step=0, timer=0, live=false, S={root:root,end:null};
+    function inRange(spec){
+      return spec.split(',').some(function(r){
+        var p=r.split('-'); return step>=+p[0] && step<+(p[1]||1e9); });
+    }
+    function put(c,v){
+      var dec=+(c.getAttribute('data-dec')||0);
+      c.textContent=v.toLocaleString('en-IN',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+    }
+    function from(c){ return +(c.getAttribute('data-from')||0); }
+    function to(c){ return +c.getAttribute('data-count'); }
+    function at(c){ return +(c.getAttribute('data-cat')||1); }
+    function count(c){
+      var a=from(c), b=to(c), ms=+(c.getAttribute('data-ms')||1000), t0=0;
+      function f(ts){
+        if(!t0) t0=ts;
+        var p=Math.min(1,(ts-t0)/ms);
+        put(c, a+(b-a)*(1-Math.pow(1-p,3)));
+        if(p<1 && live) requestAnimationFrame(f); else put(c, p<1&&!live ? b : b);
+      }
+      requestAnimationFrame(f);
+    }
+    function apply(){
+      els.forEach(function(e){
+        var a=e.getAttribute('data-at'), h=e.getAttribute('data-hl');
+        if(a!==null) e.classList.toggle('on', step>=+a && step<+(e.getAttribute('data-out')||1e9));
+        if(h!==null) e.classList.toggle('hl', inRange(h));
+      });
+      nums.forEach(function(c){
+        if(step===at(c) && live) count(c);
+        else if(step<at(c)) put(c, from(c));
+      });
+    }
+    function tick(){
+      clearTimeout(timer);
+      if(step<del.length){
+        timer=setTimeout(function(){ step++; apply(); tick(); }, del[step]);
+      } else {
+        timer=setTimeout(function(){
+          if(S.end){ S.end(); return; }
+          if(root.hasAttribute('data-loop')){ step=0; apply(); tick(); }
+        }, hold);
+      }
+    }
+    S.prime=function(){
+      clearTimeout(timer); live=false;
+      root.classList.add('snap'); step=0; apply();
+      void root.offsetWidth; root.classList.remove('snap');
+    };
+    S.play=function(){ if(live) return; live=true; tick(); };
+    S.stop=function(){
+      live=false; clearTimeout(timer);
+      nums.forEach(function(c){ if(step>=at(c)) put(c, to(c)); });
+    };
+    S.finish=function(){
+      S.stop(); step=del.length; apply();
+      nums.forEach(function(c){ put(c, to(c)); });
+    };
+    S.total=function(){ return del.reduce(function(a,b){return a+b;},0)+hold; };
+    return S;
+  }
+
+  function pauser(stage, onToggle){
+    var b=stage.querySelector('.mo-pp'); if(!b) return;
+    b.hidden=false;
+    b.addEventListener('click', function(){
+      var p=b.getAttribute('aria-pressed')!=='true';
+      b.setAttribute('aria-pressed', p);
+      stage.classList.toggle('paused', p);
+      onToggle(p);
+    });
+  }
+
+  var canMove=!reduce && 'IntersectionObserver' in window;
+  if(canMove){
+    d.querySelectorAll('[data-mo]').forEach(function(root){
+      var s=Scene(root), held=false, seen=false, armed=!root.hasAttribute('data-defer');
+      /* A stage above the fold opens on its finished frame and starts
+         the film a moment later, or on the first scroll or tap. The
+         first thing a visitor sees is a complete invoice, not an empty
+         one, and the page's first paint is its final paint. */
+      function arm(){
+        if(armed) return; armed=true;
+        root.classList.add('run'); s.prime(); sync();
+      }
+      if(armed){ root.classList.add('run'); s.prime(); }
+      else {
+        setTimeout(arm, 6000);
+        ['pointerdown','keydown','touchstart','wheel'].forEach(function(ev){
+          addEventListener(ev, arm, {once:true, passive:true}); });
+      }
+      function sync(){ if(armed && seen && !held) s.play(); else s.stop(); }
+      pauser(root, function(p){ held=p; sync(); });
+      new IntersectionObserver(function(es){ seen=es[0].isIntersecting; sync(); },
+        {threshold:.2}).observe(root);
+    });
+  }
+
+  /* The explainer: five scenes played in turn, with the chapter list as
+     both the table of contents and the progress bar. With motion off it
+     still works as a switcher, showing each chapter's finished frame. */
+  var ex=d.querySelector('[data-ex]');
+  if(ex){
+    var stage=ex.querySelector('.ex-stage'),
+        scenes=[].slice.call(ex.querySelectorAll('.ex-scene')).map(Scene),
+        chs=[].slice.call(ex.querySelectorAll('.ex-ch li')),
+        cur=-1, held=false, seen=false, still=!canMove;
+    stage.classList.add('live','run');
+    scenes.forEach(function(s){ s.prime(); });
+    function sync(){
+      var s=scenes[cur], quiet=held || still;
+      ex.classList.toggle('paused', held || !seen);
+      if(seen && !quiet) s.play(); else s.stop();
+    }
+    function show(i){
+      if(cur>-1){ scenes[cur].stop(); scenes[cur].root.classList.remove('cur'); chs[cur].classList.remove('cur'); }
+      cur=i;
+      var s=scenes[i], li=chs[i];
+      s.root.classList.add('cur');
+      li.style.setProperty('--dur', s.total()+'ms');
+      void li.offsetWidth; li.classList.add('cur');
+      chs.forEach(function(n,k){
+        n.querySelector('button').setAttribute('aria-current', k===i ? 'step' : 'false'); });
+      s.prime();
+      ex.classList.toggle('still', still || held);
+      if(still || held) s.finish();
+      sync();
+    }
+    scenes.forEach(function(s,i){ s.end=function(){ show((i+1)%scenes.length); }; });
+    chs.forEach(function(li,i){
+      li.querySelector('button').addEventListener('click', function(){ show(i); });
+    });
+    pauser(stage, function(p){ held=p; if(!p && ex.classList.contains('still')) show(cur); else sync(); });
+    if(canMove){
+      new IntersectionObserver(function(es){ seen=es[0].isIntersecting; sync(); },
+        {threshold:.25}).observe(stage);
+    }
+    show(0);
+  }
+
+  /* ── Where the visit came from, when it was an AI assistant ───────
+     ChatGPT, Perplexity, Gemini and the rest either send a referrer or
+     tag the link with utm_source. Either way the source is kept for the
+     session and sent with the page view and with the download, so
+     "how many installs did AI answers bring" is a report, not a guess. */
+  var AI_SRC='';
+  try{
+    var AI=/(^|\.)(chatgpt\.com|openai\.com|perplexity\.ai|gemini\.google\.com|bard\.google\.com|copilot\.microsoft\.com|claude\.ai|you\.com|phind\.com|meta\.ai|grok\.com|deepseek\.com|chat\.mistral\.ai|kagi\.com)$/i;
+    var ref=d.referrer ? new URL(d.referrer).hostname : '',
+        utm=new URLSearchParams(location.search).get('utm_source')||'';
+    if(AI.test(ref)) AI_SRC=ref.replace(/^www\./,'');
+    else if(/chatgpt|openai|perplexity|gemini|copilot|claude|mistral|deepseek|grok/i.test(utm)) AI_SRC=utm.toLowerCase();
+    if(AI_SRC) sessionStorage.setItem('bz_ai',AI_SRC); else AI_SRC=sessionStorage.getItem('bz_ai')||'';
+  }catch(e){}
+
   /* ── Analytics, kept off the critical path ──────────────────────
      gtag.js is ~100 KB of third-party JavaScript. Dropped in <head>
      the way Google's snippet does it, it competes with the page for
@@ -499,7 +817,8 @@ SCRIPT_TMPL = """
     window.dataLayer=window.dataLayer||[];
     window.gtag=function(){dataLayer.push(arguments);};
     gtag('js', new Date());
-    gtag('config','__GA_ID__');
+    gtag('config','__GA_ID__', AI_SRC ? {ai_source:AI_SRC} : {});
+    if(AI_SRC) gtag('event','ai_referral',{ai_source:AI_SRC});
     var s=d.createElement('script');
     s.async=true; s.src='https://www.googletagmanager.com/gtag/js?id=__GA_ID__';
     d.head.appendChild(s);
@@ -593,7 +912,7 @@ SCRIPT_TMPL = """
 
   function fire(){
     loadGA();
-    if(window.gtag) gtag('event','download',{method:'apk'});
+    if(window.gtag) gtag('event','download',{method:'apk',ai_source:AI_SRC||'(none)'});
     var a=d.createElement('a');
     a.href=APK; a.rel='noopener';
     d.body.appendChild(a); a.click(); a.remove();
@@ -729,8 +1048,7 @@ INDEX_HEAD = f"""<meta name="keywords" content="{KEYWORDS}">
 <meta name="twitter:image" content="{SITE}/assets/og.png">
 
 <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/plus-jakarta-sans-800-latin.woff2" crossorigin>
-<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/poppins-400-latin.woff2" crossorigin>
-<link rel="preload" as="image" href="/assets/shots/home-786.webp" imagesrcset="/assets/shots/home-393.webp 393w, /assets/shots/home-786.webp 786w" imagesizes="(max-width:940px) 78vw, 290px" fetchpriority="high">"""
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/poppins-400-latin.woff2" crossorigin>"""
 
 PRIVACY_HEAD = f"""<meta property="og:type" content="article">
 <meta property="og:site_name" content="BillZap">
@@ -786,14 +1104,21 @@ const attr = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;
 
 def main():
     css = minify_css(open(os.path.join(HERE, 'styles.css')).read())
+    # The home page also carries home.css (the motion stages); the
+    # privacy page and the blog get the shared sheet alone.
+    home_css = css + minify_css(open(os.path.join(HERE, 'home.css')).read())
 
     index_body = render(
         open(os.path.join(HERE, 'page.html')).read().replace(
-            '{{faq}}', faq_html(ICONS)),
+            '{{faq}}', faq_html(ICONS))
+            .replace('{{glossary}}', glossary_html())
+            .replace('{{updated_home}}', _human(HOME_UPDATED))
+            .replace('{{qr}}', qr_use())
+            .replace('{{qrdefs}}', qr_defs()),
         home='#top') + '\n' + render(
         open(os.path.join(HERE, 'modal.html')).read(), home='#top')
     index_html = document(
-        title=TITLE, desc=DESC, canonical=f'{SITE}/', css=css,
+        title=TITLE, desc=DESC, canonical=f'{SITE}/', css=home_css,
         ld=jsonld(), body=index_body, head_extra=INDEX_HEAD)
 
     privacy_body = render(
