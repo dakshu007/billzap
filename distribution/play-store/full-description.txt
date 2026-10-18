@@ -1,0 +1,47 @@
+BillZap is a GST billing app for Indian shops. Make a GST tax invoice in about 30 seconds, put a UPI QR code on it, and share the PDF on WhatsApp, even with no internet.
+
+No sign-up. No subscription. No invoice limit. Your data stays on your phone.
+
+★ GST INVOICES, DONE RIGHT
+• Tax invoices with your GSTIN and your customer's GSTIN
+• HSN and SAC codes on every line, saved once with each item
+• CGST + SGST or IGST chosen automatically from the place of supply
+• All GST rates: 0%, 0.25%, 5%, 12%, 18%, 28% and 40%
+• GST rate suggested from the item name
+• Month-wise GST summary for GSTR-1, exported as PDF or CSV for your CA
+
+★ GET PAID FASTER
+• UPI QR code on every unpaid bill: the customer scans with any UPI app and the money goes straight to your bank
+• Share bills on WhatsApp with a UPI payment link
+• Bank name, account number and IFSC printed on the invoice
+• Outstanding bills sorted oldest first, with 0–30, 31–60, 61–90 and 90+ day ageing
+
+★ FAST BILLING AT THE COUNTER
+• Saved customers and product catalogue for one-tap billing
+• Voice billing: speak the item and amount in your own language
+• Print on WiFi or Bluetooth printers
+• Clean PDF invoices with a correct ₹ symbol
+• Low-stock and out-of-stock alerts
+
+★ REPORTS FOR YOUR SHOP
+• Monthly revenue with a six-month chart
+• Profit and loss, expenses by category and top customers
+• Day close: cash in, UPI in, expenses out and the expected cash in the drawer
+• Indian number format: ₹12,34,567
+
+★ WORKS OFFLINE, STAYS PRIVATE
+• 100% offline: billing, reports and storage need no internet
+• No account, phone number, OTP or email
+• No cloud server: your invoices stay on your phone
+• App lock with PIN or fingerprint
+• Backup to a file you keep, and restore on a new phone
+
+★ IN YOUR LANGUAGE
+English, Hindi, Tamil, Telugu, Kannada, Malayalam, Marathi, Gujarati, Bengali, Punjabi, Odia and Urdu.
+
+★ MADE FOR
+Kirana and general stores, medical shops, hardware, electronics, mobile and textile shops, wholesalers and distributors, and service providers who need GST bills with SAC codes.
+
+Good to know: BillZap does not generate e-invoices (IRN) or e-way bills. It is built for small businesses billing at the counter.
+
+Website: https://billzap.app

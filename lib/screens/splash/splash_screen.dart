@@ -51,9 +51,9 @@ class _SplashState extends State<SplashScreen>
               child: Image.asset(
                 'assets/icon_foreground.png',
                 // The asset carries Android's adaptive-icon padding, so
-                // the mark itself is about half of this box.
-                width: 260,
-                height: 260,
+                // the mark itself fills about two thirds of this box.
+                width: 210,
+                height: 210,
                 fit: BoxFit.contain,
               ),
             ),

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22C58B"/>
+      <stop offset="0.55" stop-color="#0E9F6E"/>
+      <stop offset="1" stop-color="#05704D"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.22" cy="0.12" r="0.75">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#EAF6F0"/>
+    </linearGradient>
+    <linearGradient id="bolt" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#FFD54A"/>
+      <stop offset="1" stop-color="#FFA41B"/>
+    </linearGradient>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="22" stdDeviation="26" flood-color="#023B28" flood-opacity="0.35"/>
+    </filter>
+    <filter id="sh2" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#7A3E00" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#glow)"/>
+  <g transform="translate(512 512) scale(1.08) translate(-512 -500)">
+  <!-- receipt: rounded top, zigzag torn bottom -->
+  <g filter="url(#sh)">
+    <path d="M300 236 Q300 196 340 196 H684 Q724 196 724 236 V792
+             L689 822 L654 792 L619 822 L584 792 L549 822 L514 792 L479 822 L444 792 L409 822 L374 792 L339 822 L300 792 Z"
+          fill="url(#paper)"/>
+  </g>
+  <rect x="362" y="282" width="300" height="34" rx="17" fill="#0E9F6E" opacity="0.9"/>
+  <rect x="362" y="362" width="220" height="26" rx="13" fill="#B9E5D2"/>
+  <rect x="362" y="420" width="260" height="26" rx="13" fill="#B9E5D2"/>
+  <rect x="362" y="478" width="180" height="26" rx="13" fill="#B9E5D2"/>
+  <!-- bolt -->
+  <g filter="url(#sh2)">
+    <path d="M598 452 L438 694 H548 L512 878 L692 610 H578 L630 452 Z"
+          fill="url(#bolt)" stroke="#FFFFFF" stroke-width="22" stroke-linejoin="round"/>
+  </g>
+  </g>
+</svg>
