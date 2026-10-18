@@ -56,7 +56,7 @@ class ReportCsvHelper {
 
     // Section A: Month-wise breakdown
     buf.write(_row(['MONTH-WISE REVENUE']));
-    buf.write(_row(['Month', 'Invoices', 'Subtotal', 'Tax', 'Total']));
+    buf.write(_row(['Month', 'Invoices', 'Taxable', 'Tax', 'Total']));
 
     final byMonth = <String, List<Invoice>>{};
     for (final inv in filtered) {
@@ -67,7 +67,7 @@ class ReportCsvHelper {
     double grandTotal = 0;
     for (final key in sortedKeys) {
       final invs = byMonth[key]!;
-      final subtotal = invs.fold<double>(0, (s, i) => s + i.subtotal);
+      final subtotal = invs.fold<double>(0, (s, i) => s + i.taxableValue);
       final tax = invs.fold<double>(0, (s, i) => s + i.totalTax);
       final total = invs.fold<double>(0, (s, i) => s + i.grandTotal);
       grandTotal += total;

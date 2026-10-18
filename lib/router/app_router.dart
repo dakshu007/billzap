@@ -18,7 +18,6 @@ import '../screens/splash/splash_screen.dart';
 import '../screens/main/customers_screen.dart';
 import '../screens/main/products_screen.dart';
 import '../screens/main/expenses_screen.dart';
-import '../screens/main/catalog_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../design/components.dart';
 import '../design/tokens.dart';
@@ -109,9 +108,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           ShellScreen(location: s.uri.path)),
       ),
       // Separate utility routes (dashboard quick actions)
+      // Catalog was a second, separate list of items; it is now part
+      // of Products. Old links and shortcuts land there.
       GoRoute(
         path: '/catalog',
-        builder: (c, s) => const CatalogScreen(),
+        redirect: (c, s) => '/products',
       ),
       GoRoute(
         path: '/customers',

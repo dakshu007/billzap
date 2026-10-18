@@ -362,6 +362,12 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           padding: const EdgeInsets.symmetric(horizontal: AppSpace.xl),
           child: Column(children: [
             _DocTotal('Subtotal', invoice.subtotal, ink, inkSoft),
+            // A before-tax discount is shown where it acts: off the
+            // subtotal, leaving the taxable value GST is charged on.
+            if (invoice.discountBeforeTax && invoice.flatDiscount > 0) ...[
+              _DocTotal('Discount', -invoice.flatDiscount, ink, inkSoft),
+              _DocTotal('Taxable value', invoice.taxableValue, ink, inkSoft),
+            ],
             if (invoice.totalCgst > 0)
               _DocTotal('CGST ${invoice.gstRateForDisplay / 2}%',
                   invoice.totalCgst, ink, inkSoft),
@@ -373,7 +379,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                   invoice.totalIgst, ink, inkSoft),
             if (invoice.shippingCharge > 0)
               _DocTotal('Shipping', invoice.shippingCharge, ink, inkSoft),
-            if (invoice.flatDiscount > 0)
+            if (!invoice.discountBeforeTax && invoice.flatDiscount > 0)
               _DocTotal('Discount', -invoice.flatDiscount, ink, inkSoft),
           ]),
         ),
@@ -394,8 +400,13 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
               children: [
                 Text('TOTAL DUE',
                     style: doc(AppType.overline, color: inkSoft)),
+                // To the paisa: this is the figure the UPI QR below
+                // asks for, and the two must read the same.
                 MoneyCounter(invoice.grandTotal,
-                    style: AppType.amountL, color: AppColor.paid),
+                    style: AppType.amountL,
+                    color: AppColor.paid,
+                    compact: false,
+                    round: false),
               ]),
         ),
 
@@ -837,6 +848,11 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                 flex: 4,
                 child: pw.Column(children: [
                   totalRow('Subtotal', invoice.subtotal),
+                  if (invoice.discountBeforeTax &&
+                      invoice.flatDiscount > 0) ...[
+                    totalRow('Discount', -invoice.flatDiscount),
+                    totalRow('Taxable value', invoice.taxableValue),
+                  ],
                   if (invoice.totalCgst > 0)
                     totalRow('CGST ${invoice.gstRateForDisplay / 2}%',
                         invoice.totalCgst),
@@ -848,7 +864,8 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                         invoice.totalIgst),
                   if (invoice.shippingCharge > 0)
                     totalRow('Shipping', invoice.shippingCharge),
-                  if (invoice.flatDiscount > 0)
+                  if (!invoice.discountBeforeTax &&
+                      invoice.flatDiscount > 0)
                     totalRow('Discount', -invoice.flatDiscount),
                   pw.SizedBox(height: 8),
                   pw.Container(

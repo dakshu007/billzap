@@ -22,6 +22,39 @@ class LocalStorage {
     await Hive.initFlutter();
     _box = await Hive.openBox('billzap_v1');
     _ready = true;
+    await _migrateCatalog();
+  }
+
+  /// Fold the old Catalog (its own 'catalog' box) into Products.
+  ///
+  /// The app used to keep two item lists: Products, which tracks stock,
+  /// and Catalog, which fed "From Catalog" on a new bill. Items added to
+  /// one never showed in the other. Catalog items are copied across once,
+  /// skipping any name already in Products, and the old box is removed.
+  Future<void> _migrateCatalog() async {
+    try {
+      if (!await Hive.boxExists('catalog')) return;
+      final box = await Hive.openBox('catalog');
+      final products = getProducts();
+      final names = products.map((p) => p.name.trim().toLowerCase()).toSet();
+      for (final v in box.values) {
+        final m = Map<String, dynamic>.from(v as Map);
+        final name = (m['name'] as String? ?? '').trim();
+        if (name.isEmpty || !names.add(name.toLowerCase())) continue;
+        products.add(Product(
+          name: name,
+          hsnCode: m['hsnCode'] as String? ?? '',
+          unit: m['unit'] as String? ?? 'Nos',
+          price: (m['price'] as num?)?.toDouble() ?? 0,
+          gstRate: (m['gstRate'] as num?)?.toDouble() ?? 18,
+        ));
+      }
+      await _box.put(
+          _kProducts, jsonEncode(products.map((p) => p.toMap()).toList()));
+      await box.deleteFromDisk();
+    } catch (_) {
+      // Leave the old box in place; the next launch tries again.
+    }
   }
 
   // ── Business ──────────────────────────────────────────────────────────

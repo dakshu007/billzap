@@ -104,7 +104,7 @@ class CsvHelper {
 
     for (final key in sortedKeys) {
       final invs = byMonth[key]!;
-      final taxable = invs.fold<double>(0, (s, i) => s + i.subtotal);
+      final taxable = invs.fold<double>(0, (s, i) => s + i.taxableValue);
       final cgst = invs.fold<double>(0, (s, i) => s + i.totalCgst);
       final sgst = invs.fold<double>(0, (s, i) => s + i.totalSgst);
       final igst = invs.fold<double>(0, (s, i) => s + i.totalIgst);

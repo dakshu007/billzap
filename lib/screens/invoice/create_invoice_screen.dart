@@ -1,5 +1,6 @@
 // lib/screens/invoice/create_invoice_screen.dart
-// FIX: "From Catalog" reads from CatalogService (Hive 'catalog' box), not productProvider
+// "+ Products" picks from the one product list (the separate Catalog was
+// merged into Products — see LocalStorage._migrateCatalog)
 // Fully translated
 // GST auto-classify on item name change
 import 'package:flutter/material.dart';
@@ -20,7 +21,6 @@ import '../../models/models.dart';
 import '../../services/gst_classifier.dart';
 import '../../utils/voice_parser.dart';
 import '../../i18n/translations.dart';
-import '../main/catalog_screen.dart';
 import '../../tax/tax_profile.dart';
 
 class CreateInvoiceScreen extends ConsumerStatefulWidget {
@@ -56,9 +56,13 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
   final List<_LineItem> _lines = [_LineItem()];
   bool _saving = false;
 
-  // Autocomplete
+  // Autocomplete. The list is drawn in the app overlay, pinned under
+  // the name field — inside the form it overflowed its Stack, painted
+  // under the Phone/GSTIN row and could not be tapped.
   List<Customer> _acSugg = [];
-  bool _acShow = false;
+  final _acPortal = OverlayPortalController();
+  final _acLink = LayerLink();
+  final _acGroup = Object();
 
   @override
   void initState() {
@@ -126,11 +130,15 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
 
   void _onNameChanged() {
     final q = _custName.text.toLowerCase().trim();
-    if (q.isEmpty) { setState(() { _acSugg = []; _acShow = false; }); return; }
+    if (q.isEmpty) { _acPortal.hide(); setState(() => _acSugg = []); return; }
     final matches = ref.read(customerProvider)
       .where((c) => c.name.toLowerCase().contains(q) || c.phone.contains(q))
+      // Once the typed name is exactly a saved customer there is
+      // nothing left to suggest.
+      .where((c) => c.name.toLowerCase() != q)
       .take(5).toList();
-    setState(() { _acSugg = matches; _acShow = matches.isNotEmpty; });
+    setState(() => _acSugg = matches);
+    matches.isEmpty ? _acPortal.hide() : _acPortal.show();
   }
 
   void _fillCust(Customer c) {
@@ -140,16 +148,37 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
     _custGstin.text = c.gstin;
     _custAddr.text  = c.address;
     _custName.addListener(_onNameChanged);
-    setState(() { _acShow = false; });
+    _acPortal.hide();
+    FocusScope.of(context).unfocus();
+    setState(() {});
   }
 
-  // Calculated totals
-  double get _sub => _lines.fold(0, (s, l) => s + l.qty * l.rate);
-  double get _gstAmt => _applyGst ? _lines.fold(0, (s, l) => s + l.qty * l.rate * l.gstRate / 100) : 0;
-  double get _cgst => _gstType == GstType.cgstSgst ? _gstAmt / 2 : 0;
-  double get _sgst => _gstType == GstType.cgstSgst ? _gstAmt / 2 : 0;
-  double get _igst => _gstType == GstType.igst ? _gstAmt : 0;
-  double get _grand => _sub + _gstAmt + (_applyShipping ? _shipping : 0) - (_applyDiscount ? _discount : 0);
+  // The bill as it stands. Totals on this screen are read off the same
+  // Invoice that _save stores, so the arithmetic can never disagree.
+  // While typing, a line with a rate but no name yet still counts;
+  // only named lines are saved.
+  Invoice _draft({String number = '', bool forSave = false}) {
+    final items = _lines
+        .where((l) => forSave ? l.name.isNotEmpty : true)
+        .map((l) => InvoiceItem(
+            name: l.name, hsnCode: l.hsn, quantity: l.qty,
+            rate: l.rate, gstRate: l.gstRate, applyGst: _applyGst))
+        .toList();
+    return Invoice(
+      invoiceNumber: number,
+      customerName: _custName.text.trim(),
+      customerPhone: _custPhone.text.trim(),
+      customerGstin: _custGstin.text.trim().toUpperCase(),
+      customerAddress: _custAddr.text.trim(),
+      invoiceDate: _date, dueDate: _due,
+      lineItems: items, gstType: _gstType,
+      shippingCharge: _applyShipping ? _shipping : 0,
+      flatDiscount: _applyDiscount ? _discount : 0,
+      // New bills take the discount off before GST, as the law reads.
+      discountBeforeTax: true,
+      notes: _notes.text.trim(), placeOfSupply: _place,
+      status: InvoiceStatus.sent);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -157,6 +186,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
     // slabs, the tax labels, whether the intra/inter toggle exists at
     // all — follows from this rather than from hardcoded GST.
     final profile = ref.watch(taxProfileProvider);
+    final totals = _draft();
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
@@ -173,7 +203,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
           letterSpacing: -0.5, color: AppColors.t1)),
       ),
       bottomNavigationBar: _TotalBar(
-        total: _grand,
+        total: totals.grandTotal,
         itemCount: _lines.where((l) => l.name.trim().isNotEmpty).length,
         saving: _saving,
         label: tr('create.grand_total', ref),
@@ -190,72 +220,40 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
             subtitle: 'Who this bill is for',
             icon: Symbols.person,
             children: [
-              Stack(clipBehavior: Clip.none, children: [
-                AppField(
-                  label: tr('cust.name', ref),
-                  controller: _custName,
-                  icon: Symbols.person,
-                  hint: tr('create.search_customer', ref),
-                  helper: 'Start typing to pull up a saved customer',
-                  onChanged: (_) => setState(() {}),
-                ),
-                // The suggestion list hangs off the field rather than
-                // pushing the form down, so the layout does not jump
-                // under the thumb while typing.
-                if (_acShow)
-                  Positioned(
-                    top: 74,
-                    left: 0,
-                    right: 0,
-                    child: AppSurface(
-                      padding: EdgeInsets.zero,
-                      shadow: AppElevation.lifted,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: _acSugg
-                            .map((cust) => PressScale(
-                                  onTap: () => _fillCust(cust),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: AppSpace.md,
-                                        vertical: AppSpace.md),
-                                    child: Row(children: [
-                                      AppAvatar(label: cust.name, size: 34),
-                                      const Gap(AppSpace.md),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(cust.name,
-                                                maxLines: 1,
-                                                overflow:
-                                                    TextOverflow.ellipsis,
-                                                style: AppFont.style(
-                                                    AppType.labelM,
-                                                    color: AppColor
-                                                        .textPrimary)),
-                                            if (cust.phone.isNotEmpty)
-                                              Text(cust.phone,
-                                                  style: AppFont.style(
-                                                      AppType.bodyS,
-                                                      color: AppColor
-                                                          .textTertiary)),
-                                          ],
-                                        ),
-                                      ),
-                                      Icon(Symbols.arrow_forward,
-                                          size: 15,
-                                          color: AppColor.textTertiary),
-                                    ]),
-                                  ),
-                                ))
-                            .toList(),
+              LayoutBuilder(builder: (context, box) => TapRegion(
+                groupId: _acGroup,
+                onTapOutside: (_) => _acPortal.hide(),
+                child: CompositedTransformTarget(
+                  link: _acLink,
+                  child: OverlayPortal(
+                    controller: _acPortal,
+                    overlayChildBuilder: (_) => Positioned(
+                      width: box.maxWidth,
+                      child: CompositedTransformFollower(
+                        link: _acLink,
+                        showWhenUnlinked: false,
+                        // Just under the input box, over its helper line.
+                        offset: const Offset(0, 66),
+                        child: TapRegion(
+                          groupId: _acGroup,
+                          child: _CustomerSuggestions(
+                            customers: _acSugg,
+                            onPick: _fillCust,
+                          ),
+                        ),
                       ),
                     ),
+                    child: AppField(
+                      label: tr('cust.name', ref),
+                      controller: _custName,
+                      icon: Symbols.person,
+                      hint: tr('create.search_customer', ref),
+                      helper: 'Start typing to pull up a saved customer',
+                      onChanged: (_) => setState(() {}),
+                    ),
                   ),
-              ]),
+                ),
+              )),
               const Gap(AppSpace.md),
               Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Expanded(
@@ -332,7 +330,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
             icon: Symbols.inventory,
             tone: AppColor.pending,
             trailing: AppButton.ghost(
-              label: tr('cat.from_catalog', ref),
+              label: tr('prod.title', ref),
               icon: Symbols.add,
               onPressed: _showCatalogPicker,
             ),
@@ -431,14 +429,16 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
             subtitle: 'What the customer pays',
             icon: Symbols.receipt_long,
             children: [
-              _SRow(tr('create.subtotal', ref), _sub),
-              if (_cgst > 0) _SRow('CGST', _cgst),
-              if (_sgst > 0) _SRow('SGST', _sgst),
-              if (_igst > 0) _SRow('IGST', _igst),
-              if (_applyShipping && _shipping > 0)
-                _SRow(tr('create.shipping', ref), _shipping),
-              if (_applyDiscount && _discount > 0)
-                _SRow(tr('create.discount', ref), -_discount),
+              _SRow(tr('create.subtotal', ref), totals.subtotal),
+              if (totals.flatDiscount > 0) ...[
+                _SRow(tr('create.discount', ref), -totals.flatDiscount),
+                _SRow(tr('create.taxable_value', ref), totals.taxableValue),
+              ],
+              if (totals.totalCgst > 0) _SRow('CGST', totals.totalCgst),
+              if (totals.totalSgst > 0) _SRow('SGST', totals.totalSgst),
+              if (totals.totalIgst > 0) _SRow('IGST', totals.totalIgst),
+              if (totals.shippingCharge > 0)
+                _SRow(tr('create.shipping', ref), totals.shippingCharge),
               const Gap(AppSpace.md),
               // The grand total sits in a jade well, the same shape the
               // finished invoice uses for TOTAL DUE — so the number the
@@ -456,7 +456,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                       Text(tr('create.grand_total', ref).toUpperCase(),
                           style: AppFont.style(AppType.labelS,
                               color: AppColor.primary)),
-                      Money(_grand,
+                      Money(totals.grandTotal,
                           style: AppType.amountL,
                           compact: false,
                           color: AppColor.primary),
@@ -486,16 +486,18 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
     );
   }
 
-  // ═════════════════════════════════════════════════
-  // BUG FIX #1: Read from CatalogService not productProvider!
-  // ═════════════════════════════════════════════════
+  /// Add a saved product as a line. Reads the same list the Products
+  /// screen edits and that stock is decremented from on save.
   Future<void> _showCatalogPicker() async {
-    final items = await CatalogService.getAll();
-    if (!mounted) return;
+    final items = [...ref.read(productProvider)]
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
     if (items.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(trGlobal('create.catalog_empty'))));
+        content: Text(trGlobal('create.products_empty')),
+        action: SnackBarAction(
+            label: trGlobal('prod.add_new'),
+            onPressed: () => context.push('/products'))));
       return;
     }
 
@@ -509,7 +511,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
           child: Column(children: [
             Container(width: 36, height: 4, margin: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(99))),
-            Text(trGlobal('cat.from_catalog'), style: AppFont.sans(fontSize: 17, fontWeight: FontWeight.w600)),
+            Text(trGlobal('prod.title'), style: AppFont.sans(fontSize: 17, fontWeight: FontWeight.w600)),
             const Gap(10),
             Expanded(child: ListView.builder(
               controller: ctrl, itemCount: items.length,
@@ -518,8 +520,15 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                 final p = items[i];
                 return GestureDetector(
                   onTap: () {
-                    setState(() => _lines.add(_LineItem(
-                      name: p.name, hsn: p.hsnCode, rate: p.price, gstRate: p.gstRate.toDouble())));
+                    final line = _LineItem(
+                        name: p.name, hsn: p.hsnCode, rate: p.price, gstRate: p.gstRate);
+                    setState(() {
+                      // Fill the untouched blank line a new bill starts
+                      // with, rather than leaving it stranded above.
+                      final blank = _lines.indexWhere(
+                          (l) => l.name.trim().isEmpty && l.rate == 0);
+                      blank >= 0 ? _lines[blank] = line : _lines.add(line);
+                    });
                     Navigator.pop(context);
                   },
                   child: Container(
@@ -537,11 +546,17 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                         if (p.hsnCode.isNotEmpty)
                           Text('HSN: ${p.hsnCode} \u00b7 ${p.unit}',
                             style: AppFont.sans(fontSize: 11, color: AppColors.t3)),
+                        if (p.tracksStock)
+                          Text(p.isOutOfStock
+                                ? 'Out of stock'
+                                : '${p.stock.toStringAsFixed(p.stock % 1 == 0 ? 0 : 2)} in stock',
+                            style: AppFont.sans(fontSize: 11,
+                              color: p.isOutOfStock || p.isLowStock ? AppColors.red : AppColors.t3)),
                       ])),
                       Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                         Text(formatCurrency(p.price), style: AppFont.sans(
                           fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.brand)),
-                        Text('GST ${p.gstRate}%', style: AppFont.sans(
+                        Text('GST ${_pct(p.gstRate)}%', style: AppFont.sans(
                           fontSize: 11, color: AppColors.green, fontWeight: FontWeight.w600)),
                       ]),
                     ]),
@@ -570,22 +585,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
     try {
       final db    = ref.read(storageProvider);
       final invNo = db.nextInvoiceNumber();
-      final items = valid.map((l) => InvoiceItem(
-        name: l.name, hsnCode: l.hsn, quantity: l.qty,
-        rate: l.rate, gstRate: l.gstRate, applyGst: _applyGst)).toList();
-
-      final inv = Invoice(
-        invoiceNumber: invNo,
-        customerName: _custName.text.trim(),
-        customerPhone: _custPhone.text.trim(),
-        customerGstin: _custGstin.text.trim().toUpperCase(),
-        customerAddress: _custAddr.text.trim(),
-        invoiceDate: _date, dueDate: _due,
-        lineItems: items, gstType: _gstType,
-        shippingCharge: _applyShipping ? _shipping : 0,
-        flatDiscount: _applyDiscount ? _discount : 0,
-        notes: _notes.text.trim(), placeOfSupply: _place,
-        status: InvoiceStatus.sent);
+      final inv = _draft(number: invNo, forSave: true);
 
       await ref.read(invoiceProvider.notifier).add(inv);
 
@@ -612,6 +612,59 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
 }
 
 // ── Line item state ─────────────────────────────────────────────────────────
+/// Saved customers matching what has been typed in the name field.
+class _CustomerSuggestions extends StatelessWidget {
+  const _CustomerSuggestions({required this.customers, required this.onPick});
+  final List<Customer> customers;
+  final ValueChanged<Customer> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppSurface(
+      padding: EdgeInsets.zero,
+      shadow: AppElevation.lifted,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: customers
+            .map((cust) => PressScale(
+                  onTap: () => onPick(cust),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpace.md, vertical: AppSpace.md),
+                    child: Row(children: [
+                      AppAvatar(label: cust.name, size: 34),
+                      const Gap(AppSpace.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(cust.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppFont.style(AppType.labelM,
+                                    color: AppColor.textPrimary)),
+                            if (cust.phone.isNotEmpty)
+                              Text(cust.phone,
+                                  style: AppFont.style(AppType.bodyS,
+                                      color: AppColor.textTertiary)),
+                          ],
+                        ),
+                      ),
+                      Icon(Symbols.arrow_forward,
+                          size: 15, color: AppColor.textTertiary),
+                    ]),
+                  ),
+                ))
+            .toList(),
+      ),
+    );
+  }
+}
+
+String _pct(double r) =>
+    r == r.roundToDouble() ? r.toStringAsFixed(0) : r.toString();
+
 class _LineItem {
   String name; String hsn; double qty; double rate; double gstRate;
   _LineItem({this.name='', this.hsn='', this.qty=1, this.rate=0, this.gstRate=18});

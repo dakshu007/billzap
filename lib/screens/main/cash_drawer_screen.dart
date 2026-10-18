@@ -39,7 +39,11 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
   }
 
   bool _isSameBusinessDay(DateTime txnTime, DateTime dayStart) {
-    final dayEnd = dayStart.add(const Duration(hours: 28)); // 4am to 8am next day
+    // 4 AM to 4 AM. The window used to run 28 hours (to 8 AM next
+    // day), so anything paid between 4 and 8 in the morning was
+    // counted in two days' closes and the drawer never balanced.
+    final dayEnd = DateTime(dayStart.year, dayStart.month, dayStart.day + 1,
+        dayStart.hour, dayStart.minute);
     return !txnTime.isBefore(dayStart) && txnTime.isBefore(dayEnd);
   }
 

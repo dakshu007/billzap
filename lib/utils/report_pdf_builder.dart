@@ -448,7 +448,7 @@ class ReportPdfBuilder {
               return [
                 DateFormat('MMM yyyy').format(dt),
                 '${invs.length}',
-                _inr(invs.fold<double>(0, (s, i) => s + i.subtotal),
+                _inr(invs.fold<double>(0, (s, i) => s + i.taxableValue),
                     symbol: false),
                 _inr(invs.fold<double>(0, (s, i) => s + i.totalTax),
                     symbol: false),
@@ -625,7 +625,7 @@ class ReportPdfBuilder {
     final totalSgst = filtered.fold<double>(0, (s, i) => s + i.totalSgst);
     final totalIgst = filtered.fold<double>(0, (s, i) => s + i.totalIgst);
     final totalGst = totalCgst + totalSgst + totalIgst;
-    final totalTaxable = filtered.fold<double>(0, (s, i) => s + i.subtotal);
+    final totalTaxable = filtered.fold<double>(0, (s, i) => s + i.taxableValue);
 
     // Month-wise GST
     final byMonth = <String, List<Invoice>>{};
@@ -657,7 +657,7 @@ class ReportPdfBuilder {
             monthEntries.map((e) {
               final invs = e.value;
               final dt = DateFormat('yyyy-MM').parse(e.key);
-              final taxable = invs.fold<double>(0, (s, i) => s + i.subtotal);
+              final taxable = invs.fold<double>(0, (s, i) => s + i.taxableValue);
               final c = invs.fold<double>(0, (s, i) => s + i.totalCgst);
               final sg = invs.fold<double>(0, (sum, i) => sum + i.totalSgst);
               final ig = invs.fold<double>(0, (sum, i) => sum + i.totalIgst);

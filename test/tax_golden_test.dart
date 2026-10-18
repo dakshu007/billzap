@@ -64,7 +64,7 @@ final _cases = <String, List<InvoiceItem>>{
 };
 
 Invoice _invoice(List<InvoiceItem> items, GstType type,
-    {double shipping = 0, double discount = 0}) {
+    {double shipping = 0, double discount = 0, bool beforeTax = false}) {
   final now = DateTime.utc(2026, 1, 1);
   return Invoice(
     invoiceNumber: 'T-1',
@@ -75,6 +75,7 @@ Invoice _invoice(List<InvoiceItem> items, GstType type,
     gstType: type,
     shippingCharge: shipping,
     flatDiscount: discount,
+    discountBeforeTax: beforeTax,
   );
 }
 
@@ -139,6 +140,36 @@ void main() {
                   'may change the tax');
           expect(got.grandTotal, inv.grandTotal);
         });
+      }
+    }
+  });
+
+  group('a before-tax discount matches the engine too', () {
+    // New invoices take the discount off the taxable value. The model's
+    // taxableValue is the engine's subtotal under beforeTax timing.
+    for (final entry in _cases.entries) {
+      for (final type in GstType.values) {
+        final scope =
+            type == GstType.cgstSgst ? SupplyScope.intra : SupplyScope.inter;
+        for (final discount in [0.0, 100.0, 999.99, 1e9]) {
+          test('${entry.key} / ${type.name} / discount $discount', () {
+            final inv = _invoice(entry.value, type,
+                shipping: 40, discount: discount, beforeTax: true);
+            final got = engine.compute(
+              _lines(entry.value),
+              scope: scope,
+              shipping: 40,
+              discount: discount,
+              timing: AdjustmentTiming.beforeTax,
+            );
+            expect(got.subtotal, inv.taxableValue, reason: 'taxable value');
+            expect(got.taxTotal, inv.totalTax, reason: 'total tax');
+            expect(got.components['CGST'] ?? 0, inv.totalCgst, reason: 'CGST');
+            expect(got.components['SGST'] ?? 0, inv.totalSgst, reason: 'SGST');
+            expect(got.components['IGST'] ?? 0, inv.totalIgst, reason: 'IGST');
+            expect(got.grandTotal, inv.grandTotal, reason: 'grand total');
+          });
+        }
       }
     }
   });

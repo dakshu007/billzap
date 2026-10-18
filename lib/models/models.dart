@@ -298,6 +298,12 @@ class Invoice {
   GstType gstType;
   double shippingCharge;
   double flatDiscount;
+  // True when the discount comes off the taxable value before GST is
+  // worked out (Section 15, CGST Act — a discount shown on the invoice
+  // reduces the value tax is charged on). Invoices saved before this
+  // field existed subtracted it after tax; they read back as false so
+  // their totals never change after an update.
+  bool discountBeforeTax;
   String notes;
   String terms;
   InvoiceStatus status;
@@ -314,6 +320,7 @@ class Invoice {
     required this.invoiceDate, required this.dueDate,
     required this.lineItems, this.gstType = GstType.cgstSgst,
     this.shippingCharge = 0, this.flatDiscount = 0,
+    this.discountBeforeTax = false,
     this.notes = '', this.terms = 'Payment due within 30 days.',
     this.status = InvoiceStatus.sent, DateTime? createdAt,
     this.paidAt, this.placeOfSupply = 'Tamil Nadu (33)',
@@ -324,12 +331,36 @@ class Invoice {
 
   void touch() => updatedAt = DateTime.now();
 
+  /// Sum of the lines as entered, before any discount.
   double get subtotal => lineItems.fold(0, (s, i) => s + i.taxable);
-  double get totalTax => lineItems.fold(0, (s, i) => s + i.gstAmount);
+
+  /// Share of each line's value left after a before-tax discount,
+  /// spread in proportion to the line so mixed-rate bills are taxed
+  /// right. 1 when the discount is taken after tax (legacy invoices).
+  /// Same sequence as TaxEngine.compute — tax_golden_test holds them
+  /// to bit-identical results.
+  double get discountFactor {
+    final gross = subtotal;
+    if (!discountBeforeTax || flatDiscount <= 0 || gross <= 0) return 1;
+    return ((gross - flatDiscount) / gross).clamp(0.0, 1.0);
+  }
+
+  /// The value GST is charged on — what GSTR-1 calls txval.
+  double get taxableValue => subtotal * discountFactor;
+
+  /// A line's taxable value after its share of a before-tax discount.
+  double lineTaxable(InvoiceItem item) => item.taxable * discountFactor;
+
+  double get totalTax {
+    final f = discountFactor;
+    return lineItems.fold(0, (s, i) => s + i.gstAmount * f);
+  }
   double get totalCgst => gstType == GstType.cgstSgst ? totalTax / 2 : 0;
   double get totalSgst => gstType == GstType.cgstSgst ? totalTax / 2 : 0;
   double get totalIgst => gstType == GstType.igst ? totalTax : 0;
-  double get grandTotal => subtotal + totalTax + shippingCharge - flatDiscount;
+  double get grandTotal => discountBeforeTax
+      ? taxableValue + totalTax + shippingCharge
+      : subtotal + totalTax + shippingCharge - flatDiscount;
   bool get isOverdue =>
       status != InvoiceStatus.paid &&
       status != InvoiceStatus.cancelled &&
@@ -345,7 +376,8 @@ class Invoice {
     'dueDate': dueDate.toIso8601String(),
     'lineItems': lineItems.map((i) => i.toMap()).toList(),
     'gstType': gstType.name, 'shippingCharge': shippingCharge,
-    'flatDiscount': flatDiscount, 'notes': notes, 'terms': terms,
+    'flatDiscount': flatDiscount, 'discountBeforeTax': discountBeforeTax,
+    'notes': notes, 'terms': terms,
     'status': status.name, 'createdAt': createdAt.toIso8601String(),
     'paidAt': paidAt?.toIso8601String(), 'placeOfSupply': placeOfSupply,
     'updatedAt': updatedAt.toIso8601String(),
@@ -367,6 +399,7 @@ class Invoice {
     gstType: m['gstType'] == 'igst' ? GstType.igst : GstType.cgstSgst,
     shippingCharge: (m['shippingCharge'] as num?)?.toDouble() ?? 0,
     flatDiscount: (m['flatDiscount'] as num?)?.toDouble() ?? 0,
+    discountBeforeTax: m['discountBeforeTax'] == true,
     notes: m['notes'] ?? '', terms: m['terms'] ?? '',
     status: InvoiceStatus.values.firstWhere(
         (e) => e.name == m['status'], orElse: () => InvoiceStatus.draft),

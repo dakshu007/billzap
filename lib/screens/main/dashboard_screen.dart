@@ -189,8 +189,6 @@ class DashboardScreen extends ConsumerWidget {
                           AppColor.pending, () => context.push('/customers')),
                       _Action(Symbols.shopping_basket, tr('prod.title', ref),
                           AppColor.info, () => context.push('/products')),
-                      _Action(Symbols.inventory_2, tr('cat.title', ref),
-                          AppColor.paid, () => context.push('/catalog')),
                       _Action(Symbols.payments, tr('exp.title', ref),
                           AppColor.overdue, () => context.push('/expenses')),
                     ],

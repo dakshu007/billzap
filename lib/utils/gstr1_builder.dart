@@ -79,7 +79,7 @@ class Gstr1Builder {
         'samt': 0.0,
         'csamt': 0.0,
       });
-      agg['txval'] = (agg['txval'] as double) + inv.subtotal;
+      agg['txval'] = (agg['txval'] as double) + inv.taxableValue;
       agg['iamt']  = (agg['iamt']  as double) + inv.totalIgst;
       agg['camt']  = (agg['camt']  as double) + inv.totalCgst;
       agg['samt']  = (agg['samt']  as double) + inv.totalSgst;
@@ -108,7 +108,7 @@ class Gstr1Builder {
           'csamt': 0.0,
         });
         agg['qty']   = (agg['qty']   as double) + li.quantity;
-        final taxable = li.taxable;
+        final taxable = inv.lineTaxable(li);
         agg['txval'] = (agg['txval'] as double) + taxable;
         // Split tax between IGST vs CGST+SGST based on the invoice the
         // line came from.
@@ -164,7 +164,7 @@ class Gstr1Builder {
       'rchrg': 'N',
       'inv_typ': 'R',
       'itms': inv.lineItems.map((li) {
-        final taxable = li.taxable;
+        final taxable = inv.lineTaxable(li);
         final rate = li.gstRate;
         final itm = <String, dynamic>{
           'num': inv.lineItems.indexOf(li) + 1,
