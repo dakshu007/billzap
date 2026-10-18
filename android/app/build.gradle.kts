@@ -24,7 +24,12 @@ android {
     // the published identity. Changing it would orphan every existing
     // install and break Play Store updates.
     namespace = "com.billzap.app"
-    compileSdk = flutter.compileSdkVersion
+    // Google Play requires apps to target Android 16 (API 36) from
+    // 31 Aug 2026; a bundle below that cannot be released as an update.
+    // Flutter's default already meets it, but the floor makes sure an
+    // older Flutter on a build machine can never quietly ship 35 again,
+    // which is how the live bundle ended up non-compliant.
+    compileSdk = maxOf(flutter.compileSdkVersion, 36)
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -35,7 +40,7 @@ android {
     defaultConfig {
         applicationId = "com.billzap.app"
         minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = maxOf(flutter.targetSdkVersion, 36)
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }

@@ -97,6 +97,22 @@ jobs:
           BILLZAP_PLAY_SYMBOLS: '1'
         run: flutter build appbundle --release
 
+      # Play refuses updates whose target API level is under 36 (Android
+      # 16). Read the target back out of the bundle that was just built,
+      # so a non-compliant AAB fails here instead of in the Play Console.
+      - name: Verify the bundle targets Android 16 (API 36)
+        run: |
+          curl -sSL -o "$RUNNER_TEMP/bundletool.jar" \
+            https://github.com/google/bundletool/releases/download/1.18.1/bundletool-all-1.18.1.jar
+          AAB=build/app/outputs/bundle/release/app-release.aab
+          TARGET=$(java -jar "$RUNNER_TEMP/bundletool.jar" dump manifest --bundle "$AAB" \
+                     --xpath /manifest/uses-sdk/@android:targetSdkVersion)
+          echo "targetSdkVersion: $TARGET"
+          if [ "${TARGET:-0}" -lt 36 ]; then
+            echo "::error::The bundle targets API $TARGET; Google Play requires 36 or higher."
+            exit 1
+          fi
+
       # Universal APK — installs on any device, no guessing which one to
       # download. This is the link we hand people for sideloading.
       - name: Build APK (universal)
