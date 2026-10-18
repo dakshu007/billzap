@@ -17,13 +17,13 @@ import 'package:flutter/services.dart';
 import 'package:billzap/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../design/components.dart';
 import '../../design/money.dart';
 import '../../design/motion.dart';
 import '../../design/theme.dart';
 import '../../design/tokens.dart';
+import '../../i18n/dates.dart';
 import '../../i18n/translations.dart';
 import '../../models/models.dart';
 import '../../providers/providers.dart';
@@ -115,9 +115,8 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
 
   Future<bool> _confirmDelete(Invoice inv) async {
     return confirm(context,
-        title: 'Delete this invoice?',
-        message: '${inv.invoiceNumber} will be removed for good. '
-            'This cannot be undone.',
+        title: trGlobal('pv.delete_title'),
+        message: trGlobal('pv.delete_msg', {'no': inv.invoiceNumber}),
         icon: Symbols.delete,
         destructive: true,
         confirmLabel: tr('common.delete', ref),
@@ -128,7 +127,7 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
     await ref.read(invoiceProvider.notifier).delete(inv.id);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${inv.invoiceNumber} deleted')),
+      SnackBar(content: Text(trGlobal('inv.deleted_named', {'no': inv.invoiceNumber}))),
     );
   }
 
@@ -147,7 +146,7 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
           child: Column(children: [
             ScreenTitle(
               tr('inv.title', ref),
-              eyebrow: '${all.length} total',
+              eyebrow: trGlobal('inv.total_count', {'n': all.length}),
               padding: const EdgeInsets.fromLTRB(
                   AppSpace.gutter, AppSpace.lg, AppSpace.gutter, AppSpace.lg),
               // No "+" here: the dock's create button now rides on every
@@ -209,7 +208,7 @@ class _InvoicesState extends ConsumerState<InvoicesScreen> {
                       horizontal: AppSpace.lg, vertical: AppSpace.md),
                   child: Row(children: [
                     Text(
-                      '${list.length} ${list.length == 1 ? "bill" : "bills"}',
+                      trCount('inv.bills', list.length),
                       style: AppFont.style(AppType.labelM,
                           color: AppColor.textSecondary),
                     ),
@@ -281,8 +280,8 @@ class _InvoiceRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final (label, tone) = statusOf(invoice, ref);
     final due = invoice.isOverdue
-        ? 'Due ${DateFormat('d MMM').format(invoice.dueDate)}'
-        : DateFormat('d MMM yyyy').format(invoice.invoiceDate);
+        ? trGlobal('inv.due_on', {'date': uiDate('d MMM', invoice.dueDate)})
+        : uiDate('d MMM y', invoice.invoiceDate);
 
     return Dismissible(
       key: ValueKey('inv-${invoice.id}'),
@@ -300,7 +299,7 @@ class _InvoiceRow extends ConsumerWidget {
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           const Icon(Symbols.delete, color: Colors.white, size: 19),
           const SizedBox(width: AppSpace.sm),
-          Text('Delete',
+          Text(trGlobal('common.delete'),
               style: AppFont.style(AppType.labelM, color: Colors.white)),
         ]),
       ),

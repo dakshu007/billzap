@@ -112,9 +112,34 @@ class Symbols {
   static const IconData tips_and_updates = LucideIcons.lightbulb;
   static const IconData translate = LucideIcons.languages;
   static const IconData trending_up = LucideIcons.trendingUp;
+  static const IconData tune = LucideIcons.slidersHorizontal;
   static const IconData undo = LucideIcons.undo2;
   static const IconData verified = LucideIcons.badgeCheck;
   static const IconData upload_file = LucideIcons.fileUp;
+  static const IconData image = LucideIcons.image;
   static const IconData warning = LucideIcons.triangleAlert;
   static const IconData wifi_off = LucideIcons.wifiOff;
+
+  // ── My Money (personal spending) ──────────────────────────────────
+  static const IconData utensils = LucideIcons.utensils;
+  static const IconData car = LucideIcons.car;
+  static const IconData zap = LucideIcons.zap;
+  static const IconData shopping_bag = LucideIcons.shoppingBag;
+  static const IconData heart_pulse = LucideIcons.heartPulse;
+  static const IconData film = LucideIcons.film;
+  static const IconData book_open = LucideIcons.bookOpen;
+  static const IconData users = LucideIcons.users;
+  static const IconData plane = LucideIcons.plane;
+  static const IconData sparkles = LucideIcons.sparkles;
+  static const IconData repeat = LucideIcons.repeat;
+  static const IconData gift = LucideIcons.gift;
+  static const IconData piggy_bank = LucideIcons.piggyBank;
+  static const IconData target = LucideIcons.target;
+  static const IconData trending_down = LucideIcons.trendingDown;
+  static const IconData flame = LucideIcons.flame;
+  static const IconData coffee = LucideIcons.coffee;
+  static const IconData smartphone = LucideIcons.smartphone;
+  static const IconData credit_card = LucideIcons.creditCard;
+  static const IconData banknote = LucideIcons.banknote;
+  static const IconData chart_pie = LucideIcons.chartPie;
 }

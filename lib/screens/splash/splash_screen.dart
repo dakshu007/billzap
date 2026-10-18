@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
 import '../../design/tokens.dart';
+import '../../i18n/translations.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -68,7 +69,8 @@ class _SplashState extends State<SplashScreen>
             ),
             const SizedBox(height: 6),
             Text(
-              'GST Billing Made Simple',
+              // Was "GST Billing Made Simple" for every shop on earth.
+              trGlobal('splash.made_simple'),
               style: AppFont.sans(
                   fontSize: 14,
                   color: AppColor.onPrimary.withValues(alpha: 0.72),

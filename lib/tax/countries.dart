@@ -246,3 +246,22 @@ Country? countryFor(String code) {
   }
   return null;
 }
+
+/// The flag for an ISO alpha-2 code, as an emoji.
+///
+/// Two regional indicator symbols — 'IN' becomes U+1F1EE U+1F1F3 — so
+/// 177 flags cost no assets, no download and no licence. Android has
+/// drawn these since 4.4.
+///
+/// Returns an empty string for anything that is not two A-Z letters,
+/// which the caller should treat as "draw something else": a platform
+/// whose font lacks a flag renders the two letters anyway, and that is
+/// still a legible answer, but a malformed code is not.
+String countryFlag(String code) {
+  if (code.length != 2) return '';
+  const base = 0x1F1E6; // REGIONAL INDICATOR SYMBOL LETTER A
+  final a = code.toUpperCase().codeUnitAt(0) - 0x41;
+  final b = code.toUpperCase().codeUnitAt(1) - 0x41;
+  if (a < 0 || a > 25 || b < 0 || b > 25) return '';
+  return String.fromCharCodes([base + a, base + b]);
+}

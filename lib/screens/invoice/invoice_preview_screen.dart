@@ -15,6 +15,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:barcode/barcode.dart' as bc;
 import 'dart:io';
+import '../../i18n/translations.dart';
+import '../../tax/active_profile.dart';
 import '../../theme/app_theme.dart';
 import '../../design/components.dart';
 import '../../design/nav_dock.dart';
@@ -22,7 +24,28 @@ import '../../design/money.dart';
 import '../../design/tokens.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
+import '../../utils/business_logo.dart';
+import '../../utils/invoice_labels.dart';
+import '../../utils/phone_number.dart';
 import '../../utils/upi_helper.dart';
+
+/// The saved copy of [selected] from [all], falling back to [selected]
+/// itself if it is not in the list.
+Invoice? _live(Invoice? selected, List<Invoice> all) {
+  if (selected == null) return null;
+  for (final i in all) {
+    if (i.id == selected.id) return i;
+  }
+  return selected;
+}
+
+/// The invoice total in its own currency and grouping, for text that
+/// leaves the phone — never the shop's current currency.
+String _storedTotal(Invoice inv) => formatStoredMoney(
+      inv.grandTotal,
+      symbol: inv.currencySymbol,
+      countryCode: inv.taxCountryCode,
+    );
 
 class InvoicePreviewScreen extends ConsumerStatefulWidget {
   const InvoicePreviewScreen({super.key});
@@ -36,13 +59,17 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final invoice = ref.watch(selectedInvoiceProvider);
+    // The selected invoice is a snapshot taken when it was opened. Read
+    // the live copy from the list, so marking it paid or unpaid shows on
+    // this screen at once instead of only after leaving and coming back.
+    final invoice = _live(ref.watch(selectedInvoiceProvider),
+        ref.watch(invoiceProvider));
     final biz     = ref.watch(businessProvider);
 
     if (invoice == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Invoice')),
-        body: const Center(child: Text('No invoice selected')));
+        appBar: AppBar(title: Text(trGlobal('pv.title'))),
+        body: Center(child: Text(trGlobal('pv.none'))));
     }
 
     final isPaid = invoice.status == InvoiceStatus.paid;
@@ -77,7 +104,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Invoice',
+                Text(trGlobal('pv.title'),
                     style: AppFont.style(AppType.titleM,
                         color: AppColor.textPrimary)),
                 Text(invoice.invoiceNumber,
@@ -104,7 +131,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           children: [
             Row(children: [
               StatusPill(
-                  invoice.isOverdue ? 'Overdue' : invoice.status.name,
+                  invoiceStatusLabel(invoice),
                   tone: c),
             ]),
             const Gap(AppSpace.md),
@@ -114,35 +141,35 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
             // ═══════════════════════════════════════════════
             // UPI Payment QR card (only shown if not paid)
             // ═══════════════════════════════════════════════
-            if (!isPaid) ...[
+            if (!isPaid && upiApplies(invoice)) ...[
               _UpiPaymentCard(invoice: invoice, biz: biz),
               const Gap(12),
             ],
 
             _ActionTile(
               icon: Symbols.picture_as_pdf, iconColor: AppColors.brand,
-              title: 'Download & Share PDF', sub: 'Professional GST invoice PDF',
+              title: trGlobal('pv.pdf_title'), sub: trGlobal('pv.pdf_sub'),
               loading: _pdfLoading, onTap: () => _downloadPdf(invoice, biz)),
             const Gap(8),
             _ActionTile(
               icon: Symbols.print, iconColor: AppColors.t2,
-              title: 'Print Invoice', sub: 'Print via WiFi or Bluetooth',
+              title: trGlobal('pv.print_title'), sub: trGlobal('pv.print_sub'),
               loading: _printLoading, onTap: () => _printInvoice(invoice, biz)),
             const Gap(8),
             if (!isPaid)
               _ActionTile(
                 icon: Symbols.check_circle, iconColor: AppColors.green,
-                title: 'Mark as Paid', sub: 'Record payment received',
+                title: trGlobal('pv.mark_paid'), sub: trGlobal('pv.mark_paid_sub'),
                 onTap: () => _markPaid(invoice))
             else
               _ActionTile(
                 icon: Symbols.undo, iconColor: AppColors.orange,
-                title: 'Mark as Unpaid', sub: 'Undo paid status',
+                title: trGlobal('pv.mark_unpaid'), sub: trGlobal('pv.mark_unpaid_sub'),
                 color: AppColors.orange, onTap: () => _markUnpaid(invoice)),
             const Gap(8),
             _ActionTile(
               icon: Symbols.delete, iconColor: AppColors.red,
-              title: 'Delete Invoice', sub: 'Permanently remove this invoice',
+              title: trGlobal('pv.delete'), sub: trGlobal('pv.delete_sub'),
               color: AppColors.red, onTap: () => _deleteInvoice(invoice)),
           ],
         ),
@@ -165,6 +192,11 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
   /// shopkeeper hands to their customer, and making it read as a physical
   /// receipt rather than another card is what makes a one-person shop
   /// look like a real business.
+  ///
+  /// Its words stay in English whatever language the app is in, on
+  /// purpose: it shows exactly what the PDF will contain, and the PDF is
+  /// a tax document whose font and text engine cover Latin script only.
+  /// See the note at the top of lib/i18n/translations.dart.
   Widget _buildDoc(Invoice invoice, Business? biz) {
     final ink = AppColor.docSurface == AppColor.paper
         ? AppColor.paperInk
@@ -175,6 +207,8 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
 
     TextStyle doc(TextStyle base, {Color? color}) =>
         AppFont.style(base, color: color ?? ink);
+    final labels = docLabelsFor(invoice);
+    final logo = logoBytes(biz?.logoBase64 ?? '');
 
     return Container(
       decoration: BoxDecoration(
@@ -189,6 +223,21 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           padding: const EdgeInsets.fromLTRB(
               AppSpace.xl, AppSpace.xl, AppSpace.xl, AppSpace.lg),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            if (logo != null) ...[
+              // On white, as on paper, so a dark logo reads in dark mode.
+              Container(
+                width: 48,
+                height: 48,
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Image.memory(logo,
+                    fit: BoxFit.contain, gaplessPlayback: true),
+              ),
+              const Gap(AppSpace.md),
+            ],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,7 +246,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                       style: doc(AppType.titleM)),
                   if (biz?.gstin.isNotEmpty == true) ...[
                     const Gap(3),
-                    Text('GSTIN ${biz!.gstin}',
+                    Text('${labels.taxId} ${biz!.gstin}',
                         style: doc(AppType.bodyS, color: inkSoft)),
                   ],
                   if (biz?.address.isNotEmpty == true)
@@ -236,7 +285,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                     Text(invoice.customerPhone,
                         style: doc(AppType.bodyS, color: inkSoft)),
                   if (invoice.customerGstin.isNotEmpty)
-                    Text('GSTIN ${invoice.customerGstin}',
+                    Text('${labels.taxId} ${invoice.customerGstin}',
                         style: doc(AppType.bodyS, color: inkFaint)),
                 ],
               ),
@@ -305,7 +354,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                             children: [
                               Text(item.name, style: doc(AppType.labelM)),
                               if (item.hsnCode.isNotEmpty)
-                                Text('HSN ${item.hsnCode}',
+                                Text('${labels.itemCode} ${item.hsnCode}',
                                     style:
                                         doc(AppType.bodyS, color: inkFaint)),
                             ],
@@ -331,10 +380,13 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                           child: Padding(
                             padding: _docColGutter,
                             child: Money(item.rate,
+                                shrinkToFit: true,
                                 style: AppType.numeric,
                                 color: inkSoft,
                                 showSymbol: false,
                                 compact: false,
+                                storedSymbol: '',
+                                storedCountryCode: invoice.taxCountryCode,
                                 textAlign: TextAlign.right),
                           ),
                         ),
@@ -343,10 +395,13 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                           child: Padding(
                             padding: _docColGutter,
                             child: Money(item.taxable,
+                                shrinkToFit: true,
                                 style: AppType.amountS,
                                 color: ink,
                                 showSymbol: false,
                                 compact: false,
+                                storedSymbol: '',
+                                storedCountryCode: invoice.taxCountryCode,
                                 textAlign: TextAlign.right),
                           ),
                         ),
@@ -361,26 +416,28 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpace.xl),
           child: Column(children: [
-            _DocTotal('Subtotal', invoice.subtotal, ink, inkSoft),
+            _DocTotal('Subtotal', invoice.subtotal, ink, inkSoft,
+                country: invoice.taxCountryCode),
             // A before-tax discount is shown where it acts: off the
-            // subtotal, leaving the taxable value GST is charged on.
+            // subtotal, leaving the taxable value the tax is charged on.
             if (invoice.discountBeforeTax && invoice.flatDiscount > 0) ...[
-              _DocTotal('Discount', -invoice.flatDiscount, ink, inkSoft),
-              _DocTotal('Taxable value', invoice.taxableValue, ink, inkSoft),
+              _DocTotal('Discount', -invoice.flatDiscount, ink, inkSoft,
+                  country: invoice.taxCountryCode),
+              _DocTotal('Taxable value', invoice.taxableValue, ink, inkSoft,
+                  country: invoice.taxCountryCode),
             ],
-            if (invoice.totalCgst > 0)
-              _DocTotal('CGST ${invoice.gstRateForDisplay / 2}%',
-                  invoice.totalCgst, ink, inkSoft),
-            if (invoice.totalSgst > 0)
-              _DocTotal('SGST ${invoice.gstRateForDisplay / 2}%',
-                  invoice.totalSgst, ink, inkSoft),
-            if (invoice.totalIgst > 0)
-              _DocTotal('IGST ${invoice.gstRateForDisplay}%',
-                  invoice.totalIgst, ink, inkSoft),
+            // Whatever this country's bill names its tax, in its own
+            // order. India still prints two rows or one.
+            for (final r in invoice.taxRows)
+              if (r.amount > 0)
+                _DocTotal('${r.label} ${r.rate}%', r.amount, ink, inkSoft,
+                    country: invoice.taxCountryCode),
             if (invoice.shippingCharge > 0)
-              _DocTotal('Shipping', invoice.shippingCharge, ink, inkSoft),
+              _DocTotal('Shipping', invoice.shippingCharge, ink, inkSoft,
+                  country: invoice.taxCountryCode),
             if (!invoice.discountBeforeTax && invoice.flatDiscount > 0)
-              _DocTotal('Discount', -invoice.flatDiscount, ink, inkSoft),
+              _DocTotal('Discount', -invoice.flatDiscount, ink, inkSoft,
+                  country: invoice.taxCountryCode),
           ]),
         ),
         const Gap(AppSpace.md),
@@ -400,17 +457,24 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
               children: [
                 Text('TOTAL DUE',
                     style: doc(AppType.overline, color: inkSoft)),
-                // To the paisa: this is the figure the UPI QR below
-                // asks for, and the two must read the same.
-                MoneyCounter(invoice.grandTotal,
-                    style: AppType.amountL,
-                    color: AppColor.paid,
-                    compact: false,
-                    round: false),
+                const Gap(AppSpace.md),
+                Expanded(
+                  child: MoneyCounter(invoice.grandTotal,
+                      style: AppType.amountL,
+                      color: AppColor.paid,
+                      // Exact, never rounded: the rows above add up to
+                      // 46.02, so the total must say 46.02, not 46.
+                      round: false,
+                      compact: false,
+                      storedSymbol: invoice.currencySymbol,
+                      storedCountryCode: invoice.taxCountryCode),
+                ),
               ]),
         ),
 
-        if (biz != null && (biz.bankName.isNotEmpty || biz.upiId.isNotEmpty)) ...[
+        if (biz != null &&
+            (biz.bankName.isNotEmpty ||
+                (biz.upiId.isNotEmpty && upiApplies(invoice)))) ...[
           const Gap(AppSpace.lg),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpace.xl),
@@ -421,9 +485,9 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                 const Gap(5),
                 if (biz.bankName.isNotEmpty)
                   Text(
-                      '${biz.bankName} · A/C ${biz.accountNumber} · IFSC ${biz.ifscCode}',
+                      '${biz.bankName} · A/C ${biz.accountNumber} · ${bankCodeLabel(invoice)} ${biz.ifscCode}',
                       style: doc(AppType.bodyS, color: inkSoft)),
-                if (biz.upiId.isNotEmpty)
+                if (biz.upiId.isNotEmpty && upiApplies(invoice))
                   Text('UPI ${biz.upiId}',
                       style: doc(AppType.bodyS, color: inkSoft)),
               ],
@@ -469,7 +533,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           Expanded(child: ElevatedButton.icon(
             onPressed: () => _markPaid(invoice),
             icon: const Icon(Symbols.check_circle, size: 18),
-            label: Text('Paid', style: AppFont.sans(fontWeight: FontWeight.w600, fontSize: 14)),
+            label: Text(trGlobal('inv.paid'), style: AppFont.sans(fontWeight: FontWeight.w600, fontSize: 14)),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.green, foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -485,7 +549,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Icon(Symbols.check_circle, color: AppColors.green, size: 18),
               const Gap(6),
-              Text('Paid',
+              Text(trGlobal('inv.paid'),
                 style: AppFont.sans(
                   fontWeight: FontWeight.w600, fontSize: 14, color: AppColors.green)),
             ]),
@@ -494,7 +558,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
         Expanded(child: ElevatedButton.icon(
           onPressed: () => _sendWhatsApp(invoice, biz),
           icon: const Icon(Symbols.chat, size: 18),
-          label: Text('Share', style: AppFont.sans(fontWeight: FontWeight.w600, fontSize: 14)),
+          label: Text(trGlobal('common.share'), style: AppFont.sans(fontWeight: FontWeight.w600, fontSize: 14)),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF25D366), foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 14),
@@ -533,21 +597,21 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
           Container(width: 36, height: 4,
             decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(99))),
           const Gap(16),
-          if (!isPaid) _OptTile(Symbols.edit, 'Edit Invoice', AppColors.brand,
+          if (!isPaid) _OptTile(Symbols.edit, trGlobal('pv.edit'), AppColors.brand,
             () { Navigator.pop(context); _editInvoice(context, invoice); }),
-          _OptTile(Symbols.picture_as_pdf, 'Download PDF', AppColors.brand,
+          _OptTile(Symbols.picture_as_pdf, trGlobal('pv.download_pdf'), AppColors.brand,
             () { Navigator.pop(context); _downloadPdf(invoice, biz); }),
-          _OptTile(Symbols.print, 'Print Invoice', AppColors.t2,
+          _OptTile(Symbols.print, trGlobal('pv.print_title'), AppColors.t2,
             () { Navigator.pop(context); _printInvoice(invoice, biz); }),
-          _OptTile(Symbols.chat, 'Send WhatsApp', const Color(0xFF25D366),
+          _OptTile(Symbols.chat, trGlobal('pv.send_whatsapp'), const Color(0xFF25D366),
             () { Navigator.pop(context); _sendWhatsApp(invoice, biz); }),
           if (!isPaid)
-            _OptTile(Symbols.check_circle, 'Mark as Paid', AppColors.green,
+            _OptTile(Symbols.check_circle, trGlobal('pv.mark_paid'), AppColors.green,
               () { Navigator.pop(context); _markPaid(invoice); })
           else
-            _OptTile(Symbols.undo, 'Mark as Unpaid', AppColors.orange,
+            _OptTile(Symbols.undo, trGlobal('pv.mark_unpaid'), AppColors.orange,
               () { Navigator.pop(context); _markUnpaid(invoice); }),
-          _OptTile(Symbols.delete, 'Delete Invoice', AppColors.red,
+          _OptTile(Symbols.delete, trGlobal('pv.delete'), AppColors.red,
             () { Navigator.pop(context); _deleteInvoice(invoice); }),
         ])));
   }
@@ -605,26 +669,23 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
 
     final doc = pw.Document(theme: theme);
     final isPaid = invoice.status == InvoiceStatus.paid;
+    final labels = docLabelsFor(invoice);
+    final logo = logoBytes(biz?.logoBase64 ?? '');
 
-    /// Indian digit grouping with a real rupee sign.
-    String rs(double amount, {bool symbol = true}) {
-      final abs = amount.abs();
-      final parts = abs.toStringAsFixed(2).split('.');
-      var integer = parts[0];
-      if (integer.length > 3) {
-        final last3 = integer.substring(integer.length - 3);
-        final rest = integer.substring(0, integer.length - 3);
-        final groups = <String>[];
-        for (var i = rest.length; i > 0; i -= 2) {
-          groups.insert(0, rest.substring(i < 2 ? 0 : i - 2, i));
-        }
-        integer = '${groups.join(',')},$last3';
-      }
-      final sign = amount < 0 ? '-' : '';
-      return '$sign${symbol ? '₹' : ''}$integer.${parts[1]}';
-    }
+    /// The invoice's own currency and its own country's grouping.
+    ///
+    /// Read from the invoice, never from the shop's current settings:
+    /// reprinting a rupee bill in dirhams because the shopkeeper moved
+    /// would be a forged document.
+    String rs(double amount, {bool symbol = true}) => formatStoredMoney(
+          amount,
+          symbol: invoice.currencySymbol,
+          countryCode: invoice.taxCountryCode,
+          withSymbol: symbol,
+        );
 
     final upiLink = (biz != null &&
+            upiApplies(invoice) &&
             biz.upiId.isNotEmpty &&
             UpiHelper.isValidVpa(biz.upiId) &&
             !isPaid &&
@@ -670,6 +731,15 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
+                  if (logo != null) ...[
+                    pw.Container(
+                      width: 52,
+                      height: 52,
+                      child: pw.Image(pw.MemoryImage(logo),
+                          fit: pw.BoxFit.contain),
+                    ),
+                    pw.SizedBox(width: 12),
+                  ],
                   pw.Expanded(
                     child: pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -679,7 +749,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                                   font: _pdfBold, fontSize: 17, color: _pInk)),
                           if (biz?.gstin.isNotEmpty == true) ...[
                             pw.SizedBox(height: 3),
-                            pw.Text('GSTIN ${biz!.gstin}',
+                            pw.Text('${labels.taxId} ${biz!.gstin}',
                                 style: const pw.TextStyle(
                                     fontSize: 9, color: _pInkSoft)),
                           ],
@@ -744,7 +814,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                                 style: const pw.TextStyle(
                                     fontSize: 9, color: _pInkSoft)),
                           if (invoice.customerGstin.isNotEmpty)
-                            pw.Text('GSTIN ${invoice.customerGstin}',
+                            pw.Text('${labels.taxId} ${invoice.customerGstin}',
                                 style: const pw.TextStyle(
                                     fontSize: 9, color: _pInkFaint)),
                           if (invoice.customerAddress.isNotEmpty)
@@ -800,7 +870,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                     _pHead('Item', _pdfBold!),
                     _pHead('Qty', _pdfBold!, right: true),
                     _pHead('Rate', _pdfBold!, right: true),
-                    _pHead('GST', _pdfBold!, right: true),
+                    _pHead(labels.tax, _pdfBold!, right: true),
                     _pHead('Amount', _pdfBold!, right: true),
                   ],
                 ),
@@ -820,7 +890,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                                   style: pw.TextStyle(
                                       font: _pdfBold, fontSize: 9.5)),
                               if (item.hsnCode.isNotEmpty)
-                                pw.Text('HSN ${item.hsnCode}',
+                                pw.Text('${labels.itemCode} ${item.hsnCode}',
                                     style: const pw.TextStyle(
                                         fontSize: 7.5, color: _pInkFaint)),
                             ]),
@@ -853,15 +923,9 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                     totalRow('Discount', -invoice.flatDiscount),
                     totalRow('Taxable value', invoice.taxableValue),
                   ],
-                  if (invoice.totalCgst > 0)
-                    totalRow('CGST ${invoice.gstRateForDisplay / 2}%',
-                        invoice.totalCgst),
-                  if (invoice.totalSgst > 0)
-                    totalRow('SGST ${invoice.gstRateForDisplay / 2}%',
-                        invoice.totalSgst),
-                  if (invoice.totalIgst > 0)
-                    totalRow('IGST ${invoice.gstRateForDisplay}%',
-                        invoice.totalIgst),
+                  for (final r in invoice.taxRows)
+                    if (r.amount > 0)
+                      totalRow('${r.label} ${r.rate}%', r.amount),
                   if (invoice.shippingCharge > 0)
                     totalRow('Shipping', invoice.shippingCharge),
                   if (!invoice.discountBeforeTax &&
@@ -946,15 +1010,16 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
             ],
 
             if (biz != null &&
-                (biz.bankName.isNotEmpty || biz.upiId.isNotEmpty)) ...[
+                (biz.bankName.isNotEmpty ||
+                    (biz.upiId.isNotEmpty && upiApplies(invoice)))) ...[
               pw.SizedBox(height: 16),
               label('Pay to'),
               pw.SizedBox(height: 4),
               if (biz.bankName.isNotEmpty)
                 pw.Text(
-                    '${biz.bankName}  ·  A/C ${biz.accountNumber}  ·  IFSC ${biz.ifscCode}',
+                    '${biz.bankName}  ·  A/C ${biz.accountNumber}  ·  ${bankCodeLabel(invoice)} ${biz.ifscCode}',
                     style: const pw.TextStyle(fontSize: 9, color: _pInkSoft)),
-              if (biz.upiId.isNotEmpty)
+              if (biz.upiId.isNotEmpty && upiApplies(invoice))
                 pw.Text('UPI ${biz.upiId}',
                     style: const pw.TextStyle(fontSize: 9, color: _pInkSoft)),
             ],
@@ -1021,15 +1086,18 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
       await file.writeAsBytes(bytes);
       if (!mounted) return;
       await Share.shareXFiles([XFile(file.path, mimeType: 'application/pdf')],
-        subject: 'Invoice ${invoice.invoiceNumber}',
-        text: 'Invoice ${invoice.invoiceNumber} — ${formatCurrency(invoice.grandTotal)}');
+        subject: trGlobal('pv.share_subject', {'no': invoice.invoiceNumber}),
+        text: trGlobal('pv.share_text', {
+          'no': invoice.invoiceNumber,
+          'amount': _storedTotal(invoice),
+        }));
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('PDF ready'), backgroundColor: AppColors.green));
+        content: Text(trGlobal('pv.pdf_ready')), backgroundColor: AppColors.green));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('PDF error: $e'), backgroundColor: AppColors.red));
+        SnackBar(content: Text(trGlobal('pv.pdf_error', {'e': e})), backgroundColor: AppColors.red));
     } finally {
       if (mounted) setState(() => _pdfLoading = false);
     }
@@ -1044,7 +1112,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Print error: $e'), backgroundColor: AppColors.red));
+        SnackBar(content: Text(trGlobal('pv.print_error', {'e': e})), backgroundColor: AppColors.red));
     } finally {
       if (mounted) setState(() => _printLoading = false);
     }
@@ -1054,32 +1122,33 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     await ref.read(invoiceProvider.notifier).markPaid(invoice.id);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: const Text('Marked as paid'), backgroundColor: AppColors.green));
+      content: Text(trGlobal('pv.marked_paid')), backgroundColor: AppColors.green));
   }
 
   Future<void> _markUnpaid(Invoice invoice) async {
     final ok = await confirm(context,
-        title: 'Mark as unpaid?',
-        message: 'The status goes back to Sent. Nothing else changes.',
+        title: trGlobal('pv.unpaid_title'),
+        message: trGlobal('pv.unpaid_msg'),
         icon: Symbols.undo,
         tone: AppColor.pending,
-        confirmLabel: 'Mark unpaid');
+        confirmLabel: trGlobal('pv.unpaid_btn'),
+        cancelLabel: trGlobal('common.cancel'));
     if (ok) {
       await ref.read(invoiceProvider.notifier).markUnpaid(invoice.id);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Marked as unpaid'), backgroundColor: AppColors.orange));
+        content: Text(trGlobal('pv.marked_unpaid')), backgroundColor: AppColors.orange));
     }
   }
 
   Future<void> _deleteInvoice(Invoice invoice) async {
     final ok = await confirm(context,
-        title: 'Delete this invoice?',
-        message: '${invoice.invoiceNumber} will be removed for good. '
-            'This cannot be undone.',
+        title: trGlobal('pv.delete_title'),
+        message: trGlobal('pv.delete_msg', {'no': invoice.invoiceNumber}),
         icon: Symbols.delete,
         destructive: true,
-        confirmLabel: 'Delete invoice');
+        confirmLabel: trGlobal('pv.delete_btn'),
+        cancelLabel: trGlobal('common.cancel'));
     if (ok) {
       await ref.read(invoiceProvider.notifier).delete(invoice.id);
       if (mounted) context.go('/invoices');
@@ -1093,6 +1162,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     String upiLine = '';
     if (!isPaid &&
         biz != null &&
+        upiApplies(invoice) &&
         biz.upiId.isNotEmpty &&
         UpiHelper.isValidVpa(biz.upiId) &&
         invoice.grandTotal > 0) {
@@ -1101,26 +1171,26 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
         name: biz.name,
         amount: invoice.grandTotal,
         note: invoice.invoiceNumber);
-      upiLine = '\n\n*Pay instantly via UPI:*\n$link';
+      upiLine = '\n\n${trGlobal('wa.pay_upi')}\n$link';
     }
 
+    // In the language the shopkeeper reads the app in — the person
+    // they are messaging is, overwhelmingly, someone they talk to in it.
     final msg = Uri.encodeComponent(
-      'Hi ${invoice.customerName},\n\n'
-      'Your invoice *${invoice.invoiceNumber}* '
-      'for *${formatCurrency(invoice.grandTotal)}* is ready.\n\n'
-      'Due: ${DateFormat('dd MMM yyyy').format(invoice.dueDate)}'
+      '${trGlobal('wa.greeting', {'name': invoice.customerName})}\n\n'
+      '${trGlobal('wa.ready', {'no': invoice.invoiceNumber, 'amount': _storedTotal(invoice)})}\n\n'
+      '${trGlobal('wa.due', {'date': DateFormat('dd MMM yyyy').format(invoice.dueDate)})}'
       '$upiLine\n\n'
-      'Thank you.\n\n— Sent via BillZap');
+      '${trGlobal('wa.thanks')}\n\n${trGlobal('wa.sent_via')}');
 
-    final phone = invoice.customerPhone.replaceAll(RegExp(r'[^0-9]'), '');
+    final fullPhone = whatsAppNumber(invoice.customerPhone,
+        shopCountry: biz?.countryCode ?? 'IN');
 
-    Uri url;
-    if (phone.isNotEmpty) {
-      final fullPhone = phone.startsWith('91') ? phone : '91$phone';
-      url = Uri.parse('https://wa.me/$fullPhone?text=$msg');
-    } else {
-      url = Uri.parse('https://wa.me/?text=$msg');
-    }
+    final url = fullPhone == null
+        // No number we can be sure of: let the shopkeeper pick the
+        // contact in WhatsApp rather than message a stranger.
+        ? Uri.parse('https://wa.me/?text=$msg')
+        : Uri.parse('https://wa.me/$fullPhone?text=$msg');
 
     try {
       if (await canLaunchUrl(url)) {
@@ -1132,13 +1202,13 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
         } else {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('WhatsApp not installed'), backgroundColor: AppColors.red));
+            content: Text(trGlobal('msg.whatsapp_not_installed')), backgroundColor: AppColors.red));
         }
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.red));
+        SnackBar(content: Text(trGlobal('common.error_detail', {'e': e})), backgroundColor: AppColors.red));
     }
   }
 }
@@ -1196,10 +1266,10 @@ class _UpiPaymentCard extends ConsumerWidget {
           ),
           const Gap(10),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Pay via UPI',
+            Text(trGlobal('upi.pay_via'),
               style: AppFont.sans(
                 fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.t1)),
-            Text('Instant payment • All UPI apps',
+            Text(trGlobal('upi.instant'),
               style: AppFont.sans(fontSize: 11, color: AppColors.t3)),
           ])),
         ]),
@@ -1234,7 +1304,7 @@ class _UpiPaymentCard extends ConsumerWidget {
           const Gap(14),
           // Right side - amount + actions
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Amount due',
+            Text(trGlobal('upi.amount_due'),
               style: AppFont.sans(
                 fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.t3,
                 letterSpacing: 0.5)),
@@ -1243,13 +1313,13 @@ class _UpiPaymentCard extends ConsumerWidget {
               style: AppFont.sans(
                 fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.brand)),
             const Gap(2),
-            Text('Ref: ${invoice.invoiceNumber}',
+            Text(trGlobal('upi.ref', {'no': invoice.invoiceNumber}),
               style: AppFont.sans(fontSize: 10.5, color: AppColors.t3)),
             const Gap(10),
             SizedBox(width: double.infinity, child: ElevatedButton.icon(
               onPressed: () => _payNow(context, upiLink),
               icon: const Icon(Symbols.bolt, size: 16),
-              label: Text('Pay now',
+              label: Text(trGlobal('upi.pay_now'),
                 style: AppFont.sans(
                   fontSize: 12.5, fontWeight: FontWeight.w600)),
               style: ElevatedButton.styleFrom(
@@ -1269,7 +1339,7 @@ class _UpiPaymentCard extends ConsumerWidget {
             Clipboard.setData(ClipboardData(text: upiLink));
             HapticFeedback.lightImpact();
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: const Text('UPI link copied'),
+              content: Text(trGlobal('upi.copied')),
               behavior: SnackBarBehavior.floating,
               duration: const Duration(seconds: 2),
               backgroundColor: AppColors.t1,
@@ -1283,7 +1353,7 @@ class _UpiPaymentCard extends ConsumerWidget {
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Icon(Symbols.content_copy, size: 13, color: AppColors.t3),
               const Gap(6),
-              Text('Copy UPI link',
+              Text(trGlobal('upi.copy'),
                 style: AppFont.sans(
                   fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.t3)),
             ]),
@@ -1302,14 +1372,14 @@ class _UpiPaymentCard extends ConsumerWidget {
       } else {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('No UPI app installed'),
+            content: Text(trGlobal('upi.no_app')),
             backgroundColor: AppColors.red));
         }
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.red));
+          SnackBar(content: Text(trGlobal('common.error_detail', {'e': e})), backgroundColor: AppColors.red));
       }
     }
   }
@@ -1336,10 +1406,10 @@ class _NoUpiSetupCard extends StatelessWidget {
         ),
         const Gap(12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Enable UPI payments',
+          Text(trGlobal('upi.enable'),
             style: AppFont.sans(
               fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.t1)),
-          Text('Add your UPI ID in Settings to let customers pay instantly via QR.',
+          Text(trGlobal('upi.enable_sub'),
             style: AppFont.sans(fontSize: 11.5, color: AppColors.t3)),
         ])),
         const Gap(8),
@@ -1352,7 +1422,7 @@ class _NoUpiSetupCard extends StatelessWidget {
             minimumSize: const Size(0, 0),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
-          child: Text('Setup',
+          child: Text(trGlobal('upi.setup'),
             style: AppFont.sans(fontSize: 11.5, fontWeight: FontWeight.w700)),
         ),
       ]),
@@ -1378,10 +1448,10 @@ class _InvalidUpiCard extends StatelessWidget {
         Icon(Symbols.error, color: AppColors.red, size: 22),
         const Gap(10),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Invalid UPI ID format',
+          Text(trGlobal('upi.invalid'),
             style: AppFont.sans(
               fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.t1)),
-          Text('"$vpa" is not a valid UPI. Should look like name@bank',
+          Text(trGlobal('upi.invalid_sub', {'vpa': vpa}),
             style: AppFont.sans(fontSize: 11.5, color: AppColors.t3)),
         ])),
       ]),
@@ -1433,33 +1503,33 @@ class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
         Container(width: 36, height: 4,
           decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(99))),
         const Gap(14),
-        Text('Edit Invoice', style: AppFont.sans(fontSize: 18, fontWeight: FontWeight.w600)),
+        Text(trGlobal('pv.edit'), style: AppFont.sans(fontSize: 18, fontWeight: FontWeight.w600)),
         const Gap(16),
         TextField(controller: _custName,
-          decoration: InputDecoration(labelText: 'Customer Name',
+          decoration: InputDecoration(labelText: trGlobal('pv.customer_name'),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14))),
           style: AppFont.sans(fontSize: 13.5)),
         const Gap(10),
         Row(children: [
           Expanded(child: TextField(controller: _custPhone, keyboardType: TextInputType.phone,
-            decoration: InputDecoration(labelText: 'Phone',
+            decoration: InputDecoration(labelText: trGlobal('cust.phone'),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(14))),
             style: AppFont.sans(fontSize: 13.5))),
           const Gap(10),
           Expanded(child: TextField(controller: _custGstin,
-            decoration: InputDecoration(labelText: 'GSTIN',
+            decoration: InputDecoration(labelText: activeTaxIdLabel,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(14))),
             style: AppFont.sans(fontSize: 13.5))),
         ]),
         const Gap(10),
         Row(children: [
-          Expanded(child: _DateField('Invoice Date', _date, (d) => setState(() => _date = d))),
+          Expanded(child: _DateField(trGlobal('create.invoice_date'), _date, (d) => setState(() => _date = d))),
           const Gap(10),
-          Expanded(child: _DateField('Due Date', _due, (d) => setState(() => _due = d))),
+          Expanded(child: _DateField(trGlobal('create.due_date'), _due, (d) => setState(() => _due = d))),
         ]),
         const Gap(10),
         TextField(controller: _notes, maxLines: 2,
-          decoration: InputDecoration(labelText: 'Notes',
+          decoration: InputDecoration(labelText: trGlobal('create.notes'),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14))),
           style: AppFont.sans(fontSize: 13.5)),
         const Gap(16),
@@ -1469,7 +1539,7 @@ class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
           child: _saving
             ? const SizedBox(width: 20, height: 20,
                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-            : Text('Save Changes', style: AppFont.sans(fontSize: 14, fontWeight: FontWeight.w700)))),
+            : Text(trGlobal('common.save_changes'), style: AppFont.sans(fontSize: 14, fontWeight: FontWeight.w700)))),
       ])));
 
   Widget _DateField(String label, DateTime date, ValueChanged<DateTime> onPick) =>
@@ -1508,11 +1578,11 @@ class _EditInvoiceSheetState extends ConsumerState<_EditInvoiceSheet> {
       if (!mounted) return;
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('Invoice updated'), backgroundColor: AppColors.green));
+        content: Text(trGlobal('pv.updated')), backgroundColor: AppColors.green));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.red));
+        SnackBar(content: Text(trGlobal('common.error_detail', {'e': e})), backgroundColor: AppColors.red));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -1590,18 +1660,28 @@ class _DocTotal extends StatelessWidget {
   final String label;
   final double amount;
   final Color ink, inkSoft;
-  const _DocTotal(this.label, this.amount, this.ink, this.inkSoft);
+  /// The invoice's own country, so the grouping matches the PDF even
+  /// after the shop has moved.
+  final String country;
+  const _DocTotal(this.label, this.amount, this.ink, this.inkSoft,
+      {this.country = 'IN'});
 
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Text(label, style: AppFont.style(AppType.bodyM, color: inkSoft)),
-          Money(amount,
-              style: AppType.amountS,
-              color: ink,
-              showSymbol: false,
-              compact: false),
+          Flexible(
+            child: Money(amount,
+                style: AppType.amountS,
+                color: ink,
+                showSymbol: false,
+                compact: false,
+                shrinkToFit: true,
+                textAlign: TextAlign.right,
+                storedSymbol: '',
+                storedCountryCode: country),
+          ),
         ]),
       );
 }

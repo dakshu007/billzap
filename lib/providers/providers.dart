@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/models.dart';
 import '../services/local_storage.dart';
 import '../tax/countries.dart';
+import '../tax/active_profile.dart';
 import '../tax/profiles.dart';
 import '../tax/tax_engine.dart';
 import '../tax/tax_profile.dart';
+import '../design/money.dart';
 
 final storageProvider = Provider<LocalStorage>((_) => LocalStorage.instance);
 
@@ -44,6 +46,24 @@ final businessProvider =
 // is in.
 final taxProfileProvider = Provider<TaxProfile>((ref) {
   final biz = ref.watch(businessProvider);
+  final profile = _resolve(biz);
+  // Push the currency into money.dart, which renders every amount in
+  // the app and cannot read a provider — it is on the hot path of every
+  // row of every list. Same shape the i18n layer already uses.
+  setActiveCurrency(
+    symbol: profile.currencySymbol,
+    grouping: profile.grouping == NumberGrouping.indian
+        ? MoneyGrouping.indian
+        : MoneyGrouping.western,
+  );
+  // Same again for the label strings — 'GST' vs 'VAT' vs 'Sales Tax' —
+  // which a static bottom sheet and a PDF builder also cannot read a
+  // provider for.
+  setActiveProfile(profile);
+  return profile;
+});
+
+TaxProfile _resolve(Business? biz) {
   if (biz == null) return indiaProfile;
   return resolveProfile(
     countryCode: biz.countryCode,
@@ -54,7 +74,7 @@ final taxProfileProvider = Provider<TaxProfile>((ref) {
     customCurrencyCode:
         countryFor(biz.countryCode)?.currencyCode ?? 'USD',
   );
-});
+}
 
 /// The engine bound to the current profile. Screens compute totals
 /// through this so the arithmetic lives in one tested place.
@@ -166,6 +186,14 @@ class CustomerNotifier extends Notifier<List<Customer>> {
     state = _db.getCustomers();
   }
 
+  Future<void> addAll(List<Customer> items) async {
+    for (final c in items) {
+      c.touch();
+    }
+    await _db.saveCustomers(items);
+    state = _db.getCustomers();
+  }
+
   Future<void> delete(String id) async {
     await _db.deleteCustomer(id);
     state = _db.getCustomers();
@@ -190,6 +218,14 @@ class ProductNotifier extends Notifier<List<Product>> {
   Future<void> add(Product p) async {
     p.touch();
     await _db.saveProduct(p);
+    state = _db.getProducts();
+  }
+
+  Future<void> addAll(List<Product> items) async {
+    for (final p in items) {
+      p.touch();
+    }
+    await _db.saveProducts(items);
     state = _db.getProducts();
   }
 

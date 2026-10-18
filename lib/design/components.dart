@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:billzap/theme/app_icons.dart';
 
+import '../i18n/translations.dart';
 import 'money.dart';
 import 'motion.dart';
 import 'theme.dart';
@@ -1057,7 +1058,7 @@ class AppDialog extends StatelessWidget {
   final Widget? body;
 
   /// Primary action. Its label is required; a null [onConfirm] pops true.
-  final String confirmLabel;
+  final String? confirmLabel;
   final VoidCallback? onConfirm;
 
   /// Secondary action. Pass null to show only the primary button.
@@ -1074,7 +1075,7 @@ class AppDialog extends StatelessWidget {
     this.body,
     this.icon,
     this.tone,
-    this.confirmLabel = 'OK',
+    this.confirmLabel,
     this.onConfirm,
     this.cancelLabel,
     this.onCancel,
@@ -1133,12 +1134,12 @@ class AppDialog extends StatelessWidget {
                 width: double.infinity,
                 child: destructive
                     ? AppButton.danger(
-                        label: confirmLabel,
+                        label: confirmLabel ?? trGlobal('common.ok'),
                         onPressed: onConfirm ??
                             () => Navigator.of(context).pop(true),
                       )
                     : AppButton(
-                        label: confirmLabel,
+                        label: confirmLabel ?? trGlobal('common.ok'),
                         onPressed: onConfirm ??
                             () => Navigator.of(context).pop(true),
                       ),
@@ -1204,8 +1205,8 @@ Future<bool> confirm(
   required String title,
   String? message,
   IconData? icon,
-  String confirmLabel = 'Confirm',
-  String cancelLabel = 'Cancel',
+  String? confirmLabel,
+  String? cancelLabel,
   bool destructive = false,
   Color? tone,
 }) async {
@@ -1218,8 +1219,8 @@ Future<bool> confirm(
       icon: icon,
       tone: tone,
       destructive: destructive,
-      confirmLabel: confirmLabel,
-      cancelLabel: cancelLabel,
+      confirmLabel: confirmLabel ?? trGlobal('common.confirm'),
+      cancelLabel: cancelLabel ?? trGlobal('common.cancel'),
     ),
   );
   return ok == true;
@@ -1233,7 +1234,7 @@ Future<void> notify(
   Widget? body,
   IconData? icon,
   Color? tone,
-  String buttonLabel = 'Done',
+  String? buttonLabel,
 }) {
   return showAppDialog<void>(
     context: context,
@@ -1243,7 +1244,7 @@ Future<void> notify(
       body: body,
       icon: icon,
       tone: tone,
-      confirmLabel: buttonLabel,
+      confirmLabel: buttonLabel ?? trGlobal('common.done'),
       onConfirm: () => Navigator.of(ctx).pop(),
     ),
   );
@@ -1770,4 +1771,32 @@ class FieldGroup extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A small "Beta" tag for a feature that works but is still being
+/// tuned — voice billing, today. Violet because it is the one accent
+/// that means nothing about money or invoice state.
+class BetaBadge extends StatelessWidget {
+  final String label;
+  const BetaBadge(this.label, {super.key});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+        decoration: BoxDecoration(
+          color: AppColor.violet500.withValues(alpha: 0.14),
+          borderRadius: AppRadius.all(AppRadius.pill),
+          border: Border.all(
+              color: AppColor.violet500.withValues(alpha: 0.35), width: 0.8),
+        ),
+        child: Text(
+          label,
+          maxLines: 1,
+          style: AppFont.style(
+            const TextStyle(
+                fontSize: 9.5, fontWeight: FontWeight.w700, letterSpacing: 0.3),
+            color: AppTokens.pick(AppColor.violet600, AppColor.violet400),
+          ),
+        ),
+      );
 }

@@ -26,6 +26,8 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:intl/intl.dart';
+import '../design/money.dart';
+import '../tax/active_profile.dart';
 import '../models/models.dart';
 
 class ReportPdfBuilder {
@@ -60,24 +62,14 @@ class ReportPdfBuilder {
   }
 
   // ── Money ───────────────────────────────────────────────────────
-  // Indian grouping: the last three digits, then pairs. 12,34,567.00,
-  // never 1,234,567.00 — an accountant reads the wrong number off the
-  // western grouping at a glance.
-  static String _inr(double v, {bool symbol = true}) {
-    final neg = v < 0;
-    final parts = v.abs().toStringAsFixed(2).split('.');
-    var integer = parts[0];
-    if (integer.length > 3) {
-      final last3 = integer.substring(integer.length - 3);
-      final rest = integer.substring(0, integer.length - 3);
-      final groups = <String>[];
-      for (var i = rest.length; i > 0; i -= 2) {
-        groups.insert(0, rest.substring(i < 2 ? 0 : i - 2, i));
-      }
-      integer = '${groups.join(',')},$last3';
-    }
-    return '${neg ? '-' : ''}${symbol ? '₹' : ''}$integer.${parts[1]}';
-  }
+  // The shop's own currency and its own country's grouping. In India
+  // that is still the last three digits then pairs — 12,34,567.00,
+  // never 1,234,567.00, because an accountant reads the wrong number
+  // off the western grouping at a glance. Elsewhere the western rule is
+  // the one that reads correctly, which is the whole point of asking
+  // the shopkeeper what country they are in.
+  static String _inr(double v, {bool symbol = true}) =>
+      formatActiveMoney(v, withSymbol: symbol);
 
   static String _dt(DateTime d) => DateFormat('d MMM yyyy').format(d);
 
@@ -621,11 +613,30 @@ class ReportPdfBuilder {
       !i.invoiceDate.isAfter(to)
     ).toList();
 
-    final totalCgst = filtered.fold<double>(0, (s, i) => s + i.totalCgst);
-    final totalSgst = filtered.fold<double>(0, (s, i) => s + i.totalSgst);
-    final totalIgst = filtered.fold<double>(0, (s, i) => s + i.totalIgst);
-    final totalGst = totalCgst + totalSgst + totalIgst;
+    // The total comes off each invoice's own tax, NOT from adding up
+    // CGST + SGST + IGST. Those three are 0 on a bill whose split is
+    // named anything else, so the old sum reported zero tax collected
+    // for every shop outside India — on a document headed "Summary".
+    final totalTax = filtered.fold<double>(0, (s, i) => s + i.totalTax);
     final totalTaxable = filtered.fold<double>(0, (s, i) => s + i.taxableValue);
+
+    // Which tax lines this period actually charged, in print order.
+    final byName = <String, double>{};
+    for (final inv in filtered) {
+      inv.taxSplit.forEach((label, amount) {
+        byName[label] = (byName[label] ?? 0) + amount;
+      });
+    }
+    // India's page keeps its exact shape: the CGST + SGST and IGST
+    // stats, the three month columns, and the GSTR-1 note. Everywhere
+    // else those are replaced by whatever that country actually levies.
+    final india = activeProfile.countryCode == 'IN';
+    final columns = india
+        ? const ['CGST', 'SGST', 'IGST']
+        : (byName.keys.toList()..sort());
+    final totalCgst = byName['CGST'] ?? 0;
+    final totalSgst = byName['SGST'] ?? 0;
+    final totalIgst = byName['IGST'] ?? 0;
 
     // Month-wise GST
     final byMonth = <String, List<Invoice>>{};
@@ -636,51 +647,76 @@ class ReportPdfBuilder {
     final monthEntries = byMonth.entries.toList()
       ..sort((a, b) => a.key.compareTo(b.key));
 
+    final tax = activeTaxName;
     return _page(
-      title: 'GST Summary',
+      title: '$tax Summary',
       from: from,
       to: to,
       biz: biz,
       body: [
         _statRow([
           _stat('Taxable value', _inr(totalTaxable)),
-          _stat('Total GST', _inr(totalGst), accent: true),
-          _stat('CGST + SGST', _inr(totalCgst + totalSgst)),
-          _stat('IGST', _inr(totalIgst)),
+          _stat('Total $tax', _inr(totalTax), accent: true),
+          if (india) ...[
+            _stat('CGST + SGST', _inr(totalCgst + totalSgst)),
+            _stat('IGST', _inr(totalIgst)),
+          ] else
+            for (final label in columns.take(2))
+              _stat(label, _inr(byName[label] ?? 0)),
         ]),
-        _section('Month by month, for GSTR-1'),
+        _section(india
+            ? 'Month by month, for GSTR-1'
+            : 'Month by month'),
         if (monthEntries.isEmpty)
           _empty('No paid invoices in this period.')
         else
           _table(
-            ['Month', 'Inv', 'Taxable', 'CGST', 'SGST', 'IGST', 'Total tax'],
+            ['Month', 'Inv', 'Taxable', ...columns, 'Total tax'],
             monthEntries.map((e) {
               final invs = e.value;
               final dt = DateFormat('yyyy-MM').parse(e.key);
               final taxable = invs.fold<double>(0, (s, i) => s + i.taxableValue);
-              final c = invs.fold<double>(0, (s, i) => s + i.totalCgst);
-              final sg = invs.fold<double>(0, (sum, i) => sum + i.totalSgst);
-              final ig = invs.fold<double>(0, (sum, i) => sum + i.totalIgst);
+              final monthByName = <String, double>{};
+              for (final inv in invs) {
+                inv.taxSplit.forEach((label, amount) {
+                  monthByName[label] = (monthByName[label] ?? 0) + amount;
+                });
+              }
               return [
                 DateFormat('MMM yyyy').format(dt),
                 '${invs.length}',
                 _inr(taxable, symbol: false),
-                _inr(c, symbol: false),
-                _inr(sg, symbol: false),
-                _inr(ig, symbol: false),
-                _inr(c + sg + ig),
+                for (final label in columns)
+                  _inr(monthByName[label] ?? 0, symbol: false),
+                _inr(invs.fold<double>(0, (s, i) => s + i.totalTax)),
               ];
             }).toList(),
-            numeric: const [1, 2, 3, 4, 5, 6],
-            widths: const [1.2, 0.5, 1.2, 1.0, 1.0, 1.0, 1.3],
+            // Every column after the month is a number.
+            numeric: [for (var i = 1; i <= columns.length + 2; i++) i],
+            widths: [
+              1.2,
+              0.5,
+              1.2,
+              for (var i = 0; i < columns.length; i++) 1.0,
+              1.3,
+            ],
             emphasiseLast: true,
           ),
-        _note(
-          'Before you file',
-          'GSTR-1 is due by the 11th of each month, GSTR-3B by the 20th. '
-          'Treat this as supporting data and check it against your books '
-          'with your accountant before filing.',
-        ),
+        if (india)
+          _note(
+            'Before you file',
+            'GSTR-1 is due by the 11th of each month, GSTR-3B by the 20th. '
+            'Treat this as supporting data and check it against your books '
+            'with your accountant before filing.',
+          )
+        else
+          _note(
+            'Before you file',
+            'Treat this as supporting data. BillZap has not verified '
+            '$tax rates or filing rules for your country — check this '
+            'against your books with your accountant, and check the rate '
+            'itself against your tax authority.',
+          ),
       ],
     );
   }

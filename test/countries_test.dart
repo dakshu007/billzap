@@ -85,13 +85,43 @@ void main() {
     test('zero is always offered, for exempt lines', () {
       expect(resolveProfile(countryCode: 'BR', customTaxRate: 20).rates,
           contains(0.0));
-      expect(resolveProfile(countryCode: 'BR', customTaxRate: 0).rates, [0.0],
+      // ZZ, the ISO user-assigned code: permanently not a country, so
+      // it can never pick up a table row and start testing the table
+      // instead. Gibraltar used to serve here, until the 2026
+      // reference gave it a 15% transaction tax.
+      expect(resolveProfile(countryCode: 'ZZ', customTaxRate: 0).rates, [0.0],
           reason: 'a zero custom rate must not produce a duplicate');
     });
 
     test('a blank tax name falls back rather than showing an empty label', () {
-      expect(resolveProfile(countryCode: 'BR', customTaxName: '   ').taxName,
+      expect(resolveProfile(countryCode: 'ZZ', customTaxName: '   ').taxName,
           'Tax');
+    });
+  });
+
+  group('countryFlag', () {
+    test('a code becomes two regional indicator symbols', () {
+      // 'IN' is U+1F1EE U+1F1F3. Checking the code points rather than
+      // the glyph, because whether a flag *renders* is the platform
+      // font's business and not something a test can assert.
+      expect(countryFlag('IN').runes.toList(), [0x1F1EE, 0x1F1F3]);
+      expect(countryFlag('AE').runes.toList(), [0x1F1E6, 0x1F1EA]);
+      expect(countryFlag('us').runes.toList(), [0x1F1FA, 0x1F1F8],
+          reason: 'lower case must work too');
+    });
+
+    test('every country in the picker produces a flag', () {
+      for (final c in allCountries) {
+        expect(countryFlag(c.code).runes.length, 2, reason: c.code);
+      }
+    });
+
+    test('a malformed code produces nothing, not a broken glyph', () {
+      // The caller draws the ISO letters instead. Returning half a
+      // flag, or a pair of boxes, would look like a rendering bug.
+      for (final bad in ['', 'I', 'IND', '12', 'I1', '\u00e9\u00e9']) {
+        expect(countryFlag(bad), '', reason: 'rejected: "$bad"');
+      }
     });
   });
 }

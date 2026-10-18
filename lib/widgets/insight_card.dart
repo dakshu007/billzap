@@ -11,6 +11,7 @@ import 'package:billzap/theme/app_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
 import '../providers/providers.dart';
+import '../i18n/translations.dart';
 import '../utils/insight_engine.dart';
 
 class InsightCard extends ConsumerWidget {
@@ -160,9 +161,8 @@ class _InsightContainer extends StatelessWidget {
   Future<void> _sendThanksWhatsApp(BuildContext context, String customerName, dynamic biz) async {
     final bizName = (biz?.name as String?)?.isNotEmpty == true ? biz!.name : 'BillZap';
     final msg = Uri.encodeComponent(
-      'Hi $customerName,\n\n'
-      'Thank you so much for your continued business this month.\n'
-      'It means a lot. Looking forward to serving you again soon.\n\n'
+      '${trGlobal('wa.greeting', {'name': customerName})}\n\n'
+      '${trGlobal('ins.thanks_msg')}\n\n'
       '— $bizName');
 
     final url = Uri.parse('https://wa.me/?text=$msg');
@@ -172,7 +172,7 @@ class _InsightContainer extends StatelessWidget {
       } else {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('WhatsApp not available'),
+            content: Text(trGlobal('ins.wa_unavailable')),
             backgroundColor: AppColors.red));
         }
       }

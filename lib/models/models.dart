@@ -47,6 +47,31 @@ class Business {
   double customTaxRate;
   String customCurrencySymbol;
 
+  /// The country the shop's *address* is in.
+  ///
+  /// Usually the same as [countryCode], and it defaults to it. They are
+  /// separate because they are separate questions: [countryCode] is the
+  /// tax regime the shop bills under, and this is where the premises
+  /// are. A trader registered in Singapore with a warehouse in Malaysia
+  /// has one of each, and before this field the address card showed
+  /// Indian states to everybody regardless of either.
+  ///
+  /// Empty means "same as countryCode", which is what every invoice and
+  /// profile written before this field existed meant.
+  String addressCountryCode;
+
+  /// The shop's logo as a base64 PNG, already shrunk to at most 512px
+  /// on its long side when it was picked. Empty means no logo.
+  ///
+  /// Stored inside the business record rather than as a file path so
+  /// it travels with the encrypted backup: a restored phone gets its
+  /// logo back with everything else.
+  String logoBase64;
+
+  /// Where the address country actually resolves to.
+  String get effectiveAddressCountry =>
+      addressCountryCode.trim().isEmpty ? countryCode : addressCountryCode;
+
   Business({
     String? id,
     this.name = '',
@@ -69,6 +94,8 @@ class Business {
     this.customTaxName = 'Tax',
     this.customTaxRate = 0,
     this.customCurrencySymbol = r'$',
+    this.addressCountryCode = '',
+    this.logoBase64 = '',
   }) : id = id ?? genId();
 
   Business copyWith({
@@ -79,6 +106,8 @@ class Business {
     int? nextInvoiceNumber, String? defaultTerms,
     String? countryCode, String? customTaxName, double? customTaxRate,
     String? customCurrencySymbol,
+    String? addressCountryCode,
+    String? logoBase64,
   }) => Business(
     id: id,
     name: name ?? this.name, gstin: gstin ?? this.gstin,
@@ -95,6 +124,8 @@ class Business {
     customTaxName: customTaxName ?? this.customTaxName,
     customTaxRate: customTaxRate ?? this.customTaxRate,
     customCurrencySymbol: customCurrencySymbol ?? this.customCurrencySymbol,
+    addressCountryCode: addressCountryCode ?? this.addressCountryCode,
+    logoBase64: logoBase64 ?? this.logoBase64,
   );
 
   Map<String, dynamic> toMap() => {
@@ -106,6 +137,8 @@ class Business {
     'countryCode': countryCode, 'customTaxName': customTaxName,
     'customTaxRate': customTaxRate,
     'customCurrencySymbol': customCurrencySymbol,
+    'addressCountryCode': addressCountryCode,
+    'logoBase64': logoBase64,
   };
 
   factory Business.fromMap(Map<String, dynamic> m) => Business(
@@ -122,6 +155,10 @@ class Business {
     customTaxName: m['customTaxName'] ?? 'Tax',
     customTaxRate: (m['customTaxRate'] as num?)?.toDouble() ?? 0,
     customCurrencySymbol: m['customCurrencySymbol'] ?? r'$',
+    // Empty for every profile saved before this field existed, which
+    // reads as "same as countryCode" — exactly what they meant.
+    addressCountryCode: m['addressCountryCode'] ?? '',
+    logoBase64: m['logoBase64'] ?? '',
   );
 }
 
@@ -296,6 +333,24 @@ class Invoice {
   DateTime dueDate;
   List<InvoiceItem> lineItems;
   GstType gstType;
+  /// ISO code of the country whose rules priced this bill.
+  ///
+  /// Stored on the invoice, not read from the shop's current setting:
+  /// a shopkeeper who moves, or corrects their country, must not have
+  /// last year's bills silently reprint under the new rules.
+  String taxCountryCode;
+  /// The tax split exactly as it was charged — {'VAT': 180.0} or
+  /// {'CGST': 90.0, 'SGST': 90.0}.
+  ///
+  /// Empty on every invoice written before this field existed. The
+  /// getters below fall back to the old CGST/SGST/IGST halving in that
+  /// case, so a reprint of an old bill is byte-identical.
+  Map<String, double> taxComponents;
+  /// The currency symbol in force when the bill was written.
+  ///
+  /// Empty means the rupee, which is what every pre-existing invoice
+  /// was in.
+  String currencySymbol;
   double shippingCharge;
   double flatDiscount;
   // True when the discount comes off the taxable value before GST is
@@ -319,6 +374,9 @@ class Invoice {
     this.customerGstin = '', this.customerAddress = '',
     required this.invoiceDate, required this.dueDate,
     required this.lineItems, this.gstType = GstType.cgstSgst,
+    this.taxCountryCode = 'IN',
+    this.taxComponents = const {},
+    this.currencySymbol = '',
     this.shippingCharge = 0, this.flatDiscount = 0,
     this.discountBeforeTax = false,
     this.notes = '', this.terms = 'Payment due within 30 days.',
@@ -345,7 +403,7 @@ class Invoice {
     return ((gross - flatDiscount) / gross).clamp(0.0, 1.0);
   }
 
-  /// The value GST is charged on — what GSTR-1 calls txval.
+  /// The value tax is charged on — what GSTR-1 calls txval.
   double get taxableValue => subtotal * discountFactor;
 
   /// A line's taxable value after its share of a before-tax discount.
@@ -355,9 +413,47 @@ class Invoice {
     final f = discountFactor;
     return lineItems.fold(0, (s, i) => s + i.gstAmount * f);
   }
-  double get totalCgst => gstType == GstType.cgstSgst ? totalTax / 2 : 0;
-  double get totalSgst => gstType == GstType.cgstSgst ? totalTax / 2 : 0;
-  double get totalIgst => gstType == GstType.igst ? totalTax : 0;
+
+  /// The tax lines this bill has to print, in the order they print.
+  ///
+  /// One source of truth for the preview, the PDF, the CSV and the
+  /// summary — so none of them can disagree about what was charged.
+  /// Falls back to India's split for invoices saved before the field
+  /// existed, which is the only shape they could have been.
+  Map<String, double> get taxSplit {
+    if (taxComponents.isNotEmpty) return taxComponents;
+    if (totalTax == 0) return const {};
+    return gstType == GstType.igst
+        ? {'IGST': totalTax}
+        : {'CGST': totalTax / 2, 'SGST': totalTax / 2};
+  }
+
+  /// India's three names, kept so GSTR-1 and the GST reports keep
+  /// working unchanged. Zero everywhere else, which is correct: a
+  /// Kenyan bill has no CGST on it.
+  /// The tax rows a bill has to print: label, rate, amount — in order.
+  ///
+  /// The rate shown against each row is the bill's rate scaled by that
+  /// row's share of the tax, which is exactly what a split means. An
+  /// 18% Indian bill prints CGST 9.0% and SGST 9.0%; a 5% UAE bill
+  /// prints VAT 5.0%. The India case is deliberately bit-identical to
+  /// the three hand-written rows this replaced — 0.5 and 1.0 are both
+  /// exact in binary, so the arithmetic cannot drift.
+  List<({String label, double rate, double amount})> get taxRows {
+    final total = totalTax;
+    if (total == 0) return const [];
+    return taxSplit.entries
+        .map((e) => (
+              label: e.key,
+              rate: gstRateForDisplay * (e.value / total),
+              amount: e.value,
+            ))
+        .toList();
+  }
+
+  double get totalCgst => taxSplit['CGST'] ?? 0;
+  double get totalSgst => taxSplit['SGST'] ?? 0;
+  double get totalIgst => taxSplit['IGST'] ?? 0;
   double get grandTotal => discountBeforeTax
       ? taxableValue + totalTax + shippingCharge
       : subtotal + totalTax + shippingCharge - flatDiscount;
@@ -375,7 +471,11 @@ class Invoice {
     'invoiceDate': invoiceDate.toIso8601String(),
     'dueDate': dueDate.toIso8601String(),
     'lineItems': lineItems.map((i) => i.toMap()).toList(),
-    'gstType': gstType.name, 'shippingCharge': shippingCharge,
+    'gstType': gstType.name,
+    'taxCountryCode': taxCountryCode,
+    'taxComponents': taxComponents,
+    'currencySymbol': currencySymbol,
+    'shippingCharge': shippingCharge,
     'flatDiscount': flatDiscount, 'discountBeforeTax': discountBeforeTax,
     'notes': notes, 'terms': terms,
     'status': status.name, 'createdAt': createdAt.toIso8601String(),
@@ -397,6 +497,10 @@ class Invoice {
         .map((i) => InvoiceItem.fromMap(Map<String, dynamic>.from(i)))
         .toList(),
     gstType: m['gstType'] == 'igst' ? GstType.igst : GstType.cgstSgst,
+    taxCountryCode: m['taxCountryCode'] ?? 'IN',
+    taxComponents: ((m['taxComponents'] as Map?) ?? const {}).map(
+        (k, v) => MapEntry('$k', (v as num).toDouble())),
+    currencySymbol: m['currencySymbol'] ?? '',
     shippingCharge: (m['shippingCharge'] as num?)?.toDouble() ?? 0,
     flatDiscount: (m['flatDiscount'] as num?)?.toDouble() ?? 0,
     discountBeforeTax: m['discountBeforeTax'] == true,
@@ -474,23 +578,51 @@ String formatCurrency(double amount) {
   return '${isNeg ? '-' : ''}\u20b9$integer.$decimal';
 }
 
+/// Every GST jurisdiction in India: 28 states, 8 union territories and
+/// "Other Territory", each with its official GST state code.
+///
+/// This list held twenty of them. A shopkeeper in Goa, Chhattisgarh,
+/// Uttarakhand, Puducherry or any of the north-eastern states simply
+/// could not select where they trade — and place of supply is what
+/// decides CGST/SGST against IGST, so the omission did not just block
+/// the form, it would have produced the wrong tax split for anyone who
+/// picked a neighbouring state to get past it.
+///
+/// Codes 25 (Daman & Diu) and 28 (the old Andhra Pradesh) are retired
+/// and deliberately absent. Sorted by name so the picker is navigable;
+/// the code in brackets is what create_invoice_screen.dart and
+/// gstr1_builder.dart parse back out, so the format is load-bearing.
 const kStates = [
-  'Andhra Pradesh (37)', 'Assam (18)', 'Bihar (10)', 'Chandigarh (04)',
-  'Delhi (07)', 'Gujarat (24)', 'Haryana (06)', 'Himachal Pradesh (02)',
-  'Jharkhand (20)', 'Karnataka (29)', 'Kerala (32)',
-  'Madhya Pradesh (23)', 'Maharashtra (27)', 'Odisha (21)',
-  'Punjab (03)', 'Rajasthan (08)', 'Tamil Nadu (33)',
-  'Telangana (36)', 'Uttar Pradesh (09)', 'West Bengal (19)',
+  'Andaman & Nicobar Islands (35)', 'Andhra Pradesh (37)',
+  'Arunachal Pradesh (12)', 'Assam (18)', 'Bihar (10)',
+  'Chandigarh (04)', 'Chhattisgarh (22)',
+  'Dadra & Nagar Haveli and Daman & Diu (26)', 'Delhi (07)', 'Goa (30)',
+  'Gujarat (24)', 'Haryana (06)', 'Himachal Pradesh (02)',
+  'Jammu & Kashmir (01)', 'Jharkhand (20)', 'Karnataka (29)',
+  'Kerala (32)', 'Ladakh (38)', 'Lakshadweep (31)',
+  'Madhya Pradesh (23)', 'Maharashtra (27)', 'Manipur (14)',
+  'Meghalaya (17)', 'Mizoram (15)', 'Nagaland (13)', 'Odisha (21)',
+  'Other Territory (97)', 'Puducherry (34)', 'Punjab (03)',
+  'Rajasthan (08)', 'Sikkim (11)', 'Tamil Nadu (33)', 'Telangana (36)',
+  'Tripura (16)', 'Uttar Pradesh (09)', 'Uttarakhand (05)',
+  'West Bengal (19)',
 ];
 
+/// Name to GST state code, the same 37 entries as [kStates].
 const kStateMap = {
-  'Andhra Pradesh': '37', 'Assam': '18', 'Bihar': '10',
-  'Chandigarh': '04', 'Delhi': '07', 'Gujarat': '24',
-  'Haryana': '06', 'Himachal Pradesh': '02', 'Jharkhand': '20',
-  'Karnataka': '29', 'Kerala': '32', 'Madhya Pradesh': '23',
-  'Maharashtra': '27', 'Odisha': '21', 'Punjab': '03',
-  'Rajasthan': '08', 'Tamil Nadu': '33', 'Telangana': '36',
-  'Uttar Pradesh': '09', 'West Bengal': '19',
+  'Andaman & Nicobar Islands': '35', 'Andhra Pradesh': '37',
+  'Arunachal Pradesh': '12', 'Assam': '18', 'Bihar': '10',
+  'Chandigarh': '04', 'Chhattisgarh': '22',
+  'Dadra & Nagar Haveli and Daman & Diu': '26', 'Delhi': '07',
+  'Goa': '30', 'Gujarat': '24', 'Haryana': '06',
+  'Himachal Pradesh': '02', 'Jammu & Kashmir': '01', 'Jharkhand': '20',
+  'Karnataka': '29', 'Kerala': '32', 'Ladakh': '38', 'Lakshadweep': '31',
+  'Madhya Pradesh': '23', 'Maharashtra': '27', 'Manipur': '14',
+  'Meghalaya': '17', 'Mizoram': '15', 'Nagaland': '13', 'Odisha': '21',
+  'Other Territory': '97', 'Puducherry': '34', 'Punjab': '03',
+  'Rajasthan': '08', 'Sikkim': '11', 'Tamil Nadu': '33',
+  'Telangana': '36', 'Tripura': '16', 'Uttar Pradesh': '09',
+  'Uttarakhand': '05', 'West Bengal': '19',
 };
 
 const kExpenseCategories = [

@@ -17,6 +17,7 @@ import 'package:billzap/theme/app_icons.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_theme.dart';
+import '../../i18n/translations.dart';
 import '../../services/app_lock_service.dart';
 
 class ForgotPinScreen extends StatefulWidget {
@@ -52,14 +53,14 @@ class _ForgotPinState extends State<ForgotPinScreen> {
       } else {
         setState(() => _busy = false);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('This file is not a valid BillZap backup.'),
+          content: Text(trGlobal('fp.invalid_file')),
           backgroundColor: AppColors.red));
       }
     } catch (e) {
       if (!mounted) return;
       setState(() => _busy = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Error reading file: $e'),
+        content: Text(trGlobal('fp.read_error', {'e': e})),
         backgroundColor: AppColors.red));
     }
   }
@@ -97,7 +98,7 @@ class _ForgotPinState extends State<ForgotPinScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.bg,
         iconTheme: IconThemeData(color: AppColors.t1),
-        title: Text('Reset PIN',
+        title: Text(trGlobal('fp.title'),
           style: AppFont.sans(
             fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.t1)),
       ),
@@ -153,14 +154,13 @@ class _StepPickBackup extends StatelessWidget {
           child: Icon(Symbols.help, color: AppColors.brand, size: 44),
         )),
         const Gap(20),
-        Text('Forgot PIN?',
+        Text(trGlobal('fp.forgot'),
           textAlign: TextAlign.center,
           style: AppFont.sans(
             fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.t1)),
         const Gap(10),
         Text(
-          'No problem. To reset your PIN, you\'ll need your '
-          'BillZap backup file (ends with .billzap).',
+          trGlobal('fp.intro'),
           textAlign: TextAlign.center,
           style: AppFont.sans(
             fontSize: 13.5, color: AppColors.t2, height: 1.55)),
@@ -171,16 +171,16 @@ class _StepPickBackup extends StatelessWidget {
             color: AppColors.brandSoft,
             borderRadius: BorderRadius.circular(16)),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Where to find it',
+            Text(trGlobal('fp.where'),
               style: AppFont.sans(
                 fontSize: 12, fontWeight: FontWeight.w700,
                 color: AppColors.brand, letterSpacing: 0.5)),
             const Gap(8),
-            _whereRow(Symbols.folder, 'Downloads folder on this phone'),
+            _whereRow(Symbols.folder, trGlobal('fp.where_downloads')),
             const Gap(6),
-            _whereRow(Symbols.chat, 'WhatsApp media (if you sent it)'),
+            _whereRow(Symbols.chat, trGlobal('fp.where_whatsapp')),
             const Gap(6),
-            _whereRow(Symbols.mail, 'Email attachments'),
+            _whereRow(Symbols.mail, trGlobal('fp.where_email')),
           ]),
         ),
         const Spacer(),
@@ -190,7 +190,7 @@ class _StepPickBackup extends StatelessWidget {
             ? const SizedBox(width: 18, height: 18,
                 child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
             : const Icon(Symbols.upload_file, size: 20),
-          label: Text(busy ? 'Validating...' : 'Choose backup file',
+          label: Text(busy ? trGlobal('fp.validating') : trGlobal('fp.choose'),
             style: AppFont.sans(
               fontSize: 14.5, fontWeight: FontWeight.w600)),
           style: ElevatedButton.styleFrom(
@@ -258,12 +258,12 @@ class _StepSetNewPinState extends State<_StepSetNewPin> {
           child: Icon(Symbols.check_circle, color: AppColors.green, size: 32),
         ),
         const Gap(16),
-        Text('Backup verified',
+        Text(trGlobal('fp.verified'),
           textAlign: TextAlign.center,
           style: AppFont.sans(
             fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.t1)),
         const Gap(4),
-        Text('Set a new 4-digit PIN',
+        Text(trGlobal('fp.new_pin'),
           textAlign: TextAlign.center,
           style: AppFont.sans(
             fontSize: 13, color: AppColors.t3)),
@@ -308,12 +308,12 @@ class _StepResetDone extends StatelessWidget {
           child: const Icon(Symbols.check, color: Colors.white, size: 56),
         ),
         const Gap(20),
-        Text('PIN reset successfully!',
+        Text(trGlobal('fp.done'),
           textAlign: TextAlign.center,
           style: AppFont.sans(
             fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.t1)),
         const Gap(8),
-        Text('You can now use your new PIN.',
+        Text(trGlobal('fp.done_sub'),
           textAlign: TextAlign.center,
           style: AppFont.sans(
             fontSize: 13, color: AppColors.t2)),
@@ -327,7 +327,7 @@ class _StepResetDone extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18)),
             elevation: 0),
-          child: Text('Continue to BillZap',
+          child: Text(trGlobal('fp.continue'),
             style: AppFont.sans(
               fontSize: 14.5, fontWeight: FontWeight.w600)),
         )),

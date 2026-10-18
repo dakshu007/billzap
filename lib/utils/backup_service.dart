@@ -9,7 +9,9 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
+import '../i18n/translations.dart';
 import '../models/models.dart';
+import '../personal/spending_store.dart';
 import '../services/local_storage.dart';
 
 class BackupResult {
@@ -44,7 +46,7 @@ class BackupService {
   static Future<BackupResult> createBackup({required String pin}) async {
     try {
       if (pin.length < 4) {
-        return BackupResult(success: false, error: 'PIN must be at least 4 digits');
+        return BackupResult(success: false, error: trGlobal('bk.err_pin_short'));
       }
 
       final storage = LocalStorage.instance;
@@ -65,6 +67,7 @@ class BackupService {
         'customers': customers.map((c) => c.toMap()).toList(),
         'products': products.map((p) => p.toMap()).toList(),
         'expenses': expenses.map((e) => e.toMap()).toList(),
+        'spending': spendingForBackup(),
       };
       final jsonStr = jsonEncode(data);
 
@@ -98,7 +101,7 @@ class BackupService {
     try {
       final file = File(filePath);
       if (!await file.exists()) {
-        return RestoreResult(success: false, error: 'File not found');
+        return RestoreResult(success: false, error: trGlobal('bk.err_not_found'));
       }
 
       final bytes = await file.readAsBytes();
@@ -110,7 +113,7 @@ class BackupService {
       } catch (_) {
         return RestoreResult(
           success: false,
-          error: 'Wrong PIN or corrupted backup file',
+          error: trGlobal('bk.err_wrong_pin'),
         );
       }
 
@@ -119,13 +122,13 @@ class BackupService {
 
       // Validate
       if (data['magic'] != _magic) {
-        return RestoreResult(success: false, error: 'Invalid backup file');
+        return RestoreResult(success: false, error: trGlobal('bk.err_invalid'));
       }
       final version = data['version'] as int? ?? 0;
       if (version > _backupVersion) {
         return RestoreResult(
           success: false,
-          error: 'Backup created with newer app version. Update BillZap and try again.',
+          error: trGlobal('bk.err_newer'),
         );
       }
 
@@ -164,6 +167,8 @@ class BackupService {
       for (final e in expenses) {
         await storage.saveExpense(e);
       }
+
+      await restoreSpendingFromBackup(data['spending']);
 
       return RestoreResult(
         success: true,

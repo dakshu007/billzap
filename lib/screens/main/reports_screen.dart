@@ -22,6 +22,7 @@ import '../../design/money.dart';
 import '../../design/motion.dart';
 import '../../design/theme.dart';
 import '../../design/tokens.dart';
+import '../../i18n/dates.dart';
 import '../../i18n/translations.dart';
 import '../../models/models.dart';
 import '../../providers/providers.dart';
@@ -37,14 +38,10 @@ class ReportsScreen extends ConsumerWidget {
     final expenses = ref.watch(expenseProvider);
     final now = DateTime.now();
 
-    const monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-
+    // Month names in the language on screen.
     final months = List.generate(6, (i) {
       final d = DateTime(now.year, now.month - 5 + i);
-      return (month: d.month, year: d.year, label: monthNames[d.month - 1]);
+      return (month: d.month, year: d.year, label: uiDate('MMM', d));
     });
 
     final paid = invoices.where((i) => i.status == InvoiceStatus.paid);
@@ -59,9 +56,28 @@ class ReportsScreen extends ConsumerWidget {
         ? 1.0
         : series.reduce((a, b) => a > b ? a : b).clamp(1.0, double.infinity);
 
-    final cgst = paid.fold<double>(0, (s, i) => s + i.totalCgst);
-    final sgst = paid.fold<double>(0, (s, i) => s + i.totalSgst);
-    final igst = paid.fold<double>(0, (s, i) => s + i.totalIgst);
+    // Summing CGST + SGST + IGST read zero for every shop outside
+    // India, because those three are 0 on a bill whose split is named
+    // anything else. The total comes off totalTax, and the cells come
+    // off the invoices' own splits — so a Dubai shop sees VAT and a
+    // Chennai shop still sees CGST, SGST and IGST.
+    final taxTotal = paid.fold<double>(0, (s, i) => s + i.totalTax);
+    final taxByName = <String, double>{};
+    for (final inv in paid) {
+      inv.taxSplit.forEach((label, amount) {
+        taxByName[label] = (taxByName[label] ?? 0) + amount;
+      });
+    }
+    // India always shows its three, even at zero, because an empty
+    // CGST cell is information to an Indian shopkeeper. Elsewhere only
+    // the lines that were actually charged are shown.
+    final taxCells = ref.watch(taxProfileProvider).countryCode == 'IN'
+        ? [
+            ('CGST', taxByName['CGST'] ?? 0),
+            ('SGST', taxByName['SGST'] ?? 0),
+            ('IGST', taxByName['IGST'] ?? 0),
+          ]
+        : taxByName.entries.map((e) => (e.key, e.value)).toList();
     final revenue = paid.fold<double>(0, (s, i) => s + i.grandTotal);
     final spend = expenses.fold<double>(0, (s, e) => s + e.amount);
     final profit = revenue - spend;
@@ -93,11 +109,11 @@ class ReportsScreen extends ConsumerWidget {
             children: [
               ScreenTitle(
                 tr('rep.title', ref),
-                eyebrow: 'Last 6 months',
+                eyebrow: tr('rep.last_6', ref),
                 padding: const EdgeInsets.fromLTRB(
                     0, AppSpace.lg, 0, AppSpace.lg),
                 trailing: AppButton.outline(
-                  label: 'Export',
+                  label: tr('rep.export', ref),
                   icon: Symbols.download,
                   compact: true,
                   expand: false,
@@ -123,13 +139,17 @@ class ReportsScreen extends ConsumerWidget {
                 child: _Panel(
                   title: tr('rep.gst_summary', ref),
                   child: Column(children: [
-                    Row(children: [
-                      Expanded(child: _GstCell('CGST', cgst)),
-                      const SizedBox(width: AppSpace.sm),
-                      Expanded(child: _GstCell('SGST', sgst)),
-                      const SizedBox(width: AppSpace.sm),
-                      Expanded(child: _GstCell('IGST', igst)),
-                    ]),
+                    if (taxCells.isEmpty)
+                      _GstCell(ref.watch(taxProfileProvider).taxName, 0)
+                    else
+                      Row(children: [
+                        for (var i = 0; i < taxCells.length; i++) ...[
+                          if (i > 0) const SizedBox(width: AppSpace.sm),
+                          Expanded(
+                              child: _GstCell(
+                                  taxCells[i].$1, taxCells[i].$2)),
+                        ],
+                      ]),
                     const SizedBox(height: AppSpace.lg),
                     // The number that actually has to be paid, given the
                     // weight it deserves.
@@ -146,7 +166,7 @@ class ReportsScreen extends ConsumerWidget {
                               style: AppFont.style(AppType.labelM,
                                   color: AppColor.textSecondary)),
                         ),
-                        Money(cgst + sgst + igst,
+                        Money(taxTotal,
                             style: AppType.amountL,
                             color: AppColor.info,
                             round: true),

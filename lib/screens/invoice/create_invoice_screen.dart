@@ -21,6 +21,8 @@ import '../../models/models.dart';
 import '../../services/gst_classifier.dart';
 import '../../utils/voice_parser.dart';
 import '../../i18n/translations.dart';
+import '../../tax/active_profile.dart';
+import '../../tax/regions.dart';
 import '../../tax/tax_profile.dart';
 
 class CreateInvoiceScreen extends ConsumerStatefulWidget {
@@ -46,6 +48,10 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
   GstType  _gstType = GstType.cgstSgst;
   // Defaulted from the business profile in initState — see _defaultPlace.
   String _place = kStates.first;
+  /// Backs the free-text place-of-supply field, for the countries this
+  /// app has no region list for. A controller rather than a bare
+  /// string so the text survives a rebuild.
+  final _placeCtrl = TextEditingController();
 
   bool _applyGst      = true;
   bool _applyDiscount = false;
@@ -88,6 +94,24 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
     final biz = ref.read(businessProvider);
     final code = biz?.stateCode.trim() ?? '';
     final name = biz?.state.trim() ?? '';
+    final country = (biz?.countryCode ?? 'IN').toUpperCase();
+
+    // Outside India the default must not be an Indian state. Seed from
+    // the seller's own region where it is one this country has, and
+    // otherwise leave it empty for the shopkeeper to fill in — an
+    // empty field is honest, a wrong one prints on the bill.
+    if (country != 'IN') {
+      final regions = regionsFor(country) ?? const <String>[];
+      final match = regions.firstWhere(
+        (r) => name.isNotEmpty && r.toLowerCase() == name.toLowerCase(),
+        orElse: () => '',
+      );
+      _place = match.isNotEmpty
+          ? match
+          : (regions.isEmpty ? name : '');
+      _placeCtrl.text = _place;
+      return;
+    }
 
     final match = kStates.firstWhere(
       (s) =>
@@ -101,6 +125,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
   @override
   void dispose() {
     _custName.removeListener(_onNameChanged);
+    _placeCtrl.dispose();
     _custName.dispose(); _custPhone.dispose();
     _custGstin.dispose(); _custAddr.dispose(); _notes.dispose();
     _discountCtrl.dispose(); _shippingCtrl.dispose();
@@ -164,7 +189,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
             name: l.name, hsnCode: l.hsn, quantity: l.qty,
             rate: l.rate, gstRate: l.gstRate, applyGst: _applyGst))
         .toList();
-    return Invoice(
+    final inv = Invoice(
       invoiceNumber: number,
       customerName: _custName.text.trim(),
       customerPhone: _custPhone.text.trim(),
@@ -172,12 +197,41 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
       customerAddress: _custAddr.text.trim(),
       invoiceDate: _date, dueDate: _due,
       lineItems: items, gstType: _gstType,
+      // Snapshot the country and the symbol. A reprint years from now
+      // must show what was actually charged, not what the shop's
+      // settings happen to say then.
+      taxCountryCode: ref.read(taxProfileProvider).countryCode,
+      currencySymbol: activeCurrencySymbol,
       shippingCharge: _applyShipping ? _shipping : 0,
       flatDiscount: _applyDiscount ? _discount : 0,
-      // New bills take the discount off before GST, as the law reads.
+      // New bills take the discount off before tax, as GST (and VAT
+      // generally) reads: tax is charged on what the customer pays.
       discountBeforeTax: true,
       notes: _notes.text.trim(), placeOfSupply: _place,
       status: InvoiceStatus.sent);
+    inv.taxComponents = _taxComponents(inv.totalTax);
+    return inv;
+  }
+
+  /// The tax lines this bill will print, named by the country's own
+  /// profile rather than by GST, split from the bill's (already
+  /// discounted) tax.
+  ///
+  /// In India this still yields {'CGST': x/2, 'SGST': x/2} or
+  /// {'IGST': x} — the same two cases the three getters this replaced
+  /// produced. Everywhere else it yields whatever that country calls
+  /// its tax: {'VAT': x}, {'Sales Tax': x}, {'Consumption Tax': x}.
+  Map<String, double> _taxComponents(double tax) {
+    if (tax == 0) return const {};
+    final profile = ref.read(taxProfileProvider);
+    final scope = _gstType == GstType.cgstSgst
+        ? SupplyScope.intra
+        : SupplyScope.inter;
+    final out = <String, double>{};
+    for (final c in profile.componentsFor(scope)) {
+      out[c.label] = (out[c.label] ?? 0) + tax * c.share;
+    }
+    return out;
   }
 
   @override
@@ -187,6 +241,13 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
     // all — follows from this rather than from hardcoded GST.
     final profile = ref.watch(taxProfileProvider);
     final totals = _draft();
+    // India keeps kStates, because each entry carries the GST state
+    // code that gstr1_builder.dart and the intra/inter split parse
+    // back out — a second list could disagree about a number the tax
+    // return depends on.
+    final regions = profile.countryCode == 'IN'
+        ? kStates
+        : (regionsFor(profile.countryCode) ?? const <String>[]);
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
@@ -217,7 +278,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
           // ── Who ────────────────────────────────────────────────
           _Section(
             tr('create.customer', ref),
-            subtitle: 'Who this bill is for',
+            subtitle: tr('create.customer_sub', ref),
             icon: Symbols.person,
             children: [
               LayoutBuilder(builder: (context, box) => TapRegion(
@@ -248,7 +309,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                       controller: _custName,
                       icon: Symbols.person,
                       hint: tr('create.search_customer', ref),
-                      helper: 'Start typing to pull up a saved customer',
+                      helper: tr('create.customer_helper', ref),
                       onChanged: (_) => setState(() {}),
                     ),
                   ),
@@ -260,7 +321,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                   child: AppField(
                     label: tr('cust.phone', ref),
                     controller: _custPhone,
-                    hint: '98765 43210',
+                    hint: activeProfile.countryCode == 'IN' ? '98765 43210' : null,
                     keyboardType: TextInputType.phone,
                     onChanged: (_) => setState(() {}),
                   ),
@@ -270,7 +331,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                   child: AppField(
                     label: tr('cust.gstin', ref),
                     controller: _custGstin,
-                    hint: '33RAAAA...',
+                    hint: activeProfile.countryCode == 'IN' ? '33RAAAA...' : null,
                     caps: true,
                     onChanged: (_) => setState(() {}),
                   ),
@@ -281,7 +342,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                 label: tr('cust.address', ref),
                 controller: _custAddr,
                 icon: Symbols.location_on,
-                hint: 'Street, area, city',
+                hint: tr('create.address_hint', ref),
                 validatable: false,
                 onChanged: (_) => setState(() {}),
               ),
@@ -291,7 +352,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
           // ── When, and where the supply happens ─────────────────
           _Section(
             tr('create.invoice_details', ref),
-            subtitle: 'Dates, and the state that sets the tax split',
+            subtitle: tr('create.details_sub', ref),
             icon: Symbols.calendar_today,
             tone: AppColor.info,
             children: [
@@ -305,28 +366,51 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                         (d) => setState(() => _due = d))),
               ]),
               const Gap(AppSpace.md),
-              _PlaceOfSupply(
-                value: _place,
-                intraState: _gstType == GstType.cgstSgst,
-                onChanged: (v) => setState(() {
-                  _place = v;
-                  // Intra-state -> CGST+SGST, inter-state -> IGST.
-                  final biz = ref.read(businessProvider);
-                  final code = biz?.stateCode.trim() ?? '';
-                  if (code.isNotEmpty) {
-                    _gstType = _place.endsWith('($code)')
-                        ? GstType.cgstSgst
-                        : GstType.igst;
-                  }
-                }),
-              ),
+              // Three cases, in order of how much the app knows:
+              //
+              //   India          its own states, carrying the GST code
+              //                  the intra/inter split is decided by
+              //   has regions    that country's own first-level
+              //                  divisions, as a picker
+              //   no regions     a free-text box, because offering a
+              //                  list of somebody else's regions is
+              //                  worse than offering none
+              if (profile.countryCode == 'IN' || regions.isNotEmpty)
+                _PlaceOfSupply(
+                  value: _place,
+                  regions: regions,
+                  splitsTax: profile.regionMatters,
+                  intraState: _gstType == GstType.cgstSgst,
+                  onChanged: (v) => setState(() {
+                    _place = v;
+                    // Intra-state -> CGST+SGST, inter-state -> IGST.
+                    // Only India splits by region, and only India's
+                    // list carries the code this compares against.
+                    final biz = ref.read(businessProvider);
+                    final code = biz?.stateCode.trim() ?? '';
+                    if (profile.regionMatters && code.isNotEmpty) {
+                      _gstType = _place.endsWith('($code)')
+                          ? GstType.cgstSgst
+                          : GstType.igst;
+                    }
+                  }),
+                )
+              else
+                AppField(
+                  label: tr('create.place_of_supply', ref),
+                  controller: _placeCtrl,
+                  icon: Symbols.location_city,
+                  hint: tr('create.place_hint', ref),
+                  validatable: false,
+                  onChanged: (v) => setState(() => _place = v),
+                ),
             ],
           ),
 
           // ── What is being sold ─────────────────────────────────
           _Section(
             tr('create.line_items', ref),
-            subtitle: '${_lines.length} ${_lines.length == 1 ? "line" : "lines"} on this bill',
+            subtitle: trCount('create.lines', _lines.length),
             icon: Symbols.inventory,
             tone: AppColor.pending,
             trailing: AppButton.ghost(
@@ -338,7 +422,13 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
               // One read, used by every line row and by the tax
               // section below, so the whole screen agrees on which
               // country's rules it is applying.
+              // Keyed by the line itself. Without a key, Flutter matched
+              // rows to state by position: deleting an empty line 1 left
+              // its blank text boxes on screen over the line that moved
+              // up, and their listeners then wrote the blanks into it —
+              // the catalog item looked deleted "entirely".
               ..._lines.asMap().entries.map((e) => _LineRow(
+                  key: ObjectKey(e.value),
                   item: e.value,
                   index: e.key,
                   profile: profile,
@@ -358,7 +448,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
           // ── Tax and adjustments ────────────────────────────────
           _Section(
             tr('create.tax_adjustments', ref),
-            subtitle: 'GST, discount and delivery',
+            subtitle: tr('create.tax_sub', ref),
             icon: Symbols.calculate,
             tone: AppColor.info,
             children: [
@@ -395,7 +485,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                   controller: _discountCtrl,
                   icon: Symbols.percent,
                   hint: '0',
-                  suffix: '\u20B9',
+                  suffix: activeCurrencySymbol,
                   validatable: false,
                   keyboardType: TextInputType.number,
                   onChanged: (v) =>
@@ -413,7 +503,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                   controller: _shippingCtrl,
                   icon: Symbols.local_shipping,
                   hint: '0',
-                  suffix: '\u20B9',
+                  suffix: activeCurrencySymbol,
                   validatable: false,
                   keyboardType: TextInputType.number,
                   onChanged: (v) =>
@@ -426,17 +516,18 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
           // ── What it comes to ───────────────────────────────────
           _Section(
             tr('create.summary', ref),
-            subtitle: 'What the customer pays',
+            subtitle: tr('create.summary_sub', ref),
             icon: Symbols.receipt_long,
             children: [
               _SRow(tr('create.subtotal', ref), totals.subtotal),
-              if (totals.flatDiscount > 0) ...[
+              // A before-tax discount comes off first; the tax rows
+              // below are already worked out on what is left.
+              if (totals.flatDiscount > 0)
                 _SRow(tr('create.discount', ref), -totals.flatDiscount),
-                _SRow(tr('create.taxable_value', ref), totals.taxableValue),
-              ],
-              if (totals.totalCgst > 0) _SRow('CGST', totals.totalCgst),
-              if (totals.totalSgst > 0) _SRow('SGST', totals.totalSgst),
-              if (totals.totalIgst > 0) _SRow('IGST', totals.totalIgst),
+              // One row per tax line the country names. India prints
+              // two or one; most of the world prints one.
+              for (final e in totals.taxSplit.entries)
+                if (e.value > 0) _SRow(e.key, e.value),
               if (totals.shippingCharge > 0)
                 _SRow(tr('create.shipping', ref), totals.shippingCharge),
               const Gap(AppSpace.md),
@@ -456,10 +547,19 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                       Text(tr('create.grand_total', ref).toUpperCase(),
                           style: AppFont.style(AppType.labelS,
                               color: AppColor.primary)),
-                      Money(totals.grandTotal,
-                          style: AppType.amountL,
-                          compact: false,
-                          color: AppColor.primary),
+                      const Gap(AppSpace.md),
+                      // Expanded + shrinkToFit: a rupiah or dong total
+                      // reaches sixteen digits honestly, and the pill
+                      // was laid out for five. It used to run straight
+                      // off the right edge.
+                      Expanded(
+                        child: Money(totals.grandTotal,
+                            style: AppType.amountL,
+                            compact: false,
+                            shrinkToFit: true,
+                            textAlign: TextAlign.right,
+                            color: AppColor.primary),
+                      ),
                     ]),
               ),
             ],
@@ -468,7 +568,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
           // ── Anything else ──────────────────────────────────────
           _Section(
             tr('create.notes', ref),
-            subtitle: 'Prints at the foot of the bill',
+            subtitle: tr('create.notes_sub', ref),
             icon: Symbols.edit,
             tone: AppColor.textTertiary,
             children: [
@@ -486,6 +586,18 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
     );
   }
 
+  /// Add a line, filling the untouched blank line a new bill starts
+  /// with rather than leaving it above the item as an empty row the
+  /// shopkeeper then has to delete.
+  void _addLine(_LineItem item) {
+    final blank = _lines.indexWhere((l) => l.name.trim().isEmpty && l.rate == 0);
+    if (blank >= 0) {
+      _lines[blank] = item;
+    } else {
+      _lines.add(item);
+    }
+  }
+
   /// Add a saved product as a line. Reads the same list the Products
   /// screen edits and that stock is decremented from on save.
   Future<void> _showCatalogPicker() async {
@@ -494,7 +606,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
 
     if (items.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(trGlobal('create.products_empty')),
+        content: Text(trGlobal('prod.no_products')),
         action: SnackBarAction(
             label: trGlobal('prod.add_new'),
             onPressed: () => context.push('/products'))));
@@ -520,15 +632,8 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                 final p = items[i];
                 return GestureDetector(
                   onTap: () {
-                    final line = _LineItem(
-                        name: p.name, hsn: p.hsnCode, rate: p.price, gstRate: p.gstRate);
-                    setState(() {
-                      // Fill the untouched blank line a new bill starts
-                      // with, rather than leaving it stranded above.
-                      final blank = _lines.indexWhere(
-                          (l) => l.name.trim().isEmpty && l.rate == 0);
-                      blank >= 0 ? _lines[blank] = line : _lines.add(line);
-                    });
+                    setState(() => _addLine(_LineItem(
+                      name: p.name, hsn: p.hsnCode, rate: p.price, gstRate: p.gstRate)));
                     Navigator.pop(context);
                   },
                   child: Container(
@@ -544,19 +649,18 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
                       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Text(p.name, style: AppFont.sans(fontSize: 13.5, fontWeight: FontWeight.w700)),
                         if (p.hsnCode.isNotEmpty)
-                          Text('HSN: ${p.hsnCode} \u00b7 ${p.unit}',
+                          Text('${activeItemCodeLabel ?? trGlobal('cat.code_generic')}: ${p.hsnCode} \u00b7 ${p.unit}',
                             style: AppFont.sans(fontSize: 11, color: AppColors.t3)),
                         if (p.tracksStock)
-                          Text(p.isOutOfStock
-                                ? 'Out of stock'
-                                : '${p.stock.toStringAsFixed(p.stock % 1 == 0 ? 0 : 2)} in stock',
+                          Text(trGlobal('prod.left', {
+                                'n': p.stock.toStringAsFixed(p.stock % 1 == 0 ? 0 : 2)}),
                             style: AppFont.sans(fontSize: 11,
                               color: p.isOutOfStock || p.isLowStock ? AppColors.red : AppColors.t3)),
                       ])),
                       Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                         Text(formatCurrency(p.price), style: AppFont.sans(
                           fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.brand)),
-                        Text('GST ${_pct(p.gstRate)}%', style: AppFont.sans(
+                        Text('$activeTaxName ${_pct(p.gstRate)}%', style: AppFont.sans(
                           fontSize: 11, color: AppColors.green, fontWeight: FontWeight.w600)),
                       ]),
                     ]),
@@ -604,7 +708,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.red));
+        SnackBar(content: Text(trGlobal('common.error_detail', {'e': e})), backgroundColor: AppColors.red));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -686,8 +790,13 @@ String _rateLabel(TaxProfile profile, double rate) {
   // double overrides ==. The map is seven entries and this runs once
   // per dropdown item, so building it here costs nothing worth saving.
   final slab = <double, String>{
-    0.0: 'Exempt', 0.25: 'Stones', 5.0: 'Essentials', 12.0: 'Standard',
-    18.0: 'General', 28.0: 'Luxury', 40.0: 'Sin tax',
+    0.0: trGlobal('slab.exempt'),
+    0.25: trGlobal('slab.stones'),
+    5.0: trGlobal('slab.essentials'),
+    12.0: trGlobal('slab.standard'),
+    18.0: trGlobal('slab.general'),
+    28.0: trGlobal('slab.luxury'),
+    40.0: trGlobal('slab.sin'),
   };
   final name = slab[rate];
   return name == null ? base : '$base  ·  $name';
@@ -701,7 +810,7 @@ class _LineRow extends StatefulWidget {
   /// has ref, and converting the row would be a larger change than the
   /// one thing it needs.
   final TaxProfile profile;
-  const _LineRow({required this.item, required this.index, this.onRemove, required this.onChange, required this.profile});
+  const _LineRow({super.key, required this.item, required this.index, this.onRemove, required this.onChange, required this.profile});
   @override
   State<_LineRow> createState() => _LineRowState();
 }
@@ -764,7 +873,7 @@ class _LineRowState extends State<_LineRow> {
           Expanded(
             child: _LineField(
               controller: _name,
-              hint: 'Product or service',
+              hint: trGlobal('create.item_hint'),
               bold: true,
             ),
           ),
@@ -787,14 +896,21 @@ class _LineRowState extends State<_LineRow> {
         ]),
         const Gap(AppSpace.sm),
         Row(children: [
-          Expanded(
-            flex: 3,
-            // "HSN / SAC" truncated to "HSN / S…" once the stepper
-            // became a pill. HSN is the word shopkeepers actually use,
-            // and the field is unambiguous in this row.
-            child: _LineField(controller: _hsn, hint: 'HSN'),
-          ),
-          const Gap(AppSpace.sm),
+          // HSN is an Indian classification code. Most countries have
+          // no equivalent on a retail bill, so the field is absent
+          // rather than present and meaningless — the profile decides,
+          // and names it in the country's own terms where it exists.
+          if (widget.profile.itemCodeLabel != null) ...[
+            Expanded(
+              flex: 3,
+              // "HSN / SAC" truncated to "HSN / S…" once the stepper
+              // became a pill. HSN is the word shopkeepers actually
+              // use, and the field is unambiguous in this row.
+              child: _LineField(
+                  controller: _hsn, hint: widget.profile.itemCodeLabel!),
+            ),
+            const Gap(AppSpace.sm),
+          ],
           // Stepper as one pill rather than two loose jade squares — it
           // reads as a single control, and the squares were the heaviest
           // thing in a row of quiet wells.
@@ -829,7 +945,7 @@ class _LineRowState extends State<_LineRow> {
             width: 82,
             child: _LineField(
               controller: _rate,
-              hint: 'Rate',
+              hint: trGlobal('create.rate'),
               align: TextAlign.right,
               keyboardType: TextInputType.number,
               formatters: [SmartAmountFormatter()],
@@ -1139,10 +1255,15 @@ Widget _SRow(String label, double amount) => Padding(
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Text(label,
             style: AppFont.style(AppType.bodyM, color: AppColor.textSecondary)),
-        Money(amount,
-            style: AppType.amountS,
-            compact: false,
-            color: amount < 0 ? AppColor.paid : AppColor.textPrimary),
+        const Gap(AppSpace.md),
+        Expanded(
+          child: Money(amount,
+              style: AppType.amountS,
+              compact: false,
+              shrinkToFit: true,
+              textAlign: TextAlign.right,
+              color: amount < 0 ? AppColor.paid : AppColor.textPrimary),
+        ),
       ]));
 
 
@@ -1188,15 +1309,20 @@ class _TotalBar extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '${label.toUpperCase()} · $itemCount ${itemCount == 1 ? "item" : "items"}',
+                  '${label.toUpperCase()} · ${trCount('create.items', itemCount)}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppFont.style(AppType.overline,
                       color: AppColor.textTertiary),
                 ),
                 const Gap(4),
+                // A truncated total reads as a smaller, wrong number,
+                // which on a bill is worse than small type.
                 Money(total,
-                    style: AppType.amountL, compact: false, animate: true),
+                    style: AppType.amountL,
+                    compact: false,
+                    animate: true,
+                    shrinkToFit: true),
               ],
             ),
           ),
@@ -1225,19 +1351,37 @@ class _PlaceOfSupply extends StatelessWidget {
   final bool intraState;
   final ValueChanged<String> onChanged;
 
+  /// The regions this country actually has.
+  ///
+  /// It used to be India's twenty states for everybody, so a shop in
+  /// Albania recording where it had sold something was offered Tamil
+  /// Nadu and West Bengal — and the field prints on the invoice.
+  final List<String> regions;
+
+  /// Whether the choice changes the tax split, which is India's rule
+  /// and nobody else's in this app. Elsewhere this is a location on a
+  /// document, so the caption says where rather than what it costs.
+  final bool splitsTax;
+
   const _PlaceOfSupply({
     required this.value,
     required this.intraState,
     required this.onChanged,
+    required this.regions,
+    required this.splitsTax,
   });
 
   @override
   Widget build(BuildContext context) {
-    final tone = intraState ? AppColor.primary : AppColor.info;
+    final tone = !splitsTax
+        ? AppColor.textTertiary
+        : intraState
+            ? AppColor.primary
+            : AppColor.info;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('PLACE OF SUPPLY',
+        Text(trGlobal('create.place_of_supply').toUpperCase(),
             style:
                 AppFont.style(AppType.labelS, color: AppColor.textTertiary)),
         const Gap(AppSpace.xs),
@@ -1265,9 +1409,11 @@ class _PlaceOfSupply extends StatelessWidget {
                             color: AppColor.textPrimary)),
                     const Gap(1),
                     Text(
-                        intraState
-                            ? 'Same state · CGST + SGST'
-                            : 'Other state · IGST',
+                        !splitsTax
+                            ? trGlobal('create.place_where')
+                            : intraState
+                                ? trGlobal('create.place_same')
+                                : trGlobal('create.place_other'),
                         style: AppFont.style(AppType.bodyS, color: tone)),
                   ],
                 ),
@@ -1288,7 +1434,7 @@ class _PlaceOfSupply extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(builder: (ctx, ss) {
         final q = search.text.trim().toLowerCase();
-        final list = kStates
+        final list = regions
             .where((s) => q.isEmpty || s.toLowerCase().contains(q))
             .toList();
         return Container(
@@ -1319,10 +1465,10 @@ class _PlaceOfSupply extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('Place of supply',
+                      Text(trGlobal('create.place_of_supply'),
                           style: AppFont.style(AppType.titleS,
                               color: AppColor.textPrimary)),
-                      Text('Sets the tax split on this bill',
+                      Text(trGlobal('create.place_sheet_sub'),
                           style: AppFont.style(AppType.bodyS,
                               color: AppColor.textTertiary)),
                     ],
@@ -1337,7 +1483,7 @@ class _PlaceOfSupply extends StatelessWidget {
                   const EdgeInsets.symmetric(horizontal: AppSpace.gutter),
               child: AppSearchField(
                 controller: search,
-                hint: 'Search states',
+                hint: trGlobal('create.search_states'),
                 hasValue: q.isNotEmpty,
                 onChanged: (_) => ss(() {}),
                 onClear: () {
@@ -1369,7 +1515,7 @@ class _PlaceOfSupply extends StatelessWidget {
                       size: 38,
                     ),
                     title: n,
-                    subtitle: code.isEmpty ? null : 'State code $code',
+                    subtitle: code.isEmpty ? null : trGlobal('create.state_code', {'code': code}),
                     trailing: on
                         ? Icon(Symbols.check_circle,
                             size: 20, color: AppColor.primary)

@@ -391,7 +391,7 @@ class _Sidebar extends ConsumerWidget {
                         color: AppColors.t1)),
                     Text(biz?.gstin.isNotEmpty == true
                         ? biz!.gstin
-                        : 'No GSTIN',
+                        : trGlobal('set.no_taxid'),
                       maxLines: 1, overflow: TextOverflow.ellipsis,
                       style: AppFont.sans(
                         fontSize: 11, color: AppColors.t3)),

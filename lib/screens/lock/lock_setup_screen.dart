@@ -14,6 +14,7 @@ import 'package:gap/gap.dart';
 import 'package:billzap/theme/app_icons.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../theme/app_theme.dart';
+import '../../i18n/translations.dart';
 import '../../services/app_lock_service.dart';
 import '../../utils/backup_service.dart';
 
@@ -62,8 +63,8 @@ class _LockSetupState extends State<LockSetupScreen> {
         // Backup failed but lock is critical. Continue without backup.
         // The user can still set up lock — just no recovery file.
         setState(() => _busy = false);
-        _showWarning('Backup failed: ${result.error ?? "Unknown"}. '
-          'Continuing — but you won\'t be able to recover if you forget your PIN.');
+        _showWarning(trGlobal('ls.backup_failed_warn',
+            {'e': result.error ?? trGlobal('ls.unknown')}));
         // Still proceed to next step
         await Future.delayed(const Duration(seconds: 2));
         if (!mounted) return;
@@ -76,7 +77,7 @@ class _LockSetupState extends State<LockSetupScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _busy = false);
-      _showWarning('Backup error: $e');
+      _showWarning(trGlobal('ls.backup_error', {'e': e}));
     }
   }
 
@@ -98,8 +99,8 @@ class _LockSetupState extends State<LockSetupScreen> {
     if (_backupFilePath == null) return;
     try {
       await Share.shareXFiles([XFile(_backupFilePath!)],
-        subject: 'BillZap Backup — Keep this safe',
-        text: 'My BillZap backup file. I\'ll need this if I ever forget my PIN. Keep it safe!');
+        subject: trGlobal('ls.share_subject'),
+        text: trGlobal('ls.share_text'));
     } catch (_) {}
   }
 
@@ -116,9 +117,7 @@ class _LockSetupState extends State<LockSetupScreen> {
     } else {
       // Show clearer error and continue with PIN-only
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text(
-          'Fingerprint not available. Make sure a fingerprint is registered '
-          'in your phone Settings → Biometrics. PIN-only lock will be set up.'),
+        content: Text(trGlobal('ls.no_fingerprint')),
         backgroundColor: AppColors.orange,
         duration: const Duration(seconds: 5),
       ));
@@ -139,7 +138,7 @@ class _LockSetupState extends State<LockSetupScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.bg,
         iconTheme: IconThemeData(color: AppColors.t1),
-        title: Text('Set up App Lock',
+        title: Text(trGlobal('ls.title'),
           style: AppFont.sans(
             fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.t1)),
       ),
@@ -160,8 +159,8 @@ class _LockSetupState extends State<LockSetupScreen> {
       );
       case 1: return _StepPin(
         key: const ValueKey(1),
-        title: 'Set 4-digit PIN',
-        subtitle: 'Choose a PIN you\'ll remember',
+        title: trGlobal('ls.set_pin'),
+        subtitle: trGlobal('ls.set_pin_sub'),
         onComplete: (pin) {
           setState(() {
             _pin = pin;
@@ -171,15 +170,15 @@ class _LockSetupState extends State<LockSetupScreen> {
       );
       case 2: return _StepPin(
         key: const ValueKey(2),
-        title: 'Confirm PIN',
-        subtitle: 'Re-enter your PIN to confirm',
+        title: trGlobal('ls.confirm_pin'),
+        subtitle: trGlobal('ls.confirm_pin_sub'),
         onComplete: (pin) {
           if (pin == _pin) {
             // Now create backup using that PIN
             setState(() => _step = 3);
             _createBackup();
           } else {
-            _showError('PINs don\'t match. Please try again.');
+            _showError(trGlobal('ls.mismatch'));
             setState(() => _step = 1);
           }
         },
@@ -232,15 +231,13 @@ class _StepWarning extends StatelessWidget {
           child: Icon(Symbols.warning, color: AppColors.orange, size: 40),
         )),
         const Gap(20),
-        Text('Set up App Lock',
+        Text(trGlobal('ls.title'),
           textAlign: TextAlign.center,
           style: AppFont.sans(
             fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.t1)),
         const Gap(10),
         Text(
-          'Your PIN will be used both to unlock the app AND to encrypt '
-          'a backup of your data. Keep your PIN safe — and we\'ll show you '
-          'how to back it up next.',
+          trGlobal('ls.intro'),
           textAlign: TextAlign.center,
           style: AppFont.sans(
             fontSize: 13.5, color: AppColors.t2, height: 1.55)),
@@ -256,14 +253,13 @@ class _StepWarning extends StatelessWidget {
             const Gap(10),
             Expanded(child: Column(
               crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('IMPORTANT',
+              Text(trGlobal('ls.important').toUpperCase(),
                 style: AppFont.sans(
                   fontSize: 11, fontWeight: FontWeight.w700,
                   color: AppColors.red, letterSpacing: 0.6)),
               const Gap(3),
               Text(
-                'If you forget your PIN AND lose your backup file, your data '
-                'cannot be recovered.',
+                trGlobal('ls.important_msg'),
                 style: AppFont.sans(
                   fontSize: 12, color: AppColors.t1, height: 1.5)),
             ])),
@@ -279,7 +275,7 @@ class _StepWarning extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18)),
             elevation: 0),
-          child: Text('I understand, continue',
+          child: Text(trGlobal('ls.understand'),
             style: AppFont.sans(
               fontSize: 14.5, fontWeight: FontWeight.w600)),
         ),
@@ -308,11 +304,11 @@ class _StepCreatingBackup extends StatelessWidget {
             strokeWidth: 3, color: AppColors.brand))),
       ),
       const Gap(20),
-      Text('Creating encrypted backup...',
+      Text(trGlobal('ls.creating'),
         style: AppFont.sans(
           fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.t1)),
       const Gap(6),
-      Text('This will take a moment',
+      Text(trGlobal('ls.moment'),
         style: AppFont.sans(
           fontSize: 12, color: AppColors.t3)),
     ]));
@@ -348,7 +344,7 @@ class _StepBackupShare extends StatelessWidget {
           child: Icon(Symbols.check_circle, color: AppColors.green, size: 44),
         )),
         const Gap(20),
-        Text('Backup created \u2713',
+        Text(trGlobal('ls.created'),
           textAlign: TextAlign.center,
           style: AppFont.sans(
             fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.t1)),
@@ -369,8 +365,7 @@ class _StepBackupShare extends StatelessWidget {
         ),
         const Gap(18),
         Text(
-          'Send this backup to yourself on WhatsApp or email for extra '
-          'safety. If you ever lose your phone, you can restore from it.',
+          trGlobal('ls.send_hint'),
           textAlign: TextAlign.center,
           style: AppFont.sans(
             fontSize: 13, color: AppColors.t2, height: 1.55)),
@@ -378,7 +373,7 @@ class _StepBackupShare extends StatelessWidget {
         ElevatedButton.icon(
           onPressed: onShare,
           icon: const Icon(Symbols.share, size: 18),
-          label: Text('Send via WhatsApp / Email',
+          label: Text(trGlobal('ls.send'),
             style: AppFont.sans(
               fontSize: 14, fontWeight: FontWeight.w600)),
           style: ElevatedButton.styleFrom(
@@ -392,7 +387,7 @@ class _StepBackupShare extends StatelessWidget {
         const Spacer(),
         TextButton(
           onPressed: onContinue,
-          child: Text('Skip for now',
+          child: Text(trGlobal('ls.skip_now'),
             style: AppFont.sans(
               fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.t3)),
         ),
@@ -406,7 +401,7 @@ class _StepBackupShare extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18)),
             elevation: 0),
-          child: Text('Continue',
+          child: Text(trGlobal('common.continue'),
             style: AppFont.sans(
               fontSize: 14.5, fontWeight: FontWeight.w600)),
         ),
@@ -524,14 +519,13 @@ class _StepBiometric extends StatelessWidget {
           child: Icon(Symbols.fingerprint, color: AppColors.brand, size: 44),
         )),
         const Gap(20),
-        Text('Add Fingerprint?',
+        Text(trGlobal('ls.add_fp'),
           textAlign: TextAlign.center,
           style: AppFont.sans(
             fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.t1)),
         const Gap(10),
         Text(
-          'Unlock BillZap with your fingerprint instead of typing your PIN '
-          'every time. You can still use your PIN as backup.',
+          trGlobal('ls.add_fp_msg'),
           textAlign: TextAlign.center,
           style: AppFont.sans(
             fontSize: 13, color: AppColors.t2, height: 1.55)),
@@ -539,7 +533,7 @@ class _StepBiometric extends StatelessWidget {
         ElevatedButton.icon(
           onPressed: onEnroll,
           icon: const Icon(Symbols.fingerprint, size: 20),
-          label: Text('Enable Fingerprint',
+          label: Text(trGlobal('ls.enable_fp'),
             style: AppFont.sans(
               fontSize: 14.5, fontWeight: FontWeight.w600)),
           style: ElevatedButton.styleFrom(
@@ -553,7 +547,7 @@ class _StepBiometric extends StatelessWidget {
         const Gap(8),
         TextButton(
           onPressed: onSkip,
-          child: Text('Skip — PIN only',
+          child: Text(trGlobal('ls.skip_fp'),
             style: AppFont.sans(
               fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.t3)),
         ),
@@ -587,14 +581,13 @@ class _StepDone extends StatelessWidget {
           child: const Icon(Symbols.check, color: Colors.white, size: 56),
         ),
         const Gap(22),
-        Text('App Lock Enabled \ud83d\udd12',
+        Text(trGlobal('ls.enabled'),
           textAlign: TextAlign.center,
           style: AppFont.sans(
             fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.t1)),
         const Gap(10),
         Text(
-          'BillZap will lock when you switch apps and return after 1 minute. '
-          'Make sure you remember your PIN!',
+          trGlobal('ls.enabled_msg'),
           textAlign: TextAlign.center,
           style: AppFont.sans(
             fontSize: 13.5, color: AppColors.t2, height: 1.6)),
@@ -608,7 +601,7 @@ class _StepDone extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18)),
             elevation: 0),
-          child: Text('Done',
+          child: Text(trGlobal('common.done'),
             style: AppFont.sans(
               fontSize: 14.5, fontWeight: FontWeight.w600)),
         )),

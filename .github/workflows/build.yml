@@ -92,10 +92,40 @@ jobs:
       # BILLZAP_PLAY_SYMBOLS unset so they ship stripped native
       # libraries — it is the difference between a 25 MB arm64 APK and
       # a ~9 MB one. See android/app/build.gradle.kts.
+      # --dart-define stamps the build number into the binary so the
+      # About panel can show which build is installed. Without it the
+      # app said '1.0.0' forever and nobody could tell whether an APK
+      # had actually replaced anything.
       - name: Build App Bundle (AAB, with Play symbols)
         env:
           BILLZAP_PLAY_SYMBOLS: '1'
-        run: flutter build appbundle --release
+        run: |
+          flutter build appbundle --release \
+            --dart-define=BILLZAP_BUILD=${{ steps.bump.outputs.build }}
+
+      # The certificate the bundle is actually signed with. Play rejects a
+      # bundle whose fingerprint is not the registered upload key, so this
+      # is compared against Play Console → App integrity → Upload key
+      # certificate before anything is uploaded. A fingerprint is public;
+      # nothing secret is printed.
+      - name: Report signing fingerprint
+        run: |
+          {
+            echo "### Upload signing certificate"
+            if [ "${{ steps.keystore.outputs.configured }}" != "true" ]; then
+              echo "**No keystore secrets — this bundle is debug-signed and Play will reject it.**"
+            fi
+            echo '```'
+            keytool -printcert -jarfile build/app/outputs/bundle/release/app-release.aab \
+              | grep -E 'Owner:|SHA1:|SHA256:' \
+              || echo "(could not read the bundle's signature)"
+            echo '```'
+          } | tee -a $GITHUB_STEP_SUMMARY
+          # Also as an annotation, which the API serves even where the
+          # raw log and the step summary cannot be fetched.
+          sha=$(keytool -printcert -jarfile build/app/outputs/bundle/release/app-release.aab \
+                | grep -m1 'SHA256:' | sed 's/.*SHA256: *//' || true)
+          echo "::notice title=Upload key SHA-256::${sha:-unreadable} (keystore secrets configured: ${{ steps.keystore.outputs.configured }})"
 
       # Play refuses updates whose target API level is under 36 (Android
       # 16). Read the target back out of the bundle that was just built,
@@ -116,7 +146,9 @@ jobs:
       # Universal APK — installs on any device, no guessing which one to
       # download. This is the link we hand people for sideloading.
       - name: Build APK (universal)
-        run: flutter build apk --release
+        run: |
+          flutter build apk --release \
+            --dart-define=BILLZAP_BUILD=${{ steps.bump.outputs.build }}
 
       # Per-ABI APKs. A universal APK carries native libraries for every
       # architecture, so roughly two thirds of it is dead weight on any
@@ -124,7 +156,9 @@ jobs:
       # sold in the last several years and is a third of the size, which
       # matters a lot for this app's users.
       - name: Build APKs (per-ABI)
-        run: flutter build apk --release --split-per-abi
+        run: |
+          flutter build apk --release --split-per-abi \
+            --dart-define=BILLZAP_BUILD=${{ steps.bump.outputs.build }}
 
       - name: Report artifact sizes
         run: |
@@ -176,7 +210,12 @@ jobs:
               exit 0
             fi
             echo "Push rejected; rebasing onto origin/$GITHUB_REF_NAME and retrying"
-            git pull --rebase origin "$GITHUB_REF_NAME" || break
+            # --autostash because the flutter build steps rewrite
+            # android/gradle.properties, and without it the rebase dies
+            # on "You have unstaged changes" and the bump is never
+            # pushed — which is why pubspec.yaml on the branch kept
+            # falling behind the artifact names.
+            git pull --rebase --autostash origin "$GITHUB_REF_NAME" || break
             sleep $((attempt * 3))
           done
           echo "::warning::Could not push the version bump. The build artifacts above are unaffected."

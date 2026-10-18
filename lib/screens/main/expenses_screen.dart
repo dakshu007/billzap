@@ -3,13 +3,31 @@ import 'package:flutter/material.dart';
 import 'package:billzap/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
-import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
 import '../../design/tokens.dart';
 import '../../design/components.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
+import '../../i18n/dates.dart';
 import '../../i18n/translations.dart';
+
+/// An expense category in the language on screen. Stored in English —
+/// that is the value in every saved record and every CSV — and shown
+/// translated. A category someone typed elsewhere shows as typed.
+String expenseCategoryLabel(String stored) {
+  const keys = {
+    'Rent': 'exp.cat_rent',
+    'Salary': 'exp.cat_salary',
+    'Utilities': 'exp.cat_utilities',
+    'Travel': 'exp.cat_travel',
+    'Food': 'exp.cat_food',
+    'Marketing': 'exp.cat_marketing',
+    'Equipment': 'exp.cat_equipment',
+    'Other': 'exp.cat_other',
+  };
+  final k = keys[stored];
+  return k == null ? stored : trGlobal(k);
+}
 
 class ExpensesScreen extends ConsumerWidget {
   const ExpensesScreen({super.key});
@@ -44,10 +62,10 @@ class ExpensesScreen extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
           child: Row(children: [
-            _SumCard('This Month', formatCurrency(month),
+            _SumCard(trGlobal('dash.this_month'), formatCurrency(month),
               AppColors.brand, AppColors.brandSoft),
             const Gap(10),
-            _SumCard('Total', formatCurrency(total),
+            _SumCard(trGlobal('exp.total'), formatCurrency(total),
               AppColors.purple, AppColors.purpleSoft),
           ]),
         ),
@@ -92,10 +110,8 @@ class ExpensesScreen extends ConsumerWidget {
                       ]),
                     ),
                     confirmDismiss: (_) => confirm(context,
-                        title: 'Delete ${e.title}?',
-                        message: 'This expense comes straight out of your '
-                            'profit figure, so removing it changes your '
-                            'reports.',
+                        title: trGlobal('common.delete_q', {'name': e.title}),
+                        message: trGlobal('exp.delete_msg'),
                         icon: Symbols.delete,
                         destructive: true,
                         confirmLabel: trGlobal('common.delete'),
@@ -124,7 +140,7 @@ class ExpensesScreen extends ConsumerWidget {
                           Text(e.title, style: AppFont.sans(
                             fontSize: 14, fontWeight: FontWeight.w700,
                             color: AppColors.t1)),
-                          Text('${e.category} · ${DateFormat("dd MMM yyyy").format(e.date)}',
+                          Text('${expenseCategoryLabel(e.category)} · ${uiDate('dd MMM y', e.date)}',
                             style: AppFont.sans(
                               fontSize: 12, color: AppColors.t3)),
                         ])),
@@ -202,7 +218,7 @@ class ExpensesScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(14))),
                     items: cats.map((c) => DropdownMenuItem(
                       value: c,
-                      child: Text(c, style: AppFont.sans(
+                      child: Text(expenseCategoryLabel(c), style: AppFont.sans(
                         fontSize: 13.5)))).toList(),
                     onChanged: (v) => ss(() => category = v ?? category)),
                   const Gap(20),

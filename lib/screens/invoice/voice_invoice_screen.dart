@@ -8,7 +8,10 @@ import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:billzap/theme/app_icons.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import '../../design/money.dart';
+import '../../tax/active_profile.dart';
 import '../../theme/app_theme.dart';
+import '../../design/components.dart';
 import '../../i18n/translations.dart';
 import '../../utils/voice_parser.dart';
 
@@ -16,6 +19,61 @@ class VoiceInvoiceScreen extends ConsumerStatefulWidget {
   const VoiceInvoiceScreen({super.key});
   @override
   ConsumerState<VoiceInvoiceScreen> createState() => _VoiceInvoiceState();
+}
+
+// ── Speech locale selection ───────────────────────────────────
+// The app language's own speech pack. Every one of the twelve is an
+// Indian locale because every one of the twelve is an Indian language;
+// that is not the India assumption this file used to have.
+const Map<String, String> _langToLocale = {
+  'en': 'en_IN',
+  'hi': 'hi_IN',
+  'ta': 'ta_IN',
+  'te': 'te_IN',
+  'kn': 'kn_IN',
+  'ml': 'ml_IN',
+  'mr': 'mr_IN',
+  'gu': 'gu_IN',
+  'bn': 'bn_IN',
+  'pa': 'pa_IN',
+  'or': 'or_IN',
+  'ur': 'ur_IN',
+};
+
+/// Speech locales to try, best first.
+///
+/// The old chain was language -> an `_IN` locale -> `en_IN`, which is
+/// right in India and wrong everywhere else: an English-speaking
+/// shopkeeper in Nairobi was dictating into a recogniser tuned for
+/// Indian English phonetics and Indian number words, which produces a
+/// worse transcript than en_KE for no reason at all.
+///
+/// So the shop's country comes first. `en` + `KE` tries en_KE ahead of
+/// everything; only if the device has no such pack does it walk down
+/// the chain. India's behaviour is unchanged, and not as a special
+/// case — for a shop in India the country-specific candidate simply IS
+/// the `_IN` one.
+///
+/// Public because it is the part that can be wrong, and it has been
+/// wrong twice. See test/voice_locale_test.dart.
+List<String> voiceLocaleCandidates(String lang, String country) {
+  final c = country.toUpperCase();
+  // Speech packs are named by bare language: 'zh_CN', not 'zh-Hans_CN'.
+  final base = lang.split('-').first;
+  final home = appLocaleFor(lang)?.defaultRegion;
+  return <String>[
+    // The language as spoken in this country. Hindi in Fiji, Tamil in
+    // Singapore, Arabic in the UAE — all real cases.
+    '${base}_$c',
+    // The language's own home pack, which is the one that exists.
+    _langToLocale[lang] ?? (home != null ? '${base}_$home' : ''),
+    // English where the shop is, then the big English packs almost
+    // every device carries.
+    'en_$c',
+    'en_US',
+    'en_GB',
+    'en_IN',
+  ].where((l) => l.isNotEmpty).toSet().toList();
 }
 
 class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
@@ -29,22 +87,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
   late final AnimationController _pulseCtrl;
   String _selectedLocaleId = 'en_IN';
 
-  // Maps app language code → speech-to-text locale ID
-  // Checked at runtime — fall back to en_IN if device doesn't have it
-  static const Map<String, String> _langToLocale = {
-    'en': 'en_IN',
-    'hi': 'hi_IN',
-    'ta': 'ta_IN',
-    'te': 'te_IN',
-    'kn': 'kn_IN',
-    'ml': 'ml_IN',
-    'mr': 'mr_IN',
-    'gu': 'gu_IN',
-    'bn': 'bn_IN',
-    'pa': 'pa_IN',
-    'or': 'or_IN',
-    'ur': 'ur_IN',
-  };
+
 
   static const Map<String, String> _localeDisplay = {
     'en_IN': 'English',
@@ -82,7 +125,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
             });
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Speech error: ${e.errorMsg}'),
+                content: Text(trGlobal('voice.speech_error', {'e': e.errorMsg})),
                 backgroundColor: AppColors.red));
           }
         },
@@ -105,19 +148,21 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
       // translation key. trGlobal hands back the key when it misses, so
       // appLang was always the literal '__lang_code', _langToLocale
       // never matched it, and every user got en_IN no matter which of
-      // the twelve languages they had chosen. The map below was correct
-      // the whole time; nothing could reach it.
+      // the twelve languages they had chosen. _langToLocale was
+      // correct the whole time; nothing could reach it.
       final appLang = currentLangCode;
-      final preferredLocale = _langToLocale[appLang] ?? 'en_IN';
-      
-      // Verify the device has this locale, else fall back
       final available = await _speech.locales();
       final ids = available.map((l) => l.localeId).toSet();
-      if (ids.contains(preferredLocale)) {
-        _selectedLocaleId = preferredLocale;
-      } else if (ids.contains('en_IN')) {
-        _selectedLocaleId = 'en_IN';
-      } else if (available.isNotEmpty) {
+      for (final candidate
+          in voiceLocaleCandidates(appLang, activeProfile.countryCode)) {
+        if (ids.contains(candidate)) {
+          _selectedLocaleId = candidate;
+          break;
+        }
+      }
+      // Nothing matched at all — take whatever the device has rather
+      // than listen in a locale it does not support.
+      if (!ids.contains(_selectedLocaleId) && available.isNotEmpty) {
         _selectedLocaleId = available.first.localeId;
       }
 
@@ -194,13 +239,34 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
     final available = await _speech.locales();
     final supportedIds = available.map((l) => l.localeId).toSet();
 
+    // The list used to be the twelve Indian locales and nothing else,
+    // so a shopkeeper in Nairobi whose phone has en_KE installed could
+    // not choose it: the only English on offer was en_IN. The device's
+    // own installed locales are now listed too, named by the plugin.
+    //
+    // Order: the twelve first, because that is what most users want
+    // and the labels are in their own script; then everything else the
+    // phone actually has, alphabetically.
+    final extra = available
+        .where((l) => !_localeDisplay.containsKey(l.localeId))
+        .toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+    final entries = <({String id, String label})>[
+      for (final e in _localeDisplay.entries) (id: e.key, label: e.value),
+      for (final l in extra) (id: l.localeId, label: l.name),
+    ];
+
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        // AppColors.card, not Colors.white. The labels in this sheet
+        // are AppColors.t1, which is near-white in dark mode, so a
+        // hardcoded white sheet rendered every enabled language
+        // invisible — only the greyed-out "not installed" rows showed.
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
         child: Column(
@@ -212,32 +278,32 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                 color: AppColors.border,
                 borderRadius: BorderRadius.circular(99)))),
             const Gap(16),
-            Text('Choose Language',
+            Text(trGlobal('voice.choose_lang'),
               style: AppFont.sans(
                 fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.t1)),
             const Gap(12),
             ConstrainedBox(
               constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.55),
               child: SingleChildScrollView(
-                child: Column(children: _localeDisplay.entries.map((entry) {
-                  final available = supportedIds.contains(entry.key);
-                  final isSelected = _selectedLocaleId == entry.key;
+                child: Column(children: entries.map((entry) {
+                  final installed = supportedIds.contains(entry.id);
+                  final isSelected = _selectedLocaleId == entry.id;
                   return ListTile(
-                    title: Text(entry.value,
+                    title: Text(entry.label,
                       style: AppFont.sans(
                         fontSize: 14,
                         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                        color: available ? AppColors.t1 : AppColors.t4)),
-                    subtitle: !available
-                      ? Text('Not installed on this device',
+                        color: installed ? AppColors.t1 : AppColors.t4)),
+                    subtitle: !installed
+                      ? Text(trGlobal('voice.not_installed'),
                           style: AppFont.sans(fontSize: 11, color: AppColors.t4))
                       : null,
                     trailing: isSelected
                       ? Icon(Symbols.check, color: AppColors.brand)
                       : null,
-                    enabled: available,
-                    onTap: available ? () {
-                      setState(() => _selectedLocaleId = entry.key);
+                    enabled: installed,
+                    onTap: installed ? () {
+                      setState(() => _selectedLocaleId = entry.id);
                       Navigator.pop(ctx);
                     } : null,
                   );
@@ -263,16 +329,26 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
               color: AppColors.bg, borderRadius: BorderRadius.circular(14)),
             child: Icon(Symbols.close, size: 19, color: AppColors.t1)),
           onPressed: () => context.go('/home')),
-        title: Text('Voice Invoice',
-          style: AppFont.sans(
-            fontSize: 21, fontWeight: FontWeight.w700,
-          letterSpacing: -0.5, color: AppColors.t1)),
+        title: Row(mainAxisSize: MainAxisSize.min, children: [
+          Flexible(
+            child: Text(trGlobal('voice.title'),
+              overflow: TextOverflow.ellipsis,
+              style: AppFont.sans(
+                fontSize: 21, fontWeight: FontWeight.w700,
+              letterSpacing: -0.5, color: AppColors.t1)),
+          ),
+          const SizedBox(width: 8),
+          BetaBadge(trGlobal('common.beta')),
+        ]),
         actions: [
           TextButton.icon(
             onPressed: _pickLocale,
             icon: Icon(Symbols.language, size: 18, color: AppColors.brand),
             label: Text(
-              _localeDisplay[_selectedLocaleId]?.split(' ').first ?? 'EN',
+              // Unknown locale: show its language code rather than a
+              // hardcoded 'EN' that may well be a lie.
+              _localeDisplay[_selectedLocaleId]?.split(' ').first ??
+                  _selectedLocaleId.split('_').first.toUpperCase(),
               style: AppFont.sans(
                 fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.brand)),
           ),
@@ -294,7 +370,13 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
             Icon(Symbols.tips_and_updates, color: AppColors.brand, size: 22),
             const Gap(10),
             Expanded(child: Text(
-              'Try: "For Ravi 2 kg sugar 50 rupees and 1 kg salt 20 rupees"',
+              // The example stays in English: it shows the phrasing the
+              // parser understands, and a translated sentence would
+              // promise support for words it does not know. Rupees only
+              // where rupees are the currency.
+              '${trGlobal('voice.try')} ${activeProfile.countryCode == 'IN'
+                  ? '"For Ravi 2 kg sugar 50 rupees and 1 kg salt 20 rupees"'
+                  : '"For Ravi 2 kg sugar 50 and 1 kg salt 20"'}',
               style: AppFont.sans(
                 fontSize: 12.5, color: AppColors.t2, height: 1.4))),
           ]),
@@ -316,7 +398,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                 const Gap(10),
                 Expanded(child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text("Couldn't capture audio",
+                    Text(trGlobal('voice.no_audio'),
                       style: AppFont.sans(
                         fontSize: 13.5, fontWeight: FontWeight.w600,
                         color: AppColors.t1)),
@@ -331,7 +413,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                     _toggleListening();
                   },
                   icon: const Icon(Symbols.refresh, size: 16),
-                  label: Text('Retry',
+                  label: Text(trGlobal('voice.retry'),
                     style: AppFont.sans(
                       fontSize: 12, fontWeight: FontWeight.w600)),
                   style: TextButton.styleFrom(
@@ -397,8 +479,8 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                   const Gap(16),
                   Text(
                     _listening
-                      ? 'Listening...'
-                      : (_transcript.isEmpty ? 'Tap mic and speak' : 'Tap mic to record again'),
+                      ? trGlobal('voice.listening')
+                      : (_transcript.isEmpty ? trGlobal('voice.tap_speak') : trGlobal('voice.tap_again')),
                     style: AppFont.sans(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -420,7 +502,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                     Row(children: [
                       Icon(Symbols.hearing, size: 16, color: AppColors.t3),
                       const Gap(6),
-                      Text('I heard:',
+                      Text(trGlobal('voice.heard'),
                         style: AppFont.sans(
                           fontSize: 11, fontWeight: FontWeight.w700,
                           color: AppColors.t3, letterSpacing: 0.5)),
@@ -448,25 +530,25 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                     Row(children: [
                       Icon(Symbols.auto_awesome, size: 18, color: AppColors.green),
                       const Gap(8),
-                      Text('Extracted',
+                      Text(trGlobal('voice.extracted'),
                         style: AppFont.sans(
                           fontSize: 13, fontWeight: FontWeight.w600,
                           color: AppColors.green, letterSpacing: 0.5)),
                     ]),
                     const Gap(10),
                     if (_parsed!.customerName != null) ...[
-                      _kvRow(Symbols.person, 'Customer', _parsed!.customerName!),
+                      _kvRow(Symbols.person, trGlobal('inv.customer'), _parsed!.customerName!),
                       const Gap(8),
                     ],
                     if (_parsed!.items.isEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Text('No items detected. Try speaking again with clearer pricing.',
+                        child: Text(trGlobal('voice.no_items'),
                           style: AppFont.sans(
                             fontSize: 12.5, color: AppColors.t3, fontStyle: FontStyle.italic)),
                       )
                     else ...[
-                      Text('Items',
+                      Text(trGlobal('voice.items'),
                         style: AppFont.sans(
                           fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.t3, letterSpacing: 0.5)),
                       const Gap(6),
@@ -474,8 +556,11 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Container(
                           padding: const EdgeInsets.all(10),
+                          // Same bug as the sheet above: a white card
+                          // under near-white text hid every parsed
+                          // item name and quantity in dark mode.
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AppColors.card,
                             borderRadius: BorderRadius.circular(12)),
                           child: Row(children: [
                             Container(
@@ -494,7 +579,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                                 style: AppFont.sans(
                                   fontSize: 11, color: AppColors.t3)),
                             ])),
-                            Text('₹${item.price.toStringAsFixed(0)}',
+                            Text(formatActiveMoney(item.price, decimals: 0),
                               style: AppFont.sans(
                                 fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.brand)),
                           ]),
@@ -510,7 +595,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                   Expanded(child: OutlinedButton.icon(
                     onPressed: _retry,
                     icon: const Icon(Symbols.refresh, size: 18),
-                    label: Text('Try again',
+                    label: Text(trGlobal('voice.try_again'),
                       style: AppFont.sans(fontWeight: FontWeight.w700, fontSize: 13)),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.t2,
@@ -522,7 +607,7 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                   Expanded(flex: 2, child: ElevatedButton.icon(
                     onPressed: _parsed!.items.isEmpty ? null : _proceedToCreate,
                     icon: const Icon(Symbols.arrow_forward, size: 18),
-                    label: Text('Continue',
+                    label: Text(trGlobal('common.continue'),
                       style: AppFont.sans(fontWeight: FontWeight.w600, fontSize: 13.5)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.brand,
@@ -543,15 +628,15 @@ class _VoiceInvoiceState extends ConsumerState<VoiceInvoiceScreen>
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: AppColors.border)),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('Voice Tips',
+                    Text(trGlobal('voice.tips'),
                       style: AppFont.sans(
                         fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.t1)),
                     const Gap(10),
-                    _tip('Speak slowly and clearly'),
-                    _tip('Mention quantity, item name, and price'),
-                    _tip('Say "for [Customer Name]" at the start'),
-                    _tip('Separate items with "and" or pause'),
-                    _tip('You can edit everything in the next step'),
+                    _tip(trGlobal('voice.tip1')),
+                    _tip(trGlobal('voice.tip2')),
+                    _tip(trGlobal('voice.tip3')),
+                    _tip(trGlobal('voice.tip4')),
+                    _tip(trGlobal('voice.tip5')),
                   ]),
                 ),
               ],

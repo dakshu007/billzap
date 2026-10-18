@@ -17,6 +17,8 @@ import '../../models/models.dart';
 import '../../providers/providers.dart';
 import '../../tax/countries.dart';
 import '../../tax/profiles.dart';
+import '../../tax/regions.dart';
+import '../../tax/tax_profile.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -36,6 +38,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _addrCtl = TextEditingController();
   final _cityCtl = TextEditingController();
   String _state = 'Tamil Nadu';
+  /// Backs the region box for countries with no region list.
+  final _stateCtl = TextEditingController();
   // Where the shop trades. India by default, which is what every
   // install had before this question existed.
   String _country = 'IN';
@@ -50,6 +54,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     _gstinCtl.dispose();
     _addrCtl.dispose();
     _cityCtl.dispose();
+    _stateCtl.dispose();
     super.dispose();
   }
 
@@ -79,8 +84,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Widget _countryStep() {
     final country = countryFor(_country);
     final profile = resolveProfile(countryCode: _country);
-    final researched = profile.countryCode != 'XX' && profile.verified ||
-        allProfiles.any((p) => p.countryCode == _country);
+    // Same three states as Settings. A rate pre-filled from the table is
+    // neither "built in" nor "nothing" and must not be shown as either.
+    final (noticeKey, noticeIcon) = switch (profile.confidence) {
+      TaxConfidence.verified => ('onboard.country_known', Symbols.verified),
+      TaxConfidence.unconfirmed => ('set.tax_unconfirmed', Symbols.help),
+      TaxConfidence.selfDeclared => ('onboard.country_custom', Symbols.tune),
+    };
+    final known = profile.confidence == TaxConfidence.verified;
+    // The middle state is the only one that asks the shopkeeper to go
+    // and check something, so it is the only one tinted as a warning.
+    final needsConfirming = profile.confidence == TaxConfidence.unconfirmed;
+    final flag = countryFlag(_country);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -99,7 +114,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             borderRadius: BorderRadius.circular(14),
             onTap: () async {
               final picked = await pickCountry(context, selected: _country);
-              if (picked != null) setState(() => _country = picked.code);
+              if (picked != null) {
+                setState(() {
+                  _country = picked.code;
+                  // A Tamil Nadu address on a Japanese bill is the bug
+                  // this whole change is about.
+                  _state = '';
+                  _stateCtl.clear();
+                });
+              }
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -110,26 +133,48 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ),
               child: Row(
                 children: [
+                  // The flag, so the shopkeeper can confirm the choice
+                  // at a glance rather than by reading.
+                  Container(
+                    width: 44, height: 44,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.inset,
+                      borderRadius: BorderRadius.circular(14)),
+                    child: flag.isEmpty
+                        ? Icon(Symbols.public,
+                            color: AppColors.t3, size: 22)
+                        : Text(flag, style: const TextStyle(fontSize: 23)),
+                  ),
+                  const Gap(13),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(country?.name ?? 'Select a country',
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w600)),
+                        Text(country == null ? trGlobal('onboard.select_country') : countryDisplayName(country.code),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppFont.sans(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.t1)),
                         const Gap(3),
                         Text(
                           country == null
                               ? ''
-                              : '${country.currencyCode} · '
-                                  '${profile.taxName}',
-                          style:
-                              TextStyle(fontSize: 13, color: AppColors.t3),
+                              : '${country.currencySymbol.trim()} '
+                                  '${country.currencyCode} · '
+                                  '${profile.taxName}'
+                                  '${profile.defaultRate > 0 ? " ${profile.defaultRate}%" : ""}',
+                          style: AppFont.sans(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.t3),
                         ),
                       ],
                     ),
                   ),
-                  Icon(Icons.chevron_right, color: AppColors.t3),
+                  Icon(Symbols.chevron_right, color: AppColors.t3, size: 22),
                 ],
               ),
             ),
@@ -141,23 +186,34 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: researched ? AppColors.brandSofter : AppColors.inset,
+              color: known
+                  ? AppColors.brandSofter
+                  : needsConfirming
+                      ? AppColors.orangeSoft
+                      : AppColors.inset,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(researched ? Icons.verified_outlined : Icons.tune,
+                Icon(noticeIcon,
                     size: 18,
-                    color: researched ? AppColors.brand : AppColors.t3),
+                    color: known
+                        ? AppColors.brand
+                        : needsConfirming
+                            ? AppColors.orange
+                            : AppColors.t3),
                 const Gap(10),
                 Expanded(
                   child: Text(
-                    researched
-                        ? trGlobal('onboard.country_known')
-                        : trGlobal('onboard.country_custom'),
-                    style: TextStyle(
-                        fontSize: 13, height: 1.45, color: AppColors.t2),
+                    trGlobal(noticeKey),
+                    style: AppFont.sans(
+                        fontSize: 13,
+                        height: 1.45,
+                        fontWeight:
+                            needsConfirming ? FontWeight.w600 : FontWeight.w400,
+                        color:
+                            needsConfirming ? AppColors.orange : AppColors.t2),
                   ),
                 ),
               ],
@@ -366,12 +422,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             child: Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => const LanguagePickerScreen(),
-                  ));
-                },
+                onTap: () => openLanguagePicker(context),
                 borderRadius: BorderRadius.circular(20),
                 child: Padding(
                   padding: const EdgeInsets.all(14),
@@ -396,7 +447,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                                   fontSize: 14, fontWeight: FontWeight.w700)),
                           const Gap(2),
                           Text(
-                            currentLanguage(ref.watch(languageProvider)).name,
+                            currentLanguage(ref.watch(languageProvider)).nativeName,
                             style: AppFont.sans(
                                 fontSize: 12, color: AppColors.t3),
                           ),
@@ -442,20 +493,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   fontSize: 13, color: AppColors.t3, height: 1.5)),
           const Gap(20),
           _field(trGlobal('onboard.business_name'), _nameCtl,
-              hint: 'Ravi Electronics', icon: Symbols.storefront),
+              hint: trGlobal('set.biz_name_hint'), icon: Symbols.storefront),
           _field(trGlobal('onboard.phone'), _phoneCtl,
-              hint: '9876543210',
+              hint: _country == 'IN' ? '9876543210' : '',
               icon: Symbols.phone,
               keyboard: TextInputType.phone),
           _field(trGlobal('onboard.gstin_optional'), _gstinCtl,
-              hint: '33AAAAA0000A1Z5',
+              hint: _country == 'IN' ? '33AAAAA0000A1Z5' : '',
               icon: Symbols.badge,
               caps: true),
           _field(trGlobal('onboard.address'), _addrCtl,
-              hint: '123 Main Road',
+              hint: trGlobal('onboard.address_hint'),
               icon: Symbols.home),
           _field(trGlobal('onboard.city'), _cityCtl,
-              hint: 'Coimbatore',
+              hint: _country == 'IN' ? 'Coimbatore' : '',
               icon: Symbols.location_city),
           const Gap(8),
           Text(trGlobal('onboard.state'),
@@ -471,20 +522,40 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppColors.border),
             ),
-            child: DropdownButton<String>(
-              value: _state,
-              isExpanded: true,
-              underline: const SizedBox.shrink(),
-              icon: Icon(Symbols.expand_more, color: AppColors.t3),
-              style: AppFont.sans(
-                  fontSize: 14, color: AppColors.t1),
-              items: _states
-                  .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                  .toList(),
-              onChanged: (v) {
-                if (v != null) setState(() => _state = v);
-              },
-            ),
+            // A country with no region list gets a plain box. A
+            // DropdownButton whose value is not among its items throws,
+            // so the value is only passed through when it is one of
+            // them — changing country clears it.
+            child: _states.isEmpty
+                ? TextField(
+                    controller: _stateCtl,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      border: InputBorder.none,
+                      hintText: trGlobal('set.region_hint'),
+                      hintStyle:
+                          AppFont.sans(fontSize: 14, color: AppColors.t3),
+                    ),
+                    style: AppFont.sans(fontSize: 14, color: AppColors.t1),
+                    onChanged: (v) => _state = v,
+                  )
+                : DropdownButton<String>(
+                    value: _states.contains(_state) ? _state : null,
+                    hint: Text(trGlobal('onboard.select'),
+                        style:
+                            AppFont.sans(fontSize: 14, color: AppColors.t3)),
+                    isExpanded: true,
+                    underline: const SizedBox.shrink(),
+                    icon: Icon(Symbols.expand_more, color: AppColors.t3),
+                    style: AppFont.sans(fontSize: 14, color: AppColors.t1),
+                    items: _states
+                        .map((s) =>
+                            DropdownMenuItem(value: s, child: Text(s)))
+                        .toList(),
+                    onChanged: (v) {
+                      if (v != null) setState(() => _state = v);
+                    },
+                  ),
           ),
           const Gap(16),
           Container(
@@ -664,14 +735,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
-  static const _states = [
-    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar',
-    'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana',
-    'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala',
-    'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya',
-    'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
-    'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana',
-    'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
-    'Delhi', 'Chandigarh', 'Puducherry',
-  ];
+  /// The regions of whichever country was picked on the step before.
+  ///
+  /// This used to be a third hardcoded list of Indian states — 31 of
+  /// them, disagreeing with the 20 in models.dart and the 37 that are
+  /// actually GST jurisdictions. Three lists that could each be wrong
+  /// in a different way, on a field that decides the tax split.
+  ///
+  /// Now there is one source per country: kStates in India, because its
+  /// entries carry the GST code, and regions.dart everywhere else.
+  List<String> get _states => _country.toUpperCase() == 'IN'
+      ? kStates.map((s) => s.split(' (').first).toList()
+      : (regionsFor(_country) ?? const <String>[]);
 }

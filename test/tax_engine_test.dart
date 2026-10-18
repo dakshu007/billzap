@@ -30,7 +30,7 @@ void main() {
         taxName: 'Tax', taxIdLabel: 'ID',
         rates: const [10], defaultRate: 10,
         intraComponents: const [TaxComponent('A', 0.4), TaxComponent('B', 0.4)],
-        verified: false, source: 'test fixture',
+        confidence: TaxConfidence.unconfirmed, source: 'test fixture',
         effectiveFrom: DateTime.utc(2020, 1, 1),
       );
       expect(broken.componentsAreWellFormed, isFalse);

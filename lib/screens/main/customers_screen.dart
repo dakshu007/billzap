@@ -13,7 +13,9 @@ import '../../theme/app_spacing.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../i18n/translations.dart';
+import '../../tax/active_profile.dart';
 import '../../utils/validators.dart';
+import '../../widgets/csv_import_sheet.dart';
 import '../../widgets/skeleton.dart';
 
 class CustomersScreen extends ConsumerStatefulWidget {
@@ -43,9 +45,8 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
 
   Future<bool> _confirmDelete(Customer c) async {
     return confirm(context,
-        title: 'Delete ${c.name}?',
-        message: 'Their invoices stay in the ledger — only the saved '
-            'contact goes.',
+        title: trGlobal('common.delete_q', {'name': c.name}),
+        message: trGlobal('cust.delete_msg'),
         icon: Symbols.delete,
         destructive: true,
         confirmLabel: trGlobal('common.delete'),
@@ -56,7 +57,7 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
     await ref.read(customerProvider.notifier).delete(c.id);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text('${c.name} deleted'),
+      content: Text(trGlobal('common.deleted_named', {'name': c.name})),
       backgroundColor: AppColors.t1,
     ));
   }
@@ -85,6 +86,8 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
           fontSize: 21, fontWeight: FontWeight.w700,
           letterSpacing: -0.5, color: AppColors.t1)),
         actions: [
+          const CsvImportButton(CsvImportKind.customers),
+          const SizedBox(width: 8),
           Padding(
             padding: const EdgeInsets.only(right: 14),
             child: AppIconButton(
@@ -160,7 +163,7 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
                             Text(c.phone, style: AppFont.sans(
                               fontSize: 12, color: AppColors.t3)),
                           if (c.gstin.isNotEmpty)
-                            Text('GSTIN: ${c.gstin}',
+                            Text('$activeTaxIdLabel: ${c.gstin}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: AppFont.sans(
@@ -193,13 +196,13 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
     ),
     alignment: Alignment.centerRight,
     padding: const EdgeInsets.symmetric(horizontal: 22),
-    child: const Row(
+    child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Symbols.delete, color: Colors.white, size: 20),
-        SizedBox(width: 6),
-        Text('Delete',
-            style: TextStyle(
+        const Icon(Symbols.delete, color: Colors.white, size: 20),
+        const SizedBox(width: 6),
+        Text(trGlobal('common.delete'),
+            style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
                 fontSize: 13)),
@@ -232,9 +235,10 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(context).viewInsets.bottom),
             child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(20))),
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -307,7 +311,7 @@ class _CustomersState extends ConsumerState<CustomersScreen> {
                           }
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text('${name.text.trim()} added'),
+                              content: Text(trGlobal('common.added_named', {'name': name.text.trim()})),
                               backgroundColor: AppColors.green));
                           }
                         } finally {
