@@ -8,7 +8,7 @@ secondary_keywords: [gst calculation formula, gst calculator, gst inclusive pric
 tags: [GST guides, Calculations, Small business]
 excerpt: The two GST formulas every shop needs, worked through in rupees at the current 5%, 18% and 40% slabs, with the CGST/SGST split, mixed-rate bills, discounts and rounding.
 publish_at: 2026-10-19T09:00:00+05:30
-author: BillZap Team
+author: Dakshesh B
 ---
 
 Most people calculate GST in their head every day: 18% on ₹1,000 is ₹180, so the customer pays ₹1,180. That part is easy. The trouble starts with everything around it: a price that already includes GST, a bill with items at two different rates, a discount given at the counter, or a customer from another state. Each one has a right way and a common wrong way, and the wrong way ends up printed on an invoice and filed in a return.

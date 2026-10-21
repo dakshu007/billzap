@@ -165,58 +165,82 @@ async function renderPost(slugRaw) {
     }));
   }
 
+  // Up to three others to read next: ones sharing a tag first, then
+  // the newest. One query, and a post with no neighbours just shows none.
+  const more = await sql`
+    SELECT slug, title, excerpt, tags, published_at FROM posts
+     WHERE status = 'published' AND published_at <= now() AND slug <> ${p.slug}
+     ORDER BY (tags && ${p.tags || []}::text[]) DESC, published_at DESC
+     LIMIT 3`;
+
+  const url = `${SITE}/blog/${p.slug}`;
   const desc = p.meta_desc || p.excerpt || textOf(p.body_html, 160);
-  const { html: bodyHtml, items } = outline(p.body_html);
+  const author = AUTHORS[p.author] || null;
+  const authorName = author ? author.name : (p.author || 'BillZap');
+  // Rich results read the post as written, before it is rearranged
+  // for the page below.
+  const rich = richResults(p.body_html, url);
+  const { overview, rest } = takeOverview(p.body_html);
+  const { html: outlined, items } = outline(rest);
+  const bodyHtml = midCta(faqAccordion(outlined));
   const mins = readingTime(p.body_html);
   const keywords = [p.focus_keyword, ...(p.secondary_keywords || []), ...(p.tags || [])]
     .filter(Boolean);
 
   const post = {
     '@type': 'BlogPosting',
-    '@id': `${SITE}/blog/${p.slug}#post`,
+    '@id': `${url}#post`,
     headline: p.title,
     description: desc,
-    url: `${SITE}/blog/${p.slug}`,
+    url,
     datePublished: iso(p.published_at),
     dateModified: iso(p.updated_at),
-    author: { '@type': 'Person', name: p.author || 'BillZap' },
+    author: author
+      ? { '@type': 'Person', '@id': `${SITE}/#${author.id}`, name: author.name,
+          jobTitle: author.role, url: author.links[0].href,
+          sameAs: author.links.map((l) => l.href) }
+      : { '@type': 'Person', name: authorName },
     publisher: { '@id': `${SITE}/#org` },
-    mainEntityOfPage: `${SITE}/blog/${p.slug}`,
+    mainEntityOfPage: url,
     wordCount: textOf(p.body_html).split(/\s+/).filter(Boolean).length,
     timeRequired: `PT${mins}M`,
     ...(p.cover_url ? { image: abs(p.cover_url) } : {}),
     keywords: keywords.join(', '),
   };
-  const ld = { '@context': 'https://schema.org',
-               '@graph': [post, ...richResults(p.body_html, `${SITE}/blog/${p.slug}`)] };
+  const ld = { '@context': 'https://schema.org', '@graph': [post, ...rich] };
+
+  const toc = items.length > 2 ? `<ol>${items.map((it) => `
+                <li><a href="#${it.id}">${esc(it.text)}</a></li>`).join('')}
+              </ol>` : '';
+  const tag = (p.tags && p.tags[0]) || 'Guide';
 
   return page(200, shell({
     title: p.meta_title || `${p.title} | BillZap`,
     desc,
-    canonical: `${SITE}/blog/${p.slug}`,
-    keywords: [p.focus_keyword, ...(p.secondary_keywords || []), ...(p.tags || [])]
-      .filter(Boolean).join(', '),
+    canonical: url,
+    keywords: keywords.join(', '),
     image: p.cover_url ? abs(p.cover_url) : `${SITE}/assets/og.png`,
     ogType: 'article',
     ld,
     body: `
       <article class="bpage">
         <div class="wrap">
-          <a class="bback" href="/blog">${ICON_BACK} All posts</a>
+          <a class="bback" href="/blog">${ICON.back} All posts</a>
 
           <header class="bhead">
-            <p class="bpill">Blog</p>
+            <p class="bpill">${esc(tag)}</p>
             <h1>${esc(p.title)}</h1>
-            <p class="bby">
-              By <strong>${esc(p.author || 'BillZap')}</strong>
-              · <time datetime="${iso(p.published_at)}">${human(p.published_at)}</time>
-              · ${mins} min read
-            </p>
-            ${keywords.length ? `<ul class="bkw">${keywords.slice(0, 6)
-              .map((k) => `<li>${esc(k)}</li>`).join('')}</ul>` : ''}
-            <div class="bcta">
-              <a class="btn btn-primary" href="https://play.google.com/store/apps/details?id=com.billzap.app" rel="noopener">Download BillZap free</a>
-              <p>Free forever · no sign-up · works offline</p>
+            ${p.excerpt ? `<p class="bsub">${esc(p.excerpt)}</p>` : ''}
+            <div class="bby">
+              ${avatar(authorName, 'sm')}
+              <div class="bby-t">
+                <strong>${esc(authorName)}</strong>
+                <span><time datetime="${iso(p.published_at)}">${human(p.published_at)}</time> · ${mins} min read</span>
+              </div>
+            </div>
+            <div class="bacts">
+              <a class="btn btn-primary" href="${PLAY}" rel="noopener">${ICON.download} Download free</a>
+              ${share(url, p.title, 'top')}
             </div>
           </header>
 
@@ -225,33 +249,193 @@ async function renderPost(slugRaw) {
           </figure>` : ''}
 
           <div class="blayout">
-            <div class="bcard">
-              ${p.excerpt ? `<p class="blede">${esc(p.excerpt)}</p>` : ''}
-              <div class="prose bprose">${bodyHtml}</div>
-              <div class="bend">
-                <h2>Billing taking longer than it should?</h2>
-                <p>
-                  BillZap makes a GST invoice in about 30 seconds, works with
-                  no signal, and costs nothing.
-                </p>
-                <a class="btn btn-primary" href="https://play.google.com/store/apps/details?id=com.billzap.app" rel="noopener">Get it for Android</a>
+            <div class="bmain">
+              <section class="bai" aria-labelledby="bai-h">
+                <div class="bai-top">
+                  <span class="bai-ico">${ICON.sparkle}</span>
+                  <h2 id="bai-h">AI overview</h2>
+                  <span class="bai-tag">Quick answer</span>
+                </div>
+                <div class="bai-body">${overview || `<p>${esc(desc)}</p>`}</div>
+                <div class="bai-ask">
+                  <p>Summarize with AI</p>
+                  <div class="bai-btns">${askAi(url, p.title)}</div>
+                </div>
+              </section>
+
+              ${toc ? `<details class="btoc-m">
+                <summary>${ICON.list} On this page <span>${items.length} sections</span></summary>
+                ${toc}
+              </details>` : ''}
+
+              <div class="bcard">
+                <div class="prose bprose">${bodyHtml}</div>
+
+                <div class="bend">
+                  <span class="bend-ico">${ICON.zap}</span>
+                  <h2>Make your next GST bill in 30 seconds</h2>
+                  <p>BillZap is free, works with no internet and needs no sign-up.</p>
+                  <a class="btn btn-primary" href="${PLAY}" rel="noopener">${ICON.download} Download free on Google Play</a>
+                </div>
+
+                <div class="bshare">
+                  <p>Share this guide</p>
+                  ${share(url, p.title, 'bottom')}
+                </div>
+
+                ${author ? `<aside class="bauthor" aria-label="About the author">
+                  ${avatar(author.name, 'lg')}
+                  <div>
+                    <p class="bauthor-k">Written by</p>
+                    <p class="bauthor-n">${esc(author.name)}</p>
+                    <p class="bauthor-r">${esc(author.role)}</p>
+                    <p class="bauthor-b">${esc(author.bio)}</p>
+                    <p class="bauthor-l">${author.links.map((l) =>
+                      `<a href="${l.href}" rel="noopener me" target="_blank">${esc(l.label)}</a>`).join('')}</p>
+                  </div>
+                </aside>` : ''}
               </div>
             </div>
 
-            ${items.length > 2 ? `<aside class="btoc">
-              <p class="btoc-h">Table of contents</p>
-              <ol>${items.map((it) => `
-                <li class="lvl${it.level}"><a href="#${it.id}">${esc(it.text)}</a></li>`).join('')}
-              </ol>
-            </aside>` : ''}
+            <aside class="bside">
+              ${toc ? `<nav class="btoc" aria-label="On this page">
+                <p class="btoc-h">On this page</p>
+                ${toc}
+              </nav>` : ''}
+              <div class="bmini">
+                <p class="bmini-h">BillZap</p>
+                <p>Free GST billing app. Offline, no sign-up, UPI QR on every bill.</p>
+                <a class="btn btn-primary" href="${PLAY}" rel="noopener">Download free</a>
+              </div>
+            </aside>
           </div>
 
-          <p class="bfoot"><a class="btn btn-ghost" href="/blog">${ICON_BACK} All posts</a></p>
+          ${more.length ? `<section class="bmore" aria-labelledby="bmore-h">
+            <div class="bmore-top">
+              <h2 id="bmore-h">Keep reading</h2>
+              <a href="/blog">All posts ${ICON.arrow}</a>
+            </div>
+            <div class="bmore-grid">${more.map((m) => `
+              <a class="bmore-c" href="/blog/${esc(m.slug)}">
+                ${m.tags?.length ? `<span class="bmore-t">${esc(m.tags[0])}</span>` : ''}
+                <span class="bmore-h">${esc(m.title)}</span>
+                <span class="bmore-e">${esc(m.excerpt)}</span>
+                <span class="bmore-go">Read ${ICON.arrow}</span>
+              </a>`).join('')}
+            </div>
+          </section>` : ''}
         </div>
       </article>`,
   }));
 }
 
+const PLAY = 'https://play.google.com/store/apps/details?id=com.billzap.app';
+
+// The people who write here. Keyed by the name in a post's author
+// field, so a post by anyone else still renders, just without a bio.
+const AUTHORS = {
+  'Dakshesh B': {
+    id: 'dakshesh-b',
+    name: 'Dakshesh B',
+    role: 'Full-stack developer · Builder of BillZap',
+    bio: 'Dakshesh B is a full-stack developer who designed and built BillZap, the free '
+      + 'offline GST billing app on Google Play, after watching small shops lose time to '
+      + 'paper bills and confusing software. These guides explain GST, invoicing and '
+      + 'running a shop in plain language, checked against CBIC and GST portal sources.',
+    links: [
+      { label: 'LinkedIn', href: 'https://www.linkedin.com/in/daksheshb' },
+      { label: 'GitHub', href: 'https://github.com/dakshu007' },
+      { label: 'Website', href: 'https://dakshesh.co.in' },
+    ],
+  },
+};
+
+function avatar(name, size) {
+  const ini = String(name).split(/\s+/).map((w) => w[0] || '').join('').slice(0, 2).toUpperCase();
+  return `<span class="bav bav-${size}" aria-hidden="true">${esc(ini)}</span>`;
+}
+
+/** Share links. Plain URLs, so they work with scripts off; the copy
+ *  button is the one thing that needs JavaScript. */
+function share(url, title, where) {
+  const u = encodeURIComponent(url);
+  const t = encodeURIComponent(title);
+  return `<div class="bsh bsh-${where}">
+    <a class="bsh-b" href="https://www.linkedin.com/sharing/share-offsite/?url=${u}" target="_blank" rel="noopener" aria-label="Share on LinkedIn">${ICON.linkedin}<span>LinkedIn</span></a>
+    <a class="bsh-b" href="https://twitter.com/intent/tweet?url=${u}&amp;text=${t}" target="_blank" rel="noopener" aria-label="Share on X">${ICON.x}<span>X</span></a>
+    <a class="bsh-b" href="https://wa.me/?text=${t}%20${u}" target="_blank" rel="noopener" aria-label="Share on WhatsApp">${ICON.whatsapp}<span>WhatsApp</span></a>
+    <button class="bsh-b" type="button" data-copy="${esc(url)}" aria-label="Copy link">${ICON.link}<span>Copy link</span></button>
+  </div>`;
+}
+
+/** "Summarize with AI": each assistant opened with the post's URL and
+ *  a ready-made prompt. Nothing is sent anywhere until the reader
+ *  clicks. */
+function askAi(url, title) {
+  const prompt = encodeURIComponent(
+    `Summarize this article from BillZap in simple bullet points, with the key takeaways `
+    + `for a small business owner in India: ${url}`);
+  const list = [
+    ['ChatGPT', `https://chatgpt.com/?q=${prompt}`],
+    ['Perplexity', `https://www.perplexity.ai/search/new?q=${prompt}`],
+    ['Claude', `https://claude.ai/new?q=${prompt}`],
+    ['Google AI', `https://www.google.com/search?udm=50&q=${prompt}`],
+    ['Grok', `https://grok.com/?q=${prompt}`],
+  ];
+  return list.map(([n, h]) =>
+    `<a href="${h}" target="_blank" rel="noopener nofollow" aria-label="Summarize ${esc(title)} with ${n}">${n}</a>`).join('');
+}
+
+/** Lift the post's "Quick answer" section out of the body, to be shown
+ *  as the AI overview card at the top. Posts without one keep their
+ *  body untouched and the card falls back to the description. */
+function takeOverview(html) {
+  const src = String(html || '');
+  const m = src.match(/<h2[^>]*>\s*(?:quick|short) answer\s*<\/h2>/i);
+  if (!m) return { overview: '', rest: src };
+  const start = m.index + m[0].length;
+  const next = src.slice(start).search(/<h2[\s>]/i);
+  const end = next < 0 ? src.length : start + next;
+  return { overview: src.slice(start, end).trim(),
+           rest: src.slice(0, m.index) + src.slice(end) };
+}
+
+/** Turn the FAQ section's question headings into an accordion. The
+ *  FAQPage markup is read from the original body, so it is unaffected. */
+function faqAccordion(html) {
+  const src = String(html || '');
+  const h2s = [...src.matchAll(/<h2[^>]*>([\s\S]*?)<\/h2>/gi)];
+  const faq = h2s.find((m) => /faq|questions/i.test(textOf(m[1])));
+  if (!faq) return src;
+  const start = faq.index + faq[0].length;
+  const next = h2s.find((m) => m.index > faq.index);
+  const end = next ? next.index : src.length;
+  const block = src.slice(start, end);
+  const parts = block.split(/<h3[^>]*>/i);
+  const lead = parts.shift();
+  const qa = parts.map((part, i) => {
+    const [q, ...rest] = part.split(/<\/h3>/i);
+    return `<details class="bfaq"${i === 0 ? ' open' : ''}><summary>${q}<span class="bfaq-i" aria-hidden="true"></span></summary>`
+      + `<div class="bfaq-a">${rest.join('</h3>')}</div></details>`;
+  }).join('');
+  return src.slice(0, start) + lead + `<div class="bfaqs">${qa}</div>` + src.slice(end);
+}
+
+/** A download card halfway through the article, placed before a
+ *  section heading so it never splits a paragraph or a table. */
+function midCta(html) {
+  const src = String(html || '');
+  const h2s = [...src.matchAll(/<h2[\s>]/gi)].map((m) => m.index);
+  if (h2s.length < 4) return src;
+  const at = h2s[Math.floor(h2s.length / 2)];
+  const card = `<aside class="bmid">
+      <span class="bmid-ico">${ICON.zap}</span>
+      <div><p class="bmid-h">Bill faster with BillZap</p>
+        <p>Free GST billing app: CGST, SGST and IGST worked out for you, UPI QR on every bill, works offline.</p></div>
+      <a class="btn btn-primary" href="${PLAY}" rel="noopener">Download free</a>
+    </aside>`;
+  return src.slice(0, at) + card + src.slice(at);
+}
 
 // Posts are created without a deploy, so they cannot be in the static
 // sitemap.xml. This one is generated from the table on request and
@@ -357,7 +541,9 @@ function outline(html) {
       let n = 1;
       while (used.has(id)) id = `${id}-${++n}`;
       used.add(id);
-      items.push({ id, text, level: tag.toLowerCase() === 'h2' ? 2 : 3 });
+      // The contents list is sections only. Sub-headings, and the
+      // questions under the FAQ, still get anchors but no entry.
+      if (tag.toLowerCase() === 'h2') items.push({ id, text, level: 2 });
       return `<${tag} id="${id}">${inner}</${tag}>`;
     });
   return { html: out, items };
@@ -437,6 +623,20 @@ ${footer({ base: '/' })}
     addEventListener('scroll',s,{passive:true});s();}
   var y=d.getElementById('yr'); if(y){y.textContent=new Date().getFullYear();}
 
+  /* Copy link: the share bar's one button that needs script. */
+  d.querySelectorAll('[data-copy]').forEach(function(b){
+    b.addEventListener('click',function(){
+      var u=b.getAttribute('data-copy'), lab=b.querySelector('span');
+      var done=function(){ if(lab){var o=lab.textContent;lab.textContent='Copied';
+        b.classList.add('ok');setTimeout(function(){lab.textContent=o;b.classList.remove('ok');},1800);} };
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(done,function(){prompt('Copy this link',u);});}
+      else{prompt('Copy this link',u);}
+    });
+  });
+  /* The phone contents menu folds itself away once a section is picked. */
+  var tm=d.querySelector('.btoc-m');
+  if(tm){tm.addEventListener('click',function(e){if(e.target.closest('a'))tm.open=false;});}
+
   /* Light up the contents entry for whatever is on screen. Reading
      position, not click state — somebody who scrolled here without
      touching the list should still see where they are. */
@@ -468,9 +668,20 @@ ${footer({ base: '/' })}
 </html>`;
 }
 
-const ICON_BACK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
-  + 'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-  + '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>';
+const svg = (body, fill = false) => `<svg viewBox="0 0 24 24" ${fill
+  ? 'fill="currentColor"' : 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"'} aria-hidden="true">${body}</svg>`;
+const ICON = {
+  back: svg('<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>'),
+  arrow: svg('<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>'),
+  download: svg('<path d="M12 15V3"/><path d="m7 10 5 5 5-5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>'),
+  sparkle: svg('<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" /><path d="M20 3v4" /><path d="M22 5h-4" /><path d="M4 17v2" /><path d="M5 18H3" />'),
+  list: svg('<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>'),
+  zap: svg('<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>'),
+  link: svg('<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'),
+  linkedin: svg('<path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13M7.12 20.45H3.56V9h3.56zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0"/>', true),
+  x: svg('<path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.4l-5.8-7.58-6.64 7.58H.48l8.6-9.83L0 1.15h7.59l5.24 6.93zm-1.29 19.5h2.04L6.48 3.24H4.3z"/>', true),
+  whatsapp: svg('<path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2m0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2m4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.6.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11.2 11.2 0 0 0 4.3 3.8c1.6.7 2.2.7 3 .6a2.6 2.6 0 0 0 1.7-1.2 2.1 2.1 0 0 0 .1-1.2c0-.1-.2-.2-.4-.3"/>', true),
+};
 
 const abs = (u) => (/^https?:\/\//i.test(u) ? u : `${SITE}${u.startsWith('/') ? '' : '/'}${u}`);
 const iso = (d) => (d ? new Date(d).toISOString() : '');

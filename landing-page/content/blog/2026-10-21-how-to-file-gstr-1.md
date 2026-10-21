@@ -8,7 +8,7 @@ secondary_keywords: [gstr 1 due date, gstr 1 late fee, gstr 1 tables, gstr 1 fil
 tags: [GST guides, Returns, GSTR-1]
 excerpt: A plain-language guide to filing GSTR-1 in 2026, covering due dates, the four tables most small shops need, late fees, nil returns, GSTR-1A and a month-end routine that makes filing take minutes.
 publish_at: 2026-10-21T09:00:00+05:30
-author: BillZap Team
+author: Dakshesh B
 ---
 
 Once a month or once a quarter, every regular GST-registered business tells the government what it sold. That statement is **GSTR-1**. For a shop owner it is often the most stressful part of GST, not because the form is long, but because it asks for numbers that were never kept in one place: every bill, every buyer's GSTIN, every HSN code, every cancelled invoice.

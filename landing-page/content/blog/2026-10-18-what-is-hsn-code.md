@@ -8,7 +8,7 @@ secondary_keywords: [what is hsn code, hsn code in gst, hsn code list, sac code,
 tags: [GST guides, HSN, Small business]
 excerpt: What an HSN code is, how its digits are built, how many your invoice needs under Notification 78/2020, HSN versus SAC, where to find your code, and what changed with the September 2025 GST rates.
 publish_at: 2026-10-18T18:00:00+05:30
-author: BillZap Team
+author: Dakshesh B
 ---
 
 Every line on a GST invoice in India carries a short number that most shop owners copy from a supplier's bill without a second look: the **HSN code**. It looks like paperwork, but it is the number that decides which GST rate applies to the item, and in your GSTR-1 it is the number the tax department uses to check that you charged the right one.

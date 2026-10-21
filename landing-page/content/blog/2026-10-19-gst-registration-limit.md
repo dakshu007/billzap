@@ -8,7 +8,7 @@ secondary_keywords: [gst registration threshold, gst turnover limit, who needs g
 tags: [GST guides, Registration, Small business]
 excerpt: The GST registration limit for goods and services in 2026, what counts towards your turnover, when registration is compulsory at any turnover, and a simple checklist to decide whether you need a GSTIN.
 publish_at: 2026-10-19T18:00:00+05:30
-author: BillZap Team
+author: Dakshesh B
 ---
 
 Most small shop owners in India first hear about the **GST registration limit** from a supplier, a customer or a CA, usually as a single number: "you need GST after ₹40 lakh." That number is right for many shops, but not for all of them. A tailor, a mobile repair shop or a kirana store that ships one parcel to another state can need a GSTIN long before reaching ₹40 lakh, and a business in the north-east can hit its limit at half that figure.

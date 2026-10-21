@@ -8,7 +8,7 @@ secondary_keywords: [how to make gst bill on mobile, gst bill kaise banaye, gst 
 tags: [GST billing, How-to, Small business]
 excerpt: Everything you need to make a correct GST bill from your phone: the details to collect first, apps versus templates versus online generators, and a full walkthrough with the checks that keep the bill valid.
 publish_at: 2026-10-18T09:00:00+05:30
-author: BillZap Team
+author: Dakshesh B
 ---
 
 Ten years ago a GST bill meant a printed bill book or a desktop in the back office. Today most small shops in India make their bills on the same phone they use for UPI, and the question has shifted from "can I make a GST bill on my mobile?" to "how do I make one that is actually correct?"

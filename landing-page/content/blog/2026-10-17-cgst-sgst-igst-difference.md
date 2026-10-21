@@ -8,7 +8,7 @@ secondary_keywords: [cgst sgst igst, what is igst, cgst and sgst, igst vs cgst s
 tags: [GST guides, GST billing, Small business]
 excerpt: When to charge CGST + SGST and when to charge IGST, decided the way the law decides it: by place of supply. Worked examples, the input credit order, and what to do if you got it wrong.
 publish_at: 2026-10-17T18:00:00+05:30
-author: BillZap Team
+author: Dakshesh B
 ---
 
 Every GST bill in India carries one of two tax splits: **CGST + SGST**, or **IGST**. Charge the wrong one and the tax amount is still correct, yet the bill is still wrong. The money goes to the wrong government account, your buyer's input tax credit gets stuck, and fixing it means paying the right tax again and waiting for a refund of the wrong one.

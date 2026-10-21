@@ -8,7 +8,7 @@ secondary_keywords: [composition scheme limit, composition scheme rate, bill of 
 tags: [GST guides, Composition scheme, Small business]
 excerpt: The composition scheme's limits, rates, restrictions and forms, how a bill of supply differs from a tax invoice, and a worked example of when composition actually saves a small shop money.
 publish_at: 2026-10-20T09:00:00+05:30
-author: BillZap Team
+author: Dakshesh B
 ---
 
 Most small shop owners hear about the **GST composition scheme** the same way: someone says "you only pay 1%, and no monthly returns." Both parts are roughly true, and both leave out the detail that decides whether the scheme is right for you. Pay 1% of what, exactly? What do you give up in exchange? And is 1% of your sales actually less than the GST you would pay under the regular scheme?

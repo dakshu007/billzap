@@ -8,7 +8,7 @@ secondary_keywords: [kirana billing software, grocery store billing app, free bi
 tags: [Kirana, Billing apps, Small business]
 excerpt: A buyer's guide for kirana owners: what the counter actually needs from a billing app, a checklist to test any app against, what each setup really costs, and an honest look at the popular options.
 publish_at: 2026-10-21T18:00:00+05:30
-author: BillZap Team
+author: Dakshesh B
 ---
 
 It is 7:30 in the evening. Four customers are at the counter, one wants half a kilo of toor dal weighed out, one is paying by UPI, one wants it "written in the book" until Sunday, and the fourth needs a GST bill for his canteen. Whatever billing app you pick has to cope with exactly that moment, on a phone, often with two bars of signal.

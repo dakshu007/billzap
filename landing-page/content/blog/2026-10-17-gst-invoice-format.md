@@ -8,7 +8,7 @@ secondary_keywords: [gst bill format, tax invoice format, gst invoice sample, gs
 tags: [GST billing, GST guides, Small business]
 excerpt: Every field a GST tax invoice must carry under Rule 46, a filled-in sample bill, the e-invoice and HSN rules for 2026, and the mistakes that get bills rejected.
 publish_at: 2026-10-17T09:00:00+05:30
-author: BillZap Team
+author: Dakshesh B
 ---
 
 Most "GST invoice format" pages give you a template to download and stop there. The template is the easy part. The hard part is knowing which fields the law actually requires, which ones change depending on who the buyer is, and which small mistakes make your customer lose their input tax credit.

@@ -8,7 +8,7 @@ secondary_keywords: [e way bill rules, e way bill validity, e way bill generatio
 tags: [GST guides, E-way bill, Transport]
 excerpt: When you need an e-way bill, how the ₹50,000 limit is counted, how long it stays valid, which goods are exempt, what changed in 2025 and what happens if your goods are stopped without one.
 publish_at: 2026-10-20T18:00:00+05:30
-author: BillZap Team
+author: Dakshesh B
 ---
 
 If you send goods out of your shop or godown in a vehicle, sooner or later someone will ask whether the delivery needs an **e-way bill**. The question usually comes up at the worst moment: the tempo is loaded, the driver is waiting, and nobody is sure whether ₹55,000 of goods going to the next town counts.
