@@ -2,7 +2,7 @@
 title: Input Tax Credit (ITC) in GST: Conditions, Examples and How to Claim (2026)
 slug: input-tax-credit-gst
 meta_title: Input Tax Credit in GST: Conditions & How to Claim (2026)
-meta_desc: Input tax credit in GST explained: the Section 16 conditions, GSTR-2B and IMS, the 180-day rule, blocked credits, the utilisation order and worked examples in rupees.
+meta_desc: Input tax credit in GST explained: Section 16 conditions, GSTR-2B and IMS, the 180-day rule, blocked credits and the utilisation order, with worked examples.
 focus_keyword: input tax credit in gst
 secondary_keywords: [itc in gst, how to claim input tax credit, itc conditions, blocked credit section 17(5), gstr-2b, itc utilisation order]
 tags: [GST guides, Input tax credit, Small business]
@@ -41,7 +41,7 @@ A worked example, for a shop that buys and sells goods at 18%:
 | Sales to customers | ₹70,000 | ₹12,600 (output tax) |
 | **GST payable for the period** | | **₹12,600 − ₹9,000 = ₹3,600** |
 
-Without input tax credit, this shop would pay ₹12,600 to the government even though ₹9,000 of GST was already paid on the same goods at the previous stage. With it, the shop pays tax only on its own value addition: 18% of ₹20,000, which is ₹3,600. If you need the arithmetic behind these figures, our guide on [how to calculate GST](https://billzap.app/blog/how-to-calculate-gst) works through it step by step.
+With credit, the shop pays tax only on its own value addition: 18% of ₹20,000, which is ₹3,600. If you need the arithmetic behind these figures, our guide on [how to calculate GST](https://billzap.app/blog/how-to-calculate-gst) works through it step by step.
 
 Credit is available on **inputs** (stock and materials), **input services** (rent, transport, telephone, accountancy) and **capital goods** (machinery, computers, counters), as long as they are used in the course of business and are not on the blocked list.
 
@@ -51,7 +51,6 @@ Only a person **registered under GST as a regular taxpayer** can claim ITC. Thre
 
 - **Unregistered businesses.** If you are below the [GST registration limit](https://billzap.app/blog/gst-registration-limit) and have not registered, the GST on your purchases is simply a cost.
 - **Composition dealers.** The composition scheme trades a low flat rate on turnover for giving up input tax credit entirely. Our guide to the [GST composition scheme](https://billzap.app/blog/gst-composition-scheme) shows when that trade is worth it.
-- **Anyone using the purchase for something other than business**, or for exempt supplies (more on that below).
 
 **ITC when you first register.** Under Section 18(1), a business that registers can claim credit on the stock it holds on the day before registration, provided it has the purchase invoices. The claim is made in form **ITC-01** within 30 days of becoming eligible.
 
@@ -78,13 +77,13 @@ A few further rules sit alongside these:
 
 Under **Rule 36(4)**, since 1 January 2022 you can claim credit only to the extent it appears in your **GSTR-2B**, the monthly auto-generated statement of purchases your suppliers have reported. The old allowance that let businesses claim an extra 20%, then 10%, then 5% on top of what suppliers had uploaded is gone.
 
-In practice this means your supplier's filing discipline decides your credit. If a supplier uploads an invoice late, the credit moves to the month in which it appears in your GSTR-2B. If they never upload it, you cannot claim it at all, whatever the paper invoice says.
+In practice, your supplier's filing decides your credit. An invoice uploaded late is claimed in the month it appears in GSTR-2B; one never uploaded cannot be claimed at all.
 
 ### The Invoice Management System (IMS)
 
 Since **October 2024**, the GST portal has an **Invoice Management System**. Each invoice your suppliers report appears there, and you can **accept** it, **reject** it, or keep it **pending**. Accepted invoices flow into your GSTR-2B; rejected ones do not; pending ones can be carried forward to a later month.
 
-For a small shop, the useful habit is simple: before GSTR-2B is generated each month, open IMS, accept the invoices you have genuinely received, and reject anything you do not recognise. A wrongly reported invoice is far easier to fix at this stage than after the credit has been claimed.
+The useful habit: before GSTR-2B is generated each month, accept the invoices you have genuinely received and reject anything you do not recognise. A wrong invoice is far easier to fix here than after the credit is claimed.
 
 ## The 180-day payment rule
 
@@ -110,7 +109,7 @@ Under **Section 16(4)**, the credit on an invoice must be claimed by the earlier
 
 So an invoice dated **15 February 2026** (financial year 2025-26) must be claimed by **30 November 2026**, or earlier if you file GSTR-9 for 2025-26 before that date. A credit not claimed by then is lost, even if every other condition was met.
 
-This is why chasing late suppliers matters. If a supplier finally reports a 2025-26 invoice in December 2026, it reaches your GSTR-2B after your deadline has passed.
+A supplier who reports a 2025-26 invoice only in December 2026 has cost you that credit.
 
 ## Blocked credits: Section 17(5)
 
@@ -164,7 +163,7 @@ A shop has these figures for the month:
 | Paid from SGST credit | — | — | ₹2,000 | ₹2,000 |
 | **Paid in cash** | **₹0** | **₹1,000** | **₹2,000** | **₹3,000** |
 
-The total cash payment is ₹22,000 − ₹19,000 = **₹3,000**. The portal works out the set-off in GSTR-3B; the point of knowing the order is to understand why, for example, a large CGST credit cannot reduce an SGST bill.
+The total cash payment is ₹22,000 − ₹19,000 = **₹3,000**. The portal works out the set-off in GSTR-3B; knowing the order explains why a large CGST credit cannot reduce an SGST bill.
 
 ### The 1% cash rule for larger businesses
 
@@ -240,7 +239,7 @@ No. The composition scheme charges a low flat rate on turnover in exchange for g
 
 ## The bottom line
 
-Input tax credit turns GST into a tax on the value you add instead of on the full price, and for most traders it is worth more than any discount a supplier can offer. It is also conditional: a valid invoice with your GSTIN, a supplier who reports and pays on time, payment within 180 days, nothing from the blocked list, and a claim made before the deadline. Miss one, and the credit becomes a cost.
+Input tax credit turns GST into a tax on the value you add instead of on the full price. It is also conditional: a valid invoice with your GSTIN, a supplier who reports and pays on time, payment within 180 days, nothing from the blocked list, and a claim before the deadline. Miss one, and the credit becomes a cost.
 
 The routine that protects it is short: accept invoices in IMS, match GSTR-2B, chase late suppliers and pay your own on time. And on your sales side, give your buyers clean invoices they can claim on. If you want a free app that makes GST invoices with the right GSTINs and tax split, [BillZap is on Google Play](https://play.google.com/store/apps/details?id=com.billzap.app). It works offline with no sign-up.
 
