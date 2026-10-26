@@ -42,4 +42,37 @@ void main() {
     // Removing it is an empty string, which copyWith can express.
     expect(b.copyWith(logoBase64: '').logoBase64, '');
   });
+
+  group('the bill heading follows the tax on it', () {
+    Invoice bill({required bool taxed, String country = 'IN'}) => Invoice(
+          invoiceNumber: 'INV-1',
+          customerName: 'A',
+          invoiceDate: DateTime(2026, 10, 7),
+          dueDate: DateTime(2026, 11, 6),
+          taxCountryCode: country,
+          lineItems: [
+            InvoiceItem(name: 'Rice', quantity: 1, rate: 100, gstRate: 5,
+                applyGst: taxed),
+          ],
+        );
+    Business shop(String gstin) => Business(name: 'Shop', gstin: gstin);
+
+    test('a bill that charges GST is a tax invoice', () {
+      expect(documentTitle(bill(taxed: true), shop('33ABCDE1234F1Z5')),
+          'Tax Invoice');
+    });
+    test('a registered shop billing without tax issues a bill of supply', () {
+      expect(documentTitle(bill(taxed: false), shop('33ABCDE1234F1Z5')),
+          'Bill of Supply');
+    });
+    test('an unregistered shop never prints "tax invoice"', () {
+      expect(documentTitle(bill(taxed: false), shop('')), 'Bill');
+      expect(documentTitle(bill(taxed: false), null), 'Bill');
+    });
+    test('outside India a bill with no tax is an invoice', () {
+      expect(documentTitle(bill(taxed: false, country: 'AE'), shop('')),
+          'Invoice');
+    });
+  });
 }
+

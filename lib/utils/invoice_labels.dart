@@ -54,3 +54,19 @@ bool upiApplies(Invoice inv) => inv.taxCountryCode.toUpperCase() == 'IN';
 /// India, a neutral word everywhere else, where the same field holds a
 /// SWIFT/BIC, sort code or routing number.
 String bankCodeLabel(Invoice inv) => upiApplies(inv) ? 'IFSC' : 'Bank code';
+
+/// The heading printed at the top of the bill.
+///
+/// It used to say "Tax Invoice" on every bill, including bills made
+/// with GST switched off. In India only a GST-registered supplier
+/// charging tax issues a tax invoice (Section 31); a registered supplier
+/// billing without tax — exempt goods, or a composition dealer — issues
+/// a bill of supply (Rule 49); and a shop that is not registered must
+/// not call its bill a tax invoice at all. Outside India a bill with no
+/// tax on it is simply an invoice.
+String documentTitle(Invoice inv, Business? biz) {
+  if (inv.totalTax > 0) return 'Tax Invoice';
+  if (!upiApplies(inv)) return 'Invoice';
+  final registered = (biz?.gstin ?? '').trim().isNotEmpty;
+  return registered ? 'Bill of Supply' : 'Bill';
+}

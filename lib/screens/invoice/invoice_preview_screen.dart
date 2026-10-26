@@ -259,7 +259,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
             ),
             const Gap(AppSpace.md),
             Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              Text('TAX INVOICE',
+              Text(documentTitle(invoice, biz).toUpperCase(),
                   style: doc(AppType.overline, color: inkSoft)),
               const Gap(4),
               Text(invoice.invoiceNumber, style: doc(AppType.labelM)),
@@ -768,7 +768,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                   pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.end,
                       children: [
-                        label('Tax Invoice'),
+                        label(documentTitle(invoice, biz)),
                         pw.SizedBox(height: 4),
                         pw.Text(invoice.invoiceNumber,
                             style: pw.TextStyle(font: _pdfBold, fontSize: 12)),
