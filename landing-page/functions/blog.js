@@ -182,7 +182,7 @@ async function renderPost(slugRaw) {
   const rich = richResults(p.body_html, url);
   const { overview, rest } = takeOverview(p.body_html);
   const { html: outlined, items } = outline(rest);
-  const bodyHtml = midCta(faqAccordion(outlined));
+  const bodyHtml = midCta(inlineCtas(faqAccordion(outlined)));
   const mins = readingTime(p.body_html);
   const keywords = [p.focus_keyword, ...(p.secondary_keywords || []), ...(p.tags || [])]
     .filter(Boolean);
@@ -421,10 +421,26 @@ function faqAccordion(html) {
   return src.slice(0, start) + lead + `<div class="bfaqs">${qa}</div>` + src.slice(end);
 }
 
+/** A post can ask for a download card where the reader needs the app,
+ *  written as a paragraph of its own: [[cta: Headline | Supporting line]].
+ *  The words are the writer's, so each card speaks to that section. */
+function inlineCtas(html) {
+  return String(html || '').replace(
+    /<p>\s*\[\[cta:\s*([^|\]]+?)\s*(?:\|\s*([^\]]+?)\s*)?\]\]\s*<\/p>/gi,
+    (_, head, line) => `<aside class="bcta">
+      <p class="bcta-h">${head}</p>
+      ${line ? `<p class="bcta-p">${line}</p>` : ''}
+      <a class="btn btn-primary btn-lg" href="${PLAY}" rel="noopener">Download BillZap free <span class="chip">${ICON.arrow}</span></a>
+      <p class="bcta-t">Free · No sign-up · Works offline</p>
+    </aside>`);
+}
+
 /** A download card halfway through the article, placed before a
- *  section heading so it never splits a paragraph or a table. */
+ *  section heading so it never splits a paragraph or a table. A post
+ *  that places its own cards gets no extra one. */
 function midCta(html) {
   const src = String(html || '');
+  if (src.includes('class="bcta"')) return src;
   const h2s = [...src.matchAll(/<h2[\s>]/gi)].map((m) => m.index);
   if (h2s.length < 4) return src;
   const at = h2s[Math.floor(h2s.length / 2)];
