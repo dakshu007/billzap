@@ -5,6 +5,9 @@ import 'package:uuid/uuid.dart';
 const _uuid = Uuid();
 String genId() => _uuid.v4();
 
+/// Terms printed on a bill when the shop has not set its own.
+const kDefaultInvoiceTerms = 'Payment due within 30 days.';
+
 // ─── ENUMS ────────────────────────────────────────────────────────────────
 
 enum InvoiceStatus { draft, sent, pending, paid, cancelled }
@@ -64,7 +67,7 @@ class Business {
     this.upiId = '',
     this.invoicePrefix = 'INV-',
     this.nextInvoiceNumber = 1001,
-    this.defaultTerms = 'Payment due within 30 days.',
+    this.defaultTerms = kDefaultInvoiceTerms,
     this.countryCode = 'IN',
     this.customTaxName = 'Tax',
     this.customTaxRate = 0,
@@ -117,7 +120,7 @@ class Business {
     accountNumber: m['accountNumber'] ?? '', ifscCode: m['ifscCode'] ?? '',
     upiId: m['upiId'] ?? '', invoicePrefix: m['invoicePrefix'] ?? 'INV-',
     nextInvoiceNumber: (m['nextInvoiceNumber'] as int?) ?? 1001,
-    defaultTerms: m['defaultTerms'] ?? 'Payment due within 30 days.',
+    defaultTerms: m['defaultTerms'] ?? kDefaultInvoiceTerms,
     countryCode: m['countryCode'] ?? 'IN',
     customTaxName: m['customTaxName'] ?? 'Tax',
     customTaxRate: (m['customTaxRate'] as num?)?.toDouble() ?? 0,
@@ -314,13 +317,23 @@ class Invoice {
     required this.invoiceDate, required this.dueDate,
     required this.lineItems, this.gstType = GstType.cgstSgst,
     this.shippingCharge = 0, this.flatDiscount = 0,
-    this.notes = '', this.terms = 'Payment due within 30 days.',
+    this.notes = '', this.terms = kDefaultInvoiceTerms,
     this.status = InvoiceStatus.sent, DateTime? createdAt,
     this.paidAt, this.placeOfSupply = 'Tamil Nadu (33)',
     DateTime? updatedAt,
   })  : id = id ?? genId(),
         createdAt = createdAt ?? DateTime.now(),
         updatedAt = updatedAt ?? DateTime.now();
+
+  /// Terms for a bill being made now, from the shop's current setting.
+  ///
+  /// Only for new bills: a saved invoice keeps the terms it was issued
+  /// with, so changing the setting never rewrites what was already
+  /// handed to a customer.
+  static String termsFor(Business? biz) {
+    final t = biz?.defaultTerms.trim() ?? '';
+    return t.isEmpty ? kDefaultInvoiceTerms : t;
+  }
 
   void touch() => updatedAt = DateTime.now();
 

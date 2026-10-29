@@ -584,7 +584,9 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
         lineItems: items, gstType: _gstType,
         shippingCharge: _applyShipping ? _shipping : 0,
         flatDiscount: _applyDiscount ? _discount : 0,
-        notes: _notes.text.trim(), placeOfSupply: _place,
+        notes: _notes.text.trim(),
+        terms: Invoice.termsFor(ref.read(businessProvider)),
+        placeOfSupply: _place,
         status: InvoiceStatus.sent);
 
       await ref.read(invoiceProvider.notifier).add(inv);
