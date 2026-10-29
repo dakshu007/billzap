@@ -112,7 +112,7 @@ Bill to: Ravi Canteen, Nashik · Place of supply: Maharashtra (27) · Reverse ch
 | 1 | Basmati rice 5 kg bag | 1006 | 2 | 450.00 | 900.00 | 5% | 22.50 | 22.50 |
 | 2 | Toor dal 1 kg pack | 0713 | 3 | 160.00 | 480.00 | 5% | 12.00 | 12.00 |
 | 3 | Ghee 1 L | 0405 | 1 | 620.00 | 620.00 | 5% | 15.50 | 15.50 |
-| 4 | LED bulb 9 W | 8539 | 2 | 90.00 | 180.00 | 18% | 16.20 | 16.20 |
+| 4 | Detergent powder 1 kg | 3402 | 2 | 90.00 | 180.00 | 18% | 16.20 | 16.20 |
 | | **Total** | | | | **2,180.00** | | **66.20** | **66.20** |
 
 | Summary | Amount (₹) |
@@ -125,7 +125,7 @@ Bill to: Ravi Canteen, Nashik · Place of supply: Maharashtra (27) · Reverse ch
 
 Rupees two thousand three hundred twelve only · Paid by: UPI · For Sharma General Store (signature)
 
-Check it yourself: the three 5% items have a taxable value of ₹2,000, so 2.5% CGST and 2.5% SGST are ₹50 each. The bulb is ₹180 at 18%, so 9% + 9% is ₹16.20 each. ₹50 + ₹16.20 = ₹66.20 per side, ₹132.40 in all, and ₹2,180 + ₹132.40 = ₹2,312.40, rounded to ₹2,312. If the buyer were in another state, the same ₹132.40 would appear as a single **IGST** column instead. Our guide on [how to calculate GST](https://billzap.app/blog/how-to-calculate-gst) shows the formulas behind each line.
+Check it yourself: the three 5% items have a taxable value of ₹2,000, so 2.5% CGST and 2.5% SGST are ₹50 each. The detergent is ₹180 at 18%, so 9% + 9% is ₹16.20 each. ₹50 + ₹16.20 = ₹66.20 per side, ₹132.40 in all, and ₹2,180 + ₹132.40 = ₹2,312.40, rounded to ₹2,312. If the buyer were in another state, the same ₹132.40 would appear as a single **IGST** column instead. Our guide on [how to calculate GST](https://billzap.app/blog/how-to-calculate-gst) shows the formulas behind each line.
 
 Notice what is **not** here: a 12% column. If your old bill book or spreadsheet still has 12% or 28% printed for everyday items, check each item's current rate. Most moved to 5% or 18% in the 2025 reform.
 
