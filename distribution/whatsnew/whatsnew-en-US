@@ -1,5 +1,6 @@
+- Bills without GST now say "Bill" or "Bill of Supply", not "Tax Invoice"
+- Updated for Android 16
 - Discount now comes off before GST, so your customer pays less tax
 - One Products list: pick items on a new bill from the same list you stock
 - Tapping a saved customer now fills phone, GSTIN and address
 - Bill total shows paise and always matches the UPI QR amount
-- Day close counts each payment on the right day

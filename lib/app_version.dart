@@ -17,7 +17,7 @@
 // honest answer for a build that came off somebody's laptop.
 
 /// The marketing version, matching pubspec.yaml's version name.
-const String kVersionName = '1.1.1';
+const String kVersionName = '1.1.2';
 
 /// The build number CI stamped in, or 'dev' for a local build.
 const String kBuildNumber =
