@@ -527,6 +527,71 @@ def minify_css(css):
 
 ICONS = icons()
 
+# The Google Play mark, in its own colours, on the download buttons: a
+# shopkeeper scanning the header should see at once where the app is.
+GP_SVG = (
+    '<svg class="gp" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
+    '<path fill="#00C3FF" d="M3.6 1.9c-.3.3-.5.8-.5 1.4v17.4c0 .6.2 1.1.5 1.4l9.8-10.1z"/>'
+    '<path fill="#FFBC00" d="m16.6 15.3-3.2-3.2 3.2-3.3 3.9 2.2c1.1.6 1.1 1.6 0 2.2z"/>'
+    '<path fill="#FF3A44" d="M16.6 15.3 13.4 12l-9.8 10.1c.4.4 1 .4 1.7 0z"/>'
+    '<path fill="#00E676" d="M16.6 8.7 5.3 2c-.7-.4-1.3-.4-1.7-.1L13.4 12z"/>'
+    '</svg>'
+)
+
+# ── Support page ────────────────────────────────────────────────────
+SUPPORT_EMAIL = 'support@mykavo.app'
+S_TITLE = 'Support — BillZap GST Billing App'
+S_DESC = (
+    'Get help with BillZap: report a problem, ask a question or suggest '
+    f'a feature. Email {SUPPORT_EMAIL}. Quick fixes for PINs, UPI QR, '
+    'backups and languages.'
+)
+# What a useful first email contains, prefilled so nobody has to ask.
+SUPPORT_BODY = (
+    'Phone and Android version:\n'
+    'BillZap version (Me > Settings > About):\n'
+    'What I did:\n'
+    'What I expected:\n'
+    'What happened instead:\n\n'
+    '(Attach a screenshot if you can. Never send your PIN or passwords.)\n'
+)
+
+
+def support_jsonld():
+    graph = [
+        {
+            "@type": "ContactPage",
+            "@id": f"{SITE}/support/#page",
+            "url": f"{SITE}/support/",
+            "name": S_TITLE,
+            "description": S_DESC,
+            "inLanguage": "en",
+            "isPartOf": {"@id": f"{SITE}/#site"},
+            "about": {"@id": f"{SITE}/#app"},
+        },
+        {
+            "@type": "Organization",
+            "@id": f"{SITE}/#org",
+            "contactPoint": {
+                "@type": "ContactPoint",
+                "contactType": "customer support",
+                "email": SUPPORT_EMAIL,
+                "availableLanguage": ["English", "Hindi", "Tamil"],
+            },
+        },
+        {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {"@type": "ListItem", "position": 1, "name": "BillZap",
+                 "item": f"{SITE}/"},
+                {"@type": "ListItem", "position": 2, "name": "Support",
+                 "item": f"{SITE}/support/"},
+            ],
+        },
+    ]
+    return json.dumps({"@context": "https://schema.org", "@graph": graph},
+                      separators=(',', ':'), ensure_ascii=False)
+
 
 def render(fragment, *, home, base=''):
     """Resolve {{ico:…}}, {{home}} and {{base}} in a markup fragment.
@@ -543,7 +608,8 @@ def render(fragment, *, home, base=''):
     download button silently did nothing.
     """
     fragment = (fragment.replace('{{home}}', home).replace('{{base}}', base)
-                        .replace('{{play}}', PLAY_URL.replace('&', '&amp;')))
+                        .replace('{{play}}', PLAY_URL.replace('&', '&amp;'))
+                        .replace('{{gp}}', GP_SVG))
 
     def sub(m):
         name = m.group(1)
@@ -936,6 +1002,19 @@ PRIVACY_HEAD = f"""<meta property="og:type" content="article">
 <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/poppins-400-latin.woff2" crossorigin>"""
 
 
+SUPPORT_HEAD = f"""<meta property="og:type" content="website">
+<meta property="og:site_name" content="BillZap">
+<meta property="og:title" content="BillZap Support">
+<meta property="og:description" content="Report a problem, ask a question or suggest a feature. Email {SUPPORT_EMAIL}.">
+<meta property="og:url" content="{SITE}/support/">
+<meta property="og:image" content="{SITE}/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="{SITE}/assets/og.png">
+
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/plus-jakarta-sans-800-latin.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/poppins-400-latin.woff2" crossorigin>"""
+
+
 BLOG_HEAD_JS = r"""
 export const head = ({ title, desc, canonical, image, ogType = 'website',
                        robots, keywords, css, ld }) => `<head>
@@ -1002,12 +1081,25 @@ def main():
         ld=privacy_jsonld(), body=privacy_body, head_extra=PRIVACY_HEAD,
         asset_prefix='/')
 
+    from urllib.parse import quote
+    support_body = render(
+        open(os.path.join(HERE, 'support.html')).read()
+            .replace('{{email}}', SUPPORT_EMAIL)
+            .replace('{{body}}', quote(SUPPORT_BODY)),
+        home='/')
+    support_html = document(
+        title=S_TITLE, desc=S_DESC, canonical=f'{SITE}/support/',
+        css=css + minify_css(open(os.path.join(HERE, 'support.css')).read()),
+        ld=support_jsonld(), body=support_body, head_extra=SUPPORT_HEAD,
+        asset_prefix='/')
+
     # The comparison pages: the shared sheet plus their own small one.
     alt_pages = alternatives.build(
         document=document, render=render, site=SITE,
         css=css + minify_css(open(os.path.join(HERE, 'alt.css')).read()))
 
     pages = {'index.html': index_html, 'privacy/index.html': privacy_html,
+             'support/index.html': support_html,
              **alt_pages}
     for name, html in pages.items():
         if '{{' in html:

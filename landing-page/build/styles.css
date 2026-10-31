@@ -244,7 +244,23 @@ main{position:relative;z-index:1}
   color:var(--ink-2);transition:color .2s,background .2s}
 .nav a:hover{color:var(--ink);background:rgba(13,17,23,.045)}
 .hdr .btn{flex:none}
-@media (max-width:920px){.nav{display:none}.hdr-in{justify-content:space-between}}
+/* "Try in browser": the demo at /try, beside the download button. */
+.hdr-try{flex:none;display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:99px;
+  border:1px solid var(--line-2);background:rgba(255,255,255,.72);color:var(--ink);font-size:14px;
+  font-weight:600;text-decoration:none;transition:border-color .15s,background .15s,color .15s}
+.hdr-try .ico{width:17px;height:17px;color:var(--jade-600)}
+.hdr-try:hover{border-color:var(--jade-500);background:var(--jade-50);color:var(--jade-700)}
+.hdr-in .nav + .hdr-try{margin-left:clamp(0px,1vw,8px)}
+/* The Google Play mark on download buttons, so "Download" says where. */
+.gp{width:18px;height:18px;flex:none;display:block}
+.btn-gp{gap:9px}
+.btn-sm.btn-gp{padding-left:13px}
+@media (max-width:920px){.nav{display:none}.hdr-in{justify-content:space-between}
+  .hdr-in .hdr-try{margin-left:auto;margin-right:-6px}}
+.hdr-try .t-short{display:none}
+@media (max-width:600px){.hdr-try .t-full{display:none}.hdr-try .t-short{display:inline}.hdr-try{padding:8px 12px}}
+@media (max-width:440px){.hdr .btn-gp .chip{display:none}.hdr .btn-sm.btn-gp{padding-right:14px}.hdr-in{gap:10px}}
+@media (max-width:370px){.hdr .brand{font-size:0;gap:0}}
 
 /* ── Buttons ────────────────────────────────────────────────────────
    The primary is near-black with a jade chip carrying the arrow — the

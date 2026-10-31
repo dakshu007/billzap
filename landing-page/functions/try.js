@@ -62,7 +62,7 @@ function form(q) {
       <input type="hidden" name="source" value="${esc(source)}">
       <button class="btn btn-primary btn-lg" type="submit">Open the demo <span class="chip">${ARROW}</span></button>
       <p class="tf-err" role="alert"></p>
-      <p class="tf-fine">We email you a code to confirm the address. By continuing you agree to our <a href="/privacy/">privacy policy</a>. No spam, and you can ask us to delete your details any time.</p>
+      <p class="tf-fine">We email you a code to confirm the address. By continuing you agree to our <a href="/privacy/">privacy policy</a>. No spam, and you can ask us to delete your details any time at <a href="mailto:support@mykavo.app">support@mykavo.app</a>.</p>
     </form>
     <form id="tf-code" hidden novalidate>
       <h2>Check your email</h2>

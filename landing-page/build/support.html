@@ -1,0 +1,117 @@
+<main id="main">
+<section class="sp">
+  <div class="sp-glow" aria-hidden="true"></div>
+  <div class="wrap">
+
+    <div class="sp-hero">
+      <p class="sp-pill">{{ico:life-buoy}} BillZap support</p>
+      <h1>Stuck on something?<br><span>We'll help you sort it.</span></h1>
+      <p class="sp-lede">A bill that won't share, a GST rate that looks wrong, a PIN you forgot, or an idea for the app: write to us. A real person reads every email.</p>
+    </div>
+
+    <div class="sp-mail rv">
+      <div class="sp-mail-ico">{{ico:mail}}</div>
+      <div class="sp-mail-txt">
+        <p class="sp-mail-k">Email support</p>
+        <a class="sp-mail-addr" href="mailto:{{email}}?subject=BillZap%20support">{{email}}</a>
+        <p class="sp-mail-sub">We read every email and reply as soon as we can. Write in English, Hindi or Tamil, whichever is easier.</p>
+      </div>
+      <div class="sp-mail-act">
+        <a class="btn btn-primary" href="mailto:{{email}}?subject=BillZap%20support&amp;body={{body}}">Write to us <span class="chip">{{ico:send}}</span></a>
+        <button class="sp-copy" type="button" data-copy="{{email}}">{{ico:copy}}<span>Copy address</span></button>
+      </div>
+    </div>
+
+    <h2 class="sp-h2 rv">What do you need help with?</h2>
+    <div class="sp-grid">
+      <a class="sp-card rv" href="mailto:{{email}}?subject=BillZap%20bug%20report&amp;body={{body}}">
+        <span class="sp-ci sp-ci-red">{{ico:bug}}</span>
+        <b>Report a problem</b>
+        <span>Something crashed, a bill came out wrong, or a button does nothing.</span>
+        <em>Report it {{ico:arrow-right}}</em>
+      </a>
+      <a class="sp-card rv" href="mailto:{{email}}?subject=BillZap%20question">
+        <span class="sp-ci sp-ci-blue">{{ico:circle-help}}</span>
+        <b>Ask a question</b>
+        <span>How to set up GST, add your UPI ID, change the language or bill a customer.</span>
+        <em>Ask us {{ico:arrow-right}}</em>
+      </a>
+      <a class="sp-card rv" href="mailto:{{email}}?subject=BillZap%20feature%20idea">
+        <span class="sp-ci sp-ci-amber">{{ico:lightbulb}}</span>
+        <b>Suggest a feature</b>
+        <span>Tell us what would make billing at your counter faster. We build from these.</span>
+        <em>Share an idea {{ico:arrow-right}}</em>
+      </a>
+      <a class="sp-card rv" href="mailto:{{email}}?subject=Delete%20my%20data">
+        <span class="sp-ci sp-ci-jade">{{ico:shield-check}}</span>
+        <b>Privacy or data request</b>
+        <span>Ask what we hold about you from the website demo, or have it deleted.</span>
+        <em>Make a request {{ico:arrow-right}}</em>
+      </a>
+    </div>
+
+    <div class="sp-two">
+      <div class="sp-panel rv">
+        <h2>Help us fix it in one reply</h2>
+        <p>Put these in your email and we can usually answer without asking you anything back:</p>
+        <ul class="sp-checks">
+          <li>{{ico:smartphone}}<span><b>Your phone and Android version</b>, for example "Redmi Note 12, Android 14".</span></li>
+          <li>{{ico:badge-check}}<span><b>The BillZap version.</b> Open <b>Me → Settings</b> and look under About.</span></li>
+          <li>{{ico:list-checks}}<span><b>What you did</b>, what you expected, and what happened instead.</span></li>
+          <li>{{ico:scan-line}}<span><b>A screenshot or screen recording</b> of the problem, if you can.</span></li>
+        </ul>
+        <p class="sp-warn">{{ico:lock}} Never send us your app PIN, bank passwords or OTPs. We will never ask for them.</p>
+      </div>
+
+      <div class="sp-panel rv">
+        <h2>Quick fixes</h2>
+        <details>
+          <summary>I forgot my app PIN {{ico:chevron-down}}</summary>
+          <p>On the lock screen, tap <b>Forgot PIN?</b>. BillZap asks for your latest backup file (it ends in <b>.billzap</b>) and then lets you set a new PIN. Look for the file in your Downloads folder, your email attachments, or WhatsApp media if you sent it to yourself.</p>
+        </details>
+        <details>
+          <summary>The UPI QR is missing from my bills {{ico:chevron-down}}</summary>
+          <p>Add your UPI ID in <b>Me → Settings → Business Profile</b>. The QR then appears on every unpaid rupee bill with the exact amount filled in. Bills already marked paid don't show it.</p>
+        </details>
+        <details>
+          <summary>I changed phones. How do I move my data? {{ico:chevron-down}}</summary>
+          <p>On the old phone open <b>Backup &amp; Export</b> in Settings and save a backup. Send that file to the new phone, install BillZap, and restore it from the same screen. Your bills, customers and products come across.</p>
+        </details>
+        <details>
+          <summary>My bill says "Bill" instead of "Tax Invoice" {{ico:chevron-down}}</summary>
+          <p>That is deliberate. BillZap prints <b>Tax Invoice</b> only when GST is charged. A registered shop billing without tax gets <b>Bill of Supply</b>, and a shop with no GSTIN gets <b>Bill</b>, as the GST rules require. Add your GSTIN and GST rates to your products to issue tax invoices.</p>
+        </details>
+        <details>
+          <summary>How do I change the language? {{ico:chevron-down}}</summary>
+          <p>Open <b>Me → Settings → Language</b> and pick yours. The app switches straight away. Your bills' PDFs stay in English so your customers and accountant can read them.</p>
+        </details>
+      </div>
+    </div>
+
+    <div class="sp-more rv">
+      <a href="/try">{{ico:monitor-smartphone}}<span><b>Try it in your browser</b>See the app with a sample shop before you install.</span></a>
+      <a href="/blog">{{ico:book-open}}<span><b>Read the guides</b>GST bills, rates, returns and running your shop.</span></a>
+      <a href="/privacy/">{{ico:shield-check}}<span><b>Privacy policy</b>What the app and this site store, in plain words.</span></a>
+    </div>
+
+    <div class="sp-cta rv">
+      <div>
+        <h2>Haven't installed BillZap yet?</h2>
+        <p>Free GST billing for your shop. No sign-up, works offline, in Hindi and many Indian languages.</p>
+      </div>
+      <a class="btn btn-primary btn-lg" data-store href="{{play}}" rel="noopener">{{gp}} <span>Download free<span class="sp-lg"> on Google Play</span></span> <span class="chip">{{ico:arrow-right}}</span></a>
+    </div>
+
+  </div>
+</section>
+</main>
+<script>
+document.querySelectorAll('.sp-copy').forEach(function(b){
+  b.addEventListener('click',function(){
+    var v=b.getAttribute('data-copy'), l=b.querySelector('span');
+    var done=function(){l.textContent='Copied';b.classList.add('ok');setTimeout(function(){l.textContent='Copy address';b.classList.remove('ok');},1800);};
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(v).then(done,function(){prompt('Copy this address',v);});}
+    else{prompt('Copy this address',v);}
+  });
+});
+</script>
