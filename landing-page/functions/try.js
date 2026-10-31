@@ -174,7 +174,7 @@ ${head({
 <body class="tz-body">
 <div class="tz">
   <header class="tz-bar">
-    <a class="tz-logo" href="/" aria-label="BillZap home"><span class="tz-mark">${BOLT}</span><b>BillZap</b></a>
+    <a class="tz-logo" href="/" aria-label="BillZap home"><img class="tz-mark" src="/assets/logo-68.png" alt="" width="30" height="30"><b>BillZap</b></a>
     <span class="tz-demo">Demo</span>
     <span class="tz-shop">${esc(shop)}</span>
     <span class="tz-gap"></span>
@@ -208,8 +208,7 @@ html,body.tz-body{height:100%;margin:0;background:var(--canvas)}
 .tz{display:flex;flex-direction:column;height:100dvh;min-height:100%}
 .tz-bar{display:flex;align-items:center;gap:12px;padding:10px clamp(12px,3vw,28px);background:var(--paper);border-bottom:1px solid var(--line)}
 .tz-logo{display:flex;align-items:center;gap:8px;color:var(--ink);text-decoration:none;font-family:'Jakarta','Jakarta Fallback',sans-serif;font-size:18px}
-.tz-mark{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:#fff;background:linear-gradient(150deg,var(--jade-400),var(--jade-700))}
-.tz-mark svg{width:17px;height:17px}
+.tz-mark{width:30px;height:30px;border-radius:8px;display:block}
 .tz-demo{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--jade-700);background:var(--jade-50);border:1px solid var(--jade-100);padding:3px 8px;border-radius:99px}
 .tz-shop{color:var(--ink-2);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .tz-gap{flex:1}

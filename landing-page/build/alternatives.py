@@ -940,10 +940,10 @@ def head(title, desc, url, keywords, site):
 <meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{esc(desc)}">
 <meta property="og:url" content="{url}">
-<meta property="og:image" content="{site}/assets/og.png">
+<meta property="og:image" content="{site}/assets/og-v2.png">
 <meta property="og:locale" content="en_IN">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="{site}/assets/og.png">
+<meta name="twitter:image" content="{site}/assets/og-v2.png">
 
 <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/plus-jakarta-sans-800-latin.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/poppins-400-latin.woff2" crossorigin>"""

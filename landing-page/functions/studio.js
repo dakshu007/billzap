@@ -33,7 +33,7 @@ export async function handler(event) {
 const LOGIN = `<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><title>Sign in</title>
-<link rel="icon" href="/assets/icon-32.png">
+<link rel="icon" href="/assets/logo-32.png">
 <style>${BASE_CSS}
 body{display:grid;place-items:center;min-height:100dvh;padding:24px}
 .card{width:min(400px,100%);background:var(--pap);border-radius:var(--r-l);
@@ -50,7 +50,7 @@ form{text-align:left}
 .card .btn{width:100%;padding:13px}
 </style></head><body>
 <div class="card">
-  <div class="mark"><img src="/assets/icon-68.png" alt=""></div>
+  <div class="mark"><img src="/assets/logo-68.png" alt=""></div>
   <h1>BillZap Studio</h1>
   <p class="sub">Sign in to write and publish.</p>
   <form id="f">

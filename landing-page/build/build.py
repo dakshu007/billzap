@@ -306,7 +306,7 @@ def jsonld():
             "url": SITE,
             "downloadUrl": PLAY_URL,
             "installUrl": PLAY_URL,
-            "image": f"{SITE}/assets/og.png",
+            "image": f"{SITE}/assets/og-v2.png",
             "inLanguage": ["en", "hi", "ta", "te", "kn", "ml", "mr", "gu",
                            "bn", "pa", "or", "ur"],
             "offers": {
@@ -340,7 +340,7 @@ def jsonld():
             "@id": f"{SITE}/#org",
             "name": "BillZap",
             "url": SITE,
-            "logo": f"{SITE}/assets/icon-512.png",
+            "logo": f"{SITE}/assets/logo-512.png",
             "sameAs": ["https://github.com/dakshu007/billzap"],
         },
         {
@@ -361,7 +361,7 @@ def jsonld():
             "isPartOf": {"@id": f"{SITE}/#site"},
             "about": {"@id": f"{SITE}/#app"},
             "dateModified": today,
-            "primaryImageOfPage": f"{SITE}/assets/og.png",
+            "primaryImageOfPage": f"{SITE}/assets/og-v2.png",
             # The answer paragraph and the FAQ: the parts written to be
             # read out by an assistant.
             "speakable": {"@type": "SpeakableSpecification",
@@ -1010,9 +1010,9 @@ def document(*, title, desc, canonical, css, ld, body, head_extra='',
 <meta name="theme-color" content="#F7F8F7">
 <meta name="color-scheme" content="light">
 {head_extra}
-<link rel="icon" href="{asset_prefix}assets/icon-32.png" sizes="32x32" type="image/png">
-<link rel="icon" href="{asset_prefix}assets/icon-512.png" sizes="512x512" type="image/png">
-<link rel="apple-touch-icon" href="{asset_prefix}assets/icon-180.png">
+<link rel="icon" href="{asset_prefix}assets/logo-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="{asset_prefix}assets/logo-512.png" sizes="512x512" type="image/png">
+<link rel="apple-touch-icon" href="{asset_prefix}assets/logo-180.png">
 <link rel="manifest" href="{asset_prefix}site.webmanifest">
 
 <style>{css}</style>
@@ -1033,7 +1033,7 @@ INDEX_HEAD = f"""<meta name="keywords" content="{KEYWORDS}">
 <meta property="og:title" content="BillZap — Free GST Billing App That Works Offline">
 <meta property="og:description" content="Make a GST tax invoice in 30 seconds with no internet. UPI QR on every bill, PDF to WhatsApp, GSTR-1 export. 12 Indian languages. Free forever.">
 <meta property="og:url" content="{SITE}/">
-<meta property="og:image" content="{SITE}/assets/og.png">
+<meta property="og:image" content="{SITE}/assets/og-v2.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="BillZap — free GST billing for Indian shops">
@@ -1042,7 +1042,7 @@ INDEX_HEAD = f"""<meta name="keywords" content="{KEYWORDS}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="BillZap — Free GST Billing App That Works Offline">
 <meta name="twitter:description" content="GST invoices in 30 seconds, offline. UPI QR on every bill. 12 Indian languages. Free forever.">
-<meta name="twitter:image" content="{SITE}/assets/og.png">
+<meta name="twitter:image" content="{SITE}/assets/og-v2.png">
 
 <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/plus-jakarta-sans-800-latin.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/poppins-400-latin.woff2" crossorigin>"""
@@ -1052,9 +1052,9 @@ PRIVACY_HEAD = f"""<meta property="og:type" content="article">
 <meta property="og:title" content="Privacy Policy — BillZap">
 <meta property="og:description" content="No accounts, no server, no analytics. Your invoices stay on your phone.">
 <meta property="og:url" content="{SITE}/privacy/">
-<meta property="og:image" content="{SITE}/assets/og.png">
+<meta property="og:image" content="{SITE}/assets/og-v2.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="{SITE}/assets/og.png">
+<meta name="twitter:image" content="{SITE}/assets/og-v2.png">
 
 <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/plus-jakarta-sans-800-latin.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/poppins-400-latin.woff2" crossorigin>"""
@@ -1065,9 +1065,9 @@ SUPPORT_HEAD = f"""<meta property="og:type" content="website">
 <meta property="og:title" content="BillZap Support">
 <meta property="og:description" content="Report a problem, ask a question or suggest a feature. Email {SUPPORT_EMAIL}.">
 <meta property="og:url" content="{SITE}/support/">
-<meta property="og:image" content="{SITE}/assets/og.png">
+<meta property="og:image" content="{SITE}/assets/og-v2.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="{SITE}/assets/og.png">
+<meta name="twitter:image" content="{SITE}/assets/og-v2.png">
 
 <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/plus-jakarta-sans-800-latin.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/poppins-400-latin.woff2" crossorigin>"""
@@ -1079,9 +1079,9 @@ MYMONEY_HEAD = f"""<meta name="keywords" content="daily expense tracker, expense
 <meta property="og:title" content="My Money: know what you can safely spend today">
 <meta property="og:description" content="A free daily expense tracker inside BillZap. Log spends in seconds, set a monthly budget, see where your money goes.">
 <meta property="og:url" content="{SITE}/my-money/">
-<meta property="og:image" content="{SITE}/assets/og.png">
+<meta property="og:image" content="{SITE}/assets/og-v2.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="{SITE}/assets/og.png">
+<meta name="twitter:image" content="{SITE}/assets/og-v2.png">
 
 <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/plus-jakarta-sans-800-latin.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/poppins-400-latin.woff2" crossorigin>"""
@@ -1106,13 +1106,13 @@ ${keywords ? `<meta name="keywords" content="${attr(keywords)}">` : ''}
 <meta property="og:title" content="${attr(title)}">
 <meta property="og:description" content="${attr(desc)}">
 <meta property="og:url" content="${canonical}">
-<meta property="og:image" content="${image || '__SITE__/assets/og.png'}">
+<meta property="og:image" content="${image || '__SITE__/assets/og-v2.png'}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="${image || '__SITE__/assets/og.png'}">
+<meta name="twitter:image" content="${image || '__SITE__/assets/og-v2.png'}">
 
-<link rel="icon" href="/assets/icon-32.png" sizes="32x32" type="image/png">
-<link rel="icon" href="/assets/icon-512.png" sizes="512x512" type="image/png">
-<link rel="apple-touch-icon" href="/assets/icon-180.png">
+<link rel="icon" href="/assets/logo-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="/assets/logo-512.png" sizes="512x512" type="image/png">
+<link rel="apple-touch-icon" href="/assets/logo-180.png">
 <link rel="manifest" href="/site.webmanifest">
 <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/plus-jakarta-sans-800-latin.woff2" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/poppins-400-latin.woff2" crossorigin>
@@ -1203,8 +1203,8 @@ def main():
     # deploy without anyone copying markup around.
     # Asset paths are rooted for the function-rendered pages. The
     # static pages sit at a known depth and can use relative paths;
-    # /blog/<slug> cannot — "assets/icon-68.png" there resolves to
-    # /blog/assets/icon-68.png and the logo simply fails to load.
+    # /blog/<slug> cannot — "assets/logo-68.png" there resolves to
+    # /blog/assets/logo-68.png and the logo simply fails to load.
     def rooted(markup):
         return (markup.replace('"assets/', '"/assets/')
                       .replace('"site.webmanifest', '"/site.webmanifest'))

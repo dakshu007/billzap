@@ -181,12 +181,12 @@ const I = {
 export const DASHBOARD = `<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><title>BillZap Studio</title>
-<link rel="icon" href="/assets/icon-32.png">
+<link rel="icon" href="/assets/logo-32.png">
 <style>${BASE_CSS}${APP_CSS}</style>
 </head><body>
 
 <header class="top"><div class="top-in">
-  <a class="brand" href="#"><img src="/assets/icon-68.png" alt=""> BillZap <span>Studio</span></a>
+  <a class="brand" href="#"><img src="/assets/logo-68.png" alt=""> BillZap <span>Studio</span></a>
   <div class="sp"></div>
   <a class="btn btn-g" href="/blog" target="_blank" rel="noopener">View blog</a>
   <button class="btn btn-g" id="out">Sign out</button>

@@ -219,7 +219,7 @@ async function renderPost(slugRaw) {
     desc,
     canonical: url,
     keywords: keywords.join(', '),
-    image: p.cover_url ? abs(p.cover_url) : `${SITE}/assets/og.png`,
+    image: p.cover_url ? abs(p.cover_url) : `${SITE}/assets/og-v2.png`,
     ogType: 'article',
     ld,
     body: `
