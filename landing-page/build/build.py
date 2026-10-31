@@ -557,6 +557,64 @@ SUPPORT_BODY = (
 )
 
 
+# ── My Money page ───────────────────────────────────────────────────
+M_TITLE = 'My Money: Free Daily Expense Tracker & Budget App | BillZap'
+M_DESC = (
+    'Track your daily expenses, set a monthly budget and see what you can '
+    'safely spend today. Free, offline, no sign-up. Made for students, '
+    'first jobs and homes.'
+)
+M_FAQ = [
+    ('Is My Money really free?',
+     'Yes. It is part of BillZap, which is free with no subscription and no ads in the app.'),
+    ('Do I need to run a business to use it?',
+     'No. BillZap asks for a business name during setup because its main job is billing for '
+     'shops. Type your own name and use only My Money if you like.'),
+    ('How is "safe to spend today" worked out?',
+     'It takes what is left of your monthly budget, adds back what you have already spent '
+     'today, and divides by the days left in the month, today included. Then it subtracts '
+     "today's spending so far."),
+    ('Can it read my bank SMS or UPI history?',
+     'No. You add expenses yourself. My Money never reads your messages, contacts or bank '
+     'accounts, and nothing leaves your phone.'),
+    ('Does it work on iPhone?', 'Not yet. BillZap is on Android for now.'),
+]
+
+
+def mymoney_jsonld():
+    graph = [
+        {
+            "@type": "WebPage",
+            "@id": f"{SITE}/my-money/#page",
+            "url": f"{SITE}/my-money/",
+            "name": M_TITLE,
+            "description": M_DESC,
+            "inLanguage": "en",
+            "isPartOf": {"@id": f"{SITE}/#site"},
+            "about": {"@id": f"{SITE}/#app"},
+        },
+        {
+            "@type": "FAQPage",
+            "mainEntity": [
+                {"@type": "Question", "name": q,
+                 "acceptedAnswer": {"@type": "Answer", "text": a}}
+                for q, a in M_FAQ
+            ],
+        },
+        {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {"@type": "ListItem", "position": 1, "name": "BillZap",
+                 "item": f"{SITE}/"},
+                {"@type": "ListItem", "position": 2, "name": "My Money",
+                 "item": f"{SITE}/my-money/"},
+            ],
+        },
+    ]
+    return json.dumps({"@context": "https://schema.org", "@graph": graph},
+                      separators=(',', ':'), ensure_ascii=False)
+
+
 def support_jsonld():
     graph = [
         {
@@ -1015,6 +1073,20 @@ SUPPORT_HEAD = f"""<meta property="og:type" content="website">
 <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/poppins-400-latin.woff2" crossorigin>"""
 
 
+MYMONEY_HEAD = f"""<meta name="keywords" content="daily expense tracker, expense tracker app, monthly budget app, expense tracker for students, money manager app India, budget planner">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="BillZap">
+<meta property="og:title" content="My Money: know what you can safely spend today">
+<meta property="og:description" content="A free daily expense tracker inside BillZap. Log spends in seconds, set a monthly budget, see where your money goes.">
+<meta property="og:url" content="{SITE}/my-money/">
+<meta property="og:image" content="{SITE}/assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="{SITE}/assets/og.png">
+
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/plus-jakarta-sans-800-latin.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/poppins-400-latin.woff2" crossorigin>"""
+
+
 BLOG_HEAD_JS = r"""
 export const head = ({ title, desc, canonical, image, ogType = 'website',
                        robots, keywords, css, ld }) => `<head>
@@ -1093,6 +1165,13 @@ def main():
         ld=support_jsonld(), body=support_body, head_extra=SUPPORT_HEAD,
         asset_prefix='/')
 
+    mymoney_html = document(
+        title=M_TITLE, desc=M_DESC, canonical=f'{SITE}/my-money/',
+        css=css + minify_css(open(os.path.join(HERE, 'mymoney.css')).read()),
+        ld=mymoney_jsonld(),
+        body=render(open(os.path.join(HERE, 'mymoney.html')).read(), home='/'),
+        head_extra=MYMONEY_HEAD, asset_prefix='/')
+
     # The comparison pages: the shared sheet plus their own small one.
     alt_pages = alternatives.build(
         document=document, render=render, site=SITE,
@@ -1100,6 +1179,7 @@ def main():
 
     pages = {'index.html': index_html, 'privacy/index.html': privacy_html,
              'support/index.html': support_html,
+             'my-money/index.html': mymoney_html,
              **alt_pages}
     for name, html in pages.items():
         if '{{' in html:
