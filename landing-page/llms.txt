@@ -10,7 +10,6 @@
 **Platform:** Android 7.0 and above (~32 MB)
 **Price:** Free. There is no paid tier, no trial period and no cap on
 invoices. This is the complete app, not a limited edition of it.
-**Source:** https://github.com/dakshu007/billzap
 **Last updated:** 16 October 2026
 
 ## What it is
@@ -225,4 +224,3 @@ vendor's own site and may have changed since.
 - [Tally alternative](https://billzap.app/alternatives/tally/)
 - [Google Play](https://play.google.com/store/apps/details?id=com.billzap.app):
   install the app, with no form and no email required
-- [Source on GitHub](https://github.com/dakshu007/billzap)

@@ -341,7 +341,6 @@ def jsonld():
             "name": "BillZap",
             "url": SITE,
             "logo": f"{SITE}/assets/logo-512.png",
-            "sameAs": ["https://github.com/dakshu007/billzap"],
         },
         {
             "@type": "WebSite",

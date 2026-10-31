@@ -344,7 +344,6 @@ const AUTHORS = {
       + 'running a shop in plain language, checked against CBIC and GST portal sources.',
     links: [
       { label: 'LinkedIn', href: 'https://www.linkedin.com/in/daksheshb' },
-      { label: 'GitHub', href: 'https://github.com/dakshu007' },
       { label: 'Website', href: 'https://dakshesh.co.in' },
     ],
   },
