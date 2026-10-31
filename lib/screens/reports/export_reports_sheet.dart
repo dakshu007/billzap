@@ -18,6 +18,7 @@ import '../../utils/csv_helper.dart';
 import '../../utils/report_csv_helper.dart';
 import '../../utils/report_pdf_builder.dart';
 import '../../utils/gstr1_builder.dart';
+import '../../demo/demo_mode.dart';
 
 enum _ReportKind { monthlyRevenue, profitLoss, gstSummary, invoiceStatus }
 enum _PeriodPreset { thisMonth, lastMonth, thisQuarter, thisYear, allTime, custom }
@@ -119,6 +120,7 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
   // ═══════════════════════════════════════════════════════════════
 
   Future<void> _exportPdf(_ReportKind kind) async {
+    if (demoBlocked(context, 'Exporting reports')) return;
     if (_busy) return;
     setState(() => _busy = true);
     try {
@@ -168,6 +170,7 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
   }
 
   Future<void> _exportCsv(_ReportKind kind) async {
+    if (demoBlocked(context, 'Exporting reports')) return;
     if (_busy) return;
     setState(() => _busy = true);
     try {
@@ -216,6 +219,7 @@ class _ExportReportsState extends ConsumerState<ExportReportsSheet> {
   }
 
   Future<void> _exportGstr1Json() async {
+    if (demoBlocked(context, 'The GSTR-1 file')) return;
     if (_busy) return;
     setState(() => _busy = true);
     try {

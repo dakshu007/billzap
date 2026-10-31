@@ -28,6 +28,7 @@ import '../../utils/business_logo.dart';
 import '../../utils/invoice_labels.dart';
 import '../../utils/phone_number.dart';
 import '../../utils/upi_helper.dart';
+import '../../demo/demo_mode.dart';
 
 /// The saved copy of [selected] from [all], falling back to [selected]
 /// itself if it is not in the list.
@@ -56,6 +57,17 @@ class InvoicePreviewScreen extends ConsumerStatefulWidget {
 class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
   bool _pdfLoading   = false;
   bool _printLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (kDemoMode && demoJustMadeBill) {
+      demoJustMadeBill = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) showFirstBillPrompt(context);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -721,8 +733,13 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
         );
 
     doc.addPage(pw.Page(
-      pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.all(38),
+      pageTheme: pw.PageTheme(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(38),
+        // The browser demo's bills say what they are, so the demo is a
+        // way to try BillZap and not a free web version to bill from.
+        buildForeground: kDemoMode ? (_) => _demoMark() : null,
+      ),
       build: (_) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
@@ -1065,6 +1082,23 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
                 font: bold, fontSize: 7, color: _pInkFaint, letterSpacing: 0.8)),
       );
 
+  static pw.Widget _demoMark() => pw.Center(
+        child: pw.Opacity(
+          opacity: 0.13,
+          child: pw.Transform.rotate(
+            angle: 0.5,
+            child: pw.Column(mainAxisSize: pw.MainAxisSize.min, children: [
+              pw.Text('SAMPLE',
+                  style: pw.TextStyle(
+                      font: _pdfBold, fontSize: 96, color: PdfColors.black)),
+              pw.Text('Made with the BillZap demo  ·  billzap.app',
+                  style: pw.TextStyle(
+                      font: _pdfBold, fontSize: 14, color: PdfColors.black)),
+            ]),
+          ),
+        ),
+      );
+
   static pw.Widget _pCell(String t,
           {bool right = false, pw.Font? bold}) =>
       pw.Padding(
@@ -1081,6 +1115,12 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
     try {
       final doc   = await buildPdf(invoice, biz);
       final bytes = await doc.save();
+      if (kDemoMode) {
+        // A browser has no documents folder; it downloads the bytes.
+        await Printing.sharePdf(
+            bytes: bytes, filename: 'BillZap_${invoice.invoiceNumber}_sample.pdf');
+        return;
+      }
       final dir   = await getApplicationDocumentsDirectory();
       final file  = File('${dir.path}/BillZap_${invoice.invoiceNumber}.pdf');
       await file.writeAsBytes(bytes);
@@ -1156,6 +1196,7 @@ class _PreviewState extends ConsumerState<InvoicePreviewScreen> {
   }
 
   Future<void> _sendWhatsApp(Invoice invoice, Business? biz) async {
+    if (demoBlocked(context, 'Sending bills on WhatsApp')) return;
     final isPaid = invoice.status == InvoiceStatus.paid;
 
     // Build UPI link for payment

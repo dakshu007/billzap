@@ -43,7 +43,7 @@ app.*.map.json
 
 # Local
 local.properties
-main_demo.dart
+# lib/main_demo.dart is tracked: the deploy builds the /try demo from it.
 main_fresh.dart
 
 # Staging folder the landing-page deploy builds; never committed.

@@ -41,7 +41,7 @@ SITE = 'https://billzap.app'
 # build.
 #
 # Bump it when the wording changes.
-UPDATED = '2026-09-16'
+UPDATED = '2026-11-01'
 
 # The same idea for the home page: the date its content last changed,
 # shown as "Updated …" and sent as dateModified. Kept apart from

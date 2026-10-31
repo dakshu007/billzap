@@ -36,6 +36,7 @@ import '../../personal/spending.dart';
 import '../../personal/spending_store.dart';
 import '../../tax/active_profile.dart';
 import '../../utils/smart_amount.dart';
+import '../../demo/demo_mode.dart';
 
 IconData spendIcon(String category) => switch (category) {
       'food' => Symbols.utensils,
@@ -1317,6 +1318,7 @@ class _RecurringSheetState extends ConsumerState<_RecurringSheet> {
 // ═════════════════════════════════════════════════════════════════════
 
 Future<void> _export(BuildContext context, List<Spend> spends) async {
+  if (demoBlocked(context, 'Exporting your spending')) return;
   final messenger = ScaffoldMessenger.of(context);
   if (spends.isEmpty) {
     messenger.showSnackBar(SnackBar(content: Text(trGlobal('mm.empty_title'))));

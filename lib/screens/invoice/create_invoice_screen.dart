@@ -24,6 +24,7 @@ import '../../i18n/translations.dart';
 import '../../tax/active_profile.dart';
 import '../../tax/regions.dart';
 import '../../tax/tax_profile.dart';
+import '../../demo/demo_mode.dart';
 
 class CreateInvoiceScreen extends ConsumerStatefulWidget {
   const CreateInvoiceScreen({super.key});
@@ -704,6 +705,7 @@ class _CreateState extends ConsumerState<CreateInvoiceScreen> {
 
       if (!mounted) return;
       ref.read(selectedInvoiceProvider.notifier).select(inv);
+      if (kDemoMode) demoJustMadeBill = true;
       context.go('/preview');
     } catch (e) {
       if (!mounted) return;

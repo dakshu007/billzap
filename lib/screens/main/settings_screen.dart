@@ -31,6 +31,7 @@ import '../../widgets/country_picker.dart';
 import '../../tax/countries.dart';
 import '../../tax/regions.dart';
 import '../../tax/tax_profile.dart';
+import '../../demo/demo_mode.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -684,6 +685,7 @@ class _AboutPanelState extends ConsumerState<_AboutPanel> {
   }
 
   Future<void> _toggleAppLock() async {
+    if (demoBlocked(context, 'App lock')) return;
     HapticFeedback.lightImpact();
     if (AppLockService.instance.isEnabled) {
       final ok = await confirm(context,
@@ -1675,6 +1677,7 @@ class _LogoFieldState extends ConsumerState<_LogoField> {
   bool _busy = false;
 
   Future<void> _pick() async {
+    if (demoBlocked(context, 'Adding your logo')) return;
     if (_busy) return;
     HapticFeedback.lightImpact();
     setState(() => _busy = true);

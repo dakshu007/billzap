@@ -23,6 +23,7 @@ import '../screens/onboarding/onboarding_screen.dart';
 import '../design/components.dart';
 import '../design/tokens.dart';
 import '../i18n/translations.dart';
+import '../demo/demo_mode.dart';
 import 'package:billzap/theme/app_icons.dart';
 
 CustomTransitionPage<void> _slideRight(BuildContext c, GoRouterState s, Widget w) {
@@ -79,7 +80,19 @@ final routerProvider = Provider<GoRouter>((ref) {
     // who lands on it from a stale shortcut should see the app, not a
     // debug screen.
     errorBuilder: (context, state) => const _RouteNotFound(),
+    // The browser demo cannot back up, lock or listen; those screens
+    // explain that the feature is in the app instead.
+    redirect: (context, state) {
+      if (!kDemoMode) return null;
+      final feature = demoBlockedRoutes[state.matchedLocation];
+      return feature == null ? null : '/demo-only?f=${Uri.encodeComponent(feature)}';
+    },
     routes: [
+      GoRoute(
+        path: '/demo-only',
+        builder: (_, s) => DemoOnlyInAppScreen(
+            feature: s.uri.queryParameters['f'] ?? 'This feature'),
+      ),
       GoRoute(
         path: '/splash',
         pageBuilder: (c, s) => _fade(c, s, const SplashScreen()),

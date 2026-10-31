@@ -29,4 +29,5 @@
 
   // Secrets (set by the deploy workflow, never committed):
   //   DATABASE_URL, ADMIN_PATH, ADMIN_PASSWORD, SESSION_SECRET
+  //   RESEND_API_KEY, RESEND_FROM (optional: the /try email codes)
 }

@@ -29,6 +29,7 @@ import '../services/gst_classifier.dart';
 import '../tax/active_profile.dart';
 import '../theme/app_theme.dart';
 import '../utils/csv_import.dart';
+import '../demo/demo_mode.dart';
 
 enum CsvImportKind { products, customers }
 
@@ -68,6 +69,7 @@ class _CsvImportSheetState extends ConsumerState<_CsvImportSheet> {
   int get _ready => _products ? _newProducts.length : _newCustomers.length;
 
   Future<void> _pick() async {
+    if (demoBlocked(context, 'Importing from a CSV file')) return;
     if (_busy) return;
     setState(() {
       _busy = true;

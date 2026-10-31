@@ -14,6 +14,7 @@ import '../../i18n/translations.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
+import '../../demo/demo_mode.dart';
 
 class CashDrawerScreen extends ConsumerStatefulWidget {
   const CashDrawerScreen({super.key});
@@ -409,6 +410,7 @@ class _CashDrawerState extends ConsumerState<CashDrawerScreen> {
     double cash, double upi, double bank, double other, double unknown,
     double expenseTotal, double net,
   ) async {
+    if (demoBlocked(context, 'Sharing the day summary')) return;
     HapticFeedback.lightImpact();
     final bizName = (biz?.name as String?)?.isNotEmpty == true ? biz!.name : trGlobal('dc.business');
     final dateStr = uiDate('EEE, d MMM y', _selectedDate);

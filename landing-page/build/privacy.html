@@ -29,6 +29,7 @@
         <li>{{ico:circle-check}} <span>There is <strong>no analytics, no advertising and no tracking</strong> of any kind in the app.</span></li>
         <li>{{ico:circle-check}} <span>The only data that ever leaves your phone is what <strong>you</strong> send — a PDF you share, or a voice command you speak.</span></li>
         <li>{{ico:circle-check}} <span>This <strong>website</strong> is a separate matter: it has analytics, which never touches the app. <a href="#site">The details are below</a>. The app itself is installed from Google Play.</span></li>
+        <li>{{ico:circle-check}} <span>The <strong>browser demo</strong> at <a href="/try">billzap.app/try</a> asks for a business name and email before it opens. That is the one place we collect contact details, and <a href="#try">what we do with them is below</a>.</span></li>
       </ul>
 
       <h2>What BillZap stores, and where</h2>
@@ -176,6 +177,35 @@
         nothing to fill in.
       </p>
 
+      <h3 id="try">The browser demo at /try</h3>
+      <p>
+        The demo at <a href="/try">billzap.app/try</a> is the app running
+        in your browser with a sample shop. Before it opens we ask for
+        your <strong>business name</strong> and <strong>email</strong>,
+        and we email you a six-digit code to confirm the address. We
+        keep:
+      </p>
+      <ul>
+        <li>{{ico:circle-check}} <span>the business name and email you typed, whether you confirmed the email, and whether you ticked the box asking for tips and updates;</span></li>
+        <li>{{ico:circle-check}} <span>when you first and last opened the demo, how many times, and the browser's user-agent string;</span></li>
+        <li>{{ico:circle-check}} <span>a one-way, keyed hash of your IP address, used only to stop the form being used to flood someone's inbox. The IP address itself is not stored.</span></li>
+      </ul>
+      <p>
+        We use the email to send the code, and to write to you about
+        BillZap only if you ticked the box. We do not sell or share it.
+        The codes are sent through
+        <a href="https://resend.com/legal/privacy-policy" rel="noopener">Resend</a>,
+        and the details are stored in a database hosted by
+        <a href="https://neon.com/privacy-policy" rel="noopener">Neon</a>.
+        To have your details deleted, open an issue at the address under
+        Contact below, or reply to any email we send you.
+      </p>
+      <p>
+        Whatever you type <em>inside</em> the demo — bills, customers,
+        products — stays in your browser and is wiped each time the demo
+        opens. It is never sent to us.
+      </p>
+
       <h3>Analytics</h3>
       <p>
         This site uses Google Analytics to count visits and see which
@@ -200,9 +230,9 @@
 
       <h3>Hosting</h3>
       <p>
-        Netlify serves the site and keeps standard server access logs —
+        Cloudflare serves the site and keeps standard request logs —
         see
-        <a href="https://www.netlify.com/privacy/" rel="noopener">Netlify's
+        <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener">Cloudflare's
         privacy policy</a>. The pages themselves load no external fonts,
         no CDN scripts and no embeds; a strict content security policy
         blocks anything that is not listed here from loading at all.

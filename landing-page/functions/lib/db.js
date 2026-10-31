@@ -98,6 +98,37 @@ async function migrate() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )`;
 
+  // The browser demo at /try: who asked for it, and the email codes
+  // that prove the address is theirs. One row per email; a returning
+  // visitor updates theirs. Codes are stored hashed and die after ten
+  // minutes or five wrong guesses.
+  await sql`
+    CREATE TABLE IF NOT EXISTS try_leads (
+      id            BIGSERIAL PRIMARY KEY,
+      email         TEXT UNIQUE NOT NULL,
+      business_name TEXT NOT NULL,
+      marketing_ok  BOOLEAN NOT NULL DEFAULT false,
+      verified_at   TIMESTAMPTZ,
+      visits        INTEGER NOT NULL DEFAULT 0,
+      source        TEXT NOT NULL DEFAULT '',
+      ip_hash       TEXT NOT NULL DEFAULT '',
+      user_agent    TEXT NOT NULL DEFAULT '',
+      created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+      last_seen_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS try_codes (
+      id         BIGSERIAL PRIMARY KEY,
+      email      TEXT NOT NULL,
+      code_hash  TEXT NOT NULL,
+      ip_hash    TEXT NOT NULL DEFAULT '',
+      attempts   INTEGER NOT NULL DEFAULT 0,
+      expires_at TIMESTAMPTZ NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`;
+  await sql`CREATE INDEX IF NOT EXISTS try_codes_email_idx ON try_codes (email, created_at DESC)`;
+  await sql`CREATE INDEX IF NOT EXISTS try_codes_ip_idx ON try_codes (ip_hash, created_at DESC)`;
+
   await unInlineImages();
   return true;
 }

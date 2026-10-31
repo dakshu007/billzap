@@ -3,7 +3,9 @@
 // would each pay their own cold start.
 import { sql, ready } from './lib/db.js';
 import { isAuthed, issueCookie, clearCookie, verifyPassword } from './lib/auth.js';
-import { sanitize, textOf, slugify } from './lib/html.js';
+import { sanitize, textOf, slugify, esc } from './lib/html.js';
+import { issueTryCookie, clearTryCookie } from './lib/try-session.js';
+import crypto from 'node:crypto';
 
 const json = (status, body, extra = {}) => ({
   statusCode: status,
@@ -35,9 +37,18 @@ export async function handler(event) {
       return json(200, { ok: true }, { 'Set-Cookie': clearCookie() });
     }
 
+    // ── The browser demo at /try ─────────────────────────────────
+    if (route === 'try/start' && method === 'POST') return await tryStart(event, payload);
+    if (route === 'try/verify' && method === 'POST') return await tryVerify(payload);
+    if (route === 'try/reset' && method === 'POST') {
+      return json(200, { ok: true }, { 'Set-Cookie': clearTryCookie() });
+    }
+
     // ── Everything below needs a session ─────────────────────────
     if (!isAuthed(event.headers || {})) return json(401, { error: 'Not signed in.' });
     await ready();
+
+    if (route === 'try/leads.csv' && method === 'GET') return await leadsCsv();
 
     if (route === 'posts' && method === 'GET') {
       const rows = await sql`
@@ -167,4 +178,155 @@ async function uniqueSlug(base, ownId) {
     if (!rows.length) return slug;
     slug = `${base}-${++n}`;
   }
+}
+
+// ── /try: the browser demo's form ────────────────────────────────────
+//
+// Business name and email in, a six-digit code out by email (Resend),
+// the code back in, and a cookie that opens the demo. Until
+// RESEND_API_KEY is set the code step is skipped: the lead is kept,
+// unverified, and the visitor goes straight in, so /try works from the
+// first deploy.
+
+const EMAIL_RE = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)*\.[A-Za-z]{2,}$/;
+
+/** A keyed hash: nothing stored here can be turned back into an IP or a code. */
+const keyed = (s) => crypto.createHmac('sha256', process.env.SESSION_SECRET || '')
+  .update(s).digest('hex');
+
+function cleanEmail(v) { return String(v || '').trim().toLowerCase().slice(0, 254); }
+
+async function tryStart(event, p) {
+  const shop = String(p.business || '').replace(/\s+/g, ' ').trim().slice(0, 60);
+  const email = cleanEmail(p.email);
+  if (shop.length < 2) return json(400, { error: 'Enter your business name.' });
+  if (!EMAIL_RE.test(email)) return json(400, { error: 'Enter a valid email address.' });
+
+  await ready();
+  const headers = event.headers || {};
+  const ip = headers['cf-connecting-ip'] || '';
+  const ipHash = ip ? keyed('ip:' + ip).slice(0, 32) : '';
+
+  // Enough for a typo and a retry; not enough to use the form to
+  // flood somebody else's inbox.
+  const [{ n: perEmail }] = await sql`
+    SELECT count(*)::int AS n FROM try_codes
+     WHERE email = ${email} AND created_at > now() - interval '15 minutes'`;
+  if (perEmail >= 3) {
+    return json(429, { error: 'Too many codes for this email. Try again in 15 minutes.' });
+  }
+  if (ipHash) {
+    const [{ n }] = await sql`
+      SELECT count(*)::int AS n FROM try_codes
+       WHERE ip_hash = ${ipHash} AND created_at > now() - interval '1 hour'`;
+    if (n >= 10) return json(429, { error: 'Too many attempts. Try again in an hour.' });
+  }
+
+  const [lead] = await sql`
+    INSERT INTO try_leads (email, business_name, marketing_ok, source, ip_hash, user_agent)
+    VALUES (${email}, ${shop}, ${!!p.marketing}, ${String(p.source || '').slice(0, 80)},
+            ${ipHash}, ${String(headers['user-agent'] || '').slice(0, 300)})
+    ON CONFLICT (email) DO UPDATE SET
+      business_name = EXCLUDED.business_name,
+      marketing_ok  = try_leads.marketing_ok OR EXCLUDED.marketing_ok,
+      user_agent    = EXCLUDED.user_agent,
+      last_seen_at  = now()
+    RETURNING id`;
+
+  if (!process.env.RESEND_API_KEY) {
+    await sql`UPDATE try_leads SET visits = visits + 1 WHERE id = ${lead.id}`;
+    return json(200, { ok: true, otp: false },
+      { 'Set-Cookie': issueTryCookie({ id: Number(lead.id), shop }) });
+  }
+
+  const code = String(crypto.randomInt(0, 1000000)).padStart(6, '0');
+  await sql`
+    INSERT INTO try_codes (email, code_hash, ip_hash, expires_at)
+    VALUES (${email}, ${keyed(`code:${email}:${code}`)}, ${ipHash},
+            now() + interval '10 minutes')`;
+  if (!(await sendCode(email, code, shop))) {
+    return json(502, { error: "We couldn't send the email. Check the address and try again." });
+  }
+  return json(200, { ok: true, otp: true });
+}
+
+async function tryVerify(p) {
+  const email = cleanEmail(p.email);
+  const code = String(p.code || '').replace(/\D/g, '').slice(0, 6);
+  await ready();
+  const [row] = await sql`
+    SELECT id, code_hash, attempts FROM try_codes
+     WHERE email = ${email} AND expires_at > now()
+     ORDER BY created_at DESC LIMIT 1`;
+  if (!row) return json(400, { error: 'That code has expired. Ask for a new one.' });
+  if (row.attempts >= 5) return json(429, { error: 'Too many wrong codes. Ask for a new one.' });
+
+  const want = Buffer.from(row.code_hash);
+  const got = Buffer.from(keyed(`code:${email}:${code}`));
+  if (code.length !== 6 || want.length !== got.length || !crypto.timingSafeEqual(want, got)) {
+    await sql`UPDATE try_codes SET attempts = attempts + 1 WHERE id = ${row.id}`;
+    return json(400, { error: "That code isn't right. Check the email and try again." });
+  }
+
+  await sql`DELETE FROM try_codes WHERE email = ${email}`;
+  const [lead] = await sql`
+    UPDATE try_leads SET verified_at = COALESCE(verified_at, now()),
+                         visits = visits + 1, last_seen_at = now()
+     WHERE email = ${email} RETURNING id, business_name`;
+  if (!lead) return json(400, { error: 'Start again with your business name and email.' });
+  return json(200, { ok: true },
+    { 'Set-Cookie': issueTryCookie({ id: Number(lead.id), shop: lead.business_name }) });
+}
+
+async function sendCode(email, code, shop) {
+  const from = process.env.RESEND_FROM || 'BillZap <hello@billzap.app>';
+  const text = `Your BillZap demo code is ${code}\n\n` +
+    `Enter it on billzap.app/try to open the demo shop for ${shop}. ` +
+    `It expires in 10 minutes.\n\nIf you didn't ask for this, ignore this email.\n\n` +
+    `BillZap: free GST billing app for Android\nhttps://billzap.app`;
+  const html = `<div style="font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#0D1117">
+<p style="font-size:15px;margin:0 0 16px">Your BillZap demo code is</p>
+<p style="font-size:34px;font-weight:700;letter-spacing:8px;margin:0 0 16px;color:#066B4A">${code}</p>
+<p style="font-size:14px;line-height:1.6;margin:0 0 16px">Enter it on <b>billzap.app/try</b> to open the demo shop for <b>${esc(shop)}</b>. It expires in 10 minutes.</p>
+<p style="font-size:13px;color:#5b6470;margin:0 0 24px">If you didn't ask for this, ignore this email.</p>
+<p style="font-size:13px;color:#5b6470;margin:0">BillZap: free GST billing app for Android<br><a href="https://billzap.app" style="color:#066B4A">billzap.app</a></p>
+</div>`;
+  try {
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+                 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from, to: [email], subject: `${code} is your BillZap demo code`,
+                             text, html }),
+    });
+    if (!r.ok) { console.error('resend', r.status, (await r.text()).slice(0, 300)); return false; }
+    return true;
+  } catch (e) {
+    console.error('resend', e);
+    return false;
+  }
+}
+
+/** Every lead, for the owner: signed in to the studio, open /api/try/leads.csv. */
+async function leadsCsv() {
+  const rows = await sql`
+    SELECT business_name, email, verified_at IS NOT NULL AS verified, marketing_ok,
+           visits, source, created_at, last_seen_at
+      FROM try_leads ORDER BY created_at DESC`;
+  // A cell starting with = + - @ is a formula to a spreadsheet.
+  const cell = (v) => {
+    let s = v instanceof Date ? v.toISOString() : String(v ?? '');
+    if (/^[=+\-@]/.test(s)) s = "'" + s;
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const head = ['business_name', 'email', 'verified', 'marketing_ok', 'visits', 'source',
+                'created_at', 'last_seen_at'];
+  const body = [head.join(','), ...rows.map((r) => head.map((k) => cell(r[k])).join(','))]
+    .join('\n') + '\n';
+  return {
+    statusCode: 200,
+    headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Cache-Control': 'no-store',
+               'Content-Disposition': 'attachment; filename="billzap-try-leads.csv"' },
+    body,
+  };
 }

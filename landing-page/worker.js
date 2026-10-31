@@ -15,6 +15,8 @@
 import { handler as blog } from './functions/blog.js';
 import { handler as api } from './functions/api.js';
 import { handler as studio } from './functions/studio.js';
+import { handler as tryPage } from './functions/try.js';
+import { readTry } from './functions/lib/try-session.js';
 // Search Console ownership file. Served from here, not the asset
 // store: static assets redirect /x.html to /x, and Google wants the
 // exact filename to answer 200.
@@ -59,6 +61,7 @@ function route(path) {
       path === '/sitemap-blog.xml') return blog;
   if (path === '/api' || path.startsWith('/api/')) return api;
   if (path === '/s' || path.startsWith('/s/')) return studio;
+  if (path === '/try' || path === '/try/') return tryPage;
   return null;
 }
 
@@ -79,6 +82,14 @@ export default {
     const exact = EXACT[path];
     if (exact) return redirect(exact[0], exact[1]);
     for (const [from, to] of PREFIX) if (path.startsWith(from)) return redirect(to, 301);
+
+    // The demo app's files are public, but its page opens only for
+    // somebody who has been through the form at /try.
+    if (path === '/try/app') return redirect('/try/app/', 301);
+    if ((path === '/try/app/' || path === '/try/app/index.html') &&
+        !readTry(request.headers.get('cookie') || '')) {
+      return redirect('/try', 302);
+    }
 
     const fn = route(path);
     const res = fn ? await run(fn, request, url) : await env.ASSETS.fetch(request);
@@ -138,6 +149,15 @@ function withHeaders(res, path) {
   } else if (path.startsWith('/api/') || path === '/api') {
     h.set('X-Robots-Tag', 'noindex, nofollow');
     h.set('Cache-Control', 'no-store');
+  } else if (path.startsWith('/try/app/')) {
+    // The Flutter demo. It compiles WebAssembly (CanvasKit), may run a
+    // worker from a blob, and fetches fallback fonts for scripts the
+    // bundled fonts lack, so it gets its own policy. Nothing in it is
+    // content for a search engine, and its file names do not change
+    // between deploys, so every file revalidates.
+    h.set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://fonts.gstatic.com; worker-src 'self' blob:; frame-ancestors 'self'; base-uri 'self'; object-src 'none'");
+    h.set('X-Robots-Tag', 'noindex, nofollow');
+    h.set('Cache-Control', 'public, max-age=0, must-revalidate');
   } else if (path === '/llms.txt' || path === '/llms-full.txt') {
     // Read by crawlers that expect text/plain, not a download.
     h.set('Content-Type', 'text/plain; charset=utf-8');

@@ -22,6 +22,10 @@ name: Deploy landing page
 # Domains on the Worker — DNS records and certificates included (see
 # wrangler.jsonc). There is nothing to set up by hand in DNS.
 #
+# The demo at /try sends its email codes with Resend when the optional
+# RESEND_API_KEY (and RESEND_FROM) repository secrets exist; without
+# them it skips the code step.
+#
 # The blog and studio need four Worker secrets: DATABASE_URL,
 # ADMIN_PATH, ADMIN_PASSWORD, SESSION_SECRET. A repository secret of
 # the same name always wins. Otherwise, the first time a secret is
@@ -34,6 +38,12 @@ on:
     paths:
       - 'landing-page/**'
       - '.github/workflows/landing-page.yml'
+      # The demo at /try is the app itself, built from lib/main_demo.dart.
+      - 'lib/**'
+      - 'web/**'
+      - 'assets/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
   workflow_dispatch:
     inputs:
       production:
@@ -104,6 +114,28 @@ jobs:
           echo "Publishing:"
           find dist -type f | sort | sed 's/^/  /'
 
+      # The browser demo at /try/app/: the real app with a sample shop
+      # (lib/main_demo.dart), compiled to the web. Everything it loads is
+      # bundled — CanvasKit included — so it depends on no CDN.
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.4'
+          channel: 'stable'
+          cache: true
+
+      - name: Build the demo app for /try
+        run: |
+          flutter build web --release -t lib/main_demo.dart \
+            --base-href /try/app/ --no-web-resources-cdn --no-wasm-dry-run
+          rm -f build/web/flutter_service_worker.js
+          mkdir -p landing-page/dist/try
+          cp -r build/web landing-page/dist/try/app
+          du -sh landing-page/dist/try/app
+          # Workers static assets refuse any file over 25 MiB.
+          big=$(find landing-page/dist/try/app -type f -size +24M)
+          if [ -n "$big" ]; then echo "::error::Too large for Workers assets: $big"; exit 1; fi
+
       # wrangler (pinned in package-lock.json) and the Neon driver the
       # handlers import; wrangler bundles the Worker with it.
       - name: Install dependencies
@@ -139,6 +171,8 @@ jobs:
           GH_ADMIN_PATH: ${{ secrets.ADMIN_PATH }}
           GH_ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
           GH_SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          GH_RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          GH_RESEND_FROM: ${{ secrets.RESEND_FROM }}
         run: |
           # Secrets the Worker already has. Empty on the very first
           # deploy, when the Worker does not exist yet.
@@ -148,6 +182,8 @@ jobs:
           import json, os, urllib.request
 
           NAMES = ['DATABASE_URL', 'ADMIN_PATH', 'ADMIN_PASSWORD', 'SESSION_SECRET']
+          # Optional: without them /try skips the email code step.
+          OPTIONAL = ['RESEND_API_KEY', 'RESEND_FROM']
           tmp = os.environ['RUNNER_TEMP']
           try:
               have = {s['name'] for s in json.load(open(f'{tmp}/have.json'))}
@@ -186,6 +222,15 @@ jobs:
               else:
                   src = 'MISSING'
                   print(f'::warning::{name} is not set: the blog/studio will not work until it is.')
+              print(f'  {name:15} {src}')
+          for name in OPTIONAL:
+              gh = os.environ.get('GH_' + name, '')
+              if gh:
+                  out[name] = gh; src = 'repository secret'
+              elif name in have:
+                  src = 'already set on the Worker'
+              else:
+                  src = 'not set (optional)'
               print(f'  {name:15} {src}')
           for v in out.values():
               print(f'::add-mask::{v}')
@@ -265,6 +310,16 @@ jobs:
                  grep -o '<!-- diag:[^>]*-->' /tmp/body || echo "  (no diagnostic in the body)"
                  grep -o '<!-- env:[^>]*-->' /tmp/body || true
                  fail=1; }
+
+          echo "── /try demo ──"
+          check "GET /try (form)"       200 "$(code $SITE/try)"
+          grep -q 'tf-start' /tmp/body && echo "  ok    /try shows the form" \
+            || { echo "  FAIL  /try has no form"; fail=1; }
+          check "GET /try/app/ without a session (302 to /try)" 302 "$(code $SITE/try/app/)"
+          check "GET /try/app/main.dart.js" 200 "$(code $SITE/try/app/main.dart.js)"
+          check "GET /try/app/canvaskit/canvaskit.wasm" 200 "$(code $SITE/try/app/canvaskit/canvaskit.wasm)"
+          check "POST /api/try/start with no email (400)" 400 \
+            "$(code -X POST -H 'Content-Type: application/json' -d '{"business":"Test"}' $SITE/api/try/start)"
 
           echo "── blog extras ──"
           check "GET /sitemap-blog.xml" 200 "$(code $SITE/sitemap-blog.xml)"
