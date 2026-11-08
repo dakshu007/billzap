@@ -21,7 +21,7 @@ Which GST due dates apply to you depends on how you are registered:
 
 - **Regular, monthly filer:** **GSTR-1 by the 11th** and **GSTR-3B by the 20th** of the next month.
 - **Regular, quarterly (QRMP) filer** (turnover up to ₹5 crore): **PMT-06 tax payment by the 25th** of the first two months of each quarter, then **GSTR-1 by the 13th** and **GSTR-3B by the 22nd or 24th** (depending on your state) of the month after the quarter. The optional **IFF** for business sales is due on the 13th.
-- **Composition dealer:** **CMP-08 by the 18th** of the month after each quarter, and **GSTR-4 by 30 April** after the year.
+- **Composition dealer:** **CMP-08 by the 18th** of the month after each quarter, and **GSTR-4 by 30 June** after the year.
 - **Big dates in this period:** **30 November 2026** is the last date to claim input tax credit and fix FY 2025-26 invoices; **31 December 2026** is the GSTR-9 due date for FY 2025-26.
 - **No automatic extension:** a due date falling on a Sunday or holiday is not reliably extended under GST. File a day early.
 
@@ -33,7 +33,7 @@ Find your row first. Every date in the calendar below is tagged with who it appl
 | --- | --- | --- |
 | **Regular, monthly** (any turnover; compulsory above ₹5 crore) | GSTR-1 and GSTR-3B every month | 11th and 20th of the next month |
 | **Regular, QRMP** (turnover up to ₹5 crore, opted in) | PMT-06 in months 1 and 2 of the quarter; GSTR-1 and GSTR-3B once a quarter; IFF optional | 25th; then 13th and 22nd/24th after the quarter |
-| **Composition** | CMP-08 every quarter, GSTR-4 once a year | 18th after the quarter; 30 April |
+| **Composition** | CMP-08 every quarter, GSTR-4 once a year | 18th after the quarter; 30 June |
 | **Regular with no sales or purchases** (nil) | Still GSTR-1 and GSTR-3B, as nil returns (can be filed by SMS) | Same dates as above |
 | **TDS deductors** (government bodies) and **e-commerce operators** | GSTR-7 and GSTR-8 | 10th of the next month |
 
@@ -116,7 +116,6 @@ Dates are the statutory due dates. The day of the week is shown so you can see w
 | Tue 20 Apr | GSTR-3B | March | Monthly filers |
 | Thu 22 Apr | GSTR-3B | January–March | QRMP filers, Category X states |
 | Sat 24 Apr | GSTR-3B | January–March | QRMP filers, Category Y states |
-| Fri 30 Apr | GSTR-4 | FY 2026-27 | Composition dealers |
 
 ### Category X and Category Y states
 
@@ -147,7 +146,7 @@ Before your October GSTR-3B (due 20 November) or November return, compare your p
 
 The annual return is **compulsory above ₹2 crore** aggregate turnover and **optional** up to that. GSTR-9C, the reconciliation statement, applies above ₹5 crore. Our [GSTR-9 guide](https://billzap.app/blog/gstr-9) has the late fee slabs and a worked reconciliation.
 
-Composition dealers do not file GSTR-9; their annual return is **GSTR-4**, due 30 April. See our guide to the [GST composition scheme](https://billzap.app/blog/gst-composition-scheme).
+Composition dealers do not file GSTR-9; their annual return is **GSTR-4**, due 30 June (moved from 30 April from FY 2024-25 onwards), so the FY 2026-27 return is due by Wednesday 30 June 2027. See our guide to the [GST composition scheme](https://billzap.app/blog/gst-composition-scheme).
 
 ## What if a due date falls on a Sunday or holiday?
 
@@ -222,7 +221,7 @@ The 25th of the month following each of the first two months of a quarter. For O
 
 ### When is CMP-08 due for October to December 2026?
 
-18 January 2027. Composition dealers then file GSTR-4 for the whole year by 30 April.
+18 January 2027. Composition dealers then file GSTR-4 for the whole year by 30 June.
 
 ### Is the due date extended if it falls on a Sunday?
 
