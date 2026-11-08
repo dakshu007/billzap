@@ -131,7 +131,7 @@ A regular taxpayer who sells both taxable and exempt items to an unregistered cu
 
 A new business can choose composition while applying for registration, without a separate CMP-02.
 
-**Late fees and interest.** A late CMP-08 attracts a late fee of **₹50 per day** (₹20 per day for a nil statement), subject to a cap, plus interest at **18% a year** on any tax paid late. Using the scheme when you were not eligible is treated more seriously: the tax difference becomes payable with interest, and penalties can follow.
+**Late fees and interest.** CMP-08 itself carries **no late fee**, but tax paid after the 18th attracts interest at **18% a year**. The annual GSTR-4 does carry a late fee if filed after 30 June (₹50 a day, ₹20 a day for a nil return, subject to a cap). Using the scheme when you were not eligible is treated more seriously: the tax difference becomes payable with interest, and penalties can follow.
 
 Compare this with the regular scheme, which needs [GSTR-1](https://billzap.app/blog/how-to-file-gstr-1) and GSTR-3B every month, or every quarter under QRMP with monthly tax payments. Four short statements and one annual return is a lighter load, and it is the main reason small shops choose composition.
 
