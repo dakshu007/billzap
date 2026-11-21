@@ -4,6 +4,6 @@
   "type": "module",
   "description": "Landing page, public blog and the admin studio behind it.",
   "dependencies": {
-    "@neondatabase/serverless": "^0.10.4"
+    "@neondatabase/serverless": "^1.2.1"
   }
 }
