@@ -23,6 +23,7 @@ import os
 from datetime import date
 
 import alternatives
+import features
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, '..')
@@ -1172,6 +1173,11 @@ def main():
         head_extra=MYMONEY_HEAD, asset_prefix='/')
 
     # The comparison pages: the shared sheet plus their own small one.
+    # One landing page per feature, plus the /features/ hub.
+    feature_pages = features.build(
+        document=document, render=render, site=SITE,
+        css=css + minify_css(open(os.path.join(HERE, 'features.css')).read()))
+
     alt_pages = alternatives.build(
         document=document, render=render, site=SITE,
         css=css + minify_css(open(os.path.join(HERE, 'alt.css')).read()))
@@ -1179,6 +1185,7 @@ def main():
     pages = {'index.html': index_html, 'privacy/index.html': privacy_html,
              'support/index.html': support_html,
              'my-money/index.html': mymoney_html,
+             **feature_pages,
              **alt_pages}
     for name, html in pages.items():
         if '{{' in html:

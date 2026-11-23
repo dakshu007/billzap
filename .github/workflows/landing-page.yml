@@ -106,7 +106,7 @@ jobs:
         working-directory: landing-page
         run: |
           rm -rf dist && mkdir -p dist
-          for item in index.html privacy support my-money alternatives assets llms.txt llms-full.txt \
+          for item in index.html privacy support my-money features alternatives assets llms.txt llms-full.txt \
                       robots.txt sitemap.xml site.webmanifest _headers; do
             [ -e "$item" ] || { echo "::error::missing $item"; exit 1; }
             cp -r "$item" dist/
@@ -293,6 +293,10 @@ jobs:
           check "GET /"                200 "$(code $SITE/)"
           check "GET /privacy/"        200 "$(code $SITE/privacy/)"
           check "GET /my-money/"       200 "$(code $SITE/my-money/)"
+          check "GET /features/"       200 "$(code $SITE/features/)"
+          for f in gst-billing non-gst-billing upi-qr-billing whatsapp-invoice offline-billing voice-billing stock-management payment-reminders reports-gstr1 expenses-day-close billing-in-indian-languages app-lock-backup; do
+            check "GET /features/$f/" 200 "$(code $SITE/features/$f/)"
+          done
           check "GET /support/"        200 "$(code $SITE/support/)"
           grep -q 'support@mykavo.app' /tmp/body && echo "  ok    /support/ shows the support email" \
             || { echo "  FAIL  /support/ has no support email"; fail=1; }
