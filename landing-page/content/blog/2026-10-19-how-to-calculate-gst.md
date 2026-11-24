@@ -165,7 +165,7 @@ When a single discount is given on the whole bill, it has to be shared across th
 
 The rice carries 70.62% of the bill's value, so it takes 70.62% of the discount. The customer pays ₹3,576.00 + ₹315.38 = **₹3,891.38**. Putting the whole ₹100 against one line would give a different tax figure, because the two lines are taxed at different rates.
 
-Discounts given *after* the sale, such as a year-end volume rebate, are handled differently: they reduce the value only if they were agreed in advance and are linked to specific invoices, and they go through a credit note. Ask your accountant before treating those as a price cut.
+Discounts given *after* the sale, such as a year-end volume rebate, are handled differently: they go through a credit note, and the buyer has to reverse the matching input tax credit. From 1 November 2026 the Finance Act 2026 dropped the old conditions that such a discount had to be agreed in advance and linked to specific invoices. See our guide to [credit notes in GST](https://billzap.app/blog/credit-note-in-gst), and ask your accountant before treating one as a price cut.
 
 ## Rounding: paise, rupees and the round-off line
 
