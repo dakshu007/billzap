@@ -202,7 +202,8 @@ BillZap is a free GST billing app for Android. It works offline, needs no sign-u
 For composition dealers, here is what it does and what it does not:
 
 - **What it does:** you can switch GST off on a bill, so the bill prints without any tax lines. Bills are numbered in sequence, and each item keeps its HSN code and price, so the details Rule 49 asks for are there on every bill.
-- **What it does not do:** it does not print the title "Bill of Supply" or the composition declaration automatically. Add the line **"composition taxable person, not eligible to collect tax on supplies"** in the notes field of the bill.
+- **Bill heading:** once your GSTIN is saved and a bill carries no tax, BillZap heads it **"Bill of Supply"** automatically.
+- **What it does not do:** it does not add the composition declaration for you. Add the line **"composition taxable person, not eligible to collect tax on supplies"** in the notes field of the bill (or stamp it on printed copies, since the rule asks for it at the top), and confirm the layout with your CA. See our full guide to the [bill of supply](https://billzap.app/blog/bill-of-supply).
 
 If you are on the regular scheme, BillZap creates full GST invoices with CGST, SGST or IGST worked out from the place of supply, and exports a summary laid out for GSTR-1. You can [download BillZap from Google Play](https://play.google.com/store/apps/details?id=com.billzap.app).
 
